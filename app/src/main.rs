@@ -1429,6 +1429,9 @@ fn main() {
     let settings = load_settings();
     let config = cached_config();
     tauri::Builder::default()
+        // one launcher at a time: it hides to the tray while the game runs, and a click on the shortcut started another copy
+        // every time (a player had dozens; their ticks fought over Elite.launchconfig) - now that click shows the running one
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_window(app)))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().pubkey(UPDATER_PUBKEY.trim()).build())
