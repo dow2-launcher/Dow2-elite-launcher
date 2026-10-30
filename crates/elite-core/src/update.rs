@@ -293,6 +293,8 @@ pub struct Summary {
     pub downloaded: u64,
     pub reused: u64,
     pub from_cache: u64,
+    /// whole files taken from another launcher on the local network (lan.rs)
+    pub from_lan: u64,
 }
 
 /// Elite was installed by hand (or by an older tool) and the launcher has no state for it yet.
@@ -486,6 +488,21 @@ fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]
         }
         let _ = fs::remove_file(&tmp);
         let _ = fs::remove_file(&cached);
+    }
+
+    // a2) the whole file from another launcher on the local network; taken only if its SHA-256 is the manifest's
+    if f.size >= 256 * 1024 {
+        let got = File::create(&tmp).map(|mut t| crate::lan::fetch(&shahex, f.size, &mut t, &m.cancel)).unwrap_or(false);
+        if got && File::open(&tmp).and_then(cdc::sha256).map(|(s, z)| s == f.sha && z == f.size).unwrap_or(false) {
+            if dst.exists() {
+                stash(game, &dst, cur_sha);
+            }
+            fs::rename(&tmp, &dst)?;
+            sum.from_lan += f.size;
+            tick(f.size);
+            return Ok(());
+        }
+        let _ = fs::remove_file(&tmp);
     }
 
     // b) build from the old file + downloaded chunks

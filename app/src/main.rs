@@ -64,6 +64,8 @@ struct Settings {
     fb_name: String,
     /// Hide the window to the tray once the game starts. None = on.
     tray_on_play: Option<bool>,
+    /// Elite files from/to other launchers on the local network (elite_core::lan). None = on.
+    lan_share: Option<bool>,
     /// Hotkeys the player changed: "scope:name" -> "Control+A" ("grid:AB_key_1" for Grid Hotkeys); see elite_core::hotkeys.
     hotkeys: BTreeMap<String, String>,
     /// Community (chat, who is online): the session token from the Steam sign-in and the profile it belongs to.
@@ -441,6 +443,7 @@ fn get_status(app: State<'_, App>) -> Value {
         })).collect::<Vec<_>>(),
         "usage_stats": s.usage_stats.unwrap_or(true),
         "tray_on_play": s.tray_on_play.unwrap_or(true),
+        "lan_share": s.lan_share.unwrap_or(true),
         "release_news": app.release_news.lock().unwrap().clone(),
         "costs": app.costs.lock().unwrap().clone(),
         "prev_channel": s.prev_channel.filter(|p| p != &channel && cfgd.channels.iter().any(|c| &c.id == p)),
@@ -514,6 +517,7 @@ fn set_setting(app: State<'_, App>, key: String, value: Value) {
         "cache_mb" => s.cache_mb = value.as_u64(),
         "usage_stats" => s.usage_stats = value.as_bool(),
         "tray_on_play" => s.tray_on_play = value.as_bool(),
+        "lan_share" => { s.lan_share = value.as_bool(); elite_core::lan::ENABLED.store(s.lan_share.unwrap_or(true), Ordering::Relaxed); }
         "dismiss" => {
             if let Some(id) = value.as_str() {
                 s.dismissed.push(id.to_string());
@@ -1449,6 +1453,19 @@ fn main() {
             ),
         })
         .setup(|app| {
+            // Elite for the neighbours on the local network: the files of the installed version and of the version cache,
+            // only those still as installed (same size; the neighbour checks the SHA-256 against the signed manifest anyway)
+            elite_core::lan::ENABLED.store(app.state::<App>().settings.lock().unwrap().lan_share.unwrap_or(true), Ordering::Relaxed);
+            let hl = app.handle().clone();
+            elite_core::lan::serve(Arc::new(move |sha: &str| {
+                let st = hl.state::<App>();
+                let g = update::Game::new(game_dir(&st)?);
+                let c = g.cache_dir().join(sha);
+                if let Ok(md) = std::fs::metadata(&c) { if md.is_file() { return Some((c, md.len())); } }
+                let f = g.load_state().files.into_iter().find(|f| f.sha.eq_ignore_ascii_case(sha))?;
+                let p = g.file(&f.path);
+                (std::fs::metadata(&p).ok()?.len() == f.size).then_some((p, f.size))
+            }));
             // watch the game: the window locks add-ons while it runs and picks pending updates up once it closes
             let hg = app.handle().clone();
             std::thread::spawn(move || loop {

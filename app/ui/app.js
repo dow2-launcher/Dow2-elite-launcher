@@ -114,6 +114,8 @@ const T = {
     "usageNote": "Once a day the launcher sends a hash that changes every day, plus its version, OS and the Elite version. No names, Steam or hardware data; days can't be linked to each other.",
     "trayTitle": "When the game starts",
     "trayOnPlay": "Hide the launcher to the tray — the tray icon opens it again",
+    "lanTitle": "Local network",
+    "lanShare": "Download Elite from other launchers on the local network and share it with them (faster; every file is checked against the signed version)",
     "trayOpen": "Open Elite Launcher",
     "trayQuit": "Quit",
     "cacheNote": "switching back to them is instant",
@@ -296,6 +298,8 @@ const T = {
     "usageNote": "Раз в сутки лаунчер отправляет хеш, который каждый день новый, плюс свою версию, ОС и версию Elite. Никаких ников, Steam или данных о компьютере; связать дни между собой нельзя.",
     "trayTitle": "При запуске игры",
     "trayOnPlay": "Сворачивать лаунчер в трей — открыть снова можно по значку в трее",
+    "lanTitle": "Локальная сеть",
+    "lanShare": "Качать Elite с других лаунчеров в локальной сети и раздавать им (быстрее; каждый файл сверяется с подписанной версией)",
     "trayOpen": "Открыть Elite Launcher",
     "trayQuit": "Выход",
     "cacheNote": "переключение на них — мгновенно",
@@ -473,6 +477,8 @@ const T = {
     "usageNote": "Una vez al día el launcher envía un hash que cambia cada día, más su versión, el sistema y la versión de Elite. Sin nombres, sin Steam ni datos del equipo; los días no se pueden relacionar entre sí.",
     "trayTitle": "Al iniciar el juego",
     "trayOnPlay": "Ocultar el launcher en la bandeja — el icono de la bandeja lo vuelve a abrir",
+    "lanTitle": "Red local",
+    "lanShare": "Descargar Elite de otros launchers de la red local y compartirlo con ellos",
     "trayOpen": "Abrir Elite Launcher",
     "trayQuit": "Salir",
     "cacheNote": "volver a ellas es instantáneo",
@@ -650,6 +656,8 @@ const T = {
     "usageNote": "Une fois par jour, le launcher envoie un hash qui change chaque jour, avec sa version, le système et la version d'Elite. Aucun nom, rien de Steam ni du PC ; les jours ne peuvent pas être reliés entre eux.",
     "trayTitle": "Au lancement du jeu",
     "trayOnPlay": "Réduire le launcher dans la zone de notification — l'icône le rouvre",
+    "lanTitle": "Réseau local",
+    "lanShare": "Télécharger Elite depuis les autres launchers du réseau local et le partager avec eux",
     "trayOpen": "Ouvrir Elite Launcher",
     "trayQuit": "Quitter",
     "cacheNote": "y revenir est instantané",
@@ -827,6 +835,8 @@ const T = {
     "usageNote": "Einmal am Tag sendet der Launcher einen Hash, der sich täglich ändert, dazu seine Version, das System und die Elite-Version. Keine Namen, keine Steam- oder Hardwaredaten; Tage lassen sich nicht miteinander verknüpfen.",
     "trayTitle": "Beim Spielstart",
     "trayOnPlay": "Launcher in den Infobereich minimieren — das Symbol öffnet ihn wieder",
+    "lanTitle": "Lokales Netzwerk",
+    "lanShare": "Elite von anderen Launchern im lokalen Netzwerk laden und mit ihnen teilen",
     "trayOpen": "Elite Launcher öffnen",
     "trayQuit": "Beenden",
     "cacheNote": "zurückwechseln geht sofort",
@@ -1187,6 +1197,7 @@ function render() {
   $('cache').value = String(S.cache_mb);
   $('usage').checked = S.usage_stats !== false;
   $('trayOnPlay').checked = S.tray_on_play !== false;
+  $('lanShare').checked = S.lan_share !== false;
   $('mirror').value = S.extra_mirror || '';
   $('mirrorInfo').textContent = t('mirrors', { n: S.mirror_count });
   $('repair').disabled = S.busy || S.game_running || !S.installed_version;
@@ -1302,6 +1313,7 @@ $('openDir').onclick = () => invoke('open_game_dir').catch(e => toast(e, true));
 $('lang').onchange = e => invoke('set_setting', { key: 'lang', value: e.target.value }).then(reload);
 $('usage').onchange = e => invoke('set_setting', { key: 'usage_stats', value: e.target.checked }).then(reload);
 $('trayOnPlay').onchange = e => invoke('set_setting', { key: 'tray_on_play', value: e.target.checked }).then(reload);
+$('lanShare').onchange = e => invoke('set_setting', { key: 'lan_share', value: e.target.checked }).then(reload);
 $('cache').onchange = e => invoke('set_setting', { key: 'cache_mb', value: +e.target.value }).then(reload);
 $('saveMirror').onclick = () => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
 $('repair').onclick = () => startUpdate(true);
