@@ -357,6 +357,10 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .ch-m .w{font-size:11px;color:var(--dim)}
 .ch-m .w b{font-weight:600;color:var(--gold);cursor:pointer;margin-right:6px}
 .ch-m.mine .w b{color:var(--gold2)}
+.ch-m.pending{opacity:.5}
+.ch-av{cursor:pointer;flex:none}                                     /* the avatar opens the Steam profile */
+.ch-at{color:var(--gold2);font-weight:600}                           /* @mention */
+.ch-at.me{color:#1a1206;background:var(--gold2);border-radius:3px;padding:0 3px}   /* a mention of me */                 /* sent, not yet published by the server */
 .av{flex:none;display:block;width:28px;height:28px;border-radius:50%;border:1px solid var(--line2);background:var(--av,none) center/cover no-repeat,var(--av-def) center bottom/86% no-repeat,#1c1813}
 .on-p .av{width:22px;height:22px}
 .on-p .nm{flex:0 1 auto}

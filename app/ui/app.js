@@ -29,6 +29,7 @@ const T = {
     "chPlaceholder": "Message… (Enter sends, Shift+Enter a new line)",
     "chMembers": "In the launcher",
     "chEmpty": "Quiet here. Say hi!",
+    "chPending": "sending…",
     "chWaitLogin": "Sign in with Steam in the browser, then come back here.",
     "st_menu": "in the menu",
     "st_game": "in the game",
@@ -210,6 +211,7 @@ const T = {
     "chPlaceholder": "Сообщение… (Enter — отправить, Shift+Enter — новая строка)",
     "chMembers": "В лаунчере",
     "chEmpty": "Пока тихо. Напишите первым!",
+    "chPending": "отправляется…",
     "chWaitLogin": "Войдите через Steam в браузере и вернитесь сюда.",
     "st_menu": "в меню",
     "st_game": "в игре",
@@ -391,6 +393,7 @@ const T = {
     "chPlaceholder": "Mensaje… (Enter envía, Shift+Enter nueva línea)",
     "chMembers": "En el launcher",
     "chEmpty": "Todo tranquilo. ¡Saluda!",
+    "chPending": "enviando…",
     "chWaitLogin": "Entra con Steam en el navegador y vuelve aquí.",
     "st_menu": "en el menú",
     "st_game": "en el juego",
@@ -567,6 +570,7 @@ const T = {
     "chPlaceholder": "Message… (Entrée envoie, Maj+Entrée nouvelle ligne)",
     "chMembers": "Dans le launcher",
     "chEmpty": "C'est calme. Dites bonjour !",
+    "chPending": "envoi…",
     "chWaitLogin": "Connectez-vous avec Steam dans le navigateur, puis revenez ici.",
     "st_menu": "au menu",
     "st_game": "en jeu",
@@ -743,6 +747,7 @@ const T = {
     "chPlaceholder": "Nachricht… (Enter sendet, Umschalt+Enter neue Zeile)",
     "chMembers": "Im Launcher",
     "chEmpty": "Noch still hier. Sag hallo!",
+    "chPending": "wird gesendet…",
     "chWaitLogin": "Im Browser mit Steam anmelden und hierher zurückkommen.",
     "st_menu": "im Menü",
     "st_game": "im Spiel",
@@ -1455,7 +1460,7 @@ fbInit();
 
 // ---------- players' chat, Steam sign-in and the player's card (ladder service /ladder/api/c/*) ----------
 // Rooms General / RU / EN (the server's all / ru / en) next to the developers' chat.
-const CH = { room: 'all', last: {}, msgs: {}, me: null, prof: null, waiting: false, timer: null };
+const CH = { room: 'all', last: {}, msgs: {}, pending: {}, me: null, prof: null, waiting: false, timer: null };   // pending: sent, not yet back from the server
 try { CH.room = localStorage.getItem('chRoom') || 'all'; } catch (e) {}
 function chShowRoom() {
   document.querySelectorAll('.ch-tab').forEach(b => b.classList.toggle('on', b.dataset.room === CH.room));
@@ -1536,25 +1541,43 @@ function chRender(force) {
     return d.toLocaleDateString(lang, d.getFullYear() === now.getFullYear() ? { day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long', year: 'numeric' });
   };
   const mine = CH.me && CH.me.signed_in ? CH.me.steam : '';
+  const myName = CH.me && CH.me.signed_in ? (CH.me.name || '') : '';
+  // @mentions: the names of the players in this room (longest first, so "@Ab Cd" wins over "@Ab"), escaped like the text
+  const names = [...new Set(list.map(m => m.name).filter(Boolean))].sort((a, b) => b.length - a.length);
+  const mention = html => names.reduce((h, n) => h.split('@' + esc(n)).join(`\u0000${n === myName ? 1 : 0}${esc(n)}\u0001`), html)
+    .replace(/\u0000([01])([^\u0001]*)\u0001/g, (_, me, n) => `<span class="ch-at${me === '1' ? ' me' : ''}">@${n}</span>`);
   let prev = null;
-  box.innerHTML = list.length ? list.map(m => {
+  const pend = (CH.pending[CH.room] || []).map(p => `<div class="ch-m mine pending">` + avatar(CH.me && CH.me.avatar)
+    + `<div><div class="w"><b>${esc((CH.me && CH.me.name) || '')}</b><span>${esc(t('chPending'))}</span></div><div class="tx">${esc(p.text)}</div></div></div>`).join('');
+  box.innerHTML = (list.length || pend) ? list.map(m => {
     const k = dayKey(m.ts), head = k !== prev ? `<div class="ch-day"><span>${esc(dayName(m.ts))}</span></div>` : ''; prev = k;
-    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''}">` + avatar(m.avatar)
-      + `<div><div class="w"><b data-steam="${esc(m.steam)}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span></div><div class="tx">${esc(m.text)}</div></div></div>`;
-  }).join('') : `<div class="ch-empty">${esc(t('chEmpty'))}</div>`;
-  box.querySelectorAll('b[data-steam]').forEach(b => b.onclick = () => open('https://steamcommunity.com/profiles/' + b.dataset.steam));
+    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''}"><span class="ch-av" data-steam="${esc(m.steam)}" title="Steam">` + avatar(m.avatar) + `</span>`
+      + `<div><div class="w"><b data-name="${esc(m.name)}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span></div><div class="tx">${mention(esc(m.text))}</div></div></div>`;
+  }).join('') + pend : `<div class="ch-empty">${esc(t('chEmpty'))}</div>`;
+  box.querySelectorAll('.ch-av[data-steam]').forEach(a => a.onclick = () => open('https://steamcommunity.com/profiles/' + a.dataset.steam));
+  box.querySelectorAll('b[data-name]').forEach(b => b.onclick = () => chMention(b.dataset.name));
   if (atEnd || force || !CH.shown) box.scrollTop = box.scrollHeight; CH.shown = true;
+}
+function chMention(name) {                                     // a click on a name in the chat tags that player in my message
+  const el = $('chText'); if (!el || !name) return;
+  const at = '@' + name + ' ', s0 = el.selectionStart ?? el.value.length, s1 = el.selectionEnd ?? s0;
+  const before = el.value.slice(0, s0), pre = before && !/\s$/.test(before) ? ' ' : '';
+  el.value = before + pre + at + el.value.slice(s1);
+  const pos = (before + pre + at).length; el.focus(); el.setSelectionRange(pos, pos);
 }
 async function chSay() {
   if (CH.sending || CH.room === 'dev') return;                 // one send at a time: extra Enter presses do nothing (no duplicates)
   const el = $('chText'), text = el.value.trim(); if (!text) return;
   CH.sending = true; $('chSend').disabled = true;
   el.value = '';                                               // clear at once: the message leaves the box the moment you press Enter
+  const room = CH.room, p = { text }, pl = CH.pending[room] || (CH.pending[room] = []);
+  pl.push(p); chRender(true);                                  // in the chat at once, grey, until the server has published it
+  const drop = () => { const i = pl.indexOf(p); if (i >= 0) pl.splice(i, 1); };
   try {
-    const r = await invoke('c_api', { path: 'say', body: { room: CH.room, text } });
-    if (r.ok) { await chLoad(); chRender(true); }
-    else { el.value = text; toast(r.error || 'error', true); } // rejected by moderation: put the text back, nothing is lost
-  } catch (e) { el.value = text; toast(e, true); }
+    const r = await invoke('c_api', { path: 'say', body: { room, text } });
+    if (r.ok) { await chLoad(room); drop(); if (room === CH.room) chRender(true); }   // the published one takes its place
+    else { drop(); chRender(); el.value = text; toast(r.error || 'error', true); }  // rejected by moderation: the text back in the box
+  } catch (e) { drop(); chRender(); el.value = text; toast(e, true); }
   CH.sending = false; $('chSend').disabled = false;
 }
 async function chHello() {
