@@ -376,7 +376,6 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .ch-m .w{font-size:11px;color:var(--dim)}
 .ch-m .w b{font-weight:600;color:var(--gold);cursor:pointer;margin-right:6px}
 .ch-m.mine .w b{color:var(--gold2)}
-.ch-m.pending{opacity:.5}
 .ch-av{cursor:pointer;flex:none}                                     /* the avatar opens the Steam profile */
 .ch-at{color:var(--gold2);font-weight:600}                           /* @mention */
 .ch-at.me{color:#1a1206;background:var(--gold2);border-radius:3px;padding:0 3px}   /* a mention of me */                 /* sent, not yet published by the server */
@@ -400,3 +399,16 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .ch-head::after{display:none}
 .ch-day{display:flex;align-items:center;gap:10px;margin:8px 0 2px;font:700 11px Cinzel,serif;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
 .ch-day::before,.ch-day::after{content:"";flex:1;height:1px;background:var(--sep)}
+/* Online: how long someone searches, the spectators of a match */
+.on-p .since{flex:none;font-size:11px;color:var(--dim)}
+.on-wt{margin-top:4px;padding-top:4px;border-top:1px solid var(--line);font-size:11px;color:var(--dim)}
+.on-wt .nm{display:inline;font:400 11px Spectral,serif;color:var(--soft)}
+/* chat: unread on a tab, ours being sent (a clock) or not sent, a translated text (the original on hover) */
+.ch-tab[data-n]:not([data-n=""])::after{content:attr(data-n);margin-left:5px;padding:0 5px;border-radius:8px;background:var(--gold);color:#16120c;font:700 10px Spectral,serif;letter-spacing:0}
+.ch-m.sending{opacity:.5}
+.ch-wait{display:inline-grid;place-items:center;margin-left:6px;vertical-align:-2px}
+.ch-wait svg{width:12px;height:12px;fill:none;stroke:var(--dim);stroke-width:2;stroke-linecap:round}
+.ch-m.failed .tx{opacity:.6}
+.ch-fail{margin-left:6px;color:var(--amber)}
+.ch-fail button{padding:0;border:0;background:none;color:var(--gold2);font:inherit;text-decoration:underline;cursor:pointer}
+.ch-m .tx.tr{cursor:help}
