@@ -109,7 +109,7 @@ nav{margin-left:auto;display:flex;gap:4px}
 .upd-text b{display:block;color:var(--gold2);font-weight:600}
 .upd-text small{display:block;color:var(--muted);font-size:12px}
 /* version picker + Play: in the bottom bar, so they are there on every tab */
-.ver-pick{position:relative;flex:none;width:230px}
+.ver-pick{position:relative;flex:none;width:240px}
 .ver-btn{width:100%;height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--line2);background:#100e0b;color:var(--bone);text-align:left}
 .ver-btn:hover:not(:disabled),.ver-btn.on{border-color:var(--gold)}
 .ver-btn b{font:700 14px Cinzel,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -117,17 +117,17 @@ nav{margin-left:auto;display:flex;gap:4px}
 .ver-btn small.ok{color:var(--green)}
 .ver-btn::after{content:"▼";margin-left:auto;padding-left:6px;color:var(--gold);font-size:10px}
 .ver-btn.on::after{content:"▲"}
-.ver-list{position:absolute;right:0;width:340px;bottom:calc(100% + 6px);z-index:30;max-height:380px;overflow:auto;border:1px solid var(--gold);background:var(--panel);box-shadow:0 10px 30px #000}
+.ver-list{position:absolute;left:0;right:0;bottom:calc(100% + 6px);z-index:30;max-height:380px;overflow:auto;border:1px solid var(--gold);background:var(--panel);box-shadow:0 10px 30px #000}
 .ver-list .lh{padding:8px 12px 4px;font:700 11px Cinzel,serif;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
 .ver-list .lh+.vi{border-top:0}
-.vi{width:100%;display:flex;align-items:center;gap:8px;padding:8px 12px;border:0;border-top:1px solid var(--sep);background:none;color:var(--bone);text-align:left}
+.vi{width:100%;display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:2px;padding:8px 12px;border:0;border-top:1px solid var(--sep);background:none;color:var(--bone);text-align:left}
 .vi:hover:not(:disabled){background:#1f1a13}
 .vi.act{background:#121a0e;border-left:3px solid var(--gold);padding-left:9px}
 .vi:disabled:not(.act){opacity:.55}
-.vi .nm{flex:1;min-width:0}
+.vi .nm{flex:1 1 120px;min-width:0}
 .vi .nm b{font:700 14px Cinzel,serif;margin-right:6px}
 .vi .nm small{display:block;font-size:12px;color:var(--muted)}
-.vi .cost{font-size:12px;color:#e2c06a;white-space:nowrap}
+.vi .cost{margin-left:auto;font-size:12px;color:#e2c06a;white-space:nowrap}
 .vi .cost.ok{color:var(--green)}
 .tag{font:700 9px Cinzel,serif;letter-spacing:1px;padding:1px 5px;border:1px solid var(--line2);color:var(--muted);vertical-align:2px;text-transform:uppercase}
 .tag.main{color:#1a1408;background:var(--gold);border-color:var(--gold)}
@@ -226,6 +226,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 @keyframes onpulse{0%{box-shadow:0 0 0 0 rgba(143,191,104,.6)}70%{box-shadow:0 0 0 6px rgba(143,191,104,0)}100%{box-shadow:0 0 0 0 rgba(143,191,104,0)}}
 @media (prefers-reduced-motion:reduce){.on-g.look .on-gh i{animation:none}}
 .race{flex:none;display:inline-block;width:18px;height:18px}
+.race-rnd{display:inline-grid;place-items:center;border:1px solid var(--line2);border-radius:3px;background:var(--panel2);color:var(--gold2);font:900 14px/1 Cinzel,serif}
 .nm{min-width:0;padding:0;border:0;background:none;color:var(--bone);font:600 13px Spectral,serif;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nm:hover{color:var(--gold2);text-decoration:underline}
 .on-p{display:flex;align-items:center;gap:6px;min-height:23px}
@@ -299,7 +300,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 /* narrow window (min 900 px) */
 @media (max-width:1040px){
   .home{grid-template-columns:210px minmax(0,1fr) 270px;gap:10px}
-  .ver-pick{width:190px}
+  .ver-pick{width:200px}
   .play{width:200px;font-size:20px;letter-spacing:4px}
 }
 
@@ -310,6 +311,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 /* the title with Save / Reset on the right stays on top while the list scrolls */
 .hk-head{position:sticky;top:-12px;z-index:2;margin:-12px -14px 10px;padding:12px 14px 10px;background:#1a1611;border-bottom:1px solid var(--sep)}
 .hk-head .hk-note{color:var(--gold2)}
+.hk-head .hk-note.warn{color:var(--amber)}
 .hk-head .hk-act{order:2;display:flex;gap:8px}
 .hk-grid{display:grid;grid-template-columns:110px repeat(7,minmax(54px,1fr));gap:4px;margin:6px 0}
 .hk-grid.off{opacity:.45}
@@ -326,6 +328,16 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .hk-all{margin-top:12px}.hk-all summary{cursor:pointer;color:var(--gold);font:700 11px Cinzel,serif;letter-spacing:2px;text-transform:uppercase}
 .hk-all input{margin:8px 0;width:100%}
 .hk-sec{grid-column:1/-1;margin-top:8px;color:var(--gold);font-size:12px}
+.hk-sec small{margin-left:8px;color:var(--amber);font-size:11px}
+.hk-row.off{opacity:.55}
+.hk-groups{display:flex;flex-direction:column;gap:4px}
+.hk-gh{width:100%;display:flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);background:var(--panel2);color:var(--bone);text-align:left}
+.hk-gh:hover{border-color:var(--line2)}
+.hk-gh b{font:700 13px Cinzel,serif}
+.hk-gh span:not(.race){margin-left:auto;font-size:12px;color:var(--muted)}
+.hk-gh::after{content:"▸";color:var(--gold);font-size:11px}
+.hk-grp.open .hk-gh::after{content:"▾"}
+.hk-grp .hk-list{padding:4px 10px 10px}
 .hk-how{margin-top:14px}
 
 /* the player's card above the news: avatar, name, 1v1 rating and place, games of the season; signed out - the Steam button */
@@ -367,6 +379,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .on-p .race{margin-right:auto}
 .on-u .rt{margin-left:auto}
 .on-p .rt{flex:none;font-size:11px;color:var(--dim)}
+.on-p .rt.none{opacity:.6}
 /* a launcher player's dot has the colour of the group they would be in: launcher open - yellow, in the game - gold, looking - green, in a match - red */
 .on-u .st{flex:none;width:8px;height:8px;border-radius:50%;background:var(--yellow)}
 .on-u .st-game{background:var(--gold)}

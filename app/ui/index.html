@@ -89,8 +89,6 @@
       <label data-t="usageTitle"></label>
       <div class="row"><label class="chk"><input type="checkbox" id="usage"><span data-t="usage"></span></label></div>
       <div class="note" data-t="usageNote"></div>
-      <label data-t="trayTitle"></label>
-      <div class="row"><label class="chk"><input type="checkbox" id="trayOnPlay"><span data-t="trayOnPlay"></span></label></div>
       <label data-t="lanTitle"></label>
       <div class="row"><label class="chk"><input type="checkbox" id="lanShare"><span data-t="lanShare"></span></label></div>
       <label data-t="repairTitle"></label>
@@ -103,7 +101,7 @@
       <div class="about" id="about"></div>
     </section>
     <section class="panel hk hidden" id="hotkeys">
-      <div class="h hk-head"><span data-t="hotkeys"></span><span class="hk-note" id="hkState"></span><div class="hk-act"><button class="btn small" id="hkReset" data-t="hkReset"></button><button class="btn gold small" id="hkSave" data-t="save"></button></div></div>
+      <div class="h hk-head"><span data-t="hotkeys"></span><span class="hk-note" id="hkState"></span><div class="hk-act"><button class="btn small" id="hkReset" data-t="hkReset"></button><button class="btn gold small hidden" id="hkSave" data-t="save"></button></div></div>
       <div class="hk-top">
         <label class="chk"><input type="checkbox" id="hkGrid"><span data-t="hkGrid"></span></label>
         <span class="note" data-t="hkGridNote"></span>
@@ -112,7 +110,7 @@
       <div class="h small" data-t="hkMain"></div>
       <div class="hk-list" id="hkMain"></div>
       <details class="hk-all"><summary data-t="hkAll"></summary>
-        <input id="hkSearch" data-tp="hkSearch"><div class="hk-list" id="hkAllList"></div></details>
+        <input id="hkSearch" data-tp="hkSearch"><div class="hk-groups" id="hkAllList"></div></details>
       <div class="note hk-how" data-t="hkHow"></div>
     </section>
     </div>

@@ -62,8 +62,6 @@ struct Settings {
     /// Feedback chat: random id that ties the player's messages together (kept across restarts), and the name they gave.
     fb_uid: String,
     fb_name: String,
-    /// Hide the window to the tray once the game starts. None = on.
-    tray_on_play: Option<bool>,
     /// Elite files from/to other launchers on the local network (elite_core::lan). None = on.
     lan_share: Option<bool>,
     /// Hotkeys the player changed: "scope:name" -> "Control+A" ("grid:AB_key_1" for Grid Hotkeys); see elite_core::hotkeys.
@@ -227,7 +225,9 @@ fn current_channel(app: &App, cfg: &LauncherConfig, installed: &update::State) -
 /// Hotkeys: every binding of the game (defaults + the player's changes) and the Grid Hotkeys setting.
 #[tauri::command]
 fn hotkeys_get(app: State<'_, App>) -> Result<Value, String> {
-    let o = app.settings.lock().unwrap().hotkeys.clone();
+    // what the game uses now (keydefaults.lua), with the launcher's own list on top
+    let mut o = elite_core::hotkeys::file_overrides();
+    o.extend(app.settings.lock().unwrap().hotkeys.clone());
     elite_core::hotkeys::load(&o)
 }
 
@@ -236,8 +236,11 @@ fn hotkeys_get(app: State<'_, App>) -> Result<Value, String> {
 fn hotkeys_save(app: State<'_, App>, changes: BTreeMap<String, String>, grid: bool) -> Result<Value, String> {
     ensure_game_closed(&app)?;     // the game rewrites configuration.lua when it closes
     let mut s = app.settings.lock().unwrap();
+    // changes already in keydefaults.lua but not in our list (see hotkeys_get) are kept, not dropped by the rewrite
+    for (k, v) in elite_core::hotkeys::file_overrides() { s.hotkeys.entry(k).or_insert(v); }
+    // system keys (menu, camera) are not reassigned, campaign / "plain letters" ones are not shown: changes to them are ignored
     let defaults: BTreeMap<String, String> = elite_core::hotkeys::load(&BTreeMap::new())?["bindings"].as_array().cloned().unwrap_or_default()
-        .iter().map(|b| (format!("{}:{}", b["scope"].as_str().unwrap_or(""), b["name"].as_str().unwrap_or("")), b["default"].as_str().unwrap_or("").to_string())).collect();
+        .iter().filter(|b| !matches!(b["group"].as_str(), Some("system" | "campaign" | "letters"))).map(|b| (format!("{}:{}", b["scope"].as_str().unwrap_or(""), b["name"].as_str().unwrap_or("")), b["default"].as_str().unwrap_or("").to_string())).collect();
     for (k, v) in changes {
         if defaults.get(&k) == Some(&v) { s.hotkeys.remove(&k); } else if defaults.contains_key(&k) { s.hotkeys.insert(k, v); }
     }
@@ -442,7 +445,6 @@ fn get_status(app: State<'_, App>) -> Value {
             }).collect::<Vec<_>>(),
         })).collect::<Vec<_>>(),
         "usage_stats": s.usage_stats.unwrap_or(true),
-        "tray_on_play": s.tray_on_play.unwrap_or(true),
         "lan_share": s.lan_share.unwrap_or(true),
         "release_news": app.release_news.lock().unwrap().clone(),
         "costs": app.costs.lock().unwrap().clone(),
@@ -516,7 +518,6 @@ fn set_setting(app: State<'_, App>, key: String, value: Value) {
         "extra_mirror" => s.extra_mirror = value.as_str().unwrap_or("").to_string(),
         "cache_mb" => s.cache_mb = value.as_u64(),
         "usage_stats" => s.usage_stats = value.as_bool(),
-        "tray_on_play" => s.tray_on_play = value.as_bool(),
         "lan_share" => { s.lan_share = value.as_bool(); elite_core::lan::ENABLED.store(s.lan_share.unwrap_or(true), Ordering::Relaxed); }
         "dismiss" => {
             if let Some(id) = value.as_str() {
@@ -1041,14 +1042,8 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
 
 /// Start the game. Never blocked by a pending update.
 #[tauri::command]
-fn play(app: State<'_, App>, handle: AppHandle) -> Result<(), String> {
-    start_game(&app)?;
-    if app.settings.lock().unwrap().tray_on_play.unwrap_or(true) {
-        if let Some(w) = handle.get_webview_window("main") {
-            let _ = w.hide();
-        }
-    }
-    Ok(())
+fn play(app: State<'_, App>) -> Result<(), String> {
+    start_game(&app)
 }
 
 fn start_game(app: &App) -> Result<(), String> {
@@ -1470,8 +1465,8 @@ fn main() {
     let settings = load_settings();
     let config = cached_config();
     tauri::Builder::default()
-        // one launcher at a time: it hides to the tray while the game runs, and a click on the shortcut started another copy
-        // every time (a player had dozens; their ticks fought over Elite.launchconfig) - now that click shows the running one
+        // one launcher at a time: starting it again (shortcut, Start menu) brings the running one back, also from the
+        // tray. Two copies also broke the self-update: the installer could not close the one hidden in the tray.
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_window(app)))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
@@ -1559,11 +1554,11 @@ fn main() {
             });
             Ok(())
         })
-        // minimising always hides to the tray; the tray icon (or its "Open" item) brings the window back
+        // the close button hides to the tray, only the tray's "Quit" ends the launcher; minimising is an ordinary
+        // minimise to the taskbar. The tray icon (or its "Open" item, or starting the launcher again) brings it back
         .on_window_event(|window, event| {
-            if matches!(event, tauri::WindowEvent::Resized(_) | tauri::WindowEvent::Focused(false))
-                && window.is_minimized().unwrap_or(false)
-            {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
                 let _ = window.hide();
             }
         })
@@ -1573,8 +1568,15 @@ fn main() {
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running Elite Launcher");
+        .build(tauri::generate_context!())
+        .expect("error while running Elite Launcher")
+        .run(|_app, _event| {
+            // macOS: a click on the Dock icon brings back the window the close button hid
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen { .. } = _event {
+                show_window(_app);
+            }
+        });
 }
 
 #[cfg(test)]

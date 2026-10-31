@@ -16,8 +16,26 @@ pub struct Binding {
     pub value: String,
     pub default: String,
     pub section: String,
+    /// What the launcher does with it: a race key of the launcher ("space_marines", "orks", ...) for that race's
+    /// units, "common" (orders, selection, groups), "observer" (observer / replay panels), "grid" (the grid table);
+    /// not shown: "system" (menu, camera - not to be reassigned), "campaign" (single player only), "letters".
+    pub group: String,
     #[serde(skip)]
     pub line: usize,
+}
+
+/// The group of a section heading of `_keydefaults.lua` (see Binding::group).
+fn group_of(section: &str, campaign: bool) -> &'static str {
+    let s = section.to_ascii_lowercase();
+    if campaign { return "campaign"; }
+    if s.starts_with("system commands") || s.starts_with("universal taskbar") { return "system"; }
+    if s.starts_with("plain old letters") { return "letters"; }
+    if s.starts_with("observer") || s.starts_with("playback") { return "observer"; }
+    for (p, g) in [("space marine", "space_marines"), ("ork", "orks"), ("eldar", "eldar"), ("tyranid", "tyranids"), ("chaos", "chaos_marines"),
+                   ("ig ", "imperial_guard"), ("grey knights", "ordo_malleus"), ("tau", "t_tau")] {
+        if s.starts_with(p) { return g; }
+    }
+    "common"
 }
 
 pub fn settings_dir() -> Option<PathBuf> {
@@ -39,12 +57,17 @@ fn key_line(l: &str) -> Option<(String, String)> {
 /// All bindings of `_keydefaults.lua` with the section heading each one sits under.
 pub fn parse(text: &str) -> Vec<Binding> {
     let mut out = Vec::new();
-    let (mut section, mut in_grid, mut depth) = (String::new(), false, 0i32);
+    // campaign abilities: from "SP Specific abilities" (also "XP2 SP Specific") up to the next race's units or buildings
+    let (mut section, mut in_grid, mut depth, mut campaign) = (String::new(), false, 0i32, false);
     for (i, l) in text.lines().enumerate() {
         let t = l.trim();
         if t.starts_with("--") {
             let h = t.trim_start_matches('-').trim().trim_end_matches('-').trim();
-            if h.len() > 2 && h.chars().any(|c| c.is_alphabetic()) && !h.contains('=') && !h.starts_with('(') { section = h.to_string(); }
+            if h.len() > 2 && h.chars().any(|c| c.is_alphabetic()) && !h.contains('=') && !h.starts_with('(') {
+                section = h.to_string();
+                let s = h.to_ascii_lowercase();
+                if s.contains("sp specific") { campaign = true; } else if s.contains("buildings") || s.contains("unit creation") { campaign = false; }
+            }
             continue;
         }
         if !in_grid && t.starts_with("grid_keys") && t.contains('=') { in_grid = true; depth = 0; section = "Grid keys".into(); continue; }
@@ -53,7 +76,8 @@ pub fn parse(text: &str) -> Vec<Binding> {
             if depth <= 0 && t.starts_with('}') { in_grid = false; continue; }
         }
         if let Some((k, v)) = key_line(l) {
-            out.push(Binding { scope: if in_grid { "grid".into() } else { String::new() }, name: k, value: v.clone(), default: v, section: section.clone(), line: i });
+            let group = if in_grid { "grid" } else { group_of(&section, campaign) };
+            out.push(Binding { scope: if in_grid { "grid".into() } else { String::new() }, name: k, value: v.clone(), default: v, section: section.clone(), group: group.into(), line: i });
         }
     }
     out
@@ -62,6 +86,17 @@ pub fn parse(text: &str) -> Vec<Binding> {
 fn defaults_text(dir: &Path) -> Result<String, String> {
     fs::read_to_string(dir.join("_keydefaults.lua"))
         .map_err(|_| "the game has not written its key settings yet: start the game once, then come back".to_string())
+}
+
+/// The bindings of the keydefaults.lua the game uses now that differ from the defaults ("scope:name" -> key): changes
+/// made by hand, by another copy of the launcher, or saved before the launcher kept its own list. Empty without the file.
+pub fn file_overrides() -> BTreeMap<String, String> {
+    let Some(dir) = settings_dir() else { return BTreeMap::new() };
+    let (Ok(custom), Ok(defaults)) = (fs::read_to_string(dir.join("keydefaults.lua")), defaults_text(&dir)) else { return BTreeMap::new() };
+    // a few names are set twice in a file (with different keys): the last one wins in Lua, so compare those on both sides
+    let last = |t: &str| -> BTreeMap<String, String> { parse(t).into_iter().map(|b| (format!("{}:{}", b.scope, b.name), b.value)).collect() };
+    let def = last(&defaults);
+    last(&custom).into_iter().filter(|(k, v)| def.get(k).is_some_and(|d| d != v)).collect()
 }
 
 /// Current state: every binding (defaults + overrides), the Grid Hotkeys setting, whether a custom file is in use.
