@@ -20,7 +20,8 @@ const T = {
     "prNote": "Your name, 1v1 rating and the players’ chat.",
     "prGames": "Games: {n} · {pct}% won",
     "prNoGames": "No ladder games this season yet",
-    "prRankT": "Place on the ladder (1v1, this season)",
+    "nickStats": "Player stats",
+    "nickSteam": "Steam profile",
     "chAll": "General",
     "chDev": "Developers",
     "chLogin": "Sign in with Steam",
@@ -176,7 +177,6 @@ const T = {
     "onStatePlaying": "Playing",
     "onNobody": "Nobody is looking for a game. Start the game and press “Find a Game”.",
     "onOffline": "No connection to the ladder server, trying again…",
-    "onIdle": "In the game, in the menu",
     "onLoading": "Loading who is online…",
     "onLadder": "Ladder and match history ›",
     "race_space_marines": "Space Marines",
@@ -206,7 +206,8 @@ const T = {
     "prNote": "Ник, рейтинг 1v1 и чат с игроками.",
     "prGames": "Игр: {n} · побед {pct}%",
     "prNoGames": "В этом сезоне ещё без игр в ладдере",
-    "prRankT": "Место в ладдере (1v1, этот сезон)",
+    "nickStats": "Статистика игрока",
+    "nickSteam": "Профиль Steam",
     "chAll": "Общий",
     "chDev": "Разработчикам",
     "chLogin": "Войти через Steam",
@@ -362,7 +363,6 @@ const T = {
     "onStatePlaying": "Идёт",
     "onNobody": "Никто не ищет игру. Запусти игру и нажми «Find a Game».",
     "onOffline": "Нет связи с сервером ладдера, пробую снова…",
-    "onIdle": "В игре, в меню",
     "onLoading": "Загружаю, кто онлайн…",
     "onLadder": "Ладдер и история матчей ›",
     "race_space_marines": "Космодесант",
@@ -392,7 +392,8 @@ const T = {
     "prNote": "Tu nombre, rating 1v1 y el chat de jugadores.",
     "prGames": "Partidas: {n} · {pct}% ganadas",
     "prNoGames": "Aún sin partidas de ladder esta temporada",
-    "prRankT": "Puesto en el ladder (1v1, esta temporada)",
+    "nickStats": "Estadísticas del jugador",
+    "nickSteam": "Perfil de Steam",
     "chAll": "General",
     "chDev": "Desarrolladores",
     "chLogin": "Entrar con Steam",
@@ -543,7 +544,6 @@ const T = {
     "onStatePlaying": "En curso",
     "onNobody": "Nadie busca partida. Inicia el juego y pulsa «Find a Game».",
     "onOffline": "Sin conexión con el servidor de la ladder, reintentando…",
-    "onIdle": "En el juego, en el menú",
     "onLoading": "Cargando quién está en línea…",
     "onLadder": "Ladder e historial de partidas ›",
     "race_space_marines": "Marines Espaciales",
@@ -573,7 +573,8 @@ const T = {
     "prNote": "Votre nom, classement 1v1 et le chat des joueurs.",
     "prGames": "Parties : {n} · {pct} % gagnées",
     "prNoGames": "Aucune partie classée cette saison",
-    "prRankT": "Place au classement (1v1, cette saison)",
+    "nickStats": "Statistiques du joueur",
+    "nickSteam": "Profil Steam",
     "chAll": "Général",
     "chDev": "Développeurs",
     "chLogin": "Se connecter avec Steam",
@@ -724,7 +725,6 @@ const T = {
     "onStatePlaying": "En cours",
     "onNobody": "Personne ne cherche de partie. Lancez le jeu et appuyez sur « Find a Game ».",
     "onOffline": "Pas de connexion au serveur du ladder, nouvel essai…",
-    "onIdle": "En jeu, dans le menu",
     "onLoading": "Chargement des joueurs en ligne…",
     "onLadder": "Ladder et historique des parties ›",
     "race_space_marines": "Space Marines",
@@ -754,7 +754,8 @@ const T = {
     "prNote": "Dein Name, 1v1-Rating und der Spieler-Chat.",
     "prGames": "Spiele: {n} · {pct} % gewonnen",
     "prNoGames": "Diese Saison noch keine Ladder-Spiele",
-    "prRankT": "Platz in der Ladder (1v1, diese Saison)",
+    "nickStats": "Spielerstatistik",
+    "nickSteam": "Steam-Profil",
     "chAll": "Allgemein",
     "chDev": "Entwickler",
     "chLogin": "Mit Steam anmelden",
@@ -905,7 +906,6 @@ const T = {
     "onStatePlaying": "Läuft",
     "onNobody": "Niemand sucht ein Spiel. Starte das Spiel und drücke „Find a Game“.",
     "onOffline": "Keine Verbindung zum Ladder-Server, neuer Versuch…",
-    "onIdle": "Im Spiel, im Menü",
     "onLoading": "Lade, wer online ist…",
     "onLadder": "Ladder und Spielverlauf ›",
     "race_space_marines": "Space Marines",
@@ -1018,6 +1018,7 @@ function popAddon(btn, c) {
     + `<div class="v">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
     + (c.enabled && (c.conflicts || []).length ? `<div class="w">${esc(t('conflictActive'))}</div>` : '');
   pop.dataset.id = c.id;
+  pop.classList.remove('nick');
   pop.classList.remove('hidden');
   document.querySelectorAll('.qm.on').forEach(x => x.classList.remove('on'));
   btn.classList.add('on');
@@ -1030,6 +1031,24 @@ function popClose() {
   $('pop').classList.add('hidden');
   $('pop').dataset.id = '';
   document.querySelectorAll('.qm.on').forEach(x => x.classList.remove('on'));
+}
+
+// a click on a player's name (Online, chat, own card): his stats on our site (the page finds him by SteamID and opens
+// his card) or his Steam profile. Nothing from the server is needed, only the SteamID.
+function nickMenu(btn, steam) {
+  const pop = $('pop'), id = 'nick:' + steam;
+  if (!steam || (pop.dataset.id === id && !pop.classList.contains('hidden'))) return popClose();
+  const host = ON.d?.host || 'https://dow2.fintebtc.de';
+  const urls = [host + '/stats/?q=' + encodeURIComponent(steam) + '&lang=' + encodeURIComponent(lang), 'https://steamcommunity.com/profiles/' + steam];
+  pop.innerHTML = `<div class="nick-menu"><button data-u="0">${esc(t('nickStats'))}</button><button data-u="1">${esc(t('nickSteam'))}</button></div>`;
+  pop.querySelectorAll('[data-u]').forEach(b => b.onclick = () => { popClose(); open(urls[b.dataset.u]); });
+  pop.dataset.id = id;
+  pop.classList.add('nick');
+  pop.classList.remove('hidden');
+  // under the name, kept inside the window
+  const r = btn.getBoundingClientRect();
+  pop.style.left = Math.max(8, Math.min(window.innerWidth - pop.offsetWidth - 8, r.left)) + 'px';
+  pop.style.top = (r.bottom + 4 + pop.offsetHeight > window.innerHeight - 8 ? r.top - pop.offsetHeight - 4 : r.bottom + 4) + 'px';
 }
 
 // launcher self-update, offered and never forced. LU: a newer launcher this copy can install itself (launcher_check);
@@ -1395,32 +1414,31 @@ function onRender() {
     // looking for a game: avatar, name, race, the mode on the right
     if (look.length) html += group('look', t('onSearching'), look.length,
       look.map(p => `<div class="on-p">${avatar(onAv(p))}${onWho(p)}${raceImg(p.race)}<span class="tag">${esc(p.mode)}</span></div>`).join(''));
-    if (!look.length && !matches.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
-    // who has the launcher open (signed in with Steam): the avatar, the 1v1 rating and a dot for menu / game / search / match;
-    // those already named above (looking for a game) or below (playing in a match) are not named twice
+    if (!look.length && !matches.length && !ON.users.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
     const sid = p => String(p.steam || '');
     const players = matches.flatMap(m => [...(m.team1 || []), ...(m.team2 || [])]);
+    // in a match, right under the search: a card per match - mode, map, how long - and who plays which race, team against team
+    const pl = p => `<div class="on-p">${avatar(onAv(p))}${onWho(p)}${raceImg(p.race)}${onRt(p.rating)}</div>`;
+    const map = m => String(m || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
+    if (matches.length) html += group('match', t('onInMatchH'), players.length,
+      matches.map(m => `<div class="on-mc"><div class="on-mh"><span class="tag ${esc(m.state)}">${esc(m.mode)}</span><span class="map">${esc(map(m.map))}</span>`
+        + `<span class="since">${esc(t(st[m.state] || 'onStateCreating'))}${m.state === 'playing' && m.since ? ' · ' + esc(t('onMin', { n: Math.round(m.since / 60) })) : ''}</span></div>`
+        + (m.team1 || []).map(pl).join('') + '<div class="vs">vs</div>' + (m.team2 || []).map(pl).join('') + '</div>').join(''));
+    // who has the launcher open (signed in with Steam): the avatar, the 1v1 rating and a dot for menu / game / search / match;
+    // those already named above (looking for a game, playing in a match) are not named twice
     const shown = new Set([...look, ...players].map(sid).filter(Boolean));
     const users = ON.users.filter(u => !shown.has(sid(u)));
     if (users.length) html += group('launcher', t('chMembers'), users.length, users.map(u => '<div class="on-p on-u">'
       + avatar(u.avatar) + onWho(u)
       + onRt(u.rating) + `<span class="st st-${esc(u.state)}" title="${esc(t('st_' + u.state))}"></span></div>`).join(''));
-    // the last group, only a number: games that talked to the ladder server in the last minute (the number on the ladder
-    // page) minus those looking for a game or watching, those in a match and those already named above with the game on
-    const inMatches = matches.reduce((n, m) => n + (m.team1 || []).length + (m.team2 || []).length + (m.watchers || []).length, 0);
-    const counted = new Set([...(d.searching || []), ...matches.flatMap(m => m.watchers || []), ...players].map(sid).filter(Boolean));
-    const named = users.filter(u => u.state === 'game' && !counted.has(sid(u))).length;   // not subtracted twice
-    html += group('idle', t('onIdle'), Math.max(0, (Number(d.online) || 0) - (d.searching || []).length - inMatches - named), '');
-    // in a match, the last group and the biggest: a card per match - mode, map, how long - and who plays which race, team against team
-    const pl = p => `<div class="on-p">${avatar(onAv(p))}${onWho(p)}${raceImg(p.race)}${onRt(p.rating)}</div>`;
-    const map = m => String(m || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
-    if (matches.length) html += group('match', t('onInMatchH'), matches.reduce((n, m) => n + (m.team1 || []).length + (m.team2 || []).length, 0),
-      matches.map(m => `<div class="on-mc"><div class="on-mh"><span class="tag ${esc(m.state)}">${esc(m.mode)}</span><span class="map">${esc(map(m.map))}</span>`
-        + `<span class="since">${esc(t(st[m.state] || 'onStateCreating'))}${m.state === 'playing' && m.since ? ' · ' + esc(t('onMin', { n: Math.round(m.since / 60) })) : ''}</span></div>`
-        + (m.team1 || []).map(pl).join('') + '<div class="vs">vs</div>' + (m.team2 || []).map(pl).join('') + '</div>').join(''));
+    // the games with no launcher, not searching and not playing, are neither shown nor counted (plan, decision 3)
   }
+  // "Online N" in the heading: everyone named in the groups once - searching or watching, in a match, in the launcher
+  const all = d ? [...(d.searching || []), ...(d.matches || []).flatMap(m => [...(m.team1 || []), ...(m.team2 || []), ...(m.watchers || []).map(w => typeof w === 'object' ? w : { steam: w })]), ...ON.users] : [];
+  const ids = new Set(all.map(p => String(p.steam || '')).filter(Boolean));
+  $('onTotal').textContent = d ? String(ids.size + all.filter(p => !p.steam).length) : '';
   $('onGroups').innerHTML = html;
-  $('onGroups').querySelectorAll('.nm[data-steam]').forEach(b => b.onclick = () => b.dataset.steam && open('https://steamcommunity.com/profiles/' + b.dataset.steam));
+  $('onGroups').querySelectorAll('.nm[data-steam]').forEach(b => b.onclick = e => { e.stopPropagation(); nickMenu(b, b.dataset.steam); });
   $('onGroups').querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
     ON.shut.has(b.dataset.g) ? ON.shut.delete(b.dataset.g) : ON.shut.add(b.dataset.g);
     try { localStorage.setItem('onShut', JSON.stringify([...ON.shut])); } catch (e) {}
@@ -1516,13 +1534,17 @@ function chMe() {
   if (me) {
     const p = CH.prof || {}, st = p.stats;
     const rating = p.rating || (ON.users.find(u => u.steam === me.steam) || {}).rating;
-    const line = [rating ? `<b>${Number(rating) | 0}</b> 1v1` : '', st && st.rank ? `<span title="${esc(t('prRankT'))}">#${Number(st.rank) | 0}</span>` : ''].filter(Boolean).join(' · ');
+    // no ladder place (#N): the server would build the whole season board for one player (plan, decision 4)
+    const line = rating ? `<b>${Number(rating) | 0}</b> 1v1` : '';
     const games = !st ? '' : st.games ? `<div class="me-st" title="${esc(st.wins + ' – ' + st.losses)}">${esc(t('prGames', { n: st.games, pct: Math.round(100 * st.wins / st.games) }))}</div>`
       : `<div class="me-st">${esc(t('prNoGames'))}</div>`;
+    // the name and the sign-out icon on one line, everything under the name on the same left edge
     box.innerHTML = avatar(me.avatar, 'me-av')
-      + `<div class="me-info"><button class="nm" id="meName" title="${esc(t('chSignedIn', { name: me.name }))}">${esc(me.name || me.steam)}</button>`
-      + (line ? `<div class="me-rt">${line}</div>` : '') + games + `</div><button class="me-out" id="chOut">${esc(t('chLogout'))}</button>`;
-    $('meName').onclick = () => open('https://steamcommunity.com/profiles/' + me.steam);
+      + `<div class="me-info"><div class="me-top"><button class="nm" id="meName" title="${esc(t('chSignedIn', { name: me.name }))}">${esc(me.name || me.steam)}</button>`
+      + `<button class="me-out" id="chOut" title="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}"><svg viewBox="0 0 24 24" aria-hidden="true">`
+      + '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button></div>'
+      + (line ? `<div class="me-rt">${line}</div>` : '') + games + '</div>';
+    $('meName').onclick = e => { e.stopPropagation(); nickMenu(e.currentTarget, me.steam); };
     $('chOut').onclick = chLogout;
   } else {
     // waiting for the browser: the button stays live (a new click opens Steam again), Cancel stops the wait
