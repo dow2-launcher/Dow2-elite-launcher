@@ -213,7 +213,9 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 /* home, right column: online on top (who is looking for a game, who is in a match; the details are on the ladder page), the pinned add-ons below */
 .on-box{flex:1 1 0;min-height:90px;display:flex;flex-direction:column;padding-bottom:0}
 .on-box .h{margin-bottom:6px}
-.on-total{color:var(--gold2);letter-spacing:1px}
+/* after the heading's line, in the column of the group counts (they have a 6 px gap and an 8 px arrow after them) */
+.on-total{order:2;margin-right:14px;font:600 13px Spectral,serif;letter-spacing:0;color:var(--gold2)}
+.on-total:empty{display:none}
 .h-link{padding:0;border:0;background:none;color:#e2c06a;font:600 12px Spectral,serif;letter-spacing:0;text-transform:none}
 .h-link:hover{color:var(--gold2)}
 .on-groups{flex:1;min-height:0;overflow:auto;margin:0 -14px;padding:0 14px 8px}
