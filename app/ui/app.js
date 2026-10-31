@@ -1405,7 +1405,7 @@ setInterval(() => { if (S && !S.busy) refresh(); launcherCheck(); }, 15 * 60 * 1
 // (every minute while the window is hidden). Only names here; the details are on the ladder page linked below the block.
 // The Online block comes ready from the ladder server: the snapshot (online / c/live) and then only changes over the
 // stream (presence, match, match_end, user). Each person is in one group only, the server sorts that out.
-const LIVE = { users: {}, searching: [], ingame: [], launcher: [], host: '', ok: false };
+const LIVE = { users: {}, searching: [], ingame: [], launcher: [], host: '', ok: false, skew: 0 };
 const ON = { err: false, shut: new Set(), t: null };
 // the groups the player folded stay folded (only a convenience: without storage everything opens)
 try { ON.shut = new Set(JSON.parse(localStorage.getItem('onShut') || '[]')); } catch (e) {}
@@ -1421,11 +1421,13 @@ const raceImg = r => {
 const onRt = r => r ? `<span class="rt">${Number(r) | 0}</span>` : `<span class="rt none" title="${esc(t('prNoGames'))}">—</span>`;
 const onUser = s => LIVE.users[s] || {};
 const onWho = s => `<button class="nm" data-steam="${esc(s)}" title="${esc('Steam ' + s)}">${esc(onUser(s).name || 'Player')}</button>`;
-const onMins = ts => t('onMin', { n: Math.max(0, Math.round((Date.now() / 1000 - ts) / 60)) });   // the server sends unix times
+// the server sends unix times and its own clock with every snapshot: minutes count right even when the PC clock is off
+const onMins = ts => t('onMin', { n: Math.max(0, Math.round((Date.now() / 1000 + LIVE.skew - ts) / 60)) });
 
 function onLive(d) {   // a full snapshot
   Object.assign(LIVE, { users: d.users || {}, searching: d.searching || [], ingame: d.ingame || [], launcher: d.launcher || [], ok: true });
   if (d.host) LIVE.host = d.host;
+  if (d.now) LIVE.skew = d.now - Date.now() / 1000;
   ON.err = false; onSoon();
 }
 function onEvent(ev, d) {
@@ -1468,7 +1470,12 @@ function onRender() {
     // looking for a game: avatar, name, race, mode (spectators marked), how long
     if (look.length) html += group('look', t('onSearching'), look.length, look.map(p => `<div class="on-p">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${raceImg(p.race)}`
       + `<span class="tag">${esc(p.mode === 'watch' ? t('onWatcher') : p.mode)}</span><span class="since">${esc(onMins(p.since))}</span></div>`).join(''));
-    // in a match: a card per match - mode, map, getting ready / how long it plays - team against team, the spectators
+    // the launcher open: avatar, 1v1 rating, a dot for menu / game
+    if (inL.length) html += group('launcher', t('chMembers'), inL.length, [...inL].sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''))
+      .map(p => `<div class="on-p on-u">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${onRt(onUser(p.steam).rating)}`
+        + `<span class="st st-${esc(p.state)}" title="${esc(t('st_' + p.state))}"></span></div>`).join(''));
+    // in a match, the last group and the biggest: a card per match - mode, map, getting ready / how long it plays -
+    // team against team, the spectators
     const pl = x => `<div class="on-p">${avatar(onUser(x.steam).avatar)}${onWho(x.steam)}${raceImg(x.race)}${onRt(onUser(x.steam).rating)}</div>`;
     const map = m => String(m || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
     if (matches.length) html += group('match', t('onInMatchH'), players.length, matches.map(m => `<div class="on-mc"><div class="on-mh">`
@@ -1476,10 +1483,6 @@ function onRender() {
       + `<span class="since">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span></div>`
       + m.team1.map(pl).join('') + '<div class="vs">vs</div>' + m.team2.map(pl).join('')
       + (m.watchers.length ? `<div class="on-wt">${esc(t('onWatchers'))}: ${m.watchers.map(onWho).join(', ')}</div>` : '') + '</div>').join(''));
-    // the launcher open: avatar, 1v1 rating, a dot for menu / game
-    if (inL.length) html += group('launcher', t('chMembers'), inL.length, [...inL].sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''))
-      .map(p => `<div class="on-p on-u">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${onRt(onUser(p.steam).rating)}`
-        + `<span class="st st-${esc(p.state)}" title="${esc(t('st_' + p.state))}"></span></div>`).join(''));
   }
   // "Online N" in the heading: everyone in the groups once, spectators too
   const ids = new Set([...look.map(p => p.steam), ...players.map(x => x.steam), ...matches.flatMap(m => m.watchers), ...inL.map(p => p.steam)]);
