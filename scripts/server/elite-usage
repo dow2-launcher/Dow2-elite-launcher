@@ -1,0 +1,7 @@
+#!/bin/bash
+# Elite Launcher anonymous usage: installs per day (each day counted on its own, days can't be linked)
+sqlite3 -header -column /srv/relicstats/data/usage.db "SELECT day, COUNT(*) AS installs, SUM(os='windows') AS win, SUM(os='linux') AS linux, SUM(os='macos') AS mac, GROUP_CONCAT(DISTINCT v) AS launcher FROM ping GROUP BY day ORDER BY day DESC LIMIT ${1:-30};" 2>/dev/null || python3 - "$@" <<'PY'
+import sqlite3,sys
+c=sqlite3.connect('/srv/relicstats/data/usage.db')
+for r in c.execute("SELECT day, COUNT(*), SUM(os='windows'), SUM(os='linux'), SUM(os='macos'), GROUP_CONCAT(DISTINCT v), GROUP_CONCAT(DISTINCT elite) FROM ping GROUP BY day ORDER BY day DESC LIMIT 30"): print(*r, sep='\t')
+PY

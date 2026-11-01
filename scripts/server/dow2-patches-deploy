@@ -1,0 +1,132 @@
+#!/bin/bash
+# Dow2-patches -> STAGING of the launcher's add-ons. Pull-based: a systemd timer on the main server runs this every
+# 2 minutes. A new commit on origin/main with a changed addons.json -> build the DLLs here -> publish every add-on whose
+# version there is new into the STAGING store (store3-staging: never synced to the mirrors, players don't see it).
+# The release to players is a separate, manual step (owner's rule 29.10.2026): elite-release - checked first, then
+# released, or dropped and the change reverted in the repo.
+# No secrets in GitHub: the server pulls with its deploy key and signs with the store key it already has.
+# DRY=1 dow2-patches-deploy [ref]: everything against a copy of the store, nothing signed for real or synced.
+set -uo pipefail
+SRC=/srv/dow2-patches-deploy                  # deploy checkout (nobody edits here)
+UPD=/mnt/ssd/eliteupd                         # store3/, comp/, keys/private.key, .token
+PUB=/usr/local/lib/elite/elite-publish        # frozen copy: the launcher builds rebuild their own target dir
+export GIT_SSH_COMMAND="ssh -i /root/.ssh/deploy_dow2-fixes -o IdentitiesOnly=yes -o BatchMode=yes"
+DRY=${DRY:-}
+say() { echo "$1"; }                     # only the journal (journalctl -u dow2-patches-deploy): no Telegram
+STAGE="$UPD/store3-staging"; SCOMP="$UPD/comp-staging"   # see elite-release
+
+# one writer of store3 at a time: this script and the hand edits (flock /run/elite-store.lock <command>)
+exec 9>/run/elite-store.lock; flock -w 600 9 || exit 0
+
+[ -d "$SRC/.git" ] || git clone -q git@github.com:pivolan/Dow2-patches.git "$SRC" || exit 1
+cd "$SRC" || exit 1
+git fetch -q origin || exit 1
+NEW=$(git rev-parse "${1:-origin/main}"); OLD=$(cat .deployed 2>/dev/null || true)
+if [ -z "$DRY" ]; then
+  [ "$NEW" = "$OLD" ] && exit 0
+  [ "$NEW" = "$(cat .failed 2>/dev/null)" ] && exit 0          # this commit already failed - wait for a new one
+fi
+git checkout -q -f "$NEW" || exit 1
+MSG=$(git log -1 --format='%h %s (%an)' "$NEW")
+# nothing to do unless addons.json changed since the last deployed commit
+if [ -z "$DRY" ] && [ -n "$OLD" ] && git cat-file -e "$OLD" 2>/dev/null && git diff --quiet "$OLD" "$NEW" -- addons.json; then
+  echo "$NEW" > .deployed; exit 0
+fi
+fail() { [ -z "$DRY" ] && echo "$NEW" > .failed; say "⛔ Dow2-patches: $MSG — не выложено: $1"; exit 1; }
+
+make clean >/dev/null 2>&1; make > build.log 2>&1 || fail "не собирается: $(grep -m3 -i error build.log | tr '\n' ' ' | cut -c1-400)"
+
+# the staging store: the live launcher.json + what the repo wants on top of it (so it always lists exactly what is waiting
+# for a release); the live blobs, and the live manifests next to its own
+mkdir -p "$STAGE" "$SCOMP"; [ -e "$STAGE/blobs" ] || ln -s "$UPD/store3/blobs" "$STAGE/blobs"
+cp -a "$UPD/store3/launcher.json" "$UPD/store3/launcher.json.sig" "$STAGE/"
+for m in "$UPD"/store3/*.manifest*; do [ -e "$STAGE/$(basename "$m")" ] || ln -s "$m" "$STAGE/"; done
+STORE="$STAGE"; COMP="$SCOMP"
+if [ -n "$DRY" ]; then
+  T=$(mktemp -d); trap 'rm -rf "$T"' EXIT
+  cp -a "$UPD/store3/launcher.json" "$UPD/store3/launcher.json.sig" "$T/" ; ln -s "$UPD/store3/blobs" "$T/blobs"
+  for m in "$UPD"/store3/*.manifest*; do ln -s "$m" "$T/"; done
+  STORE="$T"; COMP="$T/comp"; mkdir -p "$COMP"
+fi
+
+OUT=$(python3 - "$STORE" "$COMP" "$PUB" "$UPD/keys/private.key" "${DRY:+dry}" <<'PY'
+import json, os, shutil, subprocess, sys, time
+store, comp, pub, key, dry = sys.argv[1:6]
+want = json.load(open("addons.json"))
+lj_path = os.path.join(store, "launcher.json")
+lj = json.load(open(lj_path))
+comps = {c["id"]: c for c in lj["components"]}
+TEXT = ("name", "description", "default", "conflicts", "options")      # "files" is about the build, not the launcher
+done, errs = [], []
+
+def is_dll32(p):
+    b = open(p, "rb").read(4096)
+    if b[:2] != b"MZ": return False
+    o = int.from_bytes(b[0x3C:0x40], "little")
+    return b[o:o+4] == b"PE\0\0" and b[o+4:o+6] == b"\x4c\x01"      # i386: DOW2.exe is 32-bit
+
+# released by hand from the local builds, not from the repo (owner 30.10.2026: no pushing, I release myself): the repo's
+# addons.json is behind for these and would roll them back
+MANUAL = {"lobbystats"}
+for aid, a in want.items():
+    if aid.startswith("_") or aid in MANUAL: continue
+    ver = f"{aid}-{a['version']}"
+    cid = next((aid + x for x in ("_r3", "_r2") if aid + x in comps), aid)   # 30.10.2026: launcher ids got "_r2" (everyone's ticks reset, owner)
+    c = comps.get(cid)
+    dll = a.get("dll") or (c or {}).get("inject")
+    if not dll: errs.append(f"{aid}: нет dll"); continue
+    if c is None and not (a.get("name") and a.get("description")):
+        errs.append(f"{aid}: новое дополнение без name/description"); continue
+    changed = []
+    if not os.path.exists(os.path.join(store, ver + ".manifest")):
+        built = os.path.join("build", dll)
+        if not os.path.isfile(built) or not is_dll32(built):
+            errs.append(f"{aid}: {built} не собран или не 32-битная DLL"); continue
+        d = os.path.join(comp, ver, "Elite_DLLs"); os.makedirs(d, exist_ok=True)
+        shutil.copy2(built, os.path.join(d, dll))
+        bad = None
+        for dst, src in (a.get("files") or {}).items():           # more than the DLL: path under Elite_DLLs -> repo file
+            if ".." in dst or dst.startswith(("/", "\\")) or ".." in src or not os.path.isfile(src):
+                bad = f"files: {dst} <- {src}"; break
+            if src.endswith((".ai", ".scar", ".lua")):
+                r = subprocess.run(["luac5.1", "-p", src], capture_output=True, text=True)
+                if r.returncode: bad = f"{src}: {(r.stderr or r.stdout).strip()[-200:]}"; break
+            os.makedirs(os.path.dirname(os.path.join(d, dst)), exist_ok=True)
+            shutil.copy2(src, os.path.join(d, dst))
+        if bad:
+            shutil.rmtree(os.path.join(comp, ver), ignore_errors=True); errs.append(f"{aid}: {bad}"); continue
+        r = subprocess.run([pub, "version", os.path.join(comp, ver), store, ver, key], capture_output=True, text=True)
+        if r.returncode: errs.append(f"{aid}: elite-publish: {(r.stderr or r.stdout)[-300:]}"); continue
+        changed.append("новая сборка")
+    if c is None:
+        c = {"id": cid, "version": ver, "inject": dll}; lj["components"].append(c); changed.append("новое")
+    if c["version"] != ver:
+        changed.append(f"{c['version']} → {ver}"); c["version"] = ver
+    for k in TEXT:
+        if k in a and c.get(k) != a[k]:
+            c[k] = a[k]; changed.append(k)
+    if changed: done.append(f"{aid}: " + ", ".join(dict.fromkeys(changed)))
+
+if errs:
+    print("ERR " + "; ".join(errs)); sys.exit(0)
+if not done:
+    print("NONE"); sys.exit(0)
+if not dry: shutil.copy2(lj_path, lj_path + ".bak." + time.strftime("%Y%m%d-%H%M%S"))
+tmp = lj_path + ".new"
+json.dump(lj, open(tmp, "w"), ensure_ascii=False, indent=2); os.replace(tmp, lj_path)
+for cmd in ([pub, "sign", lj_path, key], [pub, "verify", store]):
+    r = subprocess.run(cmd, capture_output=True, text=True)
+    if r.returncode: print("ERR " + " ".join(cmd[1:2]) + ": " + (r.stderr or r.stdout)[-300:]); sys.exit(0)
+print("OK " + "; ".join(done))
+PY
+)
+case "$OUT" in
+  ERR*) fail "${OUT#ERR }" ;;
+  NONE) say "ℹ️ Dow2-patches: $MSG — addons.json без новых версий, нечего выкладывать" ;;
+  OK*)
+    if [ -n "$DRY" ]; then echo "DRY: ${OUT#OK }"; exit 0; fi
+    say "📦 Dow2-patches: $MSG — на стейджинге, ждёт релиза (elite-release): ${OUT#OK }" ;;
+  *) fail "непонятный ответ публикатора: $OUT" ;;
+esac
+[ -z "$DRY" ] && { echo "$NEW" > .deployed; rm -f .failed; }
+exit 0
