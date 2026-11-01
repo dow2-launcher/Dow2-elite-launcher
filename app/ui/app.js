@@ -20,15 +20,7 @@ const T = {
     "prNote": "Your name, 1v1 rating and the players’ chat.",
     "prGames": "Games: {n} · {pct}% won",
     "prNoGames": "No ladder games this season yet",
-    "nickStats": "Player stats",
-    "nickSteam": "Steam profile",
-    "chSending": "Sending…",
-    "chNotSent": "Not sent",
-    "chRetry": "Retry",
-    "chDelete": "Delete",
-    "chOrig": "Original",
-    "onWatcher": "spectator",
-    "onWatchers": "Spectators",
+    "prRankT": "Place on the ladder (1v1, this season)",
     "chAll": "General",
     "chDev": "Developers",
     "chLogin": "Sign in with Steam",
@@ -37,6 +29,7 @@ const T = {
     "chPlaceholder": "Message… (Enter sends, Shift+Enter a new line)",
     "chMembers": "In the launcher",
     "chEmpty": "Quiet here. Say hi!",
+    "chPending": "sending…",
     "chWaitLogin": "Sign in with Steam in the browser, then come back here.",
     "st_menu": "in the menu",
     "st_game": "in the game",
@@ -192,6 +185,7 @@ const T = {
     "onStatePlaying": "Playing",
     "onNobody": "Nobody is looking for a game. Start the game and press “Find a Game”.",
     "onOffline": "No connection to the ladder server, trying again…",
+    "onIdle": "In the game, in the menu",
     "onLoading": "Loading who is online…",
     "onLadder": "Ladder and match history ›",
     "race_space_marines": "Space Marines",
@@ -221,15 +215,7 @@ const T = {
     "prNote": "Ник, рейтинг 1v1 и чат с игроками.",
     "prGames": "Игр: {n} · побед {pct}%",
     "prNoGames": "В этом сезоне ещё без игр в ладдере",
-    "nickStats": "Статистика игрока",
-    "nickSteam": "Профиль Steam",
-    "chSending": "Отправляется…",
-    "chNotSent": "Не отправлено",
-    "chRetry": "Повторить",
-    "chDelete": "Удалить",
-    "chOrig": "Оригинал",
-    "onWatcher": "зритель",
-    "onWatchers": "Зрители",
+    "prRankT": "Место в ладдере (1v1, этот сезон)",
     "chAll": "Общий",
     "chDev": "Разработчикам",
     "chLogin": "Войти через Steam",
@@ -238,6 +224,7 @@ const T = {
     "chPlaceholder": "Сообщение… (Enter — отправить, Shift+Enter — новая строка)",
     "chMembers": "В лаунчере",
     "chEmpty": "Пока тихо. Напишите первым!",
+    "chPending": "отправляется…",
     "chWaitLogin": "Войдите через Steam в браузере и вернитесь сюда.",
     "st_menu": "в меню",
     "st_game": "в игре",
@@ -393,6 +380,7 @@ const T = {
     "onStatePlaying": "Идёт",
     "onNobody": "Никто не ищет игру. Запусти игру и нажми «Find a Game».",
     "onOffline": "Нет связи с сервером ладдера, пробую снова…",
+    "onIdle": "В игре, в меню",
     "onLoading": "Загружаю, кто онлайн…",
     "onLadder": "Ладдер и история матчей ›",
     "race_space_marines": "Космодесант",
@@ -422,15 +410,7 @@ const T = {
     "prNote": "Tu nombre, rating 1v1 y el chat de jugadores.",
     "prGames": "Partidas: {n} · {pct}% ganadas",
     "prNoGames": "Aún sin partidas de ladder esta temporada",
-    "nickStats": "Estadísticas del jugador",
-    "nickSteam": "Perfil de Steam",
-    "chSending": "Enviando…",
-    "chNotSent": "No enviado",
-    "chRetry": "Reintentar",
-    "chDelete": "Borrar",
-    "chOrig": "Original",
-    "onWatcher": "espectador",
-    "onWatchers": "Espectadores",
+    "prRankT": "Puesto en el ladder (1v1, esta temporada)",
     "chAll": "General",
     "chDev": "Desarrolladores",
     "chLogin": "Entrar con Steam",
@@ -439,6 +419,7 @@ const T = {
     "chPlaceholder": "Mensaje… (Enter envía, Shift+Enter nueva línea)",
     "chMembers": "En el launcher",
     "chEmpty": "Todo tranquilo. ¡Saluda!",
+    "chPending": "enviando…",
     "chWaitLogin": "Entra con Steam en el navegador y vuelve aquí.",
     "st_menu": "en el menú",
     "st_game": "en el juego",
@@ -589,6 +570,7 @@ const T = {
     "onStatePlaying": "En curso",
     "onNobody": "Nadie busca partida. Inicia el juego y pulsa «Find a Game».",
     "onOffline": "Sin conexión con el servidor de la ladder, reintentando…",
+    "onIdle": "En el juego, en el menú",
     "onLoading": "Cargando quién está en línea…",
     "onLadder": "Ladder e historial de partidas ›",
     "race_space_marines": "Marines Espaciales",
@@ -618,15 +600,7 @@ const T = {
     "prNote": "Votre nom, classement 1v1 et le chat des joueurs.",
     "prGames": "Parties : {n} · {pct} % gagnées",
     "prNoGames": "Aucune partie classée cette saison",
-    "nickStats": "Statistiques du joueur",
-    "nickSteam": "Profil Steam",
-    "chSending": "Envoi…",
-    "chNotSent": "Non envoyé",
-    "chRetry": "Réessayer",
-    "chDelete": "Supprimer",
-    "chOrig": "Original",
-    "onWatcher": "spectateur",
-    "onWatchers": "Spectateurs",
+    "prRankT": "Place au classement (1v1, cette saison)",
     "chAll": "Général",
     "chDev": "Développeurs",
     "chLogin": "Se connecter avec Steam",
@@ -635,6 +609,7 @@ const T = {
     "chPlaceholder": "Message… (Entrée envoie, Maj+Entrée nouvelle ligne)",
     "chMembers": "Dans le launcher",
     "chEmpty": "C'est calme. Dites bonjour !",
+    "chPending": "envoi…",
     "chWaitLogin": "Connectez-vous avec Steam dans le navigateur, puis revenez ici.",
     "st_menu": "au menu",
     "st_game": "en jeu",
@@ -785,6 +760,7 @@ const T = {
     "onStatePlaying": "En cours",
     "onNobody": "Personne ne cherche de partie. Lancez le jeu et appuyez sur « Find a Game ».",
     "onOffline": "Pas de connexion au serveur du ladder, nouvel essai…",
+    "onIdle": "En jeu, dans le menu",
     "onLoading": "Chargement des joueurs en ligne…",
     "onLadder": "Ladder et historique des parties ›",
     "race_space_marines": "Space Marines",
@@ -814,15 +790,7 @@ const T = {
     "prNote": "Dein Name, 1v1-Rating und der Spieler-Chat.",
     "prGames": "Spiele: {n} · {pct} % gewonnen",
     "prNoGames": "Diese Saison noch keine Ladder-Spiele",
-    "nickStats": "Spielerstatistik",
-    "nickSteam": "Steam-Profil",
-    "chSending": "Wird gesendet…",
-    "chNotSent": "Nicht gesendet",
-    "chRetry": "Erneut senden",
-    "chDelete": "Löschen",
-    "chOrig": "Original",
-    "onWatcher": "Zuschauer",
-    "onWatchers": "Zuschauer",
+    "prRankT": "Platz in der Ladder (1v1, diese Saison)",
     "chAll": "Allgemein",
     "chDev": "Entwickler",
     "chLogin": "Mit Steam anmelden",
@@ -831,6 +799,7 @@ const T = {
     "chPlaceholder": "Nachricht… (Enter sendet, Umschalt+Enter neue Zeile)",
     "chMembers": "Im Launcher",
     "chEmpty": "Noch still hier. Sag hallo!",
+    "chPending": "wird gesendet…",
     "chWaitLogin": "Im Browser mit Steam anmelden und hierher zurückkommen.",
     "st_menu": "im Menü",
     "st_game": "im Spiel",
@@ -981,6 +950,7 @@ const T = {
     "onStatePlaying": "Läuft",
     "onNobody": "Niemand sucht ein Spiel. Starte das Spiel und drücke „Find a Game“.",
     "onOffline": "Keine Verbindung zum Ladder-Server, neuer Versuch…",
+    "onIdle": "Im Spiel, im Menü",
     "onLoading": "Lade, wer online ist…",
     "onLadder": "Ladder und Spielverlauf ›",
     "race_space_marines": "Space Marines",
@@ -1093,7 +1063,6 @@ function popAddon(btn, c) {
     + `<div class="v">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
     + (c.enabled && (c.conflicts || []).length ? `<div class="w">${esc(t('conflictActive'))}</div>` : '');
   pop.dataset.id = c.id;
-  pop.classList.remove('nick');
   pop.classList.remove('hidden');
   document.querySelectorAll('.qm.on').forEach(x => x.classList.remove('on'));
   btn.classList.add('on');
@@ -1106,24 +1075,6 @@ function popClose() {
   $('pop').classList.add('hidden');
   $('pop').dataset.id = '';
   document.querySelectorAll('.qm.on').forEach(x => x.classList.remove('on'));
-}
-
-// a click on a player's name (Online, chat, own card): his stats on our site (the page finds him by SteamID and opens
-// his card) or his Steam profile. Nothing from the server is needed, only the SteamID.
-function nickMenu(btn, steam) {
-  const pop = $('pop'), id = 'nick:' + steam;
-  if (!steam || (pop.dataset.id === id && !pop.classList.contains('hidden'))) return popClose();
-  const host = LIVE.host || 'https://dow2.fintebtc.de';
-  const urls = [host + '/stats/?q=' + encodeURIComponent(steam) + '&lang=' + encodeURIComponent(lang), 'https://steamcommunity.com/profiles/' + steam];
-  pop.innerHTML = `<div class="nick-menu"><button data-u="0">${esc(t('nickStats'))}</button><button data-u="1">${esc(t('nickSteam'))}</button></div>`;
-  pop.querySelectorAll('[data-u]').forEach(b => b.onclick = () => { popClose(); open(urls[b.dataset.u]); });
-  pop.dataset.id = id;
-  pop.classList.add('nick');
-  pop.classList.remove('hidden');
-  // under the name, kept inside the window
-  const r = btn.getBoundingClientRect();
-  pop.style.left = Math.max(8, Math.min(window.innerWidth - pop.offsetWidth - 8, r.left)) + 'px';
-  pop.style.top = (r.bottom + 4 + pop.offsetHeight > window.innerHeight - 8 ? r.top - pop.offsetHeight - 4 : r.bottom + 4) + 'px';
 }
 
 // launcher self-update, offered and never forced. LU: a newer launcher this copy can install itself (launcher_check);
@@ -1391,7 +1342,7 @@ listen('launcher_progress', e => {
   $('statusMeta').textContent = total ? `${mb(done)} / ${mb(total)}` : mb(done);
 });
 listen('news', () => { if (S) reload(); });
-listen('game_running', e => { if (!S) return; S.game_running = e.payload; render(); if (!e.payload) refresh(); chHello(); });   // menu / game goes to the server when it changes, not on a timer
+listen('game_running', e => { if (!S) return; S.game_running = e.payload; render(); if (!e.payload) refresh(); chHello(); });   // "in the game" for the others right away, not at the next 30 s hello
 listen('progress', e => { netActive = false; prog = e.payload; if (S) { S.busy = true; renderProgress(prog); } });
 listen('update_done', async e => {
   await reload();
@@ -1465,10 +1416,7 @@ setInterval(() => { if (S && !S.busy) refresh(); launcherCheck(); }, 15 * 60 * 1
 // ---------- Online (home, above the add-ons): who is looking for a game, who is in a match ----------
 // The same list the ladder page shows: /ladder/api/mm/live of the ladder service on the log hosts, every 15 seconds
 // (every minute while the window is hidden). Only names here; the details are on the ladder page linked below the block.
-// The Online block comes ready from the ladder server: the snapshot (online / c/live) and then only changes over the
-// stream (presence, match, match_end, user). Each person is in one group only, the server sorts that out.
-const LIVE = { users: {}, searching: [], ingame: [], launcher: [], host: '', ok: false, skew: 0 };
-const ON = { err: false, shut: new Set(), t: null };
+const ON = { d: null, err: false, timer: null, shut: new Set(), users: [] };   // users: who has the launcher open (from the players' chat "hello")
 // the groups the player folded stay folded (only a convenience: without storage everything opens)
 try { ON.shut = new Set(JSON.parse(localStorage.getItem('onShut') || '[]')); } catch (e) {}
 const RACES = ['space_marines', 'chaos_marines', 'eldar', 'orks', 'tyranids', 'imperial_guard', 't_tau', 'z_unecron', 'ordo_malleus'];
@@ -1479,87 +1427,81 @@ const raceImg = r => {
   if (r === 'random') return `<span class="race race-rnd" role="img" aria-label="${esc(t('race_random'))}" title="${esc(t('race_random'))}">?</span>`;
   return RACES.includes(r) ? `<img class="race" src="races/${r}.png" alt="${esc(t('race_' + r))}" title="${esc(t('race_' + r))}">` : '<span class="race"></span>';
 };
+// the ladder server knows no avatars: take it from the launcher list (the chat "hello") or the signed-in card, by SteamID
+const onAv = p => {
+  if (p.avatar || !p.steam) return p.avatar || '';
+  const me = CH.me && CH.me.signed_in ? [CH.me] : [];
+  const u = [...ON.users, ...me].find(u => String(u.steam) === String(p.steam));
+  return u ? u.avatar : '';
+};
 // the 1v1 rating; none yet (no ladder games this season) - a dash, so the dots after it stay in one column
 const onRt = r => r ? `<span class="rt">${Number(r) | 0}</span>` : `<span class="rt none" title="${esc(t('prNoGames'))}">—</span>`;
-const onUser = s => LIVE.users[s] || {};
-const onWho = s => `<button class="nm" data-steam="${esc(s)}" title="${esc('Steam ' + s)}">${esc(onUser(s).name || 'Player')}</button>`;
-// the server sends unix times and its own clock with every snapshot: minutes count right even when the PC clock is off
-const onMins = ts => t('onMin', { n: Math.max(0, Math.round((Date.now() / 1000 + LIVE.skew - ts) / 60)) });
-
-function onLive(d) {   // a full snapshot
-  Object.assign(LIVE, { users: d.users || {}, searching: d.searching || [], ingame: d.ingame || [], launcher: d.launcher || [], ok: true });
-  if (d.host) LIVE.host = d.host;
-  if (d.now) LIVE.skew = d.now - Date.now() / 1000;
-  ON.err = false; onSoon();
-}
-function onEvent(ev, d) {
-  if (ev === 'online') return onLive(d);
-  if (ev === 'user') { LIVE.users[d.steam] = { name: d.name, avatar: d.avatar, rating: d.rating }; if (CH.me && d.steam === CH.me.steam) chMe(); }
-  else if (ev === 'presence') {
-    // out of every group, then into the new one (ingame: the match event carries the teams)
-    LIVE.searching = LIVE.searching.filter(p => p.steam !== d.steam);
-    LIVE.launcher = LIVE.launcher.filter(p => p.steam !== d.steam);
-    if (d.group === 'searching') LIVE.searching.push({ steam: d.steam, mode: d.mode, race: d.race, since: d.since });
-    if (d.group === 'launcher') LIVE.launcher.push({ steam: d.steam, state: d.state });
-  } else if (ev === 'match') {
-    const i = LIVE.ingame.findIndex(m => m.id === d.id);
-    if (i >= 0) LIVE.ingame[i] = d; else LIVE.ingame.push(d);
-  } else if (ev === 'match_end') LIVE.ingame = LIVE.ingame.filter(m => m.id !== d.id);
-  else return;
-  onSoon();
-}
-function onSoon() {   // at most one redraw in 500 ms, however many events come
-  if (ON.t) return;
-  ON.t = setTimeout(() => { ON.t = null; onRender(); }, 500);
-}
+const onWho = p => `<button class="nm" data-steam="${esc(p.steam || '')}" title="${esc(p.steam ? 'Steam ' + p.steam : '')}">${esc(p.name || 'Player')}</button>`;
 
 function onRender() {
   if (!S) return;
+  const d = ON.d, look = (d?.searching || []).filter(p => p.mode !== 'watch'), matches = d?.matches || [];   // spectators wait to watch, not to play
+  // a group folds on a click on its heading
   const group = (key, title, n, body) => {
     const open = !ON.shut.has(key);
     return `<div class="on-g ${key} ${open ? '' : 'shut'}"><button class="on-gh" data-g="${key}" aria-expanded="${open}" ${body ? '' : 'disabled'}>`
       + `<i></i>${esc(title)}<span>${esc(String(n))}</span>${body ? '<b class="chev"></b>' : ''}</button>${open ? body : ''}</div>`;
   };
-  const look = LIVE.searching, matches = LIVE.ingame, inL = LIVE.launcher;
-  const players = matches.flatMap(m => [...m.team1, ...m.team2]);
+  const st = { creating: 'onStateCreating', lobby: 'onStateLobby', playing: 'onStatePlaying' };
   let html = '';
   // first load: grey rows in place of the names; no answer: say so
-  if (!LIVE.ok) html = ON.err ? `<div class="on-empty">${esc(t('onOffline'))}</div>`
+  if (!d) html = ON.err ? `<div class="on-empty">${esc(t('onOffline'))}</div>`
     : `<div class="on-skel" role="status" aria-label="${esc(t('onLoading'))}">${'<div><i></i><b></b></div>'.repeat(5)}</div>`;
   else {
     if (ON.err) html += `<div class="on-stale">${esc(t('onOffline'))}</div>`;   // the last list stays, marked as old
-    if (!look.length && !matches.length && !inL.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
-    // looking for a game: avatar, name, race, mode (spectators marked), how long
-    if (look.length) html += group('look', t('onSearching'), look.length, look.map(p => `<div class="on-p">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${raceImg(p.race)}`
-      + `<span class="tag">${esc(p.mode === 'watch' ? t('onWatcher') : p.mode)}</span><span class="since">${esc(onMins(p.since))}</span></div>`).join(''));
-    // the launcher open: avatar, 1v1 rating, a dot for menu / game
-    if (inL.length) html += group('launcher', t('chMembers'), inL.length, [...inL].sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''))
-      .map(p => `<div class="on-p on-u">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${onRt(onUser(p.steam).rating)}`
-        + `<span class="st st-${esc(p.state)}" title="${esc(t('st_' + p.state))}"></span></div>`).join(''));
-    // in a match, the last group and the biggest: a card per match - mode, map, getting ready / how long it plays -
-    // team against team, the spectators
-    const pl = x => `<div class="on-p">${avatar(onUser(x.steam).avatar)}${onWho(x.steam)}${raceImg(x.race)}${onRt(onUser(x.steam).rating)}</div>`;
+    // looking for a game: avatar, name, race, the mode on the right
+    if (look.length) html += group('look', t('onSearching'), look.length,
+      look.map(p => `<div class="on-p">${avatar(onAv(p))}${onWho(p)}${raceImg(p.race)}<span class="tag">${esc(p.mode)}</span></div>`).join(''));
+    if (!look.length && !matches.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
+    // who has the launcher open (signed in with Steam): the avatar, the 1v1 rating and a dot for menu / game / search / match;
+    // those already named above (looking for a game) or below (playing in a match) are not named twice
+    const sid = p => String(p.steam || '');
+    const players = matches.flatMap(m => [...(m.team1 || []), ...(m.team2 || [])]);
+    const shown = new Set([...look, ...players].map(sid).filter(Boolean));
+    const users = ON.users.filter(u => !shown.has(sid(u)));
+    if (users.length) html += group('launcher', t('chMembers'), users.length, users.map(u => '<div class="on-p on-u">'
+      + avatar(u.avatar) + onWho(u)
+      + onRt(u.rating) + `<span class="st st-${esc(u.state)}" title="${esc(t('st_' + u.state))}"></span></div>`).join(''));
+    // the last group, only a number: games that talked to the ladder server in the last minute (the number on the ladder
+    // page) minus those looking for a game or watching, those in a match and those already named above with the game on
+    const inMatches = matches.reduce((n, m) => n + (m.team1 || []).length + (m.team2 || []).length + (m.watchers || []).length, 0);
+    const counted = new Set([...(d.searching || []), ...matches.flatMap(m => m.watchers || []), ...players].map(sid).filter(Boolean));
+    const named = users.filter(u => u.state === 'game' && !counted.has(sid(u))).length;   // not subtracted twice
+    html += group('idle', t('onIdle'), Math.max(0, (Number(d.online) || 0) - (d.searching || []).length - inMatches - named), '');
+    // in a match, the last group and the biggest: a card per match - mode, map, how long - and who plays which race, team against team
+    const pl = p => `<div class="on-p">${avatar(onAv(p))}${onWho(p)}${raceImg(p.race)}${onRt(p.rating)}</div>`;
     const map = m => String(m || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
-    if (matches.length) html += group('match', t('onInMatchH'), players.length, matches.map(m => `<div class="on-mc"><div class="on-mh">`
-      + `<span class="tag ${m.state === 'playing' ? 'playing' : 'creating'}">${esc(m.mode)}</span><span class="map">${esc(map(m.map))}</span>`
-      + `<span class="since">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span></div>`
-      + m.team1.map(pl).join('') + '<div class="vs">vs</div>' + m.team2.map(pl).join('')
-      + (m.watchers.length ? `<div class="on-wt">${esc(t('onWatchers'))}: ${m.watchers.map(onWho).join(', ')}</div>` : '') + '</div>').join(''));
+    if (matches.length) html += group('match', t('onInMatchH'), matches.reduce((n, m) => n + (m.team1 || []).length + (m.team2 || []).length, 0),
+      matches.map(m => `<div class="on-mc"><div class="on-mh"><span class="tag ${esc(m.state)}">${esc(m.mode)}</span><span class="map">${esc(map(m.map))}</span>`
+        + `<span class="since">${esc(t(st[m.state] || 'onStateCreating'))}${m.state === 'playing' && m.since ? ' · ' + esc(t('onMin', { n: Math.round(m.since / 60) })) : ''}</span></div>`
+        + (m.team1 || []).map(pl).join('') + '<div class="vs">vs</div>' + (m.team2 || []).map(pl).join('') + '</div>').join(''));
   }
-  // "Online N" in the heading: everyone in the groups once, spectators too
-  const ids = new Set([...look.map(p => p.steam), ...players.map(x => x.steam), ...matches.flatMap(m => m.watchers), ...inL.map(p => p.steam)]);
-  $('onTotal').textContent = LIVE.ok ? String(ids.size) : '';
   $('onGroups').innerHTML = html;
-  $('onGroups').querySelectorAll('.nm[data-steam]').forEach(b => b.onclick = e => { e.stopPropagation(); nickMenu(b, b.dataset.steam); });
+  $('onGroups').querySelectorAll('.nm[data-steam]').forEach(b => b.onclick = () => b.dataset.steam && open('https://steamcommunity.com/profiles/' + b.dataset.steam));
   $('onGroups').querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
     ON.shut.has(b.dataset.g) ? ON.shut.delete(b.dataset.g) : ON.shut.add(b.dataset.g);
     try { localStorage.setItem('onShut', JSON.stringify([...ON.shut])); } catch (e) {}
     onRender();
   });
-  $('onLadder').classList.toggle('hidden', !LIVE.host);
-  $('onLadder').onclick = () => open(LIVE.host + '/ladder/');
+  $('onLadder').classList.toggle('hidden', !d?.host);
+  $('onLadder').onclick = () => open((ON.d?.host || '') + '/ladder/');
 }
-setInterval(() => LIVE.ok && onRender(), 30000);   // the minutes go on without any event
+async function onLoad() {
+  try { ON.d = await invoke('online_live'); ON.err = false; }
+  catch (e) { ON.err = true; }
+  onRender();
+}
+function onPoll() {
+  clearTimeout(ON.timer);
+  onLoad().finally(() => { ON.timer = setTimeout(onPoll, document.hidden ? 60000 : 15000); });
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) onPoll(); });
+onPoll();
 
 
 // ---------- feedback chat with the developers ----------
@@ -1580,7 +1522,7 @@ async function fbInit() {
     if (!items.length) return;
     e.preventDefault(); items.forEach(i => fbAddFile(i.getAsFile()));
   });
-  fbWatch();
+  fbLoad(); FB.timer = setInterval(fbLoad, 20000);
 }
 function fbAddFile(f) {
   if (!f) return;
@@ -1604,12 +1546,6 @@ async function fbSend() {
   } catch (e) { toast(e, true); }
   $('fbSend').disabled = false;
 }
-function fbWatch() {   // the developers' chat: asked every 20 s only while its tab is open and the window seen
-  clearInterval(FB.timer); FB.timer = null;
-  if (!FB.open || document.hidden) return;
-  fbLoad(); FB.timer = setInterval(fbLoad, 20000);
-}
-document.addEventListener('visibilitychange', () => fbWatch());
 async function fbLoad() {
   let d; try { d = await invoke('fb_thread'); } catch (e) { return; }
   const key = JSON.stringify(d.messages.map(m => m.id));
@@ -1626,34 +1562,29 @@ fbInit();
 
 // ---------- players' chat, Steam sign-in and the player's card (ladder service /ladder/api/c/*) ----------
 // Rooms General / RU / EN (the server's all / ru / en) next to the developers' chat.
-const CH = { room: 'all', msgs: {}, out: [], unread: {}, full: {}, me: null, prof: null, waiting: false };
+const CH = { room: 'all', last: {}, msgs: {}, pending: {}, me: null, prof: null, waiting: false, timer: null };   // pending: sent, not yet back from the server
 try { CH.room = localStorage.getItem('chRoom') || 'all'; } catch (e) {}
 function chShowRoom() {
   document.querySelectorAll('.ch-tab').forEach(b => b.classList.toggle('on', b.dataset.room === CH.room));
   $('chatPane').classList.toggle('hidden', CH.room === 'dev');
   $('devPane').classList.toggle('hidden', CH.room !== 'dev');
-  if (CH.room !== 'dev') { CH.unread[chKey(CH.room)] = 0; chRender(true); if (!CH.msgs[chKey(CH.room)]) chLoad(chKey(CH.room)); }
-  chUnread(); FB.open = CH.room === 'dev'; fbWatch();
+  if (CH.room !== 'dev') { chRender(true); chLoad(); }
 }
-// the card above the news: avatar, name, 1v1 rating and games of the season (the stream's me); signed out - the Steam button
+// the card above the news: avatar, name, 1v1 rating, place and games of the season; signed out - the Steam button
 function chMe() {
   const me = CH.me && CH.me.signed_in ? CH.me : null, box = $('meBox');
   box.classList.toggle('hidden', !CH.me || CH.me.configured === false);
   box.classList.toggle('out', !me);
   if (me) {
     const p = CH.prof || {}, st = p.stats;
-    const rating = p.rating || (LIVE.users[me.steam] || {}).rating;
-    // no ladder place (#N): the server would build the whole season board for one player (plan, decision 4)
-    const line = rating ? `<b>${Number(rating) | 0}</b> 1v1` : '';
+    const rating = p.rating || (ON.users.find(u => u.steam === me.steam) || {}).rating;
+    const line = [rating ? `<b>${Number(rating) | 0}</b> 1v1` : '', st && st.rank ? `<span title="${esc(t('prRankT'))}">#${Number(st.rank) | 0}</span>` : ''].filter(Boolean).join(' · ');
     const games = !st ? '' : st.games ? `<div class="me-st" title="${esc(st.wins + ' – ' + st.losses)}">${esc(t('prGames', { n: st.games, pct: Math.round(100 * st.wins / st.games) }))}</div>`
       : `<div class="me-st">${esc(t('prNoGames'))}</div>`;
-    // the name and the sign-out icon on one line, everything under the name on the same left edge
     box.innerHTML = avatar(me.avatar, 'me-av')
-      + `<div class="me-info"><div class="me-top"><button class="nm" id="meName" title="${esc(t('chSignedIn', { name: me.name }))}">${esc(me.name || me.steam)}</button>`
-      + `<button class="me-out" id="chOut" title="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}"><svg viewBox="0 0 24 24" aria-hidden="true">`
-      + '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button></div>'
-      + (line ? `<div class="me-rt">${line}</div>` : '') + games + '</div>';
-    $('meName').onclick = e => { e.stopPropagation(); nickMenu(e.currentTarget, me.steam); };
+      + `<div class="me-info"><button class="nm" id="meName" title="${esc(t('chSignedIn', { name: me.name }))}">${esc(me.name || me.steam)}</button>`
+      + (line ? `<div class="me-rt">${line}</div>` : '') + games + `</div><button class="me-out" id="chOut">${esc(t('chLogout'))}</button>`;
+    $('meName').onclick = () => open('https://steamcommunity.com/profiles/' + me.steam);
     $('chOut').onclick = chLogout;
   } else {
     // waiting for the browser: the button stays live (a new click opens Steam again), Cancel stops the wait
@@ -1688,35 +1619,20 @@ async function chProfile() {
   try { const d = await invoke('c_api', { path: 'me', body: {} }); if (d.ok) CH.prof = d; } catch (e) { return; }
   chMe();
 }
-// RU and EN are one feed in two languages (the tab picks the language), General is a room of its own
-const chKey = room => room === 'all' ? 'all' : 'feed';
-const chOrig = m => m.orig || m.text;
-const chText = m => CH.room === 'ru' ? (m.ru || chOrig(m)) : CH.room === 'en' ? (m.en || chOrig(m)) : chOrig(m);
-function chPut(key, ms) {   // messages into a list in id order, each once; ours waiting in the queue are confirmed by their cid
-  const list = CH.msgs[key] || (CH.msgs[key] = []);
+async function chLoad(room) {
+  const r = room || CH.room; if (r === 'dev') return;
+  let d; try { d = await invoke('c_api', { path: `msgs?room=${r}&after=${CH.last[r] || 0}` }); } catch (e) { return; }
+  const list = CH.msgs[r] || (CH.msgs[r] = []);
   let changed = false;
-  for (const m of ms) {
-    const i = list.findIndex(x => x.id === m.id);
-    if (i >= 0) { list[i] = m; continue; }
-    let j = list.length; while (j > 0 && list[j - 1].id > m.id) j--;
-    list.splice(j, 0, m); changed = true;
-    if (m.cid && CH.out.some(o => o.cid === m.cid)) { CH.out = CH.out.filter(o => o.cid !== m.cid); chOutSave(); }
-  }
-  return changed;
+  for (const m of d.msgs || []) if (!list.some(x => x.id === m.id)) { list.push(m); changed = true; }
+  if ((d.deleted || []).length) { const n = list.length; CH.msgs[r] = list.filter(m => !d.deleted.includes(m.id)); changed = changed || n !== CH.msgs[r].length; }
+  const l2 = CH.msgs[r]; if (l2.length > 2000) l2.splice(0, l2.length - 2000);
+  if (l2.length) CH.last[r] = Math.max(CH.last[r] || 0, l2[l2.length - 1].id);
+  if (r === CH.room && (changed || !CH.shown)) chRender();
 }
-// history: the last 100 at start, 100 older when scrolled to the top; after an id while the stream is down
-async function chLoad(key, how) {
-  const room = key === 'all' ? 'all' : 'ru', list = CH.msgs[key] || [];
-  const q = how === 'older' ? `limit=100&before=${list[0].id}` : how === 'new' && list.length ? `after=${list[list.length - 1].id}` : 'limit=100';
-  let d; try { d = await invoke('c_api', { path: `msgs?room=${room}&${q}` }); } catch (e) { return; }
-  let changed = chPut(key, d.msgs || []);
-  if ((d.deleted || []).length) { const n = CH.msgs[key].length; CH.msgs[key] = CH.msgs[key].filter(m => !d.deleted.includes(m.id)); changed = changed || n !== CH.msgs[key].length; }
-  if (how === 'older') CH.full[key] = (d.msgs || []).length < 100;
-  if ((changed || !CH.shown) && chKey(CH.room) === key) chRender(false, how === 'older');
-}
-function chRender(force, older) {
-  const box = $('chMsgs'), key = chKey(CH.room), list = CH.msgs[key] || [];
-  const atEnd = box.scrollTop + box.clientHeight > box.scrollHeight - 30, h0 = box.scrollHeight, top0 = box.scrollTop;
+function chRender(force) {
+  const box = $('chMsgs'), list = CH.msgs[CH.room] || [];
+  const atEnd = box.scrollTop + box.clientHeight > box.scrollHeight - 30;
   const time = ts => new Date(ts * 1000).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   // a heading for every day: Today, Yesterday, 29 October (with the year when it is not this one)
   const dayKey = ts => { const d = new Date(ts * 1000); return d.getFullYear() * 10000 + d.getMonth() * 100 + d.getDate(); };
@@ -1726,35 +1642,23 @@ function chRender(force, older) {
     if (d.toDateString() === y.toDateString()) return t('chYesterday');
     return d.toLocaleDateString(lang, d.getFullYear() === now.getFullYear() ? { day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long', year: 'numeric' });
   };
-  const me = CH.me && CH.me.signed_in ? CH.me : null, mine = me ? me.steam : '';
-  const myName = me ? (me.name || '') : '';
+  const mine = CH.me && CH.me.signed_in ? CH.me.steam : '';
+  const myName = CH.me && CH.me.signed_in ? (CH.me.name || '') : '';
   // @mentions: the names of the players in this room (longest first, so "@Ab Cd" wins over "@Ab"), escaped like the text
   const names = [...new Set(list.map(m => m.name).filter(Boolean))].sort((a, b) => b.length - a.length);
   const mention = html => names.reduce((h, n) => h.split('@' + esc(n)).join(`\u0000${n === myName ? 1 : 0}${esc(n)}\u0001`), html)
     .replace(/\u0000([01])([^\u0001]*)\u0001/g, (_, me, n) => `<span class="ch-at${me === '1' ? ' me' : ''}">@${n}</span>`);
   let prev = null;
-  const row = (m, extra, tail) => {
+  const pend = (CH.pending[CH.room] || []).map(p => `<div class="ch-m mine pending">` + avatar(CH.me && CH.me.avatar)
+    + `<div><div class="w"><b>${esc((CH.me && CH.me.name) || '')}</b><span>${esc(t('chPending'))}</span></div><div class="tx">${esc(p.text)}</div></div></div>`).join('');
+  box.innerHTML = (list.length || pend) ? list.map(m => {
     const k = dayKey(m.ts), head = k !== prev ? `<div class="ch-day"><span>${esc(dayName(m.ts))}</span></div>` : ''; prev = k;
-    const text = chText(m), tr = text !== chOrig(m);   // translated: the original on hover
-    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${extra}"><span class="ch-av" data-steam="${esc(m.steam)}" title="Steam">` + avatar(m.avatar) + `</span>`
-      + `<div><div class="w"><b data-name="${esc(m.name)}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${tail}</div>`
-      + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${mention(esc(text))}</div></div></div>`;
-  };
-  const sent = list.map(m => row(m, '', '')).join('');   // first: the day headings run on into the queue
-  // ours not confirmed yet stay at the bottom: a clock while sending, "Not sent · Retry · Delete" when it failed
-  const out = CH.out.filter(o => chKey(o.room) === key).map(o => row({ ts: o.ts, steam: mine, name: me ? me.name : '', avatar: me ? me.avatar : '', orig: o.text }, o.state === 'failed' ? 'failed' : 'sending',
-    o.state === 'failed' ? `<span class="ch-fail">${esc(t('chNotSent'))} · <button data-retry="${esc(o.cid)}">${esc(t('chRetry'))}</button> · <button data-drop="${esc(o.cid)}">${esc(t('chDelete'))}</button></span>`
-      : `<span class="ch-wait" title="${esc(t('chSending'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>`));
-  const html = sent + out.join('');
-  box.innerHTML = html || `<div class="ch-empty">${esc(t('chEmpty'))}</div>`;
-  // the owner's 1.3.6 behaviour stays in the chat: a name tags the player, the avatar opens the Steam profile
-  box.querySelectorAll('.ch-av[data-steam]').forEach(a => a.onclick = () => a.dataset.steam && open('https://steamcommunity.com/profiles/' + a.dataset.steam));
+    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''}"><span class="ch-av" data-steam="${esc(m.steam)}" title="Steam">` + avatar(m.avatar) + `</span>`
+      + `<div><div class="w"><b data-name="${esc(m.name)}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span></div><div class="tx">${mention(esc(m.text))}</div></div></div>`;
+  }).join('') + pend : `<div class="ch-empty">${esc(t('chEmpty'))}</div>`;
+  box.querySelectorAll('.ch-av[data-steam]').forEach(a => a.onclick = () => open('https://steamcommunity.com/profiles/' + a.dataset.steam));
   box.querySelectorAll('b[data-name]').forEach(b => b.onclick = () => chMention(b.dataset.name));
-  box.querySelectorAll('[data-retry]').forEach(b => b.onclick = () => { const o = CH.out.find(x => x.cid === b.dataset.retry); if (o) { o.state = 'sending'; o.tries = 0; chOutSave(); chRender(); chPump(); } });
-  box.querySelectorAll('[data-drop]').forEach(b => b.onclick = () => { CH.out = CH.out.filter(x => x.cid !== b.dataset.drop); chOutSave(); chRender(); });
-  if (older) box.scrollTop = box.scrollHeight - h0 + top0;   // older messages added on top: the view stays where it was
-  else if (atEnd || force || !CH.shown) box.scrollTop = box.scrollHeight;
-  CH.shown = true;
+  if (atEnd || force || !CH.shown) box.scrollTop = box.scrollHeight; CH.shown = true;
 }
 function chMention(name) {                                     // a click on a name in the chat tags that player in my message
   const el = $('chText'); if (!el || !name) return;
@@ -1763,92 +1667,33 @@ function chMention(name) {                                     // a click on a n
   el.value = before + pre + at + el.value.slice(s1);
   const pos = (before + pre + at).length; el.focus(); el.setSelectionRange(pos, pos);
 }
-// unread messages on a tab the player is not looking at (RU and EN together: one feed)
-function chUnread() {
-  document.querySelectorAll('.ch-tab').forEach(b => { const r = b.dataset.room; b.dataset.n = r === 'dev' ? '' : (CH.unread[chKey(r)] || '') });
-}
-// sending: the message is in the feed at once with a clock, the box is cleared, the button never locks. One sender for
-// all, in order; the same cid on every try, so a retry never makes a duplicate. The queue survives a restart.
-function chOutSave() {
-  try { localStorage.setItem('chOut', JSON.stringify(CH.out.map(({ cid, room, text, ts, state }) => ({ cid, room, text, ts, state })))); } catch (e) {}
-}
-function chSay() {
-  if (CH.room === 'dev') return;
+async function chSay() {
+  if (CH.sending || CH.room === 'dev') return;                 // one send at a time: extra Enter presses do nothing (no duplicates)
   const el = $('chText'), text = el.value.trim(); if (!text) return;
-  const cid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
-  CH.out.push({ cid, room: CH.room, text, ts: Math.floor(Date.now() / 1000), state: 'sending', tries: 0 });
-  el.value = ''; chOutSave(); chRender(true); chPump();
-}
-const chSleep = ms => new Promise(r => setTimeout(r, ms));
-async function chPump() {
-  if (CH.pumping) return; CH.pumping = true;
+  CH.sending = true; $('chSend').disabled = true;
+  el.value = '';                                               // clear at once: the message leaves the box the moment you press Enter
+  const room = CH.room, p = { text }, pl = CH.pending[room] || (CH.pending[room] = []);
+  pl.push(p); chRender(true);                                  // in the chat at once, grey, until the server has published it
+  const drop = () => { const i = pl.indexOf(p); if (i >= 0) pl.splice(i, 1); };
   try {
-    for (let o; (o = CH.out.find(x => x.state === 'sending'));) {
-      let r; try { r = await invoke('c_api', { path: 'say', body: { room: o.room, text: o.text, cid: o.cid } }); } catch (e) { r = { ok: false, error: String(e), retry: true }; }
-      if (!CH.out.includes(o)) continue;                      // deleted, or confirmed by the stream meanwhile
-      if (r.ok) { CH.out = CH.out.filter(x => x !== o); if (r.msg) chPut(chKey(o.room), [r.msg]); }
-      else if (r.retry_after) await chSleep(r.retry_after);    // too fast: wait as long as the server says
-      else if (r.retry) {                                      // no answer (network, the 30 s of the check): 3 more tries, then "Not sent"
-        o.tries = (o.tries || 0) + 1;
-        if (o.tries > 3) o.state = 'failed'; else await chSleep([2000, 5000, 10000][o.tries - 1]);
-      } else {                                                 // rejected (moderation, ban, signed out): the text back in the box, why in a toast
-        CH.out = CH.out.filter(x => x !== o);
-        if (!$('chText').value.trim()) $('chText').value = o.text;
-        toast(r.error || 'error', true);
-      }
-      chOutSave(); chRender();
-    }
-  } finally { CH.pumping = false; }
+    const r = await invoke('c_api', { path: 'say', body: { room, text } });
+    if (r.ok) { await chLoad(room); drop(); if (room === CH.room) chRender(true); }   // the published one takes its place
+    else { drop(); chRender(); el.value = text; toast(r.error || 'error', true); }  // rejected by moderation: the text back in the box
+  } catch (e) { drop(); chRender(); el.value = text; toast(e, true); }
+  CH.sending = false; $('chSend').disabled = false;
 }
-// stream events of the chat and the own card
-function chEvent(ev, d) {
-  if (ev === 'msg') {
-    const key = chKey(d.room);
-    if (!chPut(key, [d])) return;
-    if (key !== chKey(CH.room) || CH.room === 'dev' || document.hidden) { CH.unread[key] = (CH.unread[key] || 0) + 1; chUnread(); }
-    if (key === chKey(CH.room)) chRender();
-  } else if (ev === 'msg_tr') {
-    const m = (CH.msgs.feed || []).find(x => x.id === d.id);
-    if (m) { m.ru = d.ru; m.en = d.en; if (chKey(CH.room) === 'feed') chRender(); }
-  } else if (ev === 'msg_del') {
-    for (const k of ['all', 'feed']) if (CH.msgs[k]) CH.msgs[k] = CH.msgs[k].filter(m => m.id !== d.id);
-    chRender();
-  } else if (ev === 'reset') { CH.msgs[chKey(d.room)] = []; chLoad(chKey(d.room)); }
-  else if (ev === 'me') { CH.prof = { ok: true, rating: d.rating, stats: { games: d.games, wins: d.wins, losses: d.losses } }; chMe(); }
-}
-// "I'm here" with menu / game: at start and when that changes (the stream itself keeps the presence)
 async function chHello() {
   let d; try { d = await invoke('c_api', { path: 'hello', body: { state: S && S.game_running ? 'game' : 'menu' } }); } catch (e) { return; }
   if (d.signed_in === false && CH.me && CH.me.signed_in) { CH.me = await invoke('c_logout'); CH.prof = null; chMe(); }   // the session is gone on the server
-}
-// without the stream (not up in 30 s, or down): Online every 15 s and the chat every 5 s while the window is seen
-const STREAM = { up: false, timer: null, poll: null, n: 0 };
-function streamState(up) {
-  STREAM.up = up; clearTimeout(STREAM.timer);
-  if (up) { clearInterval(STREAM.poll); STREAM.poll = null; return; }
-  STREAM.timer = setTimeout(() => {
-    if (STREAM.up || STREAM.poll) return;
-    STREAM.poll = setInterval(async () => {
-      if (document.hidden) return;
-      if (STREAM.n++ % 3 === 0) { try { onLive(await invoke('c_api', { path: 'live' })); } catch (e) { ON.err = true; onRender(); } }
-      chLoad('all', 'new'); chLoad('feed', 'new');
-    }, 5000);
-  }, 30000);
+  ON.users = d.online || []; onRender();       // shown in the Online block on the right
+  if (CH.me && CH.me.signed_in && !CH.prof) chMe();   // the rating from this list until the profile answers
 }
 async function chInit() {
   try { CH.me = await invoke('c_status'); } catch (e) {}
-  try { CH.out = JSON.parse(localStorage.getItem('chOut') || '[]').map(o => ({ ...o, tries: 0 })); } catch (e) {}
-  listen('c_ev', e => { const { e: ev, d } = e.payload; onEvent(ev, d); chEvent(ev, d); });
-  listen('c_stream', e => { if (e.payload.host) LIVE.host = e.payload.host; streamState(e.payload.up); });
   document.querySelectorAll('.ch-tab').forEach(b => b.onclick = () => { CH.room = b.dataset.room; try { localStorage.setItem('chRoom', CH.room); } catch (e) {} chShowRoom(); });
   $('chIn2').onclick = chLogin;
   $('chSend').onclick = chSay;
   $('chText').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chSay(); } };
-  $('chMsgs').onscroll = () => {   // at the top: 100 older ones
-    const key = chKey(CH.room), box = $('chMsgs');
-    if (box.scrollTop < 40 && !CH.full[key] && !CH.older && (CH.msgs[key] || []).length) { CH.older = true; chLoad(key, 'older').finally(() => { CH.older = false; }); }
-  };
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { CH.unread[chKey(CH.room)] = 0; chUnread(); } });
   chMe(); chShowRoom();
   // signed in by itself with the Steam account of this computer (no button, no browser, quiet on failure);
   // not after the player pressed "Sign out" - until they sign in again by hand
@@ -1856,12 +1701,9 @@ async function chInit() {
   if (!(CH.me && CH.me.signed_in) && CH.me && CH.me.local_found && CH.me.configured !== false && !noAuto) {
     try { const r = await invoke('c_login_local'); if (r && r.signed_in) { CH.me = r; chMe(); } } catch (e) {}
   }
-  // the stream may already be up: the snapshot, the card and the history are read once here, the rest comes as events
-  try { onLive(await invoke('c_api', { path: 'live' })); } catch (e) { ON.err = true; onRender(); }
-  try { streamState(await invoke('c_stream_up')); } catch (e) { streamState(false); }
   chHello(); chProfile();
-  chLoad('all'); chLoad('feed');
-  if (CH.out.some(o => o.state === 'sending')) chPump();
+  ['all', 'ru', 'en'].forEach(r => r !== CH.room && chLoad(r));          // every room's history at once: switching tabs is instant
+  setInterval(() => chLoad(), 5000); setInterval(chHello, 30000); setInterval(chProfile, 10 * 60 * 1000);
 }
 chInit();
 
