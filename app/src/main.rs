@@ -55,6 +55,10 @@ struct Settings {
     last_mirror: String,
     /// Anonymous usage count (see usage_ping). None = on.
     usage_stats: Option<bool>,
+    /// 1.3.12: no sound when someone @mentions me in the chat (owner: a beep by default, a tick to turn it off)
+    mute_mention: Option<bool>,
+    /// 1.3.12: the close button quits instead of hiding in the tray
+    close_quits: Option<bool>,
     /// Random secret for the daily usage hash; never sent itself.
     ping_secret: String,
     /// Day number (UTC days since 1970) of the last successful usage ping.
@@ -298,17 +302,38 @@ fn uninstall_elite(app: State<'_, App>, handle: AppHandle) -> Result<Value, Stri
 }
 
 /// Is the game (DOW2.exe) running? Its DLLs are locked then: add-ons can not be switched or updated under it.
+/// 1.3.12: the process list is read here (Toolhelp snapshot). Before, a tasklist.exe was started every 3 s: a new process
+/// each time, checked by the antivirus - players noticed the game stutter with the launcher open (01.11.2026).
+#[cfg(windows)]
+mod procs {
+    #[repr(C)]
+    pub struct Entry { pub size: u32, pub usage: u32, pub pid: u32, pub heap: usize, pub module: u32, pub threads: u32,
+                       pub parent: u32, pub prio: i32, pub flags: u32, pub exe: [u16; 260] }
+    #[link(name = "kernel32")]
+    extern "system" {
+        pub fn CreateToolhelp32Snapshot(flags: u32, pid: u32) -> isize;
+        pub fn Process32FirstW(snap: isize, e: *mut Entry) -> i32;
+        pub fn Process32NextW(snap: isize, e: *mut Entry) -> i32;
+        pub fn CloseHandle(h: isize) -> i32;
+    }
+    pub fn running(name: &str) -> bool {
+        unsafe {
+            let snap = CreateToolhelp32Snapshot(2 /* TH32CS_SNAPPROCESS */, 0);
+            if snap == -1 { return false; }
+            let mut e: Entry = std::mem::zeroed(); e.size = std::mem::size_of::<Entry>() as u32;
+            let mut found = false; let mut ok = Process32FirstW(snap, &mut e);
+            while ok != 0 {
+                let n = e.exe.iter().position(|&c| c == 0).unwrap_or(e.exe.len());
+                if String::from_utf16_lossy(&e.exe[..n]).eq_ignore_ascii_case(name) { found = true; break; }
+                ok = Process32NextW(snap, &mut e);
+            }
+            CloseHandle(snap); found
+        }
+    }
+}
 fn is_game_running() -> bool {
     #[cfg(windows)]
-    {
-        use std::os::windows::process::CommandExt;
-        std::process::Command::new("tasklist")
-            .args(["/FI", "IMAGENAME eq DOW2.exe", "/NH", "/FO", "CSV"])
-            .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
-            .output()
-            .map(|o| String::from_utf8_lossy(&o.stdout).to_ascii_lowercase().contains("\"dow2.exe\""))
-            .unwrap_or(false)
-    }
+    { procs::running("DOW2.exe") }
     #[cfg(not(windows))]
     {
         std::process::Command::new("pgrep").args(["-fi", "dow2\\.exe"]).output().map(|o| o.status.success()).unwrap_or(false)
@@ -445,6 +470,8 @@ fn get_status(app: State<'_, App>) -> Value {
             }).collect::<Vec<_>>(),
         })).collect::<Vec<_>>(),
         "usage_stats": s.usage_stats.unwrap_or(true),
+        "mute_mention": s.mute_mention.unwrap_or(false),
+        "close_quits": s.close_quits.unwrap_or(false),
         "lan_share": s.lan_share.unwrap_or(true),
         "release_news": app.release_news.lock().unwrap().clone(),
         "costs": app.costs.lock().unwrap().clone(),
@@ -518,6 +545,8 @@ fn set_setting(app: State<'_, App>, key: String, value: Value) {
         "extra_mirror" => s.extra_mirror = value.as_str().unwrap_or("").to_string(),
         "cache_mb" => s.cache_mb = value.as_u64(),
         "usage_stats" => s.usage_stats = value.as_bool(),
+        "mute_mention" => s.mute_mention = value.as_bool(),
+        "close_quits" => s.close_quits = value.as_bool(),
         "lan_share" => { s.lan_share = value.as_bool(); elite_core::lan::ENABLED.store(s.lan_share.unwrap_or(true), Ordering::Relaxed); }
         "dismiss" => {
             if let Some(id) = value.as_str() {
@@ -1623,6 +1652,11 @@ fn main() {
         // minimise to the taskbar. The tray icon (or its "Open" item, or starting the launcher again) brings it back
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                // 1.3.12 (owner): a tick in Settings - the close button quits the launcher instead of hiding it in the tray
+                if window.app_handle().state::<App>().settings.lock().unwrap().close_quits.unwrap_or(false) {
+                    window.app_handle().exit(0);
+                    return;
+                }
                 api.prevent_close();
                 let _ = window.hide();
             }
