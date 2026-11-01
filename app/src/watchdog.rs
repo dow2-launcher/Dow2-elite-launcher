@@ -40,7 +40,8 @@ mod win {
         pub fn ClipCursor(r: *const RECT) -> BOOL;
         pub fn SetWindowPos(h: HWND, after: HWND, x: i32, y: i32, cx: i32, cy: i32, flags: u32) -> BOOL;
         pub fn RegisterHotKey(h: HWND, id: i32, mods: u32, vk: u32) -> BOOL;
-        pub fn GetMessageW(m: *mut MSG, h: HWND, a: u32, b: u32) -> BOOL;
+        pub fn UnregisterHotKey(h: HWND, id: i32) -> BOOL;
+        pub fn PeekMessageW(m: *mut MSG, h: HWND, a: u32, b: u32, remove: u32) -> BOOL;
     }
     #[link(name = "kernel32")]
     extern "system" {
@@ -60,7 +61,7 @@ mod win {
     pub const HWND_NOTOPMOST: HWND = -2;
     pub const SWP_NOSIZE: u32 = 0x1; pub const SWP_NOMOVE: u32 = 0x2; pub const SWP_NOACTIVATE: u32 = 0x10; pub const SWP_ASYNCWINDOWPOS: u32 = 0x4000;
     pub const MOD_ALT: u32 = 0x1; pub const MOD_CONTROL: u32 = 0x2; pub const MOD_NOREPEAT: u32 = 0x4000;
-    pub const VK_END: u32 = 0x23; pub const WM_HOTKEY: u32 = 0x0312;
+    pub const VK_END: u32 = 0x23; pub const WM_HOTKEY: u32 = 0x0312; pub const PM_REMOVE: u32 = 0x1;
     // MiniDumpNormal | MiniDumpWithUnloadedModules | MiniDumpWithThreadInfo: stacks + modules, small
     pub const DUMP_KIND: u32 = 0x0000 | 0x0020 | 0x1000;
 }
@@ -184,22 +185,29 @@ pub fn start(dumps: PathBuf, emit: impl Fn(serde_json::Value) + Send + Sync + 's
             }
         });
         std::thread::spawn(move || unsafe {
+            // the key is taken only while the game runs (Ctrl+Alt+End is Ctrl+Alt+Del inside Remote Desktop: never held for nothing)
             use win::*;
-            if RegisterHotKey(0, 0x454C, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, VK_END) == 0 { return; }   // taken by another program
-            let mut last: Option<Instant> = None;
-            let mut m = MSG::default();
-            while GetMessageW(&mut m, 0, 0, 0) > 0 {
-                if m.message != WM_HOTKEY || !ENABLED.load(Ordering::Relaxed) { continue; }
-                let hung = game_window().is_some_and(|(_, h)| IsHungAppWindow(h) != 0);
-                let second = last.is_some_and(|t| t.elapsed() < Duration::from_secs(3));
-                if hung || second {
-                    last = None;
-                    if let Some((_, h)) = game_window() { release_mouse(h); }
-                    let _ = kill_game(&dumps);
-                    emit(json!({"state": "ok"}));
-                } else {
-                    last = Some(Instant::now());
-                    emit(json!({"state": "confirm_kill"}));
+            let (mut held, mut last, mut m) = (false, None::<Instant>, MSG::default());
+            loop {
+                let want = ENABLED.load(Ordering::Relaxed) && game_window().is_some();
+                if want && !held { held = RegisterHotKey(0, 0x454C, MOD_CONTROL | MOD_ALT | MOD_NOREPEAT, VK_END) != 0; }
+                if !want && held { UnregisterHotKey(0, 0x454C); held = false; }
+                for _ in 0..10 {
+                    std::thread::sleep(Duration::from_millis(100));
+                    while PeekMessageW(&mut m, 0, 0, 0, PM_REMOVE) != 0 {
+                        if m.message != WM_HOTKEY || !held { continue; }
+                        let hung = game_window().is_some_and(|(_, h)| IsHungAppWindow(h) != 0);
+                        let second = last.is_some_and(|t| t.elapsed() < Duration::from_secs(3));
+                        if hung || second {
+                            last = None;
+                            if let Some((_, h)) = game_window() { release_mouse(h); }
+                            let _ = kill_game(&dumps);
+                            emit(json!({"state": "ok"}));
+                        } else {
+                            last = Some(Instant::now());
+                            emit(json!({"state": "confirm_kill"}));
+                        }
+                    }
                 }
             }
         });
