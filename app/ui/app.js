@@ -173,6 +173,7 @@ const T = {
     "addonInfo": "About: {name}",
     "addonVer": "Version {v}",
     "addonNext": "version {v} comes with the next update",
+    "addonCheck": "Check add-ons for updates", "addonChecking": "Checking…", "addonSame": "Everything is up to date ({time})", "addonChanged": "Add-ons updated", "addonNew": "new: {name}", "addonGone": "removed: {name}", "addonVer": "{name}: {from} → {to}", "addonOpts": "{name}: its settings changed",
     "addonLater": "takes effect the next time the game starts",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher",
@@ -369,6 +370,7 @@ const T = {
     "addonInfo": "Подробнее: {name}",
     "addonVer": "Версия {v}",
     "addonNext": "версия {v} встанет со следующим обновлением",
+    "addonCheck": "Проверить обновления дополнений", "addonChecking": "Проверяю…", "addonSame": "Всё актуально ({time})", "addonChanged": "Дополнения обновились", "addonNew": "новое: {name}", "addonGone": "убрано: {name}", "addonVer": "{name}: {from} → {to}", "addonOpts": "{name}: изменились настройки",
     "addonLater": "действует со следующего запуска игры",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер",
@@ -560,6 +562,7 @@ const T = {
     "addonInfo": "Detalles: {name}",
     "addonVer": "Versión {v}",
     "addonNext": "la versión {v} llega con la próxima actualización",
+    "addonCheck": "Buscar actualizaciones de complementos", "addonChecking": "Comprobando…", "addonSame": "Todo al día ({time})", "addonChanged": "Complementos actualizados", "addonNew": "nuevo: {name}", "addonGone": "retirado: {name}", "addonVer": "{name}: {from} → {to}", "addonOpts": "{name}: cambiaron sus ajustes",
     "addonLater": "se aplica la próxima vez que inicies el juego",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher",
@@ -751,6 +754,7 @@ const T = {
     "addonInfo": "Détails : {name}",
     "addonVer": "Version {v}",
     "addonNext": "la version {v} arrive avec la prochaine mise à jour",
+    "addonCheck": "Vérifier les mises à jour des modules", "addonChecking": "Vérification…", "addonSame": "Tout est à jour ({time})", "addonChanged": "Modules mis à jour", "addonNew": "nouveau : {name}", "addonGone": "retiré : {name}", "addonVer": "{name} : {from} → {to}", "addonOpts": "{name} : ses réglages ont changé",
     "addonLater": "s’applique au prochain lancement du jeu",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher",
@@ -942,6 +946,7 @@ const T = {
     "addonInfo": "Details: {name}",
     "addonVer": "Version {v}",
     "addonNext": "Version {v} kommt mit dem nächsten Update",
+    "addonCheck": "Erweiterungen auf Updates prüfen", "addonChecking": "Prüfe…", "addonSame": "Alles aktuell ({time})", "addonChanged": "Erweiterungen aktualisiert", "addonNew": "neu: {name}", "addonGone": "entfernt: {name}", "addonVer": "{name}: {from} → {to}", "addonOpts": "{name}: Einstellungen geändert",
     "addonLater": "gilt ab dem nächsten Spielstart",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren",
@@ -1301,13 +1306,33 @@ function askConflict(files) {
 }
 
 async function reload() { S = await invoke('get_status'); render(); }
+// 1.3.13 (owner): "check add-ons for updates" - what the fresh launcher.json changed is told, also after the automatic checks
+const compSnap = cfg => Object.fromEntries(((cfg && cfg.components) || []).map(c => [c.id, { v: c.version, n: L(c.name) || c.id,
+  o: ((c.settings && c.settings.length ? c.settings : c.options) || []).map(o => o.id + ':' + (o.choices || []).map(x => x.value).join('/')).join(',') }]));
+function compDiff(a, b) {
+  const out = [];
+  for (const id in b) {
+    if (!a[id]) out.push(t('addonNew', { name: b[id].n }));
+    else if (a[id].v !== b[id].v) out.push(t('addonVer', { name: b[id].n, from: a[id].v, to: b[id].v }));
+    else if (a[id].o !== b[id].o) out.push(t('addonOpts', { name: b[id].n }));
+  }
+  for (const id in a) if (!b[id]) out.push(t('addonGone', { name: a[id].n }));
+  return out;
+}
 async function refresh() {
-  try { S = await invoke('refresh'); render(); } catch (e) { toast(e, true); return; }
+  const before = S && S.config ? compSnap(S.config) : null;
+  try { S = await invoke('refresh'); render(); } catch (e) { toast(e, true); return null; }
+  const changes = before && S.config ? compDiff(before, compSnap(S.config)) : [];
+  if (changes.length) {
+    const note = $('addonCheckNote'); if (note) note.textContent = t('addonChanged') + ': ' + changes.join('; ');
+    toast(t('addonChanged') + ': ' + changes.join('; '));
+  }
   // add-ons follow their checkboxes on their own: install missing ones, remove unticked ones
   const comps = S.components || [];
   if (S.installed_version && !S.busy && !S.game_running && comps.some(c => { const want = c.enabled && !(c.conflicts || []).length; return want !== !!c.installed || (want && c.latest && c.installed && c.installed !== c.latest); })) {
     try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); } catch (e) { /* will retry next refresh */ }
   }
+  return changes;
 }
 async function pickDir() { try { S = await invoke('pick_game_dir'); render(); } catch (e) { toast(e, true); } }
 
@@ -1375,6 +1400,13 @@ $('lang').onchange = e => invoke('set_setting', { key: 'lang', value: e.target.v
 $('usage').onchange = e => invoke('set_setting', { key: 'usage_stats', value: e.target.checked }).then(reload);
 $('lanShare').onchange = e => invoke('set_setting', { key: 'lan_share', value: e.target.checked }).then(reload);
 $('muteMention').onchange = e => invoke('set_setting', { key: 'mute_mention', value: e.target.checked }).then(reload);
+$('addonCheck').onclick = async () => {
+  const b = $('addonCheck'), note = $('addonCheckNote'); b.disabled = true; note.textContent = t('addonChecking');
+  const changes = await refresh();
+  b.disabled = false;
+  if (changes && !changes.length) note.textContent = t('addonSame', { time: new Date().toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) });
+  else if (changes === null) note.textContent = '';
+};
 $('closeQuits').onchange = e => invoke('set_setting', { key: 'close_quits', value: e.target.checked }).then(reload);
 $('cache').onchange = e => invoke('set_setting', { key: 'cache_mb', value: +e.target.value }).then(reload);
 $('saveMirror').onclick = () => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
