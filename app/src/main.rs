@@ -1592,6 +1592,8 @@ fn main() {
                 let p = g.file(&f.path);
                 (std::fs::metadata(&p).ok()?.len() == f.size).then_some((p, f.size))
             }));
+            // 1.3.13 (owner: no traces of the 1.3.10 hang help): the hang dumps it wrote into our own folder go, once, quietly
+            let _ = std::fs::remove_dir_all(data_dir().join("dumps"));
             // watch the game: the window locks add-ons while it runs and picks pending updates up once it closes
             let hg = app.handle().clone();
             std::thread::spawn(move || loop {

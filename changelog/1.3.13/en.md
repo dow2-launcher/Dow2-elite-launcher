@@ -1,0 +1,2 @@
+- Add-ons: "Check add-ons for updates" fetches the list now and says what changed (new, removed, a new version, changed settings); the automatic checks say it too.
+- The hang dumps the 1.3.10 hang help left in the launcher's folder are removed; nothing of that help is left in the launcher.
