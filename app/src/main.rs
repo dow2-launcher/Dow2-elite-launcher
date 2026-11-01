@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, LazyLock, Mutex};
 use std::time::{Duration, Instant};
 use tauri::menu::{MenuBuilder, MenuItem, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -1080,13 +1080,13 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
         let hosts: Vec<&str> = option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).collect();
         if hosts.is_empty() { return Err("log upload is not configured in this build".into()); }
         for host in hosts {
-            match ureq::post(&format!("{host}/stats/api/logs?who={who}&uid={uid}")).set("Content-Type", "text/plain; charset=utf-8").send_bytes(out.as_bytes()) {
+            match HTTP.post(&format!("{host}/stats/api/logs?who={who}&uid={uid}")).set("Content-Type", "text/plain; charset=utf-8").send_bytes(out.as_bytes()) {
                 Ok(r) => {
                     let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                     let note = json!({"uid": uid, "name": if fb_name.is_empty() { who.clone() } else { fb_name.clone() },
                         "text": format!("📋 Отправил логи · sent logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n),
                         "launcher": LAUNCHER_VERSION, "os": os_name(), "elite": elite_v}).to_string();
-                    let _ = ureq::post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(20))
+                    let _ = HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(20))
                         .set("Content-Type", "application/json").send_string(&note);
                     // запомним, докуда дошли по каждому растущему логу — в следующий раз только новый хвост
                     let _ = std::fs::write(data_dir().join("log_sent.json"), serde_json::to_vec(&Value::Object(newmarks.clone())).unwrap_or_default());
@@ -1169,6 +1169,12 @@ fn start_game(app: &App) -> Result<(), String> {
 // ---------- Feedback chat with the developers ----------
 // Messages and pasted pictures go to the ladder service on the log hosts (/ladder/api/fb/*), answers come back the same way.
 // The player is known only by a random id kept in the settings, plus the name they chose to give.
+/// One agent for every call to our servers: connections are kept and reused instead of a new TCP + TLS handshake per
+/// request. A request's own .timeout() still caps the whole request.
+static HTTP: LazyLock<ureq::Agent> = LazyLock::new(|| {
+    ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(10)).timeout_read(Duration::from_secs(20)).build()
+});
+
 fn fb_hosts() -> Vec<String> {
     option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).map(String::from).collect()
 }
@@ -1208,7 +1214,7 @@ async fn fb_send(app: AppHandle, text: String, images: Vec<String>) -> Result<Va
     tauri::async_runtime::spawn_blocking(move || {
         let mut last = "feedback is not configured in this build".to_string();
         for host in fb_hosts() {
-            match ureq::post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(60))
+            match HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(60))
                 .set("Content-Type", "application/json").send_string(&body) {
                 Ok(r) => {
                     let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
@@ -1229,7 +1235,7 @@ async fn fb_thread(app: AppHandle) -> Result<Value, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let mut last = "feedback is not configured in this build".to_string();
         for host in fb_hosts() {
-            match ureq::get(&format!("{host}/ladder/api/fb/thread?uid={uid}")).timeout(Duration::from_secs(20)).call() {
+            match HTTP.get(&format!("{host}/ladder/api/fb/thread?uid={uid}")).timeout(Duration::from_secs(20)).call() {
                 Ok(r) => {
                     let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                     v["img_base"] = json!(format!("{host}/ladder/api/fb/img/"));
@@ -1272,6 +1278,7 @@ fn c_save(app: &AppHandle, v: &Value) -> Value {
     s.c_name = v["name"].as_str().unwrap_or("").into();
     s.c_avatar = v["avatar"].as_str().unwrap_or("").into();
     save_settings(&s);
+    STREAM_GEN.fetch_add(1, Ordering::SeqCst);
     c_profile(&s)
 }
 
@@ -1287,7 +1294,7 @@ fn c_local_call(token: &str) -> Result<Value, String> {
     let body = json!({"steam": steam, "name": name, "device": device, "token": token, "launcher": LAUNCHER_VERSION, "os": os_name()}).to_string();
     let mut last = "the server is not configured in this build".to_string();
     for h in fb_hosts() {
-        match ureq::post(&format!("{h}/ladder/api/c/local")).timeout(Duration::from_secs(20)).set("Content-Type", "application/json").send_string(&body) {
+        match HTTP.post(&format!("{h}/ladder/api/c/local")).timeout(Duration::from_secs(20)).set("Content-Type", "application/json").send_string(&body) {
             Ok(r) => {
                 let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                 c_log(&format!("local: {h} -> ok={} {}", v["ok"], v["error"].as_str().unwrap_or("")));
@@ -1337,7 +1344,7 @@ async fn c_login(app: AppHandle) -> Result<Value, String> {
             std::thread::sleep(Duration::from_secs(2));
             if LOGIN_GEN.load(Ordering::SeqCst) != attempt { c_log("browser: cancelled (Cancel or a new click)"); return Err("cancelled".to_string()); }
             for h in fb_hosts() {
-                let r = match ureq::get(&format!("{h}/ladder/api/c/claim?nonce={nonce}")).timeout(Duration::from_secs(10)).call() {
+                let r = match HTTP.get(&format!("{h}/ladder/api/c/claim?nonce={nonce}")).timeout(Duration::from_secs(10)).call() {
                     Ok(r) => r,
                     Err(e) => { c_log(&format!("browser: claim at {h} failed: {e}")); continue; }
                 };
@@ -1363,19 +1370,22 @@ fn c_logout(app: State<'_, App>) -> Value {
     let token = std::mem::take(&mut s.c_token);
     s.c_steam.clear(); s.c_name.clear(); s.c_avatar.clear();
     save_settings(&s);
+    STREAM_GEN.fetch_add(1, Ordering::SeqCst);
     let body = json!({"token": token}).to_string();
     std::thread::spawn(move || for h in fb_hosts() {
-        if ureq::post(&format!("{h}/ladder/api/c/logout")).timeout(Duration::from_secs(10)).set("Content-Type", "application/json").send_string(&body).is_ok() { break; }
+        if HTTP.post(&format!("{h}/ladder/api/c/logout")).timeout(Duration::from_secs(10)).set("Content-Type", "application/json").send_string(&body).is_ok() { break; }
     });
     c_profile(&s)
 }
 
-/// One call to the community API: "msgs?room=ru&after=5" and "online" are read (GET); "hello", "say", "me" are sent
-/// (POST) with the session token added here, so the page never holds it.
+/// One call to the community API: "msgs?room=ru&limit=100&before=5", "online" and "live" are read (GET); "hello",
+/// "say" (with the window's cid), "me" are sent (POST) with the session token added here, so the page never holds it.
 #[tauri::command]
 async fn c_api(app: AppHandle, path: String, body: Option<Value>) -> Result<Value, String> {
     let name = path.split('?').next().unwrap_or("").to_string();
-    if !["msgs", "online", "hello", "say", "me"].contains(&name.as_str()) { return Err("unknown call".into()); }
+    if !["msgs", "online", "live", "hello", "say", "me"].contains(&name.as_str()) { return Err("unknown call".into()); }
+    // the server holds a message up to 30 s for moderation and translation: say waits longer than that
+    let secs = if name == "say" { 40 } else { 15 };
     let post = body.map(|mut b| {
         if !b.is_object() { b = json!({}); }
         b["token"] = json!(app.state::<App>().settings.lock().unwrap().c_token.clone());
@@ -1386,11 +1396,16 @@ async fn c_api(app: AppHandle, path: String, body: Option<Value>) -> Result<Valu
         for h in fb_hosts() {
             let url = format!("{h}/ladder/api/c/{path}");
             let r = match &post {
-                Some(b) => ureq::post(&url).timeout(Duration::from_secs(15)).set("Content-Type", "application/json").send_string(b),
-                None => ureq::get(&url).timeout(Duration::from_secs(15)).call(),
+                Some(b) => HTTP.post(&url).timeout(Duration::from_secs(secs)).set("Content-Type", "application/json").send_string(b),
+                None => HTTP.get(&url).timeout(Duration::from_secs(secs)).call(),
             };
             match r {
-                Ok(r) => return serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()),
+                Ok(r) => {
+                    let mut v = serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
+                    if name == "msgs" { for m in v["msgs"].as_array().into_iter().flatten() { stream_note(m); } }
+                    if name == "live" { v["host"] = json!(h); }
+                    return Ok(v);
+                }
                 Err(e) => last = e.to_string(),
             }
         }
@@ -1399,25 +1414,82 @@ async fn c_api(app: AppHandle, path: String, body: Option<Value>) -> Result<Valu
     }).await.map_err(|e| e.to_string())?
 }
 
-// ---------- Online: who is looking for a game, the matches being set up or played ----------
-/// The same list the ladder page shows (/ladder/api/mm/live of the ladder service on the log hosts), plus the host
-/// that answered, for links to its ladder page.
+// ---------- The live stream: one open connection instead of polling ----------
+// GET /ladder/api/c/stream on the log hosts (stream.py in dow2-ladder): the server sends only changes - Online
+// (online, presence, match, match_end, user), the chat (msg, msg_tr, msg_del, reset) and the own card (me). Each event
+// goes to the window as "c_ev" {e, d}; "c_stream" {up, host} tells it whether the stream works (else it polls).
+static STREAM_GEN: AtomicU64 = AtomicU64::new(0);   // +1 on sign-in / sign-out: the stream reconnects with the new token
+static STREAM_AFTER: LazyLock<Mutex<BTreeMap<String, u64>>> = LazyLock::new(|| Mutex::new(BTreeMap::new()));
+static STREAM_UP: AtomicBool = AtomicBool::new(false);
+
+/// Is the stream connected now? The window asks once at start: the stream may have come up before it listened.
 #[tauri::command]
-async fn online_live() -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(|| {
-        let mut last = "the ladder server is not configured in this build".to_string();
-        for host in fb_hosts() {
-            match ureq::get(&format!("{host}/ladder/api/mm/live")).timeout(Duration::from_secs(10)).call() {
-                Ok(r) => {
-                    let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
-                    v["host"] = json!(host);
-                    return Ok(v);
+fn c_stream_up() -> bool { STREAM_UP.load(Ordering::Relaxed) }
+
+/// The newest message id per room the window has (from msgs and from the stream): the server sends what came after.
+fn stream_note(m: &Value) {
+    if let (Some(room), Some(id)) = (m["room"].as_str(), m["id"].as_u64()) {
+        let mut a = STREAM_AFTER.lock().unwrap();
+        let e = a.entry(room.to_string()).or_insert(0);
+        if id > *e { *e = id; }
+    }
+}
+
+fn stream_loop(app: AppHandle) {
+    use std::io::BufRead;
+    // its own agent: a read may wait up to 60 s (the server pings every 20 s), and no overall timeout - in ureq 2 that
+    // would cap the whole response and cut the stream
+    let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(10)).timeout_read(Duration::from_secs(60)).build();
+    let hosts = fb_hosts();
+    if hosts.is_empty() { return; }
+    let (mut host_i, mut fails) = (0usize, 0usize);
+    loop {
+        let gen = STREAM_GEN.load(Ordering::SeqCst);
+        let host = hosts[host_i % hosts.len()].clone();
+        let (token, state) = {
+            let st = app.state::<App>();
+            let token = st.settings.lock().unwrap().c_token.clone();
+            (token, if st.game_running.load(Ordering::Relaxed) { "game" } else { "menu" })
+        };
+        let after = STREAM_AFTER.lock().unwrap().iter().map(|(k, v)| format!("{k}:{v}")).collect::<Vec<_>>().join(",");
+        let mut req = agent.get(&format!("{host}/ladder/api/c/stream?after={after}")).set("Accept", "text/event-stream").set("X-State", state);
+        if !token.is_empty() { req = req.set("X-Token", &token); }   // in a header, never in the address
+        let mut busy = false;
+        match req.call() {
+            Ok(r) => {
+                fails = 0;
+                STREAM_UP.store(true, Ordering::Relaxed);
+                let _ = app.emit("c_stream", json!({"up": true, "host": host}));
+                let (mut ev, mut data) = (String::new(), String::new());
+                for line in std::io::BufReader::new(r.into_reader()).lines() {
+                    let Ok(line) = line else { break };
+                    if STREAM_GEN.load(Ordering::SeqCst) != gen { break; }
+                    if line.is_empty() {
+                        if let Ok(d) = serde_json::from_str::<Value>(&data) {
+                            if ev == "msg" { stream_note(&d); }
+                            let _ = app.emit("c_ev", json!({"e": ev, "d": d}));
+                        }
+                        ev.clear(); data.clear();
+                    } else if let Some(v) = line.strip_prefix("event:") { ev = v.trim().to_string(); }
+                    else if let Some(v) = line.strip_prefix("data:") { data.push_str(v.trim_start()); }
                 }
-                Err(e) => last = e.to_string(),
+                STREAM_UP.store(false, Ordering::Relaxed);
+                let _ = app.emit("c_stream", json!({"up": false}));
+            }
+            Err(ureq::Error::Status(503, _)) => busy = true,   // the server is full: it asks for 30 s
+            Err(e) => {
+                if fails == 0 { c_log(&format!("stream {host}: {e}")); }
+                host_i += 1; fails += 1;                       // the next host
             }
         }
-        Err(last)
-    }).await.map_err(|e| e.to_string())?
+        if STREAM_GEN.load(Ordering::SeqCst) != gen { continue; }   // signed in / out: at once, with the new token
+        // 1, 2, 5, 10, 30 s plus 0-2 s at random, so a server restart is not hit by everyone in the same second
+        let mut b = [0u8; 2];
+        let _ = getrandom::getrandom(&mut b);
+        let base = if busy { 30 } else { [1u64, 2, 5, 10, 30][fails.min(4)] };
+        let end = Instant::now() + Duration::from_millis(base * 1000 + u16::from_le_bytes(b) as u64 % 2000);
+        while Instant::now() < end && STREAM_GEN.load(Ordering::SeqCst) == gen { std::thread::sleep(Duration::from_millis(250)); }
+    }
 }
 
 /// Repositories whose GitHub Releases become news: CI makes every release from the changelog,
@@ -1429,7 +1501,7 @@ const NEWS_REPOS: [&str; 2] = ["pivolan/Dow2-elite-launcher", "pivolan/Dow2-patc
 fn fetch_release_news() -> Option<Vec<Value>> {
     let mut out = Vec::new();
     for repo in NEWS_REPOS {
-        let body = ureq::get(&format!("https://api.github.com/repos/{repo}/releases?per_page=4"))
+        let body = HTTP.get(&format!("https://api.github.com/repos/{repo}/releases?per_page=4"))
             .set("Accept", "application/vnd.github+json")
             .set("User-Agent", &format!("EliteLauncher/{LAUNCHER_VERSION}"))
             .timeout(Duration::from_secs(15))
@@ -1517,7 +1589,7 @@ fn usage_ping(app: &AppHandle) {
     let hosts: Vec<&str> = option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).collect();
     for host in hosts {
         let url = format!("{host}/stats/api/ping?h={hash}&v={LAUNCHER_VERSION}&os={}&elite={elite}", os_name());
-        if ureq::get(&url).timeout(Duration::from_secs(15)).call().is_ok() {
+        if HTTP.get(&url).timeout(Duration::from_secs(15)).call().is_ok() {
             let mut s = st.settings.lock().unwrap();
             s.ping_day = day;
             save_settings(&s);
@@ -1563,6 +1635,8 @@ fn main() {
                 let p = g.file(&f.path);
                 (std::fs::metadata(&p).ok()?.len() == f.size).then_some((p, f.size))
             }));
+            let hs = app.handle().clone();
+            std::thread::spawn(move || stream_loop(hs));
             // watch the game: the window locks add-ons while it runs and picks pending updates up once it closes
             let hg = app.handle().clone();
             std::thread::spawn(move || loop {
@@ -1629,9 +1703,9 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
-            fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, online_live,
+            fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
-            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api
+            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up
         ])
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")
