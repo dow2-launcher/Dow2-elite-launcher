@@ -1,0 +1,2 @@
+- An add-on that is off is never loaded: old hand-installed copies (the dow2-patches package) and leftovers of earlier versions are switched off before every start.
+- Merged from the team: one launcher at a time also for the self-update, hotkeys grouped by race, the Online list, RU/EN chat rooms, the close button hides to the tray.

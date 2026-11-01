@@ -1,0 +1,3 @@
+- Settings → "Clean up the junk": stray plugins from old versions and hand-installed packages go to a backup folder, then everything is set up again from your ticks.
+- Help when the game hangs (its own tick, on): after 10 s without an answer the mouse is set free and the launcher offers to close the game (or press Ctrl+Alt+End); a hang report is saved for "Send logs". Works from outside the game - nothing is added to it.
+- Settings → "Save crash reports": Windows writes a small report when the game crashes (asks for administrator rights once).

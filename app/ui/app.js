@@ -117,6 +117,17 @@ const T = {
     "usageNote": "Once a day the launcher sends a hash that changes every day, plus its version, OS and the Elite version. No names, Steam or hardware data; days can't be linked to each other.",
     "lanTitle": "Local network",
     "lanShare": "Download Elite from other launchers on the local network and share it with them (faster; every file is checked against the signed version)",
+    "hangTitle": "When the game hangs",
+    "hangHelp": "Help when the game hangs: free the mouse, offer to close the game (or Ctrl+Alt+End), save a hang report for the developers. Works from outside the game - nothing is added to it",
+    "crashDumps": "Save crash reports",
+    "crashDumpsNote": "Windows writes a small report when the game crashes (asks for administrator rights once)",
+    "crashDumpsOn": "crash reports are on",
+    "hangAsk": "The game is not responding",
+    "hangText": "No answer for {secs} s. The mouse is free again. You can wait or close the game.",
+    "hangDump": "A hang report was saved - press \"Send logs\" so we can see where it stopped.",
+    "hangKill": "Close the game",
+    "hangWait": "Wait",
+    "hangConfirm": "Press Ctrl+Alt+End once more to close the game",
     "trayOpen": "Open Elite Launcher",
     "trayQuit": "Quit",
     "cacheNote": "switching back to them is instant",
@@ -125,6 +136,15 @@ const T = {
     "repairTitle": "Repair",
     "repair": "Check & repair files",
     "repairNote": "checks every file and re-downloads only damaged parts",
+    "junkTitle": "Clean up",
+    "junk": "Clean up the junk",
+    "junkNote": "removes stray plugins left from old versions and hand-installed packages (dow2-patches, old copies in Elite_DLLs), then sets everything up again from your ticks",
+    "junkAsk": "Clean up the junk?",
+    "junkText": "Everything that is neither Elite's own nor an add-on you have ticked goes to a backup folder: the dow2-patches package, old copies of add-ons, leftovers from earlier launcher versions. Then the files are checked and the ticked add-ons are put back.",
+    "junkDo": "Clean up",
+    "junkCancel": "Cancel",
+    "junkDone": "Cleaned up: {n} files moved to {dir}",
+    "junkNone": "Nothing to clean up",
     "launcherUpdate": "New launcher {v} is available — click to download",
     "starting": "Starting the game…",
     "mirrors": "{n} mirror(s) configured",
@@ -303,6 +323,17 @@ const T = {
     "usageNote": "Раз в сутки лаунчер отправляет хеш, который каждый день новый, плюс свою версию, ОС и версию Elite. Никаких ников, Steam или данных о компьютере; связать дни между собой нельзя.",
     "lanTitle": "Локальная сеть",
     "lanShare": "Качать Elite с других лаунчеров в локальной сети и раздавать им (быстрее; каждый файл сверяется с подписанной версией)",
+    "hangTitle": "Если игра зависла",
+    "hangHelp": "Помощь при зависании игры: освободить мышь, предложить закрыть игру (или Ctrl+Alt+End), сохранить отчёт о зависании для разработчиков. Работает снаружи игры — в неё ничего не добавляется",
+    "crashDumps": "Записывать отчёты о вылетах",
+    "crashDumpsNote": "Windows сохраняет маленький отчёт, когда игра вылетает (один раз попросит права администратора)",
+    "crashDumpsOn": "отчёты о вылетах включены",
+    "hangAsk": "Игра не отвечает",
+    "hangText": "Нет ответа уже {secs} с. Мышь освобождена. Можно подождать или закрыть игру.",
+    "hangDump": "Отчёт о зависании сохранён — нажмите «Отправить логи», чтобы мы увидели, где она встала.",
+    "hangKill": "Закрыть игру",
+    "hangWait": "Подождать",
+    "hangConfirm": "Нажмите Ctrl+Alt+End ещё раз, чтобы закрыть игру",
     "trayOpen": "Открыть Elite Launcher",
     "trayQuit": "Выход",
     "cacheNote": "переключение на них — мгновенно",
@@ -311,6 +342,15 @@ const T = {
     "repairTitle": "Починка",
     "repair": "Проверить и починить",
     "repairNote": "проверяет все файлы и докачивает только повреждённые части",
+    "junkTitle": "Очистка",
+    "junk": "Очистить от хлама",
+    "junkNote": "убирает левые плагины, оставшиеся от старых версий и ручных установок (dow2-patches, старые копии в Elite_DLLs), и заново всё выставляет по вашим галочкам",
+    "junkAsk": "Очистить от хлама?",
+    "junkText": "Всё, что не относится к самой Elite и к отмеченным дополнениям, переносится в резервную папку: пакет dow2-patches, старые копии дополнений, остатки прошлых версий лаунчера. Затем файлы проверяются, а отмеченные дополнения ставятся заново.",
+    "junkDo": "Очистить",
+    "junkCancel": "Отмена",
+    "junkDone": "Очищено: {n} файлов перенесено в {dir}",
+    "junkNone": "Чистить нечего",
     "launcherUpdate": "Вышел новый лаунчер {v} — нажмите, чтобы скачать",
     "starting": "Запускаю игру…",
     "mirrors": "зеркал настроено: {n}",
@@ -484,6 +524,17 @@ const T = {
     "usageNote": "Una vez al día el launcher envía un hash que cambia cada día, más su versión, el sistema y la versión de Elite. Sin nombres, sin Steam ni datos del equipo; los días no se pueden relacionar entre sí.",
     "lanTitle": "Red local",
     "lanShare": "Descargar Elite de otros launchers de la red local y compartirlo con ellos",
+    "hangTitle": "Si el juego se cuelga",
+    "hangHelp": "Ayuda si el juego se cuelga: liberar el ratón, ofrecer cerrar el juego (o Ctrl+Alt+End), guardar un informe para los desarrolladores. Funciona desde fuera del juego: no se le añade nada",
+    "crashDumps": "Guardar informes de cierres",
+    "crashDumpsNote": "Windows guarda un informe pequeño cuando el juego se cierra de golpe (pide permisos de administrador una vez)",
+    "crashDumpsOn": "informes de cierres activados",
+    "hangAsk": "El juego no responde",
+    "hangText": "Sin respuesta desde hace {secs} s. El ratón vuelve a estar libre. Puedes esperar o cerrar el juego.",
+    "hangDump": "Se guardó un informe: pulsa \"Enviar registros\" para que veamos dónde se quedó.",
+    "hangKill": "Cerrar el juego",
+    "hangWait": "Esperar",
+    "hangConfirm": "Pulsa Ctrl+Alt+End otra vez para cerrar el juego",
     "trayOpen": "Abrir Elite Launcher",
     "trayQuit": "Salir",
     "cacheNote": "volver a ellas es instantáneo",
@@ -492,6 +543,15 @@ const T = {
     "repairTitle": "Reparar",
     "repair": "Comprobar y reparar archivos",
     "repairNote": "comprueba cada archivo y vuelve a descargar solo las partes dañadas",
+    "junkTitle": "Limpieza",
+    "junk": "Limpiar la basura",
+    "junkNote": "quita los plugins sobrantes de versiones antiguas e instalaciones manuales (dow2-patches, copias viejas en Elite_DLLs) y vuelve a configurarlo todo según tus casillas",
+    "junkAsk": "¿Limpiar la basura?",
+    "junkText": "Todo lo que no es de Elite ni un complemento marcado se mueve a una carpeta de copia: el paquete dow2-patches, copias viejas de complementos, restos de versiones anteriores del launcher. Luego se comprueban los archivos y se reinstalan los complementos marcados.",
+    "junkDo": "Limpiar",
+    "junkCancel": "Cancelar",
+    "junkDone": "Limpio: {n} archivos movidos a {dir}",
+    "junkNone": "No hay nada que limpiar",
     "launcherUpdate": "Hay un nuevo launcher {v}: haz clic para descargarlo",
     "starting": "Iniciando el juego…",
     "mirrors": "{n} espejo(s) configurados",
@@ -665,6 +725,17 @@ const T = {
     "usageNote": "Une fois par jour, le launcher envoie un hash qui change chaque jour, avec sa version, le système et la version d'Elite. Aucun nom, rien de Steam ni du PC ; les jours ne peuvent pas être reliés entre eux.",
     "lanTitle": "Réseau local",
     "lanShare": "Télécharger Elite depuis les autres launchers du réseau local et le partager avec eux",
+    "hangTitle": "Si le jeu se fige",
+    "hangHelp": "Aide si le jeu se fige : libérer la souris, proposer de fermer le jeu (ou Ctrl+Alt+Fin), enregistrer un rapport pour les développeurs. Fonctionne depuis l'extérieur du jeu : rien ne lui est ajouté",
+    "crashDumps": "Enregistrer les rapports de plantage",
+    "crashDumpsNote": "Windows enregistre un petit rapport quand le jeu plante (demande les droits administrateur une fois)",
+    "crashDumpsOn": "rapports de plantage activés",
+    "hangAsk": "Le jeu ne répond pas",
+    "hangText": "Pas de réponse depuis {secs} s. La souris est libre. Vous pouvez attendre ou fermer le jeu.",
+    "hangDump": "Un rapport a été enregistré : cliquez sur « Envoyer les journaux » pour que nous voyions où il s'est arrêté.",
+    "hangKill": "Fermer le jeu",
+    "hangWait": "Attendre",
+    "hangConfirm": "Appuyez encore sur Ctrl+Alt+Fin pour fermer le jeu",
     "trayOpen": "Ouvrir Elite Launcher",
     "trayQuit": "Quitter",
     "cacheNote": "y revenir est instantané",
@@ -673,6 +744,15 @@ const T = {
     "repairTitle": "Réparer",
     "repair": "Vérifier et réparer les fichiers",
     "repairNote": "vérifie chaque fichier et ne retélécharge que les parties endommagées",
+    "junkTitle": "Nettoyage",
+    "junk": "Nettoyer les restes",
+    "junkNote": "retire les plugins restés d'anciennes versions et d'installations manuelles (dow2-patches, vieilles copies dans Elite_DLLs), puis remet tout en place selon vos cases",
+    "junkAsk": "Nettoyer les restes ?",
+    "junkText": "Tout ce qui n'est ni à Elite ni un module coché part dans un dossier de sauvegarde : le paquet dow2-patches, les vieilles copies de modules, les restes des anciennes versions du launcher. Ensuite les fichiers sont vérifiés et les modules cochés réinstallés.",
+    "junkDo": "Nettoyer",
+    "junkCancel": "Annuler",
+    "junkDone": "Nettoyé : {n} fichiers déplacés dans {dir}",
+    "junkNone": "Rien à nettoyer",
     "launcherUpdate": "Nouveau launcher {v} disponible — cliquez pour le télécharger",
     "starting": "Lancement du jeu…",
     "mirrors": "{n} miroir(s) configuré(s)",
@@ -846,6 +926,17 @@ const T = {
     "usageNote": "Einmal am Tag sendet der Launcher einen Hash, der sich täglich ändert, dazu seine Version, das System und die Elite-Version. Keine Namen, keine Steam- oder Hardwaredaten; Tage lassen sich nicht miteinander verknüpfen.",
     "lanTitle": "Lokales Netzwerk",
     "lanShare": "Elite von anderen Launchern im lokalen Netzwerk laden und mit ihnen teilen",
+    "hangTitle": "Wenn das Spiel hängt",
+    "hangHelp": "Hilfe, wenn das Spiel hängt: Maus freigeben, Schließen anbieten (oder Strg+Alt+Ende), Bericht für die Entwickler speichern. Arbeitet von außerhalb des Spiels - ihm wird nichts hinzugefügt",
+    "crashDumps": "Absturzberichte speichern",
+    "crashDumpsNote": "Windows speichert einen kleinen Bericht, wenn das Spiel abstürzt (fragt einmal nach Administratorrechten)",
+    "crashDumpsOn": "Absturzberichte sind an",
+    "hangAsk": "Das Spiel reagiert nicht",
+    "hangText": "Seit {secs} s keine Antwort. Die Maus ist wieder frei. Du kannst warten oder das Spiel schließen.",
+    "hangDump": "Ein Bericht wurde gespeichert - klicke auf \"Logs senden\", damit wir sehen, wo es hing.",
+    "hangKill": "Spiel schließen",
+    "hangWait": "Warten",
+    "hangConfirm": "Drücke Strg+Alt+Ende noch einmal, um das Spiel zu schließen",
     "trayOpen": "Elite Launcher öffnen",
     "trayQuit": "Beenden",
     "cacheNote": "zurückwechseln geht sofort",
@@ -854,6 +945,15 @@ const T = {
     "repairTitle": "Reparieren",
     "repair": "Dateien prüfen und reparieren",
     "repairNote": "prüft jede Datei und lädt nur beschädigte Teile neu",
+    "junkTitle": "Aufräumen",
+    "junk": "Altlasten entfernen",
+    "junkNote": "entfernt übrig gebliebene Plugins alter Versionen und manueller Installationen (dow2-patches, alte Kopien in Elite_DLLs) und richtet danach alles nach deinen Häkchen neu ein",
+    "junkAsk": "Altlasten entfernen?",
+    "junkText": "Alles, was weder zu Elite gehört noch ein angehaktes Add-on ist, wandert in einen Sicherungsordner: das dow2-patches-Paket, alte Add-on-Kopien, Reste früherer Launcher-Versionen. Danach werden die Dateien geprüft und die angehakten Add-ons neu installiert.",
+    "junkDo": "Aufräumen",
+    "junkCancel": "Abbrechen",
+    "junkDone": "Aufgeräumt: {n} Dateien nach {dir} verschoben",
+    "junkNone": "Nichts aufzuräumen",
     "launcherUpdate": "Neuer Launcher {v} verfügbar — zum Herunterladen klicken",
     "starting": "Spiel wird gestartet…",
     "mirrors": "{n} Mirror(s) eingerichtet",
@@ -1207,9 +1307,13 @@ function render() {
   $('cache').value = String(S.cache_mb);
   $('usage').checked = S.usage_stats !== false;
   $('lanShare').checked = S.lan_share !== false;
+  $('hangHelp').checked = S.hang_help !== false;
+  $('crashDumps').classList.toggle('hidden', !!S.crash_dumps || (S.os && S.os !== 'windows'));
+  $('crashDumpsNote').textContent = S.crash_dumps ? t('crashDumpsOn') : t('crashDumpsNote');
   $('mirror').value = S.extra_mirror || '';
   $('mirrorInfo').textContent = t('mirrors', { n: S.mirror_count });
   $('repair').disabled = S.busy || S.game_running || !S.installed_version;
+  $('junk').disabled = S.busy || S.game_running || !S.installed_version;
   $('about').textContent = `Elite Launcher ${S.launcher_version} · ${S.os}`;
   $('hdrVer').textContent = S.launcher_version ? 'v' + S.launcher_version : '';
   onRender();
@@ -1322,9 +1426,45 @@ $('openDir').onclick = () => invoke('open_game_dir').catch(e => toast(e, true));
 $('lang').onchange = e => invoke('set_setting', { key: 'lang', value: e.target.value }).then(reload);
 $('usage').onchange = e => invoke('set_setting', { key: 'usage_stats', value: e.target.checked }).then(reload);
 $('lanShare').onchange = e => invoke('set_setting', { key: 'lan_share', value: e.target.checked }).then(reload);
+$('hangHelp').onchange = e => invoke('set_setting', { key: 'hang_help', value: e.target.checked }).then(reload);
+$('crashDumps').onclick = async () => { try { await invoke('enable_crash_dumps'); toast(t('crashDumpsOn')); reload(); } catch (e) { toast(e, true); } };
+// the game does not answer (watchdog.rs): the launcher comes to the front over it - close it or wait
+let hangBox = null, hangWaitUntil = 0;
+listen('game_hang', e => {
+  const v = e.payload || {};
+  if (v.state === 'confirm_kill') { toast(t('hangConfirm')); return; }
+  if (v.state !== 'hung') { if (hangBox) { hangBox.remove(); hangBox = null; } hangWaitUntil = 0; return; }
+  if (Date.now() < hangWaitUntil) return;
+  if (!hangBox) {
+    hangBox = document.createElement('div'); hangBox.className = 'modal';
+    hangBox.innerHTML = `<div class="box"><h3>${esc(t('hangAsk'))}</h3><p id="hgText"></p><p class="note" id="hgDump"></p>
+      <div class="row"><button class="btn red" id="hgKill">${esc(t('hangKill'))}</button><button class="btn gold" id="hgWait">${esc(t('hangWait'))}</button></div></div>`;
+    document.body.appendChild(hangBox);
+    hangBox.querySelector('#hgKill').onclick = async () => { try { await invoke('kill_game'); } catch (err) { toast(err, true); } if (hangBox) { hangBox.remove(); hangBox = null; } };
+    hangBox.querySelector('#hgWait').onclick = () => { hangWaitUntil = Date.now() + 30000; if (hangBox) { hangBox.remove(); hangBox = null; } };
+  }
+  hangBox.querySelector('#hgText').textContent = t('hangText', { secs: v.secs || 0 });
+  hangBox.querySelector('#hgDump').textContent = v.dump ? t('hangDump') : '';
+});
 $('cache').onchange = e => invoke('set_setting', { key: 'cache_mb', value: +e.target.value }).then(reload);
 $('saveMirror').onclick = () => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
 $('repair').onclick = () => startUpdate(true);
+// "Clean up the junk": stray plugins into a backup folder, then check & repair puts Elite and the ticked add-ons back
+$('junk').onclick = () => {
+  const m = document.createElement('div'); m.className = 'modal';
+  m.innerHTML = `<div class="box"><h3>${esc(t('junkAsk'))}</h3><p>${esc(t('junkText'))}</p><div class="row"><button class="btn red" id="jkDo">${esc(t('junkDo'))}</button>
+    <button class="btn gold" id="jkNo">${esc(t('junkCancel'))}</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#jkNo').onclick = () => m.remove();
+  m.querySelector('#jkDo').onclick = async () => {
+    m.remove();
+    try {
+      const r = await invoke('clean_junk');
+      toast((r.moved || []).length ? t('junkDone', { n: r.moved.length, dir: r.backup }) : t('junkNone'));
+      await startUpdate(true);
+    } catch (e) { toast(e, true); }
+  };
+};
 // ник для логов запоминаем (localStorage может быть недоступен — тогда просто без ника)
 try { $('diagName').value = localStorage.getItem('diagName') || ''; } catch (e) {}
 $('diagName').onchange = () => { try { localStorage.setItem('diagName', $('diagName').value.trim()); } catch (e) {} };

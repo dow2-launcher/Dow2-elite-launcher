@@ -7,6 +7,7 @@
 //! * the launcher works offline with the last verified config.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod watchdog;
 use elite_core::config::{version_newer, LauncherConfig};
 use elite_core::{elite, game, net::Mirrors, update, LAUNCHER_VERSION};
 use std::collections::BTreeMap;
@@ -64,6 +65,8 @@ struct Settings {
     fb_name: String,
     /// Elite files from/to other launchers on the local network (elite_core::lan). None = on.
     lan_share: Option<bool>,
+    /// Help when the game hangs (watchdog.rs: mouse set free, offer to close, Ctrl+Alt+End, hang dump). None = on.
+    hang_help: Option<bool>,
     /// Hotkeys the player changed: "scope:name" -> "Control+A" ("grid:AB_key_1" for Grid Hotkeys); see elite_core::hotkeys.
     hotkeys: BTreeMap<String, String>,
     /// Community (chat, who is online): the session token from the Steam sign-in and the profile it belongs to.
@@ -446,6 +449,8 @@ fn get_status(app: State<'_, App>) -> Value {
         })).collect::<Vec<_>>(),
         "usage_stats": s.usage_stats.unwrap_or(true),
         "lan_share": s.lan_share.unwrap_or(true),
+        "hang_help": s.hang_help.unwrap_or(true),
+        "crash_dumps": crash_dumps_on(),
         "release_news": app.release_news.lock().unwrap().clone(),
         "costs": app.costs.lock().unwrap().clone(),
         "prev_channel": s.prev_channel.filter(|p| p != &channel && cfgd.channels.iter().any(|c| &c.id == p)),
@@ -519,6 +524,7 @@ fn set_setting(app: State<'_, App>, key: String, value: Value) {
         "cache_mb" => s.cache_mb = value.as_u64(),
         "usage_stats" => s.usage_stats = value.as_bool(),
         "lan_share" => { s.lan_share = value.as_bool(); elite_core::lan::ENABLED.store(s.lan_share.unwrap_or(true), Ordering::Relaxed); }
+        "hang_help" => { s.hang_help = value.as_bool(); watchdog::ENABLED.store(s.hang_help.unwrap_or(true), Ordering::Relaxed); }
         "dismiss" => {
             if let Some(id) = value.as_str() {
                 s.dismissed.push(id.to_string());
@@ -652,6 +658,105 @@ fn drop_conflicting(dir: &std::path::Path, cfg: &LauncherConfig) {
             }
         }
     }
+}
+
+/// "Clean up the junk" in Settings (owner 01.11.2026: clear all stray plugins, then set everything up again). Moves into
+/// <game>/.elite_cache/junk-<time>/ (never deleted - a mistake can be put back by hand):
+/// - the whole stand-alone package: dow2-patches/, the old LobbyStats/ folder, its winmm.dll loader in the game folder;
+/// - every DLL-like file at the top of Elite_DLLs (*.dll, *.off, *.bak, *.dll.*) that is neither Elite's own (the installed
+///   version's manifest) nor a file of an add-on that is on; the add-ons' .ini / .log / caches stay (players' settings);
+/// - InjectedFiles entries whose DLL is not in Elite_DLLs any more.
+/// The window runs "check & repair" right after it: Elite's files and the ticked add-ons come back as they should be.
+#[tauri::command]
+fn clean_junk(app: State<'_, App>) -> Result<Value, String> {
+    ensure_game_closed(&app)?;
+    let dir = game_dir(&app).ok_or("game folder not found")?;
+    let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
+    let s = app.settings.lock().unwrap().clone();
+    Ok(junk_cleanup(&dir, &cfg, &s))
+}
+
+fn junk_cleanup(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Value {
+    let main = update::Game::new(dir);
+    let mut keep: std::collections::HashSet<String> = main.load_state().files.iter().map(|f| f.path.to_ascii_lowercase()).collect();
+    for c in &cfg.components {
+        if comp_on(dir, c, s) {
+            keep.extend(update::Game::component(dir, &c.id).load_state().files.iter().map(|f| f.path.to_ascii_lowercase()));
+        }
+    }
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+    let bin = main.cache_dir().join(format!("junk-{stamp}"));
+    let mut moved: Vec<String> = Vec::new();
+    let mut put = |rel: &str| {
+        let from = main.file(rel);
+        if !from.exists() || keep.contains(&rel.to_ascii_lowercase()) { return; }
+        let to = bin.join(rel.replace('/', std::path::MAIN_SEPARATOR_STR));
+        if let Some(p) = to.parent() { let _ = std::fs::create_dir_all(p); }
+        if std::fs::rename(&from, &to).is_ok() { moved.push(rel.to_string()); }
+    };
+    for folder in ["dow2-patches", "LobbyStats"] {
+        if dir.join(folder).is_dir() { put(folder); }
+    }
+    if dir.join("winmm.dll").is_file() { put("winmm.dll"); }
+    if let Ok(rd) = std::fs::read_dir(dir.join("Elite_DLLs")) {
+        for e in rd.flatten() {
+            if !e.path().is_file() { continue; }
+            let n = e.file_name().to_string_lossy().to_string();
+            let l = n.to_ascii_lowercase();
+            if l.ends_with(".dll") || l.ends_with(".off") || l.contains(".bak") || l.contains(".dll.") {
+                put(&format!("Elite_DLLs/{n}"));
+            }
+        }
+    }
+    // InjectedFiles: names whose DLL is gone
+    let mut dropped = Vec::new();
+    if let Ok(text) = std::fs::read_to_string(dir.join(elite::LAUNCHCONFIG)) {
+        if let Some(line) = text.lines().find_map(|l| l.strip_prefix("InjectedFiles=")) {
+            for name in line.split(',').map(|x| x.trim().to_string()).filter(|x| !x.is_empty()) {
+                if !dir.join("Elite_DLLs").join(&name).is_file() {
+                    if let Ok(files) = elite::set_injected_all(dir, &name, false) {
+                        for f in files { main.accept_local_edit(&f); }
+                    }
+                    dropped.push(name);
+                }
+            }
+        }
+    }
+    json!({"moved": moved, "uninjected": dropped, "backup": bin.display().to_string()})
+}
+
+/// "Close the game" in the hang window (a hang dump is written first if there is none yet).
+#[tauri::command]
+fn kill_game() -> Result<(), String> { watchdog::kill_game(&data_dir().join("dumps")) }
+
+const LOCALDUMPS: &str = r"HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting\LocalDumps\DOW2.exe";
+/// Windows writes a small dump itself when the game crashes (Windows Error Reporting LocalDumps, DumpType 1 = mini, the
+/// newest 3, %LOCALAPPDATA%\CrashDumps - "Send logs" already takes them). Nothing runs inside the game for it.
+fn crash_dumps_on() -> bool {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        std::process::Command::new("reg").args(["query", LOCALDUMPS, "/v", "DumpType"]).creation_flags(0x0800_0000).output()
+            .map(|o| String::from_utf8_lossy(&o.stdout).contains("0x1")).unwrap_or(false)
+    }
+    #[cfg(not(windows))]
+    { false }
+}
+/// Turn the crash dumps on: the key is in HKLM, so Windows asks for administrator rights once (UAC).
+#[tauri::command]
+fn enable_crash_dumps() -> Result<(), String> {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        let args = format!("/c reg add \"{k}\" /v DumpType /t REG_DWORD /d 1 /f & reg add \"{k}\" /v DumpCount /t REG_DWORD /d 3 /f", k = LOCALDUMPS);
+        let ps = format!("Start-Process -FilePath cmd -Verb RunAs -WindowStyle Hidden -Wait -ArgumentList '{}'", args.replace('\'', "''"));
+        let st = std::process::Command::new("powershell").args(["-NoProfile", "-Command", &ps]).creation_flags(0x0800_0000).status()
+            .map_err(|e| e.to_string())?;
+        if !st.success() { return Err("not allowed (the administrator request was declined)".into()); }
+        if crash_dumps_on() { Ok(()) } else { Err("Windows did not save the setting".into()) }
+    }
+    #[cfg(not(windows))]
+    { Err("only on Windows".into()) }
 }
 
 /// Delete the hand-installed copy of a component: its files, their .ini next to them, and the stand-alone
@@ -918,6 +1023,7 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
             take(d.clone(), 0, &["log", "txt", "dmp", "mdmp", "launchconfig"], 7, 20, &mut files);
         }
         take(data_dir(), 0, &["log", "old"], 30, 4, &mut files);   // the launcher's own: community.log (Steam sign-in, chat)
+        take(data_dir().join("dumps"), 0, &["dmp"], 7, 2, &mut files);   // hang dumps written by the watchdog (newest two)
         if let Some(doc) = dirs::document_dir() {
             take(doc.join("My Games").join("Dawn of War II - Retribution"), 3, &["txt", "log", "dmp", "mdmp", "xml", "ini"], 3, 40, &mut files);
         }
@@ -1488,6 +1594,16 @@ fn main() {
             // Elite for the neighbours on the local network: the files of the installed version and of the version cache,
             // only those still as installed (same size; the neighbour checks the SHA-256 against the signed manifest anyway)
             elite_core::lan::ENABLED.store(app.state::<App>().settings.lock().unwrap().lan_share.unwrap_or(true), Ordering::Relaxed);
+            // help when the game hangs: the window comes to the front over the hung game and offers to close it
+            watchdog::ENABLED.store(app.state::<App>().settings.lock().unwrap().hang_help.unwrap_or(true), Ordering::Relaxed);
+            let hw = app.handle().clone();
+            watchdog::start(data_dir().join("dumps"), move |v| {
+                if let Some(w) = hw.get_webview_window("main") {
+                    let hung = v["state"] == "hung";
+                    if hung { let _ = w.set_always_on_top(true); show_window(&hw); } else { let _ = w.set_always_on_top(false); }
+                }
+                let _ = hw.emit("game_hang", v);
+            });
             let hl = app.handle().clone();
             elite_core::lan::serve(Arc::new(move |sha: &str| {
                 let st = hl.state::<App>();
@@ -1563,7 +1679,7 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
+            get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, clean_junk, kill_game, enable_crash_dumps, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, online_live,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api
@@ -1604,6 +1720,38 @@ mod enforce_off_tests {
         assert!(ex("dow2-patches/Other.dll"), "files that are not ours stay");
         enforce_off(&d, &cfg, &Settings::default());            // a second start: nothing breaks
         assert!(ex("Elite_DLLs/Relay.dll.off"));
+        let _ = std::fs::remove_dir_all(&d);
+    }
+}
+
+#[cfg(test)]
+mod junk_tests {
+    use super::*;
+    #[test]
+    fn stray_plugins_go_to_the_backup_and_ours_stay() {
+        let d = std::env::temp_dir().join(format!("junk_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        for p in ["dow2-patches", "Elite_DLLs", "LobbyStats", ".elite_launcher"] { std::fs::create_dir_all(d.join(p)).unwrap(); }
+        for f in ["dow2-patches/ReinforceFix.dll", "dow2-patches/ObsFix.dll.off", "winmm.dll", "LobbyStats/LobbyStats.dll",
+                  "Elite_DLLs/MiscFixes.dll", "Elite_DLLs/MMFind.dll", "Elite_DLLs/Relay.dll", "Elite_DLLs/Relay.dll.off",
+                  "Elite_DLLs/LobbyStats.dll.bak", "Elite_DLLs/MMFind.ini", "Elite_DLLs/Relay.log", "DOW2.exe"] { std::fs::write(d.join(f), b"x").unwrap(); }
+        std::fs::write(d.join("Elite.launchconfig"), "IsRetribution=true\nInjectedFiles=MiscFixes.dll, Relay.dll, MMFind.dll\n").unwrap();
+        // what the launcher installed: Elite's MiscFixes.dll (main manifest) and the automatch add-on (on by default)
+        std::fs::write(d.join(".elite_launcher/state.json"), r#"{"files":[{"path":"Elite_DLLs/MiscFixes.dll","size":1,"mtime":0,"sha":""}]}"#).unwrap();
+        std::fs::write(d.join(".elite_launcher/component-automatch.json"), r#"{"version":"mmfind-0.32","files":[{"path":"Elite_DLLs/MMFind.dll","size":1,"mtime":0,"sha":""}]}"#).unwrap();
+        let comp = |id: &str, dll: &str, def: bool| elite_core::config::Component { id: id.into(), inject: dll.into(), default: def, ..Default::default() };
+        let mut cfg = LauncherConfig::default();
+        cfg.components = vec![comp("automatch", "MMFind.dll", true), comp("relay_r2", "Relay.dll", false)];
+        let r = junk_cleanup(&d, &cfg, &Settings::default());
+        let ex = |f: &str| d.join(f).exists();
+        assert!(!ex("dow2-patches") && !ex("winmm.dll") && !ex("LobbyStats"), "the stand-alone package goes: {r}");
+        assert!(!ex("Elite_DLLs/Relay.dll") && !ex("Elite_DLLs/Relay.dll.off") && !ex("Elite_DLLs/LobbyStats.dll.bak"), "{r}");
+        assert!(ex("Elite_DLLs/MiscFixes.dll") && ex("Elite_DLLs/MMFind.dll"), "Elite's own and ticked add-ons stay: {r}");
+        assert!(ex("Elite_DLLs/MMFind.ini") && ex("Elite_DLLs/Relay.log") && ex("DOW2.exe"), "settings, logs, the game stay");
+        let lc = std::fs::read_to_string(d.join("Elite.launchconfig")).unwrap();
+        assert!(lc.contains("MMFind.dll") && lc.contains("MiscFixes.dll") && !lc.contains("Relay.dll"), "{lc}");
+        let bin = std::path::PathBuf::from(r["backup"].as_str().unwrap());
+        assert!(bin.join("dow2-patches").join("ReinforceFix.dll").is_file() && bin.join("Elite_DLLs").join("Relay.dll").is_file(), "kept in the backup");
         let _ = std::fs::remove_dir_all(&d);
     }
 }
