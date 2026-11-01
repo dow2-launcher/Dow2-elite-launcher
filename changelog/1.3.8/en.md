@@ -1,0 +1,1 @@
+- Elite can download from other launchers on your local network (faster; every file is checked against the signed version). Settings → Local network.

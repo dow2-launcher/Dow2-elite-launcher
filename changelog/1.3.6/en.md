@@ -1,0 +1,2 @@
+- Chat: your message shows up at once (greyed out) and can't be sent twice by pressing Enter again.
+- Chat: a click on a name tags the player (@name), mentions of you are highlighted.

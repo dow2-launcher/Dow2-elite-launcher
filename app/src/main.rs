@@ -654,6 +654,71 @@ fn drop_conflicting(dir: &std::path::Path, cfg: &LauncherConfig) {
     }
 }
 
+/// "Clean up the junk" in Settings (owner 01.11.2026: clear all stray plugins, then set everything up again). Moves into
+/// <game>/.elite_cache/junk-<time>/ (never deleted - a mistake can be put back by hand):
+/// - the whole stand-alone package: dow2-patches/, the old LobbyStats/ folder, its winmm.dll loader in the game folder;
+/// - every DLL-like file at the top of Elite_DLLs (*.dll, *.off, *.bak, *.dll.*) that is neither Elite's own (the installed
+///   version's manifest) nor a file of an add-on that is on; the add-ons' .ini / .log / caches stay (players' settings);
+/// - InjectedFiles entries whose DLL is not in Elite_DLLs any more.
+/// The window runs "check & repair" right after it: Elite's files and the ticked add-ons come back as they should be.
+#[tauri::command]
+fn clean_junk(app: State<'_, App>) -> Result<Value, String> {
+    ensure_game_closed(&app)?;
+    let dir = game_dir(&app).ok_or("game folder not found")?;
+    let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
+    let s = app.settings.lock().unwrap().clone();
+    Ok(junk_cleanup(&dir, &cfg, &s))
+}
+
+fn junk_cleanup(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Value {
+    let main = update::Game::new(dir);
+    let mut keep: std::collections::HashSet<String> = main.load_state().files.iter().map(|f| f.path.to_ascii_lowercase()).collect();
+    for c in &cfg.components {
+        if comp_on(dir, c, s) {
+            keep.extend(update::Game::component(dir, &c.id).load_state().files.iter().map(|f| f.path.to_ascii_lowercase()));
+        }
+    }
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+    let bin = main.cache_dir().join(format!("junk-{stamp}"));
+    let mut moved: Vec<String> = Vec::new();
+    let mut put = |rel: &str| {
+        let from = main.file(rel);
+        if !from.exists() || keep.contains(&rel.to_ascii_lowercase()) { return; }
+        let to = bin.join(rel.replace('/', std::path::MAIN_SEPARATOR_STR));
+        if let Some(p) = to.parent() { let _ = std::fs::create_dir_all(p); }
+        if std::fs::rename(&from, &to).is_ok() { moved.push(rel.to_string()); }
+    };
+    for folder in ["dow2-patches", "LobbyStats"] {
+        if dir.join(folder).is_dir() { put(folder); }
+    }
+    if dir.join("winmm.dll").is_file() { put("winmm.dll"); }
+    if let Ok(rd) = std::fs::read_dir(dir.join("Elite_DLLs")) {
+        for e in rd.flatten() {
+            if !e.path().is_file() { continue; }
+            let n = e.file_name().to_string_lossy().to_string();
+            let l = n.to_ascii_lowercase();
+            if l.ends_with(".dll") || l.ends_with(".off") || l.contains(".bak") || l.contains(".dll.") {
+                put(&format!("Elite_DLLs/{n}"));
+            }
+        }
+    }
+    // InjectedFiles: names whose DLL is gone
+    let mut dropped = Vec::new();
+    if let Ok(text) = std::fs::read_to_string(dir.join(elite::LAUNCHCONFIG)) {
+        if let Some(line) = text.lines().find_map(|l| l.strip_prefix("InjectedFiles=")) {
+            for name in line.split(',').map(|x| x.trim().to_string()).filter(|x| !x.is_empty()) {
+                if !dir.join("Elite_DLLs").join(&name).is_file() {
+                    if let Ok(files) = elite::set_injected_all(dir, &name, false) {
+                        for f in files { main.accept_local_edit(&f); }
+                    }
+                    dropped.push(name);
+                }
+            }
+        }
+    }
+    json!({"moved": moved, "uninjected": dropped, "backup": bin.display().to_string()})
+}
+
 /// Delete the hand-installed copy of a component: its files, their .ini next to them, and the stand-alone
 /// package's loader (winmm.dll + readmes) once its dow2-patches folder has no DLLs left.
 #[tauri::command]
@@ -1637,7 +1702,7 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
+            get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up
@@ -1678,6 +1743,38 @@ mod enforce_off_tests {
         assert!(ex("dow2-patches/Other.dll"), "files that are not ours stay");
         enforce_off(&d, &cfg, &Settings::default());            // a second start: nothing breaks
         assert!(ex("Elite_DLLs/Relay.dll.off"));
+        let _ = std::fs::remove_dir_all(&d);
+    }
+}
+
+#[cfg(test)]
+mod junk_tests {
+    use super::*;
+    #[test]
+    fn stray_plugins_go_to_the_backup_and_ours_stay() {
+        let d = std::env::temp_dir().join(format!("junk_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        for p in ["dow2-patches", "Elite_DLLs", "LobbyStats", ".elite_launcher"] { std::fs::create_dir_all(d.join(p)).unwrap(); }
+        for f in ["dow2-patches/ReinforceFix.dll", "dow2-patches/ObsFix.dll.off", "winmm.dll", "LobbyStats/LobbyStats.dll",
+                  "Elite_DLLs/MiscFixes.dll", "Elite_DLLs/MMFind.dll", "Elite_DLLs/Relay.dll", "Elite_DLLs/Relay.dll.off",
+                  "Elite_DLLs/LobbyStats.dll.bak", "Elite_DLLs/MMFind.ini", "Elite_DLLs/Relay.log", "DOW2.exe"] { std::fs::write(d.join(f), b"x").unwrap(); }
+        std::fs::write(d.join("Elite.launchconfig"), "IsRetribution=true\nInjectedFiles=MiscFixes.dll, Relay.dll, MMFind.dll\n").unwrap();
+        // what the launcher installed: Elite's MiscFixes.dll (main manifest) and the automatch add-on (on by default)
+        std::fs::write(d.join(".elite_launcher/state.json"), r#"{"files":[{"path":"Elite_DLLs/MiscFixes.dll","size":1,"mtime":0,"sha":""}]}"#).unwrap();
+        std::fs::write(d.join(".elite_launcher/component-automatch.json"), r#"{"version":"mmfind-0.32","files":[{"path":"Elite_DLLs/MMFind.dll","size":1,"mtime":0,"sha":""}]}"#).unwrap();
+        let comp = |id: &str, dll: &str, def: bool| elite_core::config::Component { id: id.into(), inject: dll.into(), default: def, ..Default::default() };
+        let mut cfg = LauncherConfig::default();
+        cfg.components = vec![comp("automatch", "MMFind.dll", true), comp("relay_r2", "Relay.dll", false)];
+        let r = junk_cleanup(&d, &cfg, &Settings::default());
+        let ex = |f: &str| d.join(f).exists();
+        assert!(!ex("dow2-patches") && !ex("winmm.dll") && !ex("LobbyStats"), "the stand-alone package goes: {r}");
+        assert!(!ex("Elite_DLLs/Relay.dll") && !ex("Elite_DLLs/Relay.dll.off") && !ex("Elite_DLLs/LobbyStats.dll.bak"), "{r}");
+        assert!(ex("Elite_DLLs/MiscFixes.dll") && ex("Elite_DLLs/MMFind.dll"), "Elite's own and ticked add-ons stay: {r}");
+        assert!(ex("Elite_DLLs/MMFind.ini") && ex("Elite_DLLs/Relay.log") && ex("DOW2.exe"), "settings, logs, the game stay");
+        let lc = std::fs::read_to_string(d.join("Elite.launchconfig")).unwrap();
+        assert!(lc.contains("MMFind.dll") && lc.contains("MiscFixes.dll") && !lc.contains("Relay.dll"), "{lc}");
+        let bin = std::path::PathBuf::from(r["backup"].as_str().unwrap());
+        assert!(bin.join("dow2-patches").join("ReinforceFix.dll").is_file() && bin.join("Elite_DLLs").join("Relay.dll").is_file(), "kept in the backup");
         let _ = std::fs::remove_dir_all(&d);
     }
 }

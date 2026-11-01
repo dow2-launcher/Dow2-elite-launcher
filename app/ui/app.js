@@ -132,6 +132,15 @@ const T = {
     "repairTitle": "Repair",
     "repair": "Check & repair files",
     "repairNote": "checks every file and re-downloads only damaged parts",
+    "junkTitle": "Clean up",
+    "junk": "Clean up the junk",
+    "junkNote": "removes stray plugins left from old versions and hand-installed packages (dow2-patches, old copies in Elite_DLLs), then sets everything up again from your ticks",
+    "junkAsk": "Clean up the junk?",
+    "junkText": "Everything that is neither Elite's own nor an add-on you have ticked goes to a backup folder: the dow2-patches package, old copies of add-ons, leftovers from earlier launcher versions. Then the files are checked and the ticked add-ons are put back.",
+    "junkDo": "Clean up",
+    "junkCancel": "Cancel",
+    "junkDone": "Cleaned up: {n} files moved to {dir}",
+    "junkNone": "Nothing to clean up",
     "launcherUpdate": "New launcher {v} is available — click to download",
     "starting": "Starting the game…",
     "mirrors": "{n} mirror(s) configured",
@@ -324,6 +333,15 @@ const T = {
     "repairTitle": "Починка",
     "repair": "Проверить и починить",
     "repairNote": "проверяет все файлы и докачивает только повреждённые части",
+    "junkTitle": "Очистка",
+    "junk": "Очистить от хлама",
+    "junkNote": "убирает левые плагины, оставшиеся от старых версий и ручных установок (dow2-patches, старые копии в Elite_DLLs), и заново всё выставляет по вашим галочкам",
+    "junkAsk": "Очистить от хлама?",
+    "junkText": "Всё, что не относится к самой Elite и к отмеченным дополнениям, переносится в резервную папку: пакет dow2-patches, старые копии дополнений, остатки прошлых версий лаунчера. Затем файлы проверяются, а отмеченные дополнения ставятся заново.",
+    "junkDo": "Очистить",
+    "junkCancel": "Отмена",
+    "junkDone": "Очищено: {n} файлов перенесено в {dir}",
+    "junkNone": "Чистить нечего",
     "launcherUpdate": "Вышел новый лаунчер {v} — нажмите, чтобы скачать",
     "starting": "Запускаю игру…",
     "mirrors": "зеркал настроено: {n}",
@@ -511,6 +529,15 @@ const T = {
     "repairTitle": "Reparar",
     "repair": "Comprobar y reparar archivos",
     "repairNote": "comprueba cada archivo y vuelve a descargar solo las partes dañadas",
+    "junkTitle": "Limpieza",
+    "junk": "Limpiar la basura",
+    "junkNote": "quita los plugins sobrantes de versiones antiguas e instalaciones manuales (dow2-patches, copias viejas en Elite_DLLs) y vuelve a configurarlo todo según tus casillas",
+    "junkAsk": "¿Limpiar la basura?",
+    "junkText": "Todo lo que no es de Elite ni un complemento marcado se mueve a una carpeta de copia: el paquete dow2-patches, copias viejas de complementos, restos de versiones anteriores del launcher. Luego se comprueban los archivos y se reinstalan los complementos marcados.",
+    "junkDo": "Limpiar",
+    "junkCancel": "Cancelar",
+    "junkDone": "Limpio: {n} archivos movidos a {dir}",
+    "junkNone": "No hay nada que limpiar",
     "launcherUpdate": "Hay un nuevo launcher {v}: haz clic para descargarlo",
     "starting": "Iniciando el juego…",
     "mirrors": "{n} espejo(s) configurados",
@@ -698,6 +725,15 @@ const T = {
     "repairTitle": "Réparer",
     "repair": "Vérifier et réparer les fichiers",
     "repairNote": "vérifie chaque fichier et ne retélécharge que les parties endommagées",
+    "junkTitle": "Nettoyage",
+    "junk": "Nettoyer les restes",
+    "junkNote": "retire les plugins restés d'anciennes versions et d'installations manuelles (dow2-patches, vieilles copies dans Elite_DLLs), puis remet tout en place selon vos cases",
+    "junkAsk": "Nettoyer les restes ?",
+    "junkText": "Tout ce qui n'est ni à Elite ni un module coché part dans un dossier de sauvegarde : le paquet dow2-patches, les vieilles copies de modules, les restes des anciennes versions du launcher. Ensuite les fichiers sont vérifiés et les modules cochés réinstallés.",
+    "junkDo": "Nettoyer",
+    "junkCancel": "Annuler",
+    "junkDone": "Nettoyé : {n} fichiers déplacés dans {dir}",
+    "junkNone": "Rien à nettoyer",
     "launcherUpdate": "Nouveau launcher {v} disponible — cliquez pour le télécharger",
     "starting": "Lancement du jeu…",
     "mirrors": "{n} miroir(s) configuré(s)",
@@ -885,6 +921,15 @@ const T = {
     "repairTitle": "Reparieren",
     "repair": "Dateien prüfen und reparieren",
     "repairNote": "prüft jede Datei und lädt nur beschädigte Teile neu",
+    "junkTitle": "Aufräumen",
+    "junk": "Altlasten entfernen",
+    "junkNote": "entfernt übrig gebliebene Plugins alter Versionen und manueller Installationen (dow2-patches, alte Kopien in Elite_DLLs) und richtet danach alles nach deinen Häkchen neu ein",
+    "junkAsk": "Altlasten entfernen?",
+    "junkText": "Alles, was weder zu Elite gehört noch ein angehaktes Add-on ist, wandert in einen Sicherungsordner: das dow2-patches-Paket, alte Add-on-Kopien, Reste früherer Launcher-Versionen. Danach werden die Dateien geprüft und die angehakten Add-ons neu installiert.",
+    "junkDo": "Aufräumen",
+    "junkCancel": "Abbrechen",
+    "junkDone": "Aufgeräumt: {n} Dateien nach {dir} verschoben",
+    "junkNone": "Nichts aufzuräumen",
     "launcherUpdate": "Neuer Launcher {v} verfügbar — zum Herunterladen klicken",
     "starting": "Spiel wird gestartet…",
     "mirrors": "{n} Mirror(s) eingerichtet",
@@ -1259,6 +1304,7 @@ function render() {
   $('mirror').value = S.extra_mirror || '';
   $('mirrorInfo').textContent = t('mirrors', { n: S.mirror_count });
   $('repair').disabled = S.busy || S.game_running || !S.installed_version;
+  $('junk').disabled = S.busy || S.game_running || !S.installed_version;
   $('about').textContent = `Elite Launcher ${S.launcher_version} · ${S.os}`;
   $('hdrVer').textContent = S.launcher_version ? 'v' + S.launcher_version : '';
   onRender();
@@ -1374,6 +1420,22 @@ $('lanShare').onchange = e => invoke('set_setting', { key: 'lan_share', value: e
 $('cache').onchange = e => invoke('set_setting', { key: 'cache_mb', value: +e.target.value }).then(reload);
 $('saveMirror').onclick = () => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
 $('repair').onclick = () => startUpdate(true);
+// "Clean up the junk": stray plugins into a backup folder, then check & repair puts Elite and the ticked add-ons back
+$('junk').onclick = () => {
+  const m = document.createElement('div'); m.className = 'modal';
+  m.innerHTML = `<div class="box"><h3>${esc(t('junkAsk'))}</h3><p>${esc(t('junkText'))}</p><div class="row"><button class="btn red" id="jkDo">${esc(t('junkDo'))}</button>
+    <button class="btn gold" id="jkNo">${esc(t('junkCancel'))}</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#jkNo').onclick = () => m.remove();
+  m.querySelector('#jkDo').onclick = async () => {
+    m.remove();
+    try {
+      const r = await invoke('clean_junk');
+      toast((r.moved || []).length ? t('junkDone', { n: r.moved.length, dir: r.backup }) : t('junkNone'));
+      await startUpdate(true);
+    } catch (e) { toast(e, true); }
+  };
+};
 // ник для логов запоминаем (localStorage может быть недоступен — тогда просто без ника)
 try { $('diagName').value = localStorage.getItem('diagName') || ''; } catch (e) {}
 $('diagName').onchange = () => { try { localStorage.setItem('diagName', $('diagName').value.trim()); } catch (e) {} };

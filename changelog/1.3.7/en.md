@@ -1,0 +1,1 @@
+- Only one launcher at a time: starting it again brings the running one back instead of opening another copy.

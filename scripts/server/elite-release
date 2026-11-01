@@ -1,0 +1,58 @@
+#!/bin/bash
+# elite-release - the ONLY way add-on changes from the repo reach the players (owner's rule 29.10.2026).
+# dow2-patches-deploy builds what the repo's addons.json wants into the staging store (store3-staging) - never synced.
+#   elite-release                 what is waiting: staging vs live, per add-on (version, texts)
+#   elite-release apply <id>...   release these add-ons: manifest into the live store, launcher.json, sign, verify, mirrors
+#   elite-release drop            forget the staging state (the change itself is reverted in the repo by hand)
+set -uo pipefail
+UPD=/mnt/ssd/eliteupd; STAGE="$UPD/store3-staging"; LIVE="$UPD/store3"; PUB=/usr/local/lib/elite/elite-publish
+[ -f "$STAGE/launcher.json" ] || { echo "no staging yet"; exit 0; }
+case "${1:-}" in
+  ""|status)
+    python3 - "$LIVE/launcher.json" "$STAGE/launcher.json" <<'PY'
+import json, sys
+live = {c["id"]: c for c in json.load(open(sys.argv[1]))["components"]}
+stage = {c["id"]: c for c in json.load(open(sys.argv[2]))["components"]}
+n = 0
+for i, c in stage.items():
+    l = live.get(i)
+    if l is None: print(f"NEW  {i}: {c['version']}"); n += 1; continue
+    diff = [k for k in c if c.get(k) != l.get(k)]
+    if diff: print(f"WAIT {i}: {l['version']} -> {c['version']} ({', '.join(diff)})"); n += 1
+for i in live:
+    if i not in stage: print(f"GONE {i} (removed in staging - not released by apply)")
+print(f"{n} waiting" if n else "nothing waiting")
+PY
+    ;;
+  apply)
+    shift; [ $# -gt 0 ] || { echo "which add-ons?"; exit 1; }
+    exec 9>/run/elite-store.lock; flock -w 600 9 || exit 1
+    cp "$LIVE/launcher.json" "$LIVE/launcher.json.bak.$(date +%Y%m%d-%H%M%S)"
+    python3 - "$LIVE" "$STAGE" "$@" <<'PY' || exit 1
+import json, os, shutil, sys
+live_dir, stage_dir, ids = sys.argv[1], sys.argv[2], sys.argv[3:]
+lp = os.path.join(live_dir, "launcher.json"); live = json.load(open(lp))
+stage = {c["id"]: c for c in json.load(open(os.path.join(stage_dir, "launcher.json")))["components"]}
+for i in ids:
+    c = stage.get(i)
+    if not c: sys.exit(f"{i}: not in staging")
+    for ext in (".manifest", ".manifest.sig"):
+        src, dst = os.path.join(stage_dir, c["version"] + ext), os.path.join(live_dir, c["version"] + ext)
+        if not os.path.islink(src) and os.path.exists(src): shutil.copy2(src, dst)
+        if not os.path.exists(dst): sys.exit(f"{i}: {c['version']}{ext} missing")
+    comps = live["components"]; k = next((n for n, x in enumerate(comps) if x["id"] == i), None)
+    if k is None: comps.append(c)
+    else: comps[k] = c
+    print(f"release {i} -> {c['version']}")
+json.dump(live, open(lp + ".new", "w"), ensure_ascii=False, indent=2); os.replace(lp + ".new", lp)
+PY
+    "$PUB" sign "$LIVE/launcher.json" "$UPD/keys/private.key" >/dev/null || exit 1
+    "$PUB" verify "$LIVE" | grep -v '^OK' ; "$PUB" verify "$LIVE" >/dev/null || { echo "verify FAILED"; exit 1; }
+    rclone sync "$LIVE" "r3:elite/eu/$(cat "$UPD/.token")/" >/dev/null 2>&1 || { echo "rclone FAILED"; exit 1; }
+    sleep 3; for h in dow2 dow2ru rts; do
+      curl -s -m 15 "https://$h.fintebtc.de/eu/$(cat "$UPD/.token")/launcher.json" | cmp -s - "$LIVE/launcher.json" && echo "$h ok" || echo "$h still old"
+    done ;;
+  drop)
+    rm -f "$STAGE/launcher.json" "$STAGE/launcher.json.sig"; echo "staging dropped (revert the repo commit; the next deploy rebuilds staging from live)" ;;
+  *) sed -n 2,8p "$0"; exit 1 ;;
+esac
