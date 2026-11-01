@@ -1,14 +1,9 @@
 name: build
-# OFF for now (owner, 28.10): no automatic runs, and nothing ships even from a manual run - the deploy and release
-# jobs below are switched off with `if: false`. Turn them back on together with the triggers when the build is fixed
-# (last failure: "failed to decode pubkey: Missing comment in public key" in the Build step).
 on:
+  push:
+    branches: ["**"]
+  pull_request:
   workflow_dispatch:
-    inputs:
-      release:
-        description: "Publish a GitHub Release for the current version (main only, also for X.Y.Z patch versions)"
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -56,7 +51,6 @@ jobs:
         env:
           EVENT: ${{ github.event_name }}
           REF: ${{ github.ref }}
-          WANT_RELEASE: ${{ inputs.release }}
           GH_TOKEN: ${{ github.token }}
         run: |
           version="$(sed -n '/^\[workspace.package\]/,/^\[/s/^version *= *"\(.*\)"/\1/p' Cargo.toml)"
@@ -66,38 +60,25 @@ jobs:
             exit 1
           fi
           python3 scripts/release_notes.py check "$version"
-          # a GitHub Release (and SignPath signing) only on main: automatically for a new X.Y.0,
-          # or by hand through "Run workflow" with the release box ticked
+          # in a pull request the version must be ahead of the last published release
+          latest="$(gh api "repos/$GITHUB_REPOSITORY/releases/latest" -q .tag_name 2>/dev/null | sed 's/^v//' || true)"
+          if [ "$EVENT" = pull_request ] && [ -n "$latest" ] \
+             && { [ "$version" = "$latest" ] || [ "$(printf '%s\n%s\n' "$version" "$latest" | sort -V | tail -1)" != "$version" ]; }; then
+            echo "::error::version $version is not greater than the last published release $latest — raise it"
+            exit 1
+          fi
+          # on main a new X.Y.0 is the version released to players by hand; the draft below is made for every version
           release=false
-          build_ref="$GITHUB_SHA"
-          if [ "$REF" = refs/heads/main ]; then
-            if [ "$EVENT" = push ] && ! git ls-remote --exit-code --tags origin "refs/tags/v$version" >/dev/null; then
-              case "$version" in *.0) release=true ;; esac
-            elif [ "$EVENT" = workflow_dispatch ] && [ "$WANT_RELEASE" = true ]; then
-              if gh release view "v$version" >/dev/null 2>&1; then
-                echo "::warning::Release v$version already exists, nothing to publish"
-              else
-                release=true
-                # main may have moved on without a new version: the release is built from the commit the tag points to,
-                # pinned by hash so a moved tag can't change it between jobs, and only if that commit is on main
-                if git rev-parse -q --verify "refs/tags/v$version" >/dev/null; then
-                  tag_sha="$(git rev-parse "v$version^{commit}")"
-                  if ! git merge-base --is-ancestor "$tag_sha" HEAD; then
-                    echo "::error::v$version points to ${tag_sha:0:7}, which is not on main: refusing to release it"
-                    exit 1
-                  fi
-                  build_ref="$tag_sha"
-                fi
-              fi
-            fi
+          if [ "$REF" = refs/heads/main ] && [ "$EVENT" = push ]; then
+            case "$version" in *.0) release=true ;; esac
           fi
           {
             echo "number=$version"
             echo "tag=v$version"
             echo "release=$release"
-            echo "build_ref=$build_ref"
+            echo "build_ref=$GITHUB_SHA"
           } >> "$GITHUB_OUTPUT"
-          echo "Version **$version**, GitHub Release in this run: **$release**" >> "$GITHUB_STEP_SUMMARY"
+          echo "Version **$version** (last published: ${latest:-none})" >> "$GITHUB_STEP_SUMMARY"
 
   core:
     runs-on: ubuntu-22.04
@@ -323,55 +304,49 @@ jobs:
           rm -rf "$KEYS" "$DIST" "$STORE"
           git checkout -- keys/public.key
 
-  # After a merge to main: tag vX.Y.Z if it is new. A GitHub Release with the installers (the same files as the
-  # download folder) for a new X.Y.0, or for any version through "Run workflow" with the release box ticked.
-  release:
+  # On a push to main: a DRAFT GitHub Release vX.Y.Z with the installers, their signatures, updater.json, SHA256SUMS
+  # and the source zip - everything the server builder needs to put a version on the mirrors. A draft carries no tag
+  # and is invisible to players (the self-update and the news read only published releases), so nothing reaches them
+  # from here; it is published by hand after the files are on the mirrors, and GitHub creates the tag then. If vX.Y.Z
+  # is already published, the build stays green and only warns to raise the version. Delivery is not done here.
+  draft:
     needs: [version, publish]
-    if: false   # off for now, see the top of the file
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     env:
       TAG: ${{ needs.version.outputs.tag }}
       VERSION: ${{ needs.version.outputs.number }}
-      REPO: ${{ github.repository }}
       GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Tag
-        id: tag
-        run: |
-          if git rev-parse "$TAG" >/dev/null 2>&1; then
-            echo "$TAG already exists, nothing to do"
-            echo "new=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          git config user.name 'github-actions[bot]'
-          git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git tag -a "$TAG" -m "$TAG"
-          git push origin "$TAG"
-          echo "new=true" >> "$GITHUB_OUTPUT"
       - uses: actions/download-artifact@v4
-        if: needs.version.outputs.release == 'true'
         with:
           pattern: deploy-*
           merge-multiple: true
           path: dist
-      - name: GitHub Release
-        if: needs.version.outputs.release == 'true'
+      - name: Assemble the draft
         run: |
-          {
-            python3 scripts/release_notes.py notes "$VERSION"
-            echo
-            echo "**Code signing policy:** [CODE_SIGNING.md](https://github.com/$REPO/blob/main/CODE_SIGNING.md)." \
-              "Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org)."
-          } > release-notes.md
-          # what the launcher's self-update reads (releases/latest/download/updater.json); the .sig files go into it
-          python3 scripts/updater_manifest.py "$VERSION" "https://github.com/$REPO/releases/download/$TAG" dist > dist/updater.json
-          rm -f dist/*.sig
-          gh release create "$TAG" dist/* --title "Elite Launcher $VERSION" --notes-file release-notes.md --verify-tag
+          # updater.json points at the mirror download folder (dl/), the layout the files take once released
+          python3 scripts/updater_manifest.py "$VERSION" "https://dow2.fintebtc.de/elite/dl" dist > dist/updater.json
+          ( cd dist && ls | grep -vE '\.sig$|^SHA256SUMS$|^updater\.json$' | xargs sha256sum > SHA256SUMS )
+          { cat "changelog/$VERSION/en.md"; echo; echo "_Built from ${GITHUB_SHA}._"; } > notes.md
+          ls -la dist
+      - name: Create or update the draft release
+        run: |
+          state="$(gh release view "$TAG" --json isDraft -q .isDraft 2>/dev/null || echo absent)"
+          if [ "$state" = false ]; then
+            echo "::warning::$TAG is already published - raise the version to make a new draft"
+            exit 0
+          fi
+          if [ "$state" = true ]; then
+            gh release edit "$TAG" --draft --title "Elite Launcher $VERSION" --notes-file notes.md
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --draft --title "Elite Launcher $VERSION" --notes-file notes.md
+          fi
+          echo "Draft **$TAG** ready ($(ls dist | wc -l) files)" >> "$GITHUB_STEP_SUMMARY"
 
   # A run on main (started by hand: the workflow has no push trigger) ships the installers to the download folder
   # on the server: rsync to "$DEPLOY_USER@$DEPLOY_HOST:" (variables and key in the dow2 environment); the key is
