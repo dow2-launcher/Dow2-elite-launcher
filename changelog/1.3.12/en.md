@@ -1,0 +1,4 @@
+- The game no longer stutters with the launcher open: it checked whether the game runs by starting tasklist.exe every 3 seconds (a new process each time, scanned by the antivirus); now it reads the process list itself.
+- A short beep when someone mentions you (@your name) in the chat; Settings: "No sound when someone mentions me".
+- A click on a name in Online tags that player in your chat message; the avatar opens the Steam profile.
+- Settings: "The close button quits the launcher" instead of hiding it in the tray.

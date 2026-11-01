@@ -115,6 +115,7 @@ const T = {
     "usageTitle": "Anonymous usage count",
     "usage": "Count me as a launcher user",
     "usageNote": "Once a day the launcher sends a hash that changes every day, plus its version, OS and the Elite version. No names, Steam or hardware data; days can't be linked to each other.",
+    "onTag": "Mention in the chat", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
     "lanTitle": "Local network",
     "lanShare": "Download Elite from other launchers on the local network and share it with them (faster; every file is checked against the signed version)",
     "trayOpen": "Open Elite Launcher",
@@ -310,6 +311,7 @@ const T = {
     "usageTitle": "Анонимная статистика",
     "usage": "Учитывать меня в числе пользователей лаунчера",
     "usageNote": "Раз в сутки лаунчер отправляет хеш, который каждый день новый, плюс свою версию, ОС и версию Elite. Никаких ников, Steam или данных о компьютере; связать дни между собой нельзя.",
+    "onTag": "Упомянуть в чате", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
     "lanTitle": "Локальная сеть",
     "lanShare": "Качать Elite с других лаунчеров в локальной сети и раздавать им (быстрее; каждый файл сверяется с подписанной версией)",
     "trayOpen": "Открыть Elite Launcher",
@@ -500,6 +502,7 @@ const T = {
     "usageTitle": "Estadística anónima",
     "usage": "Contarme como usuario del launcher",
     "usageNote": "Una vez al día el launcher envía un hash que cambia cada día, más su versión, el sistema y la versión de Elite. Sin nombres, sin Steam ni datos del equipo; los días no se pueden relacionar entre sí.",
+    "onTag": "Mencionar en el chat", "behTitle": "Chat y ventana", "muteMention": "Sin sonido cuando me mencionan (@nombre) en el chat", "closeQuits": "El botón de cerrar cierra el launcher (en vez de ocultarlo en la bandeja)",
     "lanTitle": "Red local",
     "lanShare": "Descargar Elite de otros launchers de la red local y compartirlo con ellos",
     "trayOpen": "Abrir Elite Launcher",
@@ -690,6 +693,7 @@ const T = {
     "usageTitle": "Statistiques anonymes",
     "usage": "Me compter parmi les utilisateurs du launcher",
     "usageNote": "Une fois par jour, le launcher envoie un hash qui change chaque jour, avec sa version, le système et la version d'Elite. Aucun nom, rien de Steam ni du PC ; les jours ne peuvent pas être reliés entre eux.",
+    "onTag": "Mentionner dans le chat", "behTitle": "Chat et fenêtre", "muteMention": "Pas de son quand on me mentionne (@nom) dans le chat", "closeQuits": "Le bouton fermer quitte le launcher (au lieu de le cacher dans la zone de notification)",
     "lanTitle": "Réseau local",
     "lanShare": "Télécharger Elite depuis les autres launchers du réseau local et le partager avec eux",
     "trayOpen": "Ouvrir Elite Launcher",
@@ -880,6 +884,7 @@ const T = {
     "usageTitle": "Anonyme Statistik",
     "usage": "Mich als Launcher-Nutzer mitzählen",
     "usageNote": "Einmal am Tag sendet der Launcher einen Hash, der sich täglich ändert, dazu seine Version, das System und die Elite-Version. Keine Namen, keine Steam- oder Hardwaredaten; Tage lassen sich nicht miteinander verknüpfen.",
+    "onTag": "Im Chat erwähnen", "behTitle": "Chat und Fenster", "muteMention": "Kein Ton, wenn mich jemand im Chat erwähnt (@Name)", "closeQuits": "Das Schließen-Kreuz beendet den Launcher (statt ihn im Infobereich zu verstecken)",
     "lanTitle": "Lokales Netzwerk",
     "lanShare": "Elite von anderen Launchern im lokalen Netzwerk laden und mit ihnen teilen",
     "trayOpen": "Elite Launcher öffnen",
@@ -1252,6 +1257,7 @@ function render() {
   $('cache').value = String(S.cache_mb);
   $('usage').checked = S.usage_stats !== false;
   $('lanShare').checked = S.lan_share !== false;
+  $('muteMention').checked = !!S.mute_mention; $('closeQuits').checked = !!S.close_quits;
   $('mirror').value = S.extra_mirror || '';
   $('mirrorInfo').textContent = t('mirrors', { n: S.mirror_count });
   $('repair').disabled = S.busy || S.game_running || !S.installed_version;
@@ -1368,6 +1374,8 @@ $('openDir').onclick = () => invoke('open_game_dir').catch(e => toast(e, true));
 $('lang').onchange = e => invoke('set_setting', { key: 'lang', value: e.target.value }).then(reload);
 $('usage').onchange = e => invoke('set_setting', { key: 'usage_stats', value: e.target.checked }).then(reload);
 $('lanShare').onchange = e => invoke('set_setting', { key: 'lan_share', value: e.target.checked }).then(reload);
+$('muteMention').onchange = e => invoke('set_setting', { key: 'mute_mention', value: e.target.checked }).then(reload);
+$('closeQuits').onchange = e => invoke('set_setting', { key: 'close_quits', value: e.target.checked }).then(reload);
 $('cache').onchange = e => invoke('set_setting', { key: 'cache_mb', value: +e.target.value }).then(reload);
 $('saveMirror').onclick = () => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
 $('repair').onclick = () => startUpdate(true);
@@ -1436,7 +1444,7 @@ const onAv = p => {
 };
 // the 1v1 rating; none yet (no ladder games this season) - a dash, so the dots after it stay in one column
 const onRt = r => r ? `<span class="rt">${Number(r) | 0}</span>` : `<span class="rt none" title="${esc(t('prNoGames'))}">—</span>`;
-const onWho = p => `<button class="nm" data-steam="${esc(p.steam || '')}" title="${esc(p.steam ? 'Steam ' + p.steam : '')}">${esc(p.name || 'Player')}</button>`;
+const onWho = p => `<button class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}" title="${esc(t('onTag'))}">${esc(p.name || 'Player')}</button>`;
 
 function onRender() {
   if (!S) return;
@@ -1482,7 +1490,10 @@ function onRender() {
         + (m.team1 || []).map(pl).join('') + '<div class="vs">vs</div>' + (m.team2 || []).map(pl).join('') + '</div>').join(''));
   }
   $('onGroups').innerHTML = html;
-  $('onGroups').querySelectorAll('.nm[data-steam]').forEach(b => b.onclick = () => b.dataset.steam && open('https://steamcommunity.com/profiles/' + b.dataset.steam));
+  // 1.3.12 (owner): a click on a name in Online tags that player in the chat message; the avatar opens the Steam profile
+  $('onGroups').querySelectorAll('.nm[data-name]').forEach(b => b.onclick = () => b.dataset.name && chMention(b.dataset.name));
+  $('onGroups').querySelectorAll('.on-p').forEach(r => { const a = r.querySelector('.av, img'), n = r.querySelector('.nm[data-steam]');
+    if (a && n && n.dataset.steam) { a.style.cursor = 'pointer'; a.title = 'Steam'; a.onclick = () => open('https://steamcommunity.com/profiles/' + n.dataset.steam); } });
   $('onGroups').querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
     ON.shut.has(b.dataset.g) ? ON.shut.delete(b.dataset.g) : ON.shut.add(b.dataset.g);
     try { localStorage.setItem('onShut', JSON.stringify([...ON.shut])); } catch (e) {}
@@ -1619,12 +1630,38 @@ async function chProfile() {
   try { const d = await invoke('c_api', { path: 'me', body: {} }); if (d.ok) CH.prof = d; } catch (e) { return; }
   chMe();
 }
+// 1.3.12 (owner): a short beep when someone tags me (@my name) in the chat; Settings: "No sound when someone mentions me"
+let chAudio = null;
+function chBeep() {
+  if (S && S.mute_mention) return;
+  try {
+    chAudio = chAudio || new (window.AudioContext || window.webkitAudioContext)();
+    if (chAudio.state === 'suspended') chAudio.resume();
+    const t0 = chAudio.currentTime;
+    [[880, 0], [1320, 0.12]].forEach(([f, d]) => {
+      const o = chAudio.createOscillator(), g = chAudio.createGain();
+      o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(chAudio.destination);
+      g.gain.setValueAtTime(0.0001, t0 + d); g.gain.exponentialRampToValueAtTime(0.25, t0 + d + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.11); o.start(t0 + d); o.stop(t0 + d + 0.12);
+    });
+  } catch (e) {}
+}
+document.addEventListener('pointerdown', () => { try { chAudio = chAudio || new (window.AudioContext || window.webkitAudioContext)(); if (chAudio.state === 'suspended') chAudio.resume(); } catch (e) {} });
+function chMentionsMe(m) {
+  const me = CH.me && CH.me.signed_in ? CH.me : null;
+  if (!me || !me.name || m.steam === me.steam) return false;
+  return String(m.text || '').toLowerCase().includes('@' + me.name.toLowerCase());
+}
 async function chLoad(room) {
   const r = room || CH.room; if (r === 'dev') return;
   let d; try { d = await invoke('c_api', { path: `msgs?room=${r}&after=${CH.last[r] || 0}` }); } catch (e) { return; }
   const list = CH.msgs[r] || (CH.msgs[r] = []);
   let changed = false;
-  for (const m of d.msgs || []) if (!list.some(x => x.id === m.id)) { list.push(m); changed = true; }
+  const first = !CH.loaded?.[r]; CH.loaded = CH.loaded || {}; CH.loaded[r] = true;   // the first load is history: no beep
+  let ping = false; CH.pinged = CH.pinged || new Set();   // one beep per message, also when two rooms show it
+  for (const m of d.msgs || []) if (!list.some(x => x.id === m.id)) { list.push(m); changed = true;
+    if (!first && chMentionsMe(m) && !CH.pinged.has(m.ts + '|' + m.steam)) { CH.pinged.add(m.ts + '|' + m.steam); ping = true; } }
+  if (ping) chBeep();
   if ((d.deleted || []).length) { const n = list.length; CH.msgs[r] = list.filter(m => !d.deleted.includes(m.id)); changed = changed || n !== CH.msgs[r].length; }
   const l2 = CH.msgs[r]; if (l2.length > 2000) l2.splice(0, l2.length - 2000);
   if (l2.length) CH.last[r] = Math.max(CH.last[r] || 0, l2[l2.length - 1].id);
@@ -1703,7 +1740,7 @@ async function chInit() {
   }
   chHello(); chProfile();
   ['all', 'ru', 'en'].forEach(r => r !== CH.room && chLoad(r));          // every room's history at once: switching tabs is instant
-  setInterval(() => chLoad(), 5000); setInterval(chHello, 30000); setInterval(chProfile, 10 * 60 * 1000);
+  setInterval(() => { chLoad(); if (CH.room !== 'all') chLoad('all'); }, 5000); setInterval(chHello, 30000); setInterval(chProfile, 10 * 60 * 1000);
 }
 chInit();
 
