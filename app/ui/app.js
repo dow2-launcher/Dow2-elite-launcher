@@ -1011,7 +1011,8 @@ function verOpen(on) {
 
 // "Version 0.7.0", plus the one the next update brings
 function compVer(c) {
-  const v = x => 'v' + String(x || '').replace(new RegExp('^' + c.id + '-'), '');
+  // the add-on name in front of the number goes ("lobbystats-0.10.1" -> 0.10.1; the ids got "_r2"/"_r3" on 30.10 and no longer matched)
+  const v = x => String(x || '').replace(/^[a-z_]+-(?=[0-9])/i, '');
   return c.installed ? t('addonVer', { v: v(c.installed) }) + (c.latest && c.latest !== c.installed ? ', ' + t('addonNext', { v: v(c.latest) }) : '')
     : c.latest ? t('addonVer', { v: v(c.latest) }) : '';
 }
