@@ -1,0 +1,1 @@
+- Add-ons: the version line shows the version again (1.3.13 showed ": →" there); long choices in the add-on settings (the modes of our servers) are no longer cut.

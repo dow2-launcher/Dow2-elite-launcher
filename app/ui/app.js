@@ -173,7 +173,7 @@ const T = {
     "addonInfo": "About: {name}",
     "addonVer": "Version {v}",
     "addonNext": "version {v} comes with the next update",
-    "addonCheck": "Check add-ons for updates", "addonChecking": "Checking…", "addonSame": "Everything is up to date ({time})", "addonChanged": "Add-ons updated", "addonNew": "new: {name}", "addonGone": "removed: {name}", "addonVer": "{name}: {from} → {to}", "addonOpts": "{name}: its settings changed",
+    "addonCheck": "Check add-ons for updates", "addonChecking": "Checking…", "addonSame": "Everything is up to date ({time})", "addonChanged": "Add-ons updated", "addonNew": "new: {name}", "addonGone": "removed: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: its settings changed",
     "addonLater": "takes effect the next time the game starts",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher",
@@ -370,7 +370,7 @@ const T = {
     "addonInfo": "Подробнее: {name}",
     "addonVer": "Версия {v}",
     "addonNext": "версия {v} встанет со следующим обновлением",
-    "addonCheck": "Проверить обновления дополнений", "addonChecking": "Проверяю…", "addonSame": "Всё актуально ({time})", "addonChanged": "Дополнения обновились", "addonNew": "новое: {name}", "addonGone": "убрано: {name}", "addonVer": "{name}: {from} → {to}", "addonOpts": "{name}: изменились настройки",
+    "addonCheck": "Проверить обновления дополнений", "addonChecking": "Проверяю…", "addonSame": "Всё актуально ({time})", "addonChanged": "Дополнения обновились", "addonNew": "новое: {name}", "addonGone": "убрано: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: изменились настройки",
     "addonLater": "действует со следующего запуска игры",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер",
@@ -562,7 +562,7 @@ const T = {
     "addonInfo": "Detalles: {name}",
     "addonVer": "Versión {v}",
     "addonNext": "la versión {v} llega con la próxima actualización",
-    "addonCheck": "Buscar actualizaciones de complementos", "addonChecking": "Comprobando…", "addonSame": "Todo al día ({time})", "addonChanged": "Complementos actualizados", "addonNew": "nuevo: {name}", "addonGone": "retirado: {name}", "addonVer": "{name}: {from} → {to}", "addonOpts": "{name}: cambiaron sus ajustes",
+    "addonCheck": "Buscar actualizaciones de complementos", "addonChecking": "Comprobando…", "addonSame": "Todo al día ({time})", "addonChanged": "Complementos actualizados", "addonNew": "nuevo: {name}", "addonGone": "retirado: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: cambiaron sus ajustes",
     "addonLater": "se aplica la próxima vez que inicies el juego",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher",
@@ -754,7 +754,7 @@ const T = {
     "addonInfo": "Détails : {name}",
     "addonVer": "Version {v}",
     "addonNext": "la version {v} arrive avec la prochaine mise à jour",
-    "addonCheck": "Vérifier les mises à jour des modules", "addonChecking": "Vérification…", "addonSame": "Tout est à jour ({time})", "addonChanged": "Modules mis à jour", "addonNew": "nouveau : {name}", "addonGone": "retiré : {name}", "addonVer": "{name} : {from} → {to}", "addonOpts": "{name} : ses réglages ont changé",
+    "addonCheck": "Vérifier les mises à jour des modules", "addonChecking": "Vérification…", "addonSame": "Tout est à jour ({time})", "addonChanged": "Modules mis à jour", "addonNew": "nouveau : {name}", "addonGone": "retiré : {name}", "addonChgVer": "{name} : {from} → {to}", "addonOpts": "{name} : ses réglages ont changé",
     "addonLater": "s’applique au prochain lancement du jeu",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher",
@@ -946,7 +946,7 @@ const T = {
     "addonInfo": "Details: {name}",
     "addonVer": "Version {v}",
     "addonNext": "Version {v} kommt mit dem nächsten Update",
-    "addonCheck": "Erweiterungen auf Updates prüfen", "addonChecking": "Prüfe…", "addonSame": "Alles aktuell ({time})", "addonChanged": "Erweiterungen aktualisiert", "addonNew": "neu: {name}", "addonGone": "entfernt: {name}", "addonVer": "{name}: {from} → {to}", "addonOpts": "{name}: Einstellungen geändert",
+    "addonCheck": "Erweiterungen auf Updates prüfen", "addonChecking": "Prüfe…", "addonSame": "Alles aktuell ({time})", "addonChanged": "Erweiterungen aktualisiert", "addonNew": "neu: {name}", "addonGone": "entfernt: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: Einstellungen geändert",
     "addonLater": "gilt ab dem nächsten Spielstart",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren",
@@ -1313,7 +1313,7 @@ function compDiff(a, b) {
   const out = [];
   for (const id in b) {
     if (!a[id]) out.push(t('addonNew', { name: b[id].n }));
-    else if (a[id].v !== b[id].v) out.push(t('addonVer', { name: b[id].n, from: a[id].v, to: b[id].v }));
+    else if (a[id].v !== b[id].v) out.push(t('addonChgVer', { name: b[id].n, from: a[id].v, to: b[id].v }));
     else if (a[id].o !== b[id].o) out.push(t('addonOpts', { name: b[id].n }));
   }
   for (const id in a) if (!b[id]) out.push(t('addonGone', { name: a[id].n }));
