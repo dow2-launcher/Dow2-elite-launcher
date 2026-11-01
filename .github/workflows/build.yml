@@ -348,12 +348,12 @@ jobs:
           fi
           echo "Draft **$TAG** ready ($(ls dist | wc -l) files)" >> "$GITHUB_STEP_SUMMARY"
 
-  # A run on main (started by hand: the workflow has no push trigger) ships the installers to the download folder
-  # on the server: rsync to "$DEPLOY_USER@$DEPLOY_HOST:" (variables and key in the dow2 environment); the key is
-  # scoped on the server, write-only into that one folder.
+  # Off: delivery to players is done by hand on the server, not from here. When turned on, a push to main ships the
+  # installers to the download folder on the server: rsync to "$DEPLOY_USER@$DEPLOY_HOST:" (variables and key in the
+  # dow2 environment); the key is scoped on the server, write-only into that one folder.
   deploy:
     needs: [version, launcher]
-    if: false   # off for now, see the top of the file
+    if: false
     runs-on: ubuntu-24.04
     environment: dow2
     env:
