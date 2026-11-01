@@ -82,7 +82,7 @@ nav{margin-left:auto;display:flex;gap:4px}
 .addon-grp{margin-bottom:2px;font:700 10px Cinzel,serif;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase}
 .addon-opt.pick{gap:10px;cursor:default}
 .addon-opt.pick span{flex:none;min-width:22px}
-.addon-opt.pick select{flex:0 1 190px;min-width:0;height:24px;padding:0 24px 0 6px;font-size:12px;background-position:right 7px center}
+.addon-opt.pick select{flex:1 1 auto;max-width:100%;min-width:0;height:24px;padding:0 24px 0 6px;font-size:12px;background-position:right 7px center}
 .addon-note{font-size:12px;color:var(--amber);padding:2px 0 8px}
 
 /* on/off switch: a real checkbox drawn as a toggle */

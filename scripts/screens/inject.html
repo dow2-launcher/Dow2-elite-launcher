@@ -1,0 +1,22 @@
+<script>
+try { if (!localStorage.getItem('shotSeeded')) {
+  ['relay_r2','automatch','lobbystats_r3','loadingratings_r3','matchtimer_r2','cooldowns_r2','obsfix_r2'].forEach(function (id) { localStorage.setItem('comp.' + id, '1'); });
+  localStorage.setItem('set.lang', (location.hash.match(/lang=(\w+)/) || [0, 'en'])[1]); localStorage.setItem('chRoom', 'en'); localStorage.setItem('shotSeeded', '1'); } } catch (e) {}
+</script>
+<script src="shot-shim.js"></script>
+<script src="app.js"></script>
+<script>
+(function () {
+  var q = new URLSearchParams(location.hash.slice(1));
+  function go() {
+    var v = q.get('view'); if (v) { var b = document.querySelector('.tab[data-view="' + v + '"]'); if (b) b.click(); }
+    setTimeout(function () {
+      if (q.get('check')) { var c = document.getElementById('addonCheck'); if (c) c.click(); }
+      if (q.get('open')) { var o = document.querySelector(q.get('open')); if (o) o.click(); }
+      var sc = q.get('scroll'); if (sc) { var el = document.querySelector(sc); if (el) el.scrollIntoView({ block: 'start' }); }
+      var cs = q.get('chat'); if (cs != null) { var box = document.getElementById('chMsgs'); if (box) box.scrollTop = Number(cs); }
+    }, 1500);
+  }
+  setTimeout(go, 2500);
+})();
+</script>
