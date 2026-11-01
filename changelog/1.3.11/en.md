@@ -1,0 +1,1 @@
+- The hang help and the crash report settings of 1.3.10 are gone: the launcher does not touch the game's window, the registry or the game process.

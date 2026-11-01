@@ -117,17 +117,6 @@ const T = {
     "usageNote": "Once a day the launcher sends a hash that changes every day, plus its version, OS and the Elite version. No names, Steam or hardware data; days can't be linked to each other.",
     "lanTitle": "Local network",
     "lanShare": "Download Elite from other launchers on the local network and share it with them (faster; every file is checked against the signed version)",
-    "hangTitle": "When the game hangs",
-    "hangHelp": "Help when the game hangs: free the mouse, offer to close the game (or Ctrl+Alt+End), save a hang report for the developers. Works from outside the game - nothing is added to it",
-    "crashDumps": "Save crash reports",
-    "crashDumpsNote": "Windows writes a small report when the game crashes (asks for administrator rights once)",
-    "crashDumpsOn": "crash reports are on",
-    "hangAsk": "The game is not responding",
-    "hangText": "No answer for {secs} s. The mouse is free again. You can wait or close the game.",
-    "hangDump": "A hang report was saved - press \"Send logs\" so we can see where it stopped.",
-    "hangKill": "Close the game",
-    "hangWait": "Wait",
-    "hangConfirm": "Press Ctrl+Alt+End once more to close the game",
     "trayOpen": "Open Elite Launcher",
     "trayQuit": "Quit",
     "cacheNote": "switching back to them is instant",
@@ -323,17 +312,6 @@ const T = {
     "usageNote": "Раз в сутки лаунчер отправляет хеш, который каждый день новый, плюс свою версию, ОС и версию Elite. Никаких ников, Steam или данных о компьютере; связать дни между собой нельзя.",
     "lanTitle": "Локальная сеть",
     "lanShare": "Качать Elite с других лаунчеров в локальной сети и раздавать им (быстрее; каждый файл сверяется с подписанной версией)",
-    "hangTitle": "Если игра зависла",
-    "hangHelp": "Помощь при зависании игры: освободить мышь, предложить закрыть игру (или Ctrl+Alt+End), сохранить отчёт о зависании для разработчиков. Работает снаружи игры — в неё ничего не добавляется",
-    "crashDumps": "Записывать отчёты о вылетах",
-    "crashDumpsNote": "Windows сохраняет маленький отчёт, когда игра вылетает (один раз попросит права администратора)",
-    "crashDumpsOn": "отчёты о вылетах включены",
-    "hangAsk": "Игра не отвечает",
-    "hangText": "Нет ответа уже {secs} с. Мышь освобождена. Можно подождать или закрыть игру.",
-    "hangDump": "Отчёт о зависании сохранён — нажмите «Отправить логи», чтобы мы увидели, где она встала.",
-    "hangKill": "Закрыть игру",
-    "hangWait": "Подождать",
-    "hangConfirm": "Нажмите Ctrl+Alt+End ещё раз, чтобы закрыть игру",
     "trayOpen": "Открыть Elite Launcher",
     "trayQuit": "Выход",
     "cacheNote": "переключение на них — мгновенно",
@@ -524,17 +502,6 @@ const T = {
     "usageNote": "Una vez al día el launcher envía un hash que cambia cada día, más su versión, el sistema y la versión de Elite. Sin nombres, sin Steam ni datos del equipo; los días no se pueden relacionar entre sí.",
     "lanTitle": "Red local",
     "lanShare": "Descargar Elite de otros launchers de la red local y compartirlo con ellos",
-    "hangTitle": "Si el juego se cuelga",
-    "hangHelp": "Ayuda si el juego se cuelga: liberar el ratón, ofrecer cerrar el juego (o Ctrl+Alt+End), guardar un informe para los desarrolladores. Funciona desde fuera del juego: no se le añade nada",
-    "crashDumps": "Guardar informes de cierres",
-    "crashDumpsNote": "Windows guarda un informe pequeño cuando el juego se cierra de golpe (pide permisos de administrador una vez)",
-    "crashDumpsOn": "informes de cierres activados",
-    "hangAsk": "El juego no responde",
-    "hangText": "Sin respuesta desde hace {secs} s. El ratón vuelve a estar libre. Puedes esperar o cerrar el juego.",
-    "hangDump": "Se guardó un informe: pulsa \"Enviar registros\" para que veamos dónde se quedó.",
-    "hangKill": "Cerrar el juego",
-    "hangWait": "Esperar",
-    "hangConfirm": "Pulsa Ctrl+Alt+End otra vez para cerrar el juego",
     "trayOpen": "Abrir Elite Launcher",
     "trayQuit": "Salir",
     "cacheNote": "volver a ellas es instantáneo",
@@ -725,17 +692,6 @@ const T = {
     "usageNote": "Une fois par jour, le launcher envoie un hash qui change chaque jour, avec sa version, le système et la version d'Elite. Aucun nom, rien de Steam ni du PC ; les jours ne peuvent pas être reliés entre eux.",
     "lanTitle": "Réseau local",
     "lanShare": "Télécharger Elite depuis les autres launchers du réseau local et le partager avec eux",
-    "hangTitle": "Si le jeu se fige",
-    "hangHelp": "Aide si le jeu se fige : libérer la souris, proposer de fermer le jeu (ou Ctrl+Alt+Fin), enregistrer un rapport pour les développeurs. Fonctionne depuis l'extérieur du jeu : rien ne lui est ajouté",
-    "crashDumps": "Enregistrer les rapports de plantage",
-    "crashDumpsNote": "Windows enregistre un petit rapport quand le jeu plante (demande les droits administrateur une fois)",
-    "crashDumpsOn": "rapports de plantage activés",
-    "hangAsk": "Le jeu ne répond pas",
-    "hangText": "Pas de réponse depuis {secs} s. La souris est libre. Vous pouvez attendre ou fermer le jeu.",
-    "hangDump": "Un rapport a été enregistré : cliquez sur « Envoyer les journaux » pour que nous voyions où il s'est arrêté.",
-    "hangKill": "Fermer le jeu",
-    "hangWait": "Attendre",
-    "hangConfirm": "Appuyez encore sur Ctrl+Alt+Fin pour fermer le jeu",
     "trayOpen": "Ouvrir Elite Launcher",
     "trayQuit": "Quitter",
     "cacheNote": "y revenir est instantané",
@@ -926,17 +882,6 @@ const T = {
     "usageNote": "Einmal am Tag sendet der Launcher einen Hash, der sich täglich ändert, dazu seine Version, das System und die Elite-Version. Keine Namen, keine Steam- oder Hardwaredaten; Tage lassen sich nicht miteinander verknüpfen.",
     "lanTitle": "Lokales Netzwerk",
     "lanShare": "Elite von anderen Launchern im lokalen Netzwerk laden und mit ihnen teilen",
-    "hangTitle": "Wenn das Spiel hängt",
-    "hangHelp": "Hilfe, wenn das Spiel hängt: Maus freigeben, Schließen anbieten (oder Strg+Alt+Ende), Bericht für die Entwickler speichern. Arbeitet von außerhalb des Spiels - ihm wird nichts hinzugefügt",
-    "crashDumps": "Absturzberichte speichern",
-    "crashDumpsNote": "Windows speichert einen kleinen Bericht, wenn das Spiel abstürzt (fragt einmal nach Administratorrechten)",
-    "crashDumpsOn": "Absturzberichte sind an",
-    "hangAsk": "Das Spiel reagiert nicht",
-    "hangText": "Seit {secs} s keine Antwort. Die Maus ist wieder frei. Du kannst warten oder das Spiel schließen.",
-    "hangDump": "Ein Bericht wurde gespeichert - klicke auf \"Logs senden\", damit wir sehen, wo es hing.",
-    "hangKill": "Spiel schließen",
-    "hangWait": "Warten",
-    "hangConfirm": "Drücke Strg+Alt+Ende noch einmal, um das Spiel zu schließen",
     "trayOpen": "Elite Launcher öffnen",
     "trayQuit": "Beenden",
     "cacheNote": "zurückwechseln geht sofort",
@@ -1307,9 +1252,6 @@ function render() {
   $('cache').value = String(S.cache_mb);
   $('usage').checked = S.usage_stats !== false;
   $('lanShare').checked = S.lan_share !== false;
-  $('hangHelp').checked = S.hang_help !== false;
-  $('crashDumps').classList.toggle('hidden', !!S.crash_dumps || (S.os && S.os !== 'windows'));
-  $('crashDumpsNote').textContent = S.crash_dumps ? t('crashDumpsOn') : t('crashDumpsNote');
   $('mirror').value = S.extra_mirror || '';
   $('mirrorInfo').textContent = t('mirrors', { n: S.mirror_count });
   $('repair').disabled = S.busy || S.game_running || !S.installed_version;
@@ -1426,26 +1368,6 @@ $('openDir').onclick = () => invoke('open_game_dir').catch(e => toast(e, true));
 $('lang').onchange = e => invoke('set_setting', { key: 'lang', value: e.target.value }).then(reload);
 $('usage').onchange = e => invoke('set_setting', { key: 'usage_stats', value: e.target.checked }).then(reload);
 $('lanShare').onchange = e => invoke('set_setting', { key: 'lan_share', value: e.target.checked }).then(reload);
-$('hangHelp').onchange = e => invoke('set_setting', { key: 'hang_help', value: e.target.checked }).then(reload);
-$('crashDumps').onclick = async () => { try { await invoke('enable_crash_dumps'); toast(t('crashDumpsOn')); reload(); } catch (e) { toast(e, true); } };
-// the game does not answer (watchdog.rs): the launcher comes to the front over it - close it or wait
-let hangBox = null, hangWaitUntil = 0;
-listen('game_hang', e => {
-  const v = e.payload || {};
-  if (v.state === 'confirm_kill') { toast(t('hangConfirm')); return; }
-  if (v.state !== 'hung') { if (hangBox) { hangBox.remove(); hangBox = null; } hangWaitUntil = 0; return; }
-  if (Date.now() < hangWaitUntil) return;
-  if (!hangBox) {
-    hangBox = document.createElement('div'); hangBox.className = 'modal';
-    hangBox.innerHTML = `<div class="box"><h3>${esc(t('hangAsk'))}</h3><p id="hgText"></p><p class="note" id="hgDump"></p>
-      <div class="row"><button class="btn red" id="hgKill">${esc(t('hangKill'))}</button><button class="btn gold" id="hgWait">${esc(t('hangWait'))}</button></div></div>`;
-    document.body.appendChild(hangBox);
-    hangBox.querySelector('#hgKill').onclick = async () => { try { await invoke('kill_game'); } catch (err) { toast(err, true); } if (hangBox) { hangBox.remove(); hangBox = null; } };
-    hangBox.querySelector('#hgWait').onclick = () => { hangWaitUntil = Date.now() + 30000; if (hangBox) { hangBox.remove(); hangBox = null; } };
-  }
-  hangBox.querySelector('#hgText').textContent = t('hangText', { secs: v.secs || 0 });
-  hangBox.querySelector('#hgDump').textContent = v.dump ? t('hangDump') : '';
-});
 $('cache').onchange = e => invoke('set_setting', { key: 'cache_mb', value: +e.target.value }).then(reload);
 $('saveMirror').onclick = () => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
 $('repair').onclick = () => startUpdate(true);
