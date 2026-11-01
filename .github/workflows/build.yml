@@ -304,12 +304,12 @@ jobs:
           rm -rf "$KEYS" "$DIST" "$STORE"
           git checkout -- keys/public.key
 
-  # On a push to main: a DRAFT GitHub Release vX.Y.Z with the installers, their signatures, updater.json, SHA256SUMS
-  # and the source zip - everything the server builder needs to put a version on the mirrors. A draft carries no tag
-  # and is invisible to players (the self-update and the news read only published releases), so nothing reaches them
-  # from here; it is published by hand after the files are on the mirrors, and GitHub creates the tag then. If vX.Y.Z
-  # is already published, the build stays green and only warns to raise the version. Delivery is not done here.
-  draft:
+  # On a push to main: a published GitHub Release vX.Y.Z - the tag on this commit, the installers, their signatures,
+  # updater.json, SHA256SUMS, the source zip, and the changelog as the description. This is only the git side and does
+  # NOT reach players: the self-update reads the mirrors (dl/updater.json), not GitHub, and the files are put on the
+  # mirrors by hand on the server. If vX.Y.Z is already released, the build stays green and only warns to raise the
+  # version. Delivery is not done here.
+  release:
     needs: [version, publish]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
@@ -326,27 +326,21 @@ jobs:
           pattern: deploy-*
           merge-multiple: true
           path: dist
-      - name: Assemble the draft
+      - name: Assemble the release
         run: |
           # updater.json points at the mirror download folder (dl/), the layout the files take once released
           python3 scripts/updater_manifest.py "$VERSION" "https://dow2.fintebtc.de/elite/dl" dist > dist/updater.json
           ( cd dist && ls | grep -vE '\.sig$|^SHA256SUMS$|^updater\.json$' | xargs sha256sum > SHA256SUMS )
           { cat "changelog/$VERSION/en.md"; echo; echo "_Built from ${GITHUB_SHA}._"; } > notes.md
           ls -la dist
-      - name: Create or update the draft release
+      - name: Publish the release
         run: |
-          state="$(gh release view "$TAG" --json isDraft -q .isDraft 2>/dev/null || echo absent)"
-          if [ "$state" = false ]; then
-            echo "::warning::$TAG is already published - raise the version to make a new draft"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::warning::$TAG is already released - raise the version"
             exit 0
           fi
-          if [ "$state" = true ]; then
-            gh release edit "$TAG" --draft --title "Elite Launcher $VERSION" --notes-file notes.md
-            gh release upload "$TAG" dist/* --clobber
-          else
-            gh release create "$TAG" dist/* --draft --title "Elite Launcher $VERSION" --notes-file notes.md
-          fi
-          echo "Draft **$TAG** ready ($(ls dist | wc -l) files)" >> "$GITHUB_STEP_SUMMARY"
+          gh release create "$TAG" dist/* --title "Elite Launcher $VERSION" --notes-file notes.md --target "$GITHUB_SHA"
+          echo "Released **$TAG** ($(ls dist | wc -l) files)" >> "$GITHUB_STEP_SUMMARY"
 
   # Off: delivery to players is done by hand on the server, not from here. When turned on, a push to main ships the
   # installers to the download folder on the server: rsync to "$DEPLOY_USER@$DEPLOY_HOST:" (variables and key in the
