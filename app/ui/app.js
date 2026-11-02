@@ -115,7 +115,7 @@ const T = {
     "usageTitle": "Anonymous usage count",
     "usage": "Count me as a launcher user",
     "usageNote": "Once a day the launcher sends a hash that changes every day, plus its version, OS and the Elite version. No names, Steam or hardware data; days can't be linked to each other.",
-    "onTag": "Mention in the chat", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
+    "onTag": "Mention in the chat", "roomsTab": "Lobbies", "roomsTitle": "Open lobbies", "roomsNote": "Custom games being set up right now - the same list as the game browser (Custom Games). Elite / vanilla is told by the races, the army badges and the map (\"?\" = probably).", "roomsNone": "Nobody is setting up a game right now.", "roomsErr": "The list is not available right now.", "roomsFree": "open", "roomsVan": "vanilla", "roomsOther": "other mod", "roomsObs": "observers", "roomsPw": "password", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
     "lanTitle": "Local network",
     "lanShare": "Download Elite from other launchers on the local network and share it with them (faster; every file is checked against the signed version)",
     "trayOpen": "Open Elite Launcher",
@@ -312,7 +312,7 @@ const T = {
     "usageTitle": "Анонимная статистика",
     "usage": "Учитывать меня в числе пользователей лаунчера",
     "usageNote": "Раз в сутки лаунчер отправляет хеш, который каждый день новый, плюс свою версию, ОС и версию Elite. Никаких ников, Steam или данных о компьютере; связать дни между собой нельзя.",
-    "onTag": "Упомянуть в чате", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
+    "onTag": "Упомянуть в чате", "roomsTab": "Комнаты", "roomsTitle": "Открытые лобби", "roomsNote": "Кастомки, которые сейчас собираются, — тот же список, что в браузере игр (Custom Games). Elite или ваниль — по расам, значкам армий и карте («?» — вероятно).", "roomsNone": "Сейчас никто не собирает игру.", "roomsErr": "Список сейчас недоступен.", "roomsFree": "свободно", "roomsVan": "ваниль", "roomsOther": "другой мод", "roomsObs": "наблюдатели", "roomsPw": "с паролем", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
     "lanTitle": "Локальная сеть",
     "lanShare": "Качать Elite с других лаунчеров в локальной сети и раздавать им (быстрее; каждый файл сверяется с подписанной версией)",
     "trayOpen": "Открыть Elite Launcher",
@@ -504,7 +504,7 @@ const T = {
     "usageTitle": "Estadística anónima",
     "usage": "Contarme como usuario del launcher",
     "usageNote": "Una vez al día el launcher envía un hash que cambia cada día, más su versión, el sistema y la versión de Elite. Sin nombres, sin Steam ni datos del equipo; los días no se pueden relacionar entre sí.",
-    "onTag": "Mencionar en el chat", "behTitle": "Chat y ventana", "muteMention": "Sin sonido cuando me mencionan (@nombre) en el chat", "closeQuits": "El botón de cerrar cierra el launcher (en vez de ocultarlo en la bandeja)",
+    "onTag": "Mencionar en el chat", "roomsTab": "Salas", "roomsTitle": "Salas abiertas", "roomsNote": "Partidas personalizadas que se están preparando ahora (la misma lista que el navegador de partidas). Elite / vanilla se deduce por razas, insignias y mapa (\"?\" = probablemente).", "roomsNone": "Nadie está preparando una partida.", "roomsErr": "La lista no está disponible ahora.", "roomsFree": "libre", "roomsVan": "vanilla", "roomsOther": "otro mod", "roomsObs": "observadores", "roomsPw": "contraseña", "behTitle": "Chat y ventana", "muteMention": "Sin sonido cuando me mencionan (@nombre) en el chat", "closeQuits": "El botón de cerrar cierra el launcher (en vez de ocultarlo en la bandeja)",
     "lanTitle": "Red local",
     "lanShare": "Descargar Elite de otros launchers de la red local y compartirlo con ellos",
     "trayOpen": "Abrir Elite Launcher",
@@ -696,7 +696,7 @@ const T = {
     "usageTitle": "Statistiques anonymes",
     "usage": "Me compter parmi les utilisateurs du launcher",
     "usageNote": "Une fois par jour, le launcher envoie un hash qui change chaque jour, avec sa version, le système et la version d'Elite. Aucun nom, rien de Steam ni du PC ; les jours ne peuvent pas être reliés entre eux.",
-    "onTag": "Mentionner dans le chat", "behTitle": "Chat et fenêtre", "muteMention": "Pas de son quand on me mentionne (@nom) dans le chat", "closeQuits": "Le bouton fermer quitte le launcher (au lieu de le cacher dans la zone de notification)",
+    "onTag": "Mentionner dans le chat", "roomsTab": "Salons", "roomsTitle": "Salons ouverts", "roomsNote": "Parties personnalisées en préparation (la même liste que le navigateur de parties). Elite / vanilla d'après les races, les insignes et la carte (« ? » = probablement).", "roomsNone": "Personne ne prépare de partie.", "roomsErr": "La liste n'est pas disponible.", "roomsFree": "libre", "roomsVan": "vanilla", "roomsOther": "autre mod", "roomsObs": "observateurs", "roomsPw": "mot de passe", "behTitle": "Chat et fenêtre", "muteMention": "Pas de son quand on me mentionne (@nom) dans le chat", "closeQuits": "Le bouton fermer quitte le launcher (au lieu de le cacher dans la zone de notification)",
     "lanTitle": "Réseau local",
     "lanShare": "Télécharger Elite depuis les autres launchers du réseau local et le partager avec eux",
     "trayOpen": "Ouvrir Elite Launcher",
@@ -888,7 +888,7 @@ const T = {
     "usageTitle": "Anonyme Statistik",
     "usage": "Mich als Launcher-Nutzer mitzählen",
     "usageNote": "Einmal am Tag sendet der Launcher einen Hash, der sich täglich ändert, dazu seine Version, das System und die Elite-Version. Keine Namen, keine Steam- oder Hardwaredaten; Tage lassen sich nicht miteinander verknüpfen.",
-    "onTag": "Im Chat erwähnen", "behTitle": "Chat und Fenster", "muteMention": "Kein Ton, wenn mich jemand im Chat erwähnt (@Name)", "closeQuits": "Das Schließen-Kreuz beendet den Launcher (statt ihn im Infobereich zu verstecken)",
+    "onTag": "Im Chat erwähnen", "roomsTab": "Lobbys", "roomsTitle": "Offene Lobbys", "roomsNote": "Eigene Spiele, die gerade vorbereitet werden (dieselbe Liste wie der Spielbrowser). Elite / Vanilla nach Völkern, Abzeichen und Karte („?“ = wahrscheinlich).", "roomsNone": "Gerade bereitet niemand ein Spiel vor.", "roomsErr": "Die Liste ist gerade nicht verfügbar.", "roomsFree": "frei", "roomsVan": "Vanilla", "roomsOther": "anderer Mod", "roomsObs": "Zuschauer", "roomsPw": "Passwort", "behTitle": "Chat und Fenster", "muteMention": "Kein Ton, wenn mich jemand im Chat erwähnt (@Name)", "closeQuits": "Das Schließen-Kreuz beendet den Launcher (statt ihn im Infobereich zu verstecken)",
     "lanTitle": "Lokales Netzwerk",
     "lanShare": "Elite von anderen Launchern im lokalen Netzwerk laden und mit ihnen teilen",
     "trayOpen": "Elite Launcher öffnen",
@@ -1394,6 +1394,45 @@ document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('hidden', v.id !== b.dataset.view));
 });
 $('allComps').onclick = () => document.querySelector('.tab[data-view="addons"]').click();
+
+// 1.3.15 (owner 02.11.2026): the Lobbies tab - open custom games from Relic's list through our ladder server, every 15 s while shown
+const RM = { timer: 0, host: '' };
+const roomFlag = c => /^[a-z]{2}$/i.test(c || '') ? String.fromCodePoint(...[...c.toUpperCase()].map(x => 0x1F1A5 + x.charCodeAt(0))) : '';
+function roomCard(r) {
+  const A = (RM.host || 'https://rts.fintebtc.de') + '/elite/assets/';
+  const tag = r.game === 'elite' ? `<span class="tag elite">Elite${r.sure === false ? '?' : ''}</span>`
+    : r.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}${r.sure === false ? '?' : ''}</span>`
+    : r.game === 'other' ? `<span class="tag oth">${esc(t('roomsOther'))}</span>` : '';
+  const cap = r.cap || (((r.map || '').match(/^(\d)p_/) || [])[1] | 0) || 0;
+  const per = cap ? Math.max(1, Math.round(cap / 2)) : 0;
+  const pl = p => `<div class="rp${p.host ? ' host' : ''}">`
+    + (p.race ? `<img src="${A}${p.hero != null ? 'heroes/' + p.race + '_' + p.hero : 'races/' + p.race}.png" alt="" data-fb="${A}races/${p.race}.png">` : '')
+    + `<span>${roomFlag(p.country)}</span><span class="nm">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
+  const teams = [0, 1].map(tm => {
+    const ps = (r.players || []).filter(p => (p.team | 0) === tm);
+    return `<div class="team">${ps.map(pl).join('')}${Array(per ? Math.max(0, per - ps.length) : 0).fill(`<div class="rp free">${esc(t('roomsFree'))}</div>`).join('')}</div>`;
+  }).join('');
+  const map = r.map_title || String(r.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
+  return `<div class="room"><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"></div><div style="min-width:0">`
+    + `<div class="rh">${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}${tag}${r.password ? '<span class="tag">🔒</span>' : ''}<span class="rn">${esc(r.name || '—')}</span></div>`
+    + `<div class="rmap">${esc(map)}${cap ? ' · ' + (r.players || []).length + '/' + cap : ''}</div><div class="teams">${teams}</div>`
+    + `<div class="rfoot">${r.observers ? esc(t('roomsObs')) + ': ' + r.observers : ''}${r.password ? (r.observers ? ' · ' : '') + esc(t('roomsPw')) : ''}</div></div></div>`;
+}
+async function roomsLoad() {
+  const box = $('roomsList'); if (!box) return;
+  try {
+    const d = await invoke('rooms_live'); RM.host = d.host || RM.host;
+    const R = d.rooms || [];
+    $('roomsN').textContent = R.length;
+    box.innerHTML = R.length ? R.map(roomCard).join('') : `<div class="note">${esc(t('roomsNone'))}</div>`;
+    box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
+  } catch (e) { box.innerHTML = `<div class="note">${esc(t('roomsErr'))}</div>`; }
+}
+function roomsWatch() {
+  clearInterval(RM.timer); RM.timer = 0;
+  if ($('rooms') && !$('rooms').classList.contains('hidden')) { roomsLoad(); RM.timer = setInterval(() => { if (!document.hidden) roomsLoad(); }, 15000); }
+}
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', roomsWatch));
 $('cancel').onclick = () => invoke('cancel_update');
 $('browse').onclick = pickDir;
 $('openDir').onclick = () => invoke('open_game_dir').catch(e => toast(e, true));

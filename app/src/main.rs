@@ -1449,6 +1449,26 @@ async fn online_live() -> Result<Value, String> {
     }).await.map_err(|e| e.to_string())?
 }
 
+/// 1.3.15 (owner 02.11.2026): the open lobbies - Relic's list of custom games being set up, from our ladder server
+/// (/ladder/api/rooms: map, mode, game Elite / vanilla / other, players with race, hero, flag and rating).
+#[tauri::command]
+async fn rooms_live() -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let mut last = "the ladder server is not configured in this build".to_string();
+        for host in fb_hosts() {
+            match ureq::get(&format!("{host}/ladder/api/rooms")).timeout(Duration::from_secs(10)).call() {
+                Ok(r) => {
+                    let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
+                    v["host"] = json!(host);
+                    return Ok(v);
+                }
+                Err(e) => last = e.to_string(),
+            }
+        }
+        Err(last)
+    }).await.map_err(|e| e.to_string())?
+}
+
 /// Repositories whose GitHub Releases become news: CI makes every release from the changelog,
 /// so a new launcher or patch set shows up in the news without anyone writing it by hand.
 const NEWS_REPOS: [&str; 2] = ["pivolan/Dow2-elite-launcher", "pivolan/Dow2-patches"];
@@ -1665,7 +1685,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
-            fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, online_live,
+            fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, online_live, rooms_live,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api
         ])
