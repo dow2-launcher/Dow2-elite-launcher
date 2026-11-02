@@ -129,6 +129,7 @@ const T = {
     "trayQuit": "Quit",
     "cacheNote": "switching back to them is instant",
     "mirror": "Extra mirror (optional)",
+    "netTitle": "Our servers from this computer", "netCheck": "Check again", "netChecking": "Checking…", "netFiles": "Files (Elite and add-on updates)", "netApi": "Chat, Online, rooms, launcher updates", "netMoscow": "Moscow", "netGermany": "Germany", "netR2": "Cloudflare (storage)", "netMs": "{n} ms", "netNone": "no answer", "netUsed": "in use", "netWait": "Checking our servers…", "netNoteDone": "Checked at the start; again when a server stops answering. No ping - one small download from each.", "netNoteOld": "The order of the last start; this one is being checked.",
     "save": "Save",
     "repairTitle": "Repair",
     "repair": "Check & repair files",
@@ -337,6 +338,7 @@ const T = {
     "trayQuit": "Выход",
     "cacheNote": "переключение на них — мгновенно",
     "mirror": "Дополнительное зеркало (необязательно)",
+    "netTitle": "Наши серверы с этого компьютера", "netCheck": "Проверить заново", "netChecking": "Проверяю…", "netFiles": "Файлы (обновления Elite и дополнений)", "netApi": "Чат, онлайн, комнаты, обновление лаунчера", "netMoscow": "Москва", "netGermany": "Германия", "netR2": "Cloudflare (хранилище)", "netMs": "{n} мс", "netNone": "нет ответа", "netUsed": "используется", "netWait": "Проверяю наши серверы…", "netNoteDone": "Проверено при запуске; заново — если сервер перестал отвечать. Без пинга: по одной маленькой загрузке с каждого.", "netNoteOld": "Порядок с прошлого запуска, сейчас проверяется.",
     "save": "Сохранить",
     "repairTitle": "Починка",
     "repair": "Проверить и починить",
@@ -540,6 +542,7 @@ const T = {
     "trayQuit": "Salir",
     "cacheNote": "volver a ellas es instantáneo",
     "mirror": "Espejo adicional (opcional)",
+    "netTitle": "Nuestros servidores desde este equipo", "netCheck": "Comprobar de nuevo", "netChecking": "Comprobando…", "netFiles": "Archivos (actualizaciones de Elite y complementos)", "netApi": "Chat, en línea, salas, actualización del launcher", "netMoscow": "Moscú", "netGermany": "Alemania", "netR2": "Cloudflare (almacenamiento)", "netMs": "{n} ms", "netNone": "sin respuesta", "netUsed": "en uso", "netWait": "Comprobando nuestros servidores…", "netNoteDone": "Comprobado al iniciar; de nuevo si un servidor deja de responder. Sin ping: una pequeña descarga de cada uno.", "netNoteOld": "El orden del último inicio; se está comprobando.",
     "save": "Guardar",
     "repairTitle": "Reparar",
     "repair": "Comprobar y reparar archivos",
@@ -743,6 +746,7 @@ const T = {
     "trayQuit": "Quitter",
     "cacheNote": "y revenir est instantané",
     "mirror": "Miroir supplémentaire (facultatif)",
+    "netTitle": "Nos serveurs depuis cet ordinateur", "netCheck": "Vérifier à nouveau", "netChecking": "Vérification…", "netFiles": "Fichiers (mises à jour d’Elite et des modules)", "netApi": "Chat, en ligne, salons, mise à jour du lanceur", "netMoscow": "Moscou", "netGermany": "Allemagne", "netR2": "Cloudflare (stockage)", "netMs": "{n} ms", "netNone": "pas de réponse", "netUsed": "utilisé", "netWait": "Vérification de nos serveurs…", "netNoteDone": "Vérifié au démarrage ; à nouveau si un serveur ne répond plus. Sans ping : un petit téléchargement depuis chacun.", "netNoteOld": "L’ordre du dernier démarrage ; vérification en cours.",
     "save": "Enregistrer",
     "repairTitle": "Réparer",
     "repair": "Vérifier et réparer les fichiers",
@@ -946,6 +950,7 @@ const T = {
     "trayQuit": "Beenden",
     "cacheNote": "zurückwechseln geht sofort",
     "mirror": "Zusätzlicher Mirror (optional)",
+    "netTitle": "Unsere Server von diesem Computer aus", "netCheck": "Erneut prüfen", "netChecking": "Prüfe…", "netFiles": "Dateien (Updates von Elite und Erweiterungen)", "netApi": "Chat, Online, Lobbys, Launcher-Update", "netMoscow": "Moskau", "netGermany": "Deutschland", "netR2": "Cloudflare (Speicher)", "netMs": "{n} ms", "netNone": "keine Antwort", "netUsed": "in Benutzung", "netWait": "Prüfe unsere Server…", "netNoteDone": "Beim Start geprüft; erneut, wenn ein Server nicht mehr antwortet. Kein Ping – ein kleiner Download von jedem.", "netNoteOld": "Die Reihenfolge des letzten Starts; wird gerade geprüft.",
     "save": "Speichern",
     "repairTitle": "Reparieren",
     "repair": "Dateien prüfen und reparieren",
@@ -1413,6 +1418,7 @@ function render() {
   $('muteMention').checked = !!S.mute_mention; $('closeQuits').checked = !!S.close_quits;
   $('mirror').value = S.extra_mirror || '';
   $('mirrorInfo').textContent = t('mirrors', { n: S.mirror_count });
+  renderNet();
   $('repair').disabled = S.busy || S.game_running || !S.installed_version;
   $('junk').disabled = S.busy || S.game_running || !S.installed_version;
   $('about').textContent = `Elite Launcher ${S.launcher_version} · ${S.os}`;
@@ -1609,7 +1615,36 @@ $('addonCheck').onclick = async () => {
 };
 $('closeQuits').onchange = e => invoke('set_setting', { key: 'close_quits', value: e.target.checked }).then(reload);
 $('cache').onchange = e => invoke('set_setting', { key: 'cache_mb', value: +e.target.value }).then(reload);
-$('saveMirror').onclick = () => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
+// ---------- Settings: how our servers answer from here (reach.rs) ----------
+// two groups - the files (updates of Elite and the add-ons) and everything else (chat, Online, rooms, the launcher's own
+// update); in each the one in use first; checked at the start and when one stops answering, or by the button
+const NET_PLACE = { 'dow2ru.fintebtc.de': 'netMoscow', 'dow2.fintebtc.de': 'netGermany', 'rts.fintebtc.de': 'netGermany' };
+const netHost = b => String(b || '').replace(/^https?:\/\//, '').split('/')[0];
+const netPlace = b => { const h = netHost(b); return NET_PLACE[h] ? t(NET_PLACE[h]) : /\.r2\.dev$/.test(h) ? t('netR2') : h; };
+var NET_LAST = null;   // (var: render() may call renderNet before this line ran) the last answer, drawn again with the rest of the window (the language may come later)
+function renderNet(d) {
+  if (d) NET_LAST = d; else d = NET_LAST;
+  if (!d || !$('netList')) return;
+  const grp = (key, g) => {
+    const list = (g && g.list) || [];
+    if (!list.length) return '';
+    return `<div class="net-g"><div class="net-gh">${esc(t(key))}</div>` + list.map((p, i) => `<div class="net-r ${p.ms != null ? 'ok' : 'off'}">`
+      + `<i></i><span class="net-p">${esc(netPlace(p.base))}</span><span class="net-h">${esc(netHost(p.base))}</span>`
+      + `<span class="net-ms">${p.ms != null ? esc(t('netMs', { n: p.ms })) : esc(t('netNone'))}</span>`
+      + (i === 0 && p.ms != null ? `<span class="chip">${esc(t('netUsed'))}</span>` : '<span></span>') + '</div>').join('') + '</div>';
+  };
+  $('netList').innerHTML = grp('netFiles', d.data) + grp('netApi', d.api) || `<div class="note">${esc(t('netWait'))}</div>`;
+  const checked = d.data && d.data.checked && d.api && d.api.checked;
+  $('netNote').textContent = checked ? t('netNoteDone') : t('netNoteOld');
+}
+invoke('net_status').then(renderNet).catch(() => {});
+listen('net_rank', e => renderNet(e.payload));
+$('netCheck').onclick = async () => {
+  const b = $('netCheck'); b.disabled = true; $('netNote').textContent = t('netChecking');
+  try { renderNet(await invoke('net_check')); } catch (e) { toast(e, true); }
+  b.disabled = false;
+};
+$('saveMirror').onclick =() => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
 $('repair').onclick = () => startUpdate(true);
 // "Clean up the junk": stray plugins into a backup folder, then check & repair puts Elite and the ticked add-ons back
 $('junk').onclick = () => {

@@ -62,6 +62,11 @@ impl Mirrors {
         self.bases.get(self.current.load(Ordering::Relaxed)).cloned().unwrap_or_default()
     }
 
+    /// The mirror this run starts with (the launcher compares it with current_base to tell a lost mirror).
+    pub fn first_base(&self) -> String {
+        self.bases.first().cloned().unwrap_or_default()
+    }
+
     pub fn current_host(&self) -> String {
         self.bases.get(self.current.load(Ordering::Relaxed)).map(|b| host_of(b)).unwrap_or_default()
     }

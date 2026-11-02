@@ -7,6 +7,8 @@
 //! * the launcher works offline with the last verified config.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod reach;
+
 use elite_core::config::{version_newer, LauncherConfig};
 use elite_core::{elite, game, net::Mirrors, update, LAUNCHER_VERSION};
 use std::collections::BTreeMap;
@@ -31,6 +33,8 @@ const BUILTIN_MIRRORS: &str = match option_env!("ELITE_MIRRORS") { Some(v) => v,
 /// Public key of the launcher self-update (tauri-plugin-updater): only updates signed with its private half
 /// (the TAURI_SIGNING_PRIVATE_KEY secret, CI only) are installed. A new key pair means a new `keys/updater.pub`.
 const UPDATER_PUBKEY: &str = include_str!("../../keys/updater.pub");
+/// The last resort of the self-update (1.3.16: GitHub Releases are the release, the mirrors copy them).
+const GITHUB_UPDATER: &str = "https://github.com/dow2-launcher/Dow2-elite-launcher/releases/latest/download/updater.json";
 const DEFAULT_CACHE_MB: u64 = 6144;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -53,6 +57,10 @@ struct Settings {
     prev_channel: Option<String>,
     /// Mirror that worked last time — tried first (R2 is blocked in some countries, our server in others).
     last_mirror: String,
+    /// The order of the mirrors and of the API hosts from the last check (reach.rs): used at the start until this run's
+    /// check is done.
+    net_data: Vec<reach::Probe>,
+    net_api: Vec<reach::Probe>,
     /// Anonymous usage count (see usage_ping). None = on.
     usage_stats: Option<bool>,
     /// 1.3.12: no sound when someone @mentions me in the chat (owner: a beep by default, a tick to turn it off)
@@ -193,12 +201,64 @@ fn mirrors(s: &Settings, cfg: Option<&LauncherConfig>) -> Mirrors {
         v.extend(c.mirrors.iter().cloned());
     }
     v.extend(BUILTIN_MIRRORS.split(';').map(str::trim).filter(|x| !x.is_empty()).map(String::from));
-    // the order is ours (owner, 29.10: Moscow, then Germany, then the rest): the mirror that worked last time is no longer
-    // moved to the front - it kept players on one mirror for good; a mirror that fails is still skipped for the next one
+    // 02.11 (owner: the launcher must download everywhere): the order is the one that answers best from this computer -
+    // checked once at the start, again only when a mirror stops answering (reach.rs); a mirror the player typed in
+    // stays first. Before the first check: the order of the last run, then the order above (Moscow, Germany, the rest).
     let _ = &s.last_mirror;
     let mut seen = std::collections::HashSet::new();
     v.retain(|m| seen.insert(m.trim_end_matches('/').to_ascii_lowercase()));
-    Mirrors::new(v)
+    let own = s.extra_mirror.trim().to_string();
+    let rest: Vec<String> = v.iter().filter(|m| own.is_empty() || m.as_str() != own).cloned().collect();
+    reach::set_candidates(reach::Pool::Data, rest.clone());
+    let mut out = if own.is_empty() { vec![] } else { vec![own] };
+    out.extend(reach::order(reach::Pool::Data, rest));
+    Mirrors::new(out)
+}
+
+/// After a run through the mirrors: the first one in the order did not answer (another one did, or none) - it is lost
+/// and the mirrors are checked again in the background (reach.rs).
+fn data_note(m: &Mirrors, ok: bool) {
+    let first = m.first_base();
+    if first.is_empty() { return; }
+    if !ok || m.current_base() != first { reach::lost(reach::Pool::Data, &first); }
+}
+
+/// The API hosts of the signed launcher.json (02.11: new servers - Poland, Cloudflare - without a new launcher).
+static CFG_API_HOSTS: Mutex<Vec<String>> = Mutex::new(Vec::new());
+fn note_config(c: &LauncherConfig) {
+    *CFG_API_HOSTS.lock().unwrap() = c.api_hosts.iter().map(|h| h.trim().trim_end_matches('/').to_string()).filter(|h| h.starts_with("https://")).collect();
+    reach::set_candidates(reach::Pool::Api, api_hosts());
+}
+/// Every host with our API: the build's (ELITE_LOG_HOSTS), then launcher.json's api_hosts.
+fn api_hosts() -> Vec<String> {
+    let mut v: Vec<String> = option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).map(String::from).collect();
+    v.extend(CFG_API_HOSTS.lock().unwrap().iter().cloned());
+    let mut seen = std::collections::HashSet::new();
+    v.retain(|h| seen.insert(h.trim_end_matches('/').to_ascii_lowercase()));
+    v
+}
+/// A request to an API host failed on the way (no connection, timeout, a gateway that got no answer): the host is lost.
+/// An answer of the server itself (404, 400, a rejection) says nothing about the way there.
+fn api_err(host: &str, e: &ureq::Error) {
+    if matches!(e, ureq::Error::Transport(_) | ureq::Error::Status(502..=504, _)) { reach::lost(reach::Pool::Api, host); }
+}
+
+/// What the window shows in Settings: every mirror and API host with the time of its answer, the best first.
+fn net_status_json() -> Value {
+    let one = |pool: reach::Pool| { let (list, checked) = reach::snapshot(pool); json!({"list": list, "checked": checked}) };
+    json!({"data": one(reach::Pool::Data), "api": one(reach::Pool::Api)})
+}
+#[tauri::command]
+fn net_status() -> Value { net_status_json() }
+/// "Check again" in Settings: both pools now (the answer comes as the net_rank event too).
+#[tauri::command]
+async fn net_check() -> Value {
+    let _ = tauri::async_runtime::spawn_blocking(|| {
+        let a = std::thread::spawn(|| { let b = reach::snapshot_candidates(reach::Pool::Data); reach::check(reach::Pool::Data, &b); });
+        let b = reach::snapshot_candidates(reach::Pool::Api); reach::check(reach::Pool::Api, &b);
+        let _ = a.join();
+    }).await;
+    net_status_json()
 }
 
 fn game_dir(app: &App) -> Option<PathBuf> {
@@ -361,7 +421,12 @@ async fn launcher_check(app: AppHandle) -> Option<Value> {
     if !self_update_supported() {
         return None;
     }
-    let upd = app.updater().ok()?.check().await.ok()??;
+    // where to ask (02.11): our hosts in the order that answers best from here (each one's updater.json links its own
+    // files), GitHub Releases last; a build without our hosts keeps the endpoints of tauri.conf.json
+    let mut urls: Vec<tauri::Url> = fb_hosts().iter().filter_map(|h| tauri::Url::parse(&format!("{h}/elite/dl/updater.json")).ok()).collect();
+    urls.extend(tauri::Url::parse(GITHUB_UPDATER).ok());
+    let updater = if urls.len() > 1 { app.updater_builder().endpoints(urls).ok()?.build().ok()? } else { app.updater().ok()? };
+    let upd = updater.check().await.ok()??;
     let info = json!({"version": upd.version, "notes": upd.body});
     *app.state::<App>().launcher_update.lock().unwrap() = Some(upd);
     Some(info)
@@ -490,7 +555,9 @@ async fn refresh(app: AppHandle) -> Result<Value, String> {
     let res = tauri::async_runtime::spawn_blocking(move || {
         let mut m = mirrors(&s, cached.as_ref());
         m.on_status = Some(Box::new(move |msg| { let _ = appn.emit("net", msg); }));
-        update::fetch_config(&m).map(|r| (r, m.current_base()))
+        let r = update::fetch_config(&m).map(|r| (r, m.current_base()));
+        data_note(&m, r.is_ok());
+        r
     })
     .await
     .map_err(|e| e.to_string())?;
@@ -499,6 +566,7 @@ async fn refresh(app: AppHandle) -> Result<Value, String> {
             remember_mirror(&st, worked);
             let _ = std::fs::write(data_dir().join("launcher.json"), raw);
             let _ = std::fs::write(data_dir().join("launcher.json.sig"), sig);
+            note_config(&cfg);
             *st.config.lock().unwrap() = Some(cfg);
             st.last_error.lock().unwrap().clear();
         }
@@ -942,6 +1010,7 @@ fn start_update(app: AppHandle, repair: bool, components_only: Option<bool>) -> 
         compute_costs(&app2);
         let st = app2.state::<App>();
         if r.is_ok() { remember_mirror(&st, m.current_base()); }
+        if !m.cancel.load(Ordering::Relaxed) { data_note(&m, r.is_ok()); }   // a cancel says nothing about the mirrors
         st.busy.store(false, Ordering::SeqCst);
         let payload = match r {
             Ok(sum) => json!({"ok": true, "summary": sum}),
@@ -1116,7 +1185,7 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
         let who = if who.is_empty() { "anon".to_string() } else { who };
         let mut last = String::new();
         // куда слать логи — задаётся при сборке: ELITE_LOG_HOSTS="https://a;https://b" (в репозитории адресов нет)
-        let hosts: Vec<&str> = option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).collect();
+        let hosts = fb_hosts();   // the best answering first (reach.rs)
         if hosts.is_empty() { return Err("log upload is not configured in this build".into()); }
         for host in hosts {
             match HTTP.post(&format!("{host}/stats/api/logs?who={who}&uid={uid}")).set("Content-Type", "text/plain; charset=utf-8").send_bytes(out.as_bytes()) {
@@ -1135,7 +1204,7 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
                     }
                     return Ok(format!("{} ({} files)", v["id"].as_str().unwrap_or("ok"), n));
                 }
-                Err(e) => last = e.to_string(),
+                Err(e) => { api_err(&host, &e); last = e.to_string(); }
             }
         }
         Err(format!("could not send logs: {last}"))
@@ -1219,8 +1288,9 @@ static HTTP: LazyLock<ureq::Agent> = LazyLock::new(|| {
     ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(10)).timeout_read(Duration::from_secs(20)).build()
 });
 
+/// Our API hosts, the one that answers best from here first (reach.rs). Every call to our API goes through this.
 fn fb_hosts() -> Vec<String> {
-    option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).map(String::from).collect()
+    reach::order(reach::Pool::Api, api_hosts())
 }
 fn fb_uid(app: &App) -> String {
     let mut s = app.settings.lock().unwrap();
@@ -1265,7 +1335,7 @@ async fn fb_send(app: AppHandle, text: String, images: Vec<String>) -> Result<Va
                     if v["ok"].as_bool() == Some(true) { return Ok(v); }
                     return Err(v["error"].as_str().unwrap_or("rejected").to_string());
                 }
-                Err(e) => last = e.to_string(),
+                Err(e) => { api_err(&host, &e); last = e.to_string(); }
             }
         }
         Err(last)
@@ -1286,7 +1356,7 @@ async fn fb_thread(app: AppHandle) -> Result<Value, String> {
                     v["uid"] = json!(uid);
                     return Ok(v);
                 }
-                Err(e) => last = e.to_string(),
+                Err(e) => { api_err(&host, &e); last = e.to_string(); }
             }
         }
         Err(last)
@@ -1344,7 +1414,7 @@ fn c_local_call(token: &str) -> Result<Value, String> {
                 c_log(&format!("local: {h} -> ok={} {}", v["ok"], v["error"].as_str().unwrap_or("")));
                 return Ok(v);
             }
-            Err(e) => { c_log(&format!("local: {h} failed: {e}")); last = e.to_string(); }
+            Err(e) => { c_log(&format!("local: {h} failed: {e}")); api_err(&h, &e); last = e.to_string(); }
         }
     }
     Err(last)
@@ -1390,7 +1460,7 @@ async fn c_login(app: AppHandle) -> Result<Value, String> {
             for h in fb_hosts() {
                 let r = match HTTP.get(&format!("{h}/ladder/api/c/claim?nonce={nonce}")).timeout(Duration::from_secs(10)).call() {
                     Ok(r) => r,
-                    Err(e) => { c_log(&format!("browser: claim at {h} failed: {e}")); continue; }
+                    Err(e) => { c_log(&format!("browser: claim at {h} failed: {e}")); api_err(&h, &e); continue; }
                 };
                 let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                 if v["ok"].as_bool() == Some(true) {
@@ -1450,7 +1520,7 @@ async fn c_api(app: AppHandle, path: String, body: Option<Value>) -> Result<Valu
                     if name == "live" { v["host"] = json!(h); }
                     return Ok(v);
                 }
-                Err(e) => last = e.to_string(),
+                Err(e) => { api_err(&h, &e); last = e.to_string(); }
             }
         }
         if name != "msgs" && name != "online" && name != "hello" { c_log(&format!("api {name}: {last}")); }
@@ -1484,11 +1554,12 @@ fn stream_loop(app: AppHandle) {
     // its own agent: a read may wait up to 60 s (the server pings every 20 s), and no overall timeout - in ureq 2 that
     // would cap the whole response and cut the stream
     let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(10)).timeout_read(Duration::from_secs(60)).build();
-    let hosts = fb_hosts();
-    if hosts.is_empty() { return; }
+    if api_hosts().is_empty() { return; }
     let (mut host_i, mut fails) = (0usize, 0usize);
     loop {
         let gen = STREAM_GEN.load(Ordering::SeqCst);
+        // the order of the moment (reach.rs): the start uses the last run's, the check of this run may change it
+        let hosts = fb_hosts();
         let host = hosts[host_i % hosts.len()].clone();
         let (token, state) = {
             let st = app.state::<App>();
@@ -1523,7 +1594,10 @@ fn stream_loop(app: AppHandle) {
             Err(ureq::Error::Status(503, _)) => busy = true,   // the server is full: it asks for 30 s
             Err(e) => {
                 if fails == 0 { c_log(&format!("stream {host}: {e}")); }
-                host_i += 1; fails += 1;                       // the next host
+                api_err(&host, &e);
+                // a lost host went to the end of the order: the new first one is tried; else the next one
+                host_i = if fb_hosts().first() != Some(&host) { 0 } else { host_i + 1 };
+                fails += 1;
             }
         }
         if STREAM_GEN.load(Ordering::SeqCst) != gen { continue; }   // signed in / out: at once, with the new token
@@ -1549,7 +1623,7 @@ async fn rooms_live() -> Result<Value, String> {
                     v["host"] = json!(host);
                     return Ok(v);
                 }
-                Err(e) => last = e.to_string(),
+                Err(e) => { api_err(&host, &e); last = e.to_string(); }
             }
         }
         Err(last)
@@ -1650,8 +1724,7 @@ fn usage_ping(app: &AppHandle) {
     let hash: String = h.finalize().iter().take(16).map(|x| format!("{x:02x}")).collect();
     let elite = game_dir(&st).map(|d| update::Game::new(d).load_state().version).filter(|v| !v.is_empty()).unwrap_or_else(|| "none".into());
     let elite: String = elite.chars().filter(|c| c.is_ascii_alphanumeric() || *c == '.' || *c == '-').take(16).collect();
-    let hosts: Vec<&str> = option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).collect();
-    for host in hosts {
+    for host in fb_hosts() {
         let url = format!("{host}/stats/api/ping?h={hash}&v={LAUNCHER_VERSION}&os={}&elite={elite}", os_name());
         if HTTP.get(&url).timeout(Duration::from_secs(15)).call().is_ok() {
             let mut s = st.settings.lock().unwrap();
@@ -1701,6 +1774,28 @@ fn main() {
             }));
             // 1.3.13 (owner: no traces of the 1.3.10 hang help): the hang dumps it wrote into our own folder go, once, quietly
             let _ = std::fs::remove_dir_all(data_dir().join("dumps"));
+            // which mirror and which API host answer best from here: checked once now (no ICMP - one small HTTPS answer
+            // per host), again only when a host stops answering (reach.rs); the order is kept for the next start
+            {
+                let st = app.state::<App>();
+                let s = st.settings.lock().unwrap().clone();
+                reach::seed(reach::Pool::Data, s.net_data.clone());
+                reach::seed(reach::Pool::Api, s.net_api.clone());
+                if let Some(c) = st.config.lock().unwrap().as_ref() { note_config(c); }
+                let _ = mirrors(&s, st.config.lock().unwrap().as_ref());   // sets the data candidates
+            }
+            let hn = app.handle().clone();
+            reach::on_checked(move |pool, list| {
+                let st = hn.state::<App>();
+                {
+                    let mut s = st.settings.lock().unwrap();
+                    match pool { reach::Pool::Data => s.net_data = list.to_vec(), reach::Pool::Api => s.net_api = list.to_vec() }
+                    save_settings(&s);
+                }
+                let _ = hn.emit("net_rank", net_status_json());
+            });
+            reach::check_soon(reach::Pool::Data, 0);
+            reach::check_soon(reach::Pool::Api, 0);
             let hs = app.handle().clone();
             std::thread::spawn(move || stream_loop(hs));
             // watch the game: the window locks add-ons while it runs and picks pending updates up once it closes
@@ -1776,7 +1871,7 @@ fn main() {
             get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
-            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up
+            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check
         ])
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")

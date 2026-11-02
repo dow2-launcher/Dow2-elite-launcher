@@ -45,6 +45,9 @@ pub struct LauncherConfig {
     pub links: Vec<Link>,
     /// Extra mirrors (base URLs ending with '/'); tried after the built-in ones that answered.
     pub mirrors: Vec<String>,
+    /// Extra hosts with our API (chat, the stream, rooms, logs) and /elite/dl/updater.json, e.g. "https://pl.example.org";
+    /// the launcher uses the one that answers best (02.11.2026: new servers without a new launcher).
+    pub api_hosts: Vec<String>,
     pub game: GameInfo,
     pub launch: Launch,
     pub launcher_update: Option<LauncherUpdate>,
