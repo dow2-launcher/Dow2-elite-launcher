@@ -2,7 +2,8 @@
   "_readme": "The launcher's Events banner (home, above the news). Edit this file and push to main: running launchers read it from GitHub (raw.githubusercontent.com, then cdn.jsdelivr.net where GitHub is blocked) at the start and every 15 minutes - no new launcher needed. Shown: what goes on now and what starts within 14 days, nearest first. start / end: ISO time WITH its zone (2026-11-08T18:00:00+03:00); end is optional. title / place: a string, or {\"ru\": \"...\", \"en\": \"...\"} (es / fr / de fall back to en). url: optional, an icon next to the event opens it. id: any unique text.",
   "_example": { "id": "cup-1v1-qual", "title": { "ru": "Elite Cup 1v1 — отборочные", "en": "Elite Cup 1v1 - qualifiers" }, "start": "2026-11-08T18:00:00+03:00", "end": "2026-11-08T22:00:00+03:00", "place": { "ru": "запись в Discord", "en": "sign-up in Discord" }, "url": "https://discord.gg/..." },
   "events": [
-    { "id": "test-3v3", "title": { "ru": "Командный вечер: 3v3 на наших серверах", "en": "Team evening: 3v3 on our servers" }, "start": "2026-11-03T20:00:00+03:00", "end": "2026-11-03T23:00:00+03:00", "place": "Discord · Elite" },
-    { "id": "test-cup", "title": { "ru": "Elite Cup 1v1 — отборочные", "en": "Elite Cup 1v1 - qualifiers" }, "start": "2026-11-08T18:00:00+03:00", "end": "2026-11-08T22:00:00+03:00", "place": { "ru": "запись на сайте", "en": "sign-up on the site" } }
+    { "id": "back-to-2009-cup-2", "title": "Back to 2009 Cup #2", "start": "2026-11-07T18:00:00+03:00",
+      "place": { "ru": "1v1, одна раса на весь турнир · призовой 47 174 ₽ · goodgame.ru", "en": "1v1, one race for the whole cup · prize pool 47,174 RUB · goodgame.ru" },
+      "url": "https://goodgame.ru/cups/back-to-2009-cup-2-10388" }
   ]
 }
