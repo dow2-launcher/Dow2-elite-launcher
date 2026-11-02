@@ -2006,7 +2006,12 @@ function chPut(key, ms, live) {   // messages into a list in id order, each once
     if (i >= 0) { list[i] = m; continue; }
     let j = list.length; while (j > 0 && list[j - 1].id > m.id) j--;
     list.splice(j, 0, m); changed = true;
-    if (m.cid && CH.out.some(o => o.cid === m.cid)) { CH.out = CH.out.filter(o => o.cid !== m.cid); chOutSave(); }
+    // ours waiting grey in the queue: confirmed by the cid (a new server), by the id the "say" answer gave, or - a server
+    // that keeps neither - by our own text sent in the last minute
+    const mine = CH.me && CH.me.signed_in && String(m.steam) === String(CH.me.steam);
+    const done = o => (m.cid && o.cid === m.cid) || (o.id && o.id === m.id)
+      || (o.state === 'sent' && mine && chOrig(m) === o.text && Math.abs((m.ts || 0) - o.ts) < 120);
+    if (CH.out.some(done)) { const o = CH.out.find(done); CH.out = CH.out.filter(x => x !== o); chOutSave(); }
     if (live && chMentionsMe(m) && !CH.pinged.has(m.id)) { CH.pinged.add(m.id); ping = true; }
   }
   if (ping) chBeep();
@@ -2083,7 +2088,7 @@ function chUnread() {
 // sending: the message is in the feed at once with a clock, the box is cleared, the button never locks. One sender for
 // all, in order; the same cid on every try, so a retry never makes a duplicate. The queue survives a restart.
 function chOutSave() {
-  try { localStorage.setItem('chOut', JSON.stringify(CH.out.map(({ cid, room, text, ts, state }) => ({ cid, room, text, ts, state })))); } catch (e) {}
+  try { localStorage.setItem('chOut', JSON.stringify(CH.out.map(({ cid, room, text, ts, state, id }) => ({ cid, room, text, ts, state, id })))); } catch (e) {}
 }
 function chSay() {
   if (CH.room === 'dev') return;
@@ -2099,7 +2104,15 @@ async function chPump() {
     for (let o; (o = CH.out.find(x => x.state === 'sending'));) {
       let r; try { r = await invoke('c_api', { path: 'say', body: { room: o.room, text: o.text, cid: o.cid } }); } catch (e) { r = { ok: false, error: String(e), retry: true }; }
       if (!CH.out.includes(o)) continue;                      // deleted, or confirmed by the stream meanwhile
-      if (r.ok) { CH.out = CH.out.filter(x => x !== o); if (r.msg) chPut(chKey(o.room), [r.msg]); }
+      if (r.ok && r.msg) { CH.out = CH.out.filter(x => x !== o); chPut(chKey(o.room), [r.msg]); }
+      else if (r.ok) {
+        // accepted, but the answer has no message (an older server): it stays grey until it comes back from the server -
+        // asked for at once, not at the next poll (siritos 02.11: it blinked out and came back seconds later)
+        o.state = 'sent'; o.id = r.id || 0; chOutSave(); chRender();
+        await chLoad(chKey(o.room), 'new');
+        setTimeout(() => { if (CH.out.includes(o) && o.state === 'sent') { CH.out = CH.out.filter(x => x !== o); chOutSave(); chRender(); } }, 60000);
+        continue;
+      }
       else if (r.retry_after) await chSleep(r.retry_after);    // too fast: wait as long as the server says
       else if (r.retry) {                                      // no answer (network, the 30 s of the check): 3 more tries, then "Not sent"
         o.tries = (o.tries || 0) + 1;
@@ -2152,7 +2165,8 @@ function streamState(up) {
 }
 async function chInit() {
   try { CH.me = await invoke('c_status'); } catch (e) {}
-  try { CH.out = JSON.parse(localStorage.getItem('chOut') || '[]').map(o => ({ ...o, tries: 0 })); } catch (e) {}
+  // the queue of the last run; one already accepted ("sent") is in the history by now - dropped after 10 minutes
+  try { CH.out = JSON.parse(localStorage.getItem('chOut') || '[]').map(o => ({ ...o, tries: 0 })).filter(o => o.state !== 'sent' || Date.now() / 1000 - o.ts < 600); } catch (e) {}
   listen('c_ev', e => { const { e: ev, d } = e.payload; onEvent(ev, d); chEvent(ev, d); });
   listen('c_stream', e => { if (e.payload.host) LIVE.host = e.payload.host; streamState(e.payload.up); });
   document.querySelectorAll('.ch-tab').forEach(b => b.onclick = () => { CH.room = b.dataset.room; try { localStorage.setItem('chRoom', CH.room); } catch (e) {} chShowRoom(); });
