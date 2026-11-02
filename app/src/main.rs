@@ -1630,6 +1630,26 @@ async fn rooms_live() -> Result<Value, String> {
     }).await.map_err(|e| e.to_string())?
 }
 
+/// The Online block without the stream (a ladder server that has no /c/live yet): who is looking for a game and the
+/// matches, from /ladder/api/mm/live; the window joins it with /c/online (who has the launcher open).
+#[tauri::command]
+async fn mm_live() -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let mut last = "the ladder server is not configured in this build".to_string();
+        for host in fb_hosts() {
+            match HTTP.get(&format!("{host}/ladder/api/mm/live")).timeout(Duration::from_secs(10)).call() {
+                Ok(r) => {
+                    let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
+                    v["host"] = json!(host);
+                    return Ok(v);
+                }
+                Err(e) => { api_err(&host, &e); last = e.to_string(); }
+            }
+        }
+        Err(last)
+    }).await.map_err(|e| e.to_string())?
+}
+
 /// Repositories whose GitHub Releases become news: CI makes every release from the changelog,
 /// so a new launcher or patch set shows up in the news without anyone writing it by hand.
 const NEWS_REPOS: [&str; 2] = ["dow2-launcher/Dow2-elite-launcher", "dow2-launcher/Dow2-patches"];
@@ -1651,15 +1671,19 @@ fn fetch_release_news() -> Option<Vec<Value>> {
         for r in list.iter().filter(|r| r["draft"] != true && r["prerelease"] != true) {
             let s = |k: &str| r[k].as_str().unwrap_or("").to_string();
             let title = if s("name").is_empty() { s("tag_name") } else { s("name") };
+            // 02.11 (siritos): no link - a release page on GitHub is not news for a player; the full time and the repo
+            // to order two releases of one day and to say "Launcher" / "Add-ons" in the player's language
             out.push(json!({
                 "date": s("published_at").chars().take(10).collect::<String>(),
+                "ts": s("published_at"),
                 "title": title,
+                "version": s("tag_name").trim_start_matches('v'),
+                "kind": if repo.ends_with("Dow2-patches") { "patches" } else { "launcher" },
                 "items": release_items(&s("body")),
-                "url": s("html_url"),
             }));
         }
     }
-    out.sort_by(|a, b| b["date"].as_str().cmp(&a["date"].as_str()));
+    out.sort_by(|a, b| b["ts"].as_str().cmp(&a["ts"].as_str()));
     Some(out)
 }
 
@@ -1871,7 +1895,7 @@ fn main() {
             get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
-            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check
+            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live
         ])
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")

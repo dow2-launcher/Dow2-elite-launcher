@@ -23,7 +23,8 @@ nav{margin-left:auto;display:flex;gap:4px}
 
 /* panels */
 .view{flex:1;min-height:0;padding:14px 16px;overflow:hidden}
-.home{display:grid;grid-template-columns:240px minmax(0,1fr) 300px;gap:14px}
+/* the chat grows up to 820 px, then the sides take the room (siritos 02.11): left up to 380, right up to 460; centred */
+.home{display:grid;grid-template-columns:minmax(240px,380px) minmax(460px,820px) minmax(300px,460px);justify-content:center;gap:14px}
 .col{display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0}
 .panel{border:1px solid var(--line);background:linear-gradient(#1a1611,#13100c);padding:12px 14px}
 .h{font:700 12px Cinzel,serif;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px}
@@ -50,18 +51,28 @@ nav{margin-left:auto;display:flex;gap:4px}
 .news-item li{margin:2px 0}
 .news-empty{color:var(--muted);font-size:13px;padding:6px 0}
 /* the nearest events above the news: when (how soon + the date), what, where */
-.ev-box{flex:none;padding-bottom:6px;border-color:var(--line2);background:linear-gradient(#231c12,#15110c)}
-.ev-box .h{margin-bottom:6px}
-.ev-box .h .chip{order:2;letter-spacing:0;text-transform:none}
-.ev{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-top:1px solid var(--sep)}
-.ev:first-of-type{border-top:0;padding-top:0}
-.ev-when{flex:none;width:74px;display:flex;flex-direction:column;line-height:1.25}
-.ev-when b{font:700 12px Spectral,serif;color:var(--gold2)}
-.ev-when span{font-size:11px;color:var(--dim)}
-.ev.now .ev-when b{color:#b5d58a}
+/* the events: one card at a time, as high as the player card; the date first; the arrows and dots to go on */
+.ev-box{flex:none;padding:8px 12px 10px;border-color:var(--line2);background:linear-gradient(#231c12,#15110c);overflow:hidden}
+.ev-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ev-h{flex:1;font:700 11px Cinzel,serif;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase}
+.ev-nav{display:flex;align-items:center;gap:5px}
+.ev-arr{width:18px;height:18px;padding:0;border:0;background:none;color:var(--muted);font:700 15px/18px Spectral,serif;cursor:pointer}
+.ev-arr:hover{color:var(--gold2)}
+.ev-dot{width:6px;height:6px;padding:0;border:0;border-radius:50%;background:var(--line2);cursor:pointer}
+.ev-dot.on{background:var(--gold2)}
+.ev-view{overflow:hidden;touch-action:pan-y;user-select:none}
+.ev-track{display:flex;transition:transform .25s ease}
+@media (prefers-reduced-motion:reduce){.ev-track{transition:none}}
+.ev-card{flex:0 0 100%;display:flex;align-items:center;gap:10px;min-width:0}
+.ev-date{flex:none;width:46px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--brass);background:rgba(0,0,0,.25);line-height:1}
+.ev-date b{font:700 19px Cinzel,serif;color:var(--gold2)}
+.ev-date span{margin-top:2px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
 .ev-body{flex:1;min-width:0}
-.ev-t{font-size:13px;line-height:1.3;color:var(--bone)}
-.ev-p{font-size:11px;color:var(--muted)}
+.ev-when{font-size:11px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-tag{display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;background:#5a4519;color:var(--gold2);font:600 10px/15px Spectral,serif;vertical-align:1px}
+.ev-tag.now{background:#33461f;color:#c9e59e}
+.ev-t{font:600 13px/1.3 Spectral,serif;color:var(--bone);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-p{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .more{display:block;width:calc(100% + 28px);margin:0 -14px;padding:9px 14px;text-align:left;background:none;border:0;border-top:1px solid var(--sep);color:#e2c06a;font-size:13px}
 .more:hover{color:var(--gold2)}
 .links{display:flex;flex-wrap:wrap;gap:6px}
@@ -286,12 +297,16 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 
 /* the Add-ons tab: every add-on, written out */
 #addons{display:flex;justify-content:center}
-.addons-page{width:100%;max-width:880px;display:flex;flex-direction:column;min-height:0}
+.addons-page{width:100%;max-width:1500px;display:flex;flex-direction:column;min-height:0}
 .addons-head{position:static;margin-bottom:8px}
 /* every add-on a card: the name, its version chips and the switch on one line; the description across the card;
    the options of an add-on that is on in an inset block, the labels of the lists in one column */
-.addon-all{flex:1;min-height:0;overflow:auto;margin:0 -14px;padding:0 14px 6px;display:flex;flex-direction:column;gap:8px}
-.addon-all .addon{border:1px solid var(--line);border-top:1px solid var(--line);background:rgba(0,0,0,.18);padding:8px 12px 10px}
+/* cards in columns of at least 440 px - one in a small window, two or three on a big one; a card is never split */
+.addon-all{flex:1;min-height:0;overflow:auto;margin:0 -14px;padding:0 14px 6px}
+.addon-cols{columns:440px;column-gap:10px}   /* the columns inside, the scroll outside: a fixed height would push columns sideways */
+.addon-cols>.addon-note{column-span:all;margin-bottom:8px}
+.addon-all .addon{break-inside:avoid;margin:0 0 10px;border:1px solid var(--line);border-top:1px solid var(--line);background:linear-gradient(#1b1712,#14110d);padding:10px 14px 12px}
+.addon-all .addon:not(.off){border-color:var(--line2)}
 .addon-all .addon.off{background:rgba(0,0,0,.08)}
 .addon-all .addon-row{gap:10px}
 .addon-all .addon-name{flex:0 1 auto;font-size:15px;font-weight:600}
@@ -454,9 +469,8 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 #rooms{display:flex}
 .rooms-page{width:100%;display:flex;flex-direction:column;min-height:0}
 .rooms-page .h em{font-style:normal;color:var(--gold2)}
-.rooms-grid{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-content:start;margin:8px -14px 0;padding:0 14px 6px}
-@media (max-width:1499px){.rooms-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:999px){.rooms-grid{grid-template-columns:minmax(0,1fr)}}
+/* as many columns as fit the window (420 px each at least); the tracks keep their width with few games */
+.rooms-grid{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:10px;align-content:start;margin:8px -14px 0;padding:0 14px 6px}
 .room{display:grid;grid-template-columns:84px 1fr;gap:10px;background:rgba(0,0,0,.25);border:1px solid var(--line2);padding:9px;min-width:0}
 .room .mmap{width:84px;height:84px;border:1px solid var(--line2);background:#0e0c0a center/cover no-repeat}
 .room .rh{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
@@ -473,9 +487,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .tag.elite{color:var(--gold2);border-color:var(--gold)}.tag.van{color:#9fb8c8;border-color:#4a5a66}.tag.oth{color:#c9a0d8;border-color:#5d4566}
 
 /* Settings: how our servers answer from here - a dot, the place, the host, the time; the one in use marked */
-.net-box{max-width:620px;border:1px solid var(--line);background:rgba(0,0,0,.18);padding:8px 10px}
-.net-head{display:flex;align-items:center;gap:10px;margin-bottom:4px}
-.net-head .note{flex:1}
+.net-list{max-width:720px;margin-top:4px}
 .net-g+.net-g{margin-top:8px}
 .net-gh{font:700 10px Cinzel,serif;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase;margin-bottom:2px}
 .net-r{display:grid;grid-template-columns:10px minmax(110px,max-content) minmax(0,1fr) 70px 90px;align-items:center;gap:8px;min-height:24px;font-size:13px}

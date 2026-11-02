@@ -186,7 +186,7 @@ const T = {
     "addonChangedN": "Add-ons changed: {n} - marked below",
     "chipNew": "new", "chipUpdated": "updated", "chipOpts": "settings changed",
     "newsAll": "Read all", "newsLess": "Collapse", "newsLink": "Open the link",
-    "evTitle": "Coming up", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d", "evDemo": "example",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Servers", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher",
@@ -395,7 +395,7 @@ const T = {
     "addonChangedN": "Изменилось дополнений: {n} — отмечены в списке",
     "chipNew": "новое", "chipUpdated": "обновлено", "chipOpts": "изменились настройки",
     "newsAll": "Читать полностью", "newsLess": "Свернуть", "newsLink": "Открыть ссылку",
-    "evTitle": "Ближайшие события", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.", "evDemo": "пример",
+    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Серверы", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер",
@@ -599,7 +599,7 @@ const T = {
     "addonChangedN": "Complementos cambiados: {n} — marcados abajo",
     "chipNew": "nuevo", "chipUpdated": "actualizado", "chipOpts": "ajustes cambiados",
     "newsAll": "Leer todo", "newsLess": "Contraer", "newsLink": "Abrir el enlace",
-    "evTitle": "Próximos eventos", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d", "evDemo": "ejemplo",
+    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Servidores", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
     "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher",
@@ -803,7 +803,7 @@ const T = {
     "addonChangedN": "Modules modifiés : {n} — marqués ci-dessous",
     "chipNew": "nouveau", "chipUpdated": "mis à jour", "chipOpts": "réglages modifiés",
     "newsAll": "Tout lire", "newsLess": "Réduire", "newsLink": "Ouvrir le lien",
-    "evTitle": "À venir", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j", "evDemo": "exemple",
+    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Serveurs", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
     "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher",
@@ -1007,7 +1007,7 @@ const T = {
     "addonChangedN": "Geänderte Erweiterungen: {n} — unten markiert",
     "chipNew": "neu", "chipUpdated": "aktualisiert", "chipOpts": "Einstellungen geändert",
     "newsAll": "Alles lesen", "newsLess": "Einklappen", "newsLink": "Link öffnen",
-    "evTitle": "Demnächst", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.", "evDemo": "Beispiel",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Server", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
     "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren",
@@ -1049,37 +1049,53 @@ const mbps = b => b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB/s' : Math.max(1, Math.r
 // a round avatar: the picture over the default figure, which shows while it loads, when it fails or when there is none
 const NEWS_OPEN = new Set();   // news items the player unfolded (date|title), for this run only
 
-// ---------- the nearest events, a banner above the news (siritos 02.11) ----------
+// ---------- the events, a slider above the news (siritos 02.11) ----------
 // launcher.json "events": [{id, title, start, end?, place?, url?}] (title / place: a string or {en, ru, ...}; start / end:
-// ISO time with its zone). Shown: what goes on now and what starts in the next 14 days, the nearest 3.
-// EV_DEMO: only while launcher.json has no "events" yet - a local try-out of the banner, marked "example" on screen.
-// TODO before a release: drop EV_DEMO (or keep it off) once the server sends real events.
+// ISO time with its zone). Shown: what goes on now and what starts in the next 14 days, one card at a time, as high as
+// the player's card; the arrows, the dots or a swipe go to the next. The date is the main thing; "in 25 min" / "on now"
+// only in the last 2 hours before the start.
+// EV_DEMO: only while launcher.json has no "events" yet - a local try-out of the slider.
+// TODO before a release: drop EV_DEMO once the server sends real events.
 const EV_DEMO = (() => {
   const at = (days, h) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, 0, 0, 0); return d.toISOString(); };
+  const soon = new Date(Date.now() + 75 * 60000).toISOString();
   return [
+    { id: 'demo-now', title: { en: 'Evening 2v2 on the ladder', ru: 'Вечерние 2v2 в ладдере' }, start: soon, place: { en: 'automatch, our servers', ru: 'автоматч, наши серверы' } },
     { id: 'demo-3v3', title: { en: 'Team evening: 3v3 on our servers', ru: 'Командный вечер: 3v3 на наших серверах' }, start: at(1, 20), end: at(1, 23), place: 'Discord · Elite' },
     { id: 'demo-cup', title: { en: 'Elite Cup 1v1 - qualifiers', ru: 'Elite Cup 1v1 — отборочные' }, start: at(5, 18), end: at(5, 22), place: { en: 'sign-up on the site', ru: 'запись на сайте' }, url: 'https://dow2.fintebtc.de/elite/' },
   ];
 })();
+const EV = { i: 0, n: 0 };
 function renderEvents() {
   const box = $('evBox'); if (!box || !S) return;
   const real = Array.isArray((S.config || {}).events), now = Date.now(), soon = now + 14 * 86400000;
   const list = (real ? S.config.events : EV_DEMO).map(e => ({ ...e, s: Date.parse(e.start), e: Date.parse(e.end || e.start) || Date.parse(e.start) }))
-    .filter(e => e.s && e.e >= now && e.s <= soon).sort((a, b) => a.s - b.s).slice(0, 3);
+    .filter(e => e.s && e.e >= now && e.s <= soon).sort((a, b) => a.s - b.s);
   box.classList.toggle('hidden', !list.length);
   if (!list.length) return;
-  const when = e => {
-    if (e.s <= now) return t('evNow');
-    const m = Math.round((e.s - now) / 60000);
-    return m < 60 ? t('evInM', { n: m }) : m < 48 * 60 ? t('evInH', { n: Math.round(m / 60) }) : t('evInD', { n: Math.round(m / 1440) });
-  };
-  const date = ms => new Date(ms).toLocaleString(lang, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-  box.innerHTML = `<div class="h"><span>${esc(t('evTitle'))}</span>${real ? '' : `<span class="chip">${esc(t('evDemo'))}</span>`}</div>`
-    + list.map(e => `<div class="ev ${e.s <= now ? 'now' : ''}"><div class="ev-when"><b>${esc(when(e))}</b><span>${esc(date(e.s))}</span></div>`
-      + `<div class="ev-body"><div class="ev-t">${esc(L(e.title))}</div>${e.place ? `<div class="ev-p">${esc(L(e.place))}</div>` : ''}</div>`
-      + (e.url ? `<button class="news-link" data-url="${esc(e.url)}" title="${esc(t('newsLink'))}" aria-label="${esc(t('newsLink'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>` : '')
-      + '</div>').join('');
+  EV.n = list.length; EV.i = Math.min(EV.i, EV.n - 1);
+  const mins = e => Math.max(1, Math.round((e.s - now) / 60000));
+  const soonTag = e => e.s <= now ? `<span class="ev-tag now">${esc(t('evNow'))}</span>`
+    : e.s - now < 2 * 3600000 ? `<span class="ev-tag">${esc(mins(e) < 60 ? t('evInM', { n: mins(e) }) : t('evInH', { n: Math.round(mins(e) / 60) }))}</span>` : '';
+  const d = ms => new Date(ms);
+  const card = e => `<div class="ev-card"><div class="ev-date"><b>${d(e.s).getDate()}</b><span>${esc(d(e.s).toLocaleDateString(lang, { month: 'short' }))}</span></div>`
+    + `<div class="ev-body"><div class="ev-when">${esc(d(e.s).toLocaleDateString(lang, { weekday: 'long' }))}, ${esc(d(e.s).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }))}${soonTag(e)}</div>`
+    + `<div class="ev-t" title="${esc(L(e.title))}">${esc(L(e.title))}</div>${e.place ? `<div class="ev-p">${esc(L(e.place))}</div>` : ''}</div>`
+    + (e.url ? `<button class="news-link" data-url="${esc(e.url)}" title="${esc(t('newsLink'))}" aria-label="${esc(t('newsLink'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>` : '')
+    + '</div>';
+  const nav = EV.n > 1 ? `<div class="ev-nav"><button class="ev-arr" data-d="-1" aria-label="‹">‹</button>`
+    + list.map((_, i) => `<button class="ev-dot ${i === EV.i ? 'on' : ''}" data-i="${i}" aria-label="${i + 1}"></button>`).join('')
+    + `<button class="ev-arr" data-d="1" aria-label="›">›</button></div>` : '';
+  box.innerHTML = `<div class="ev-head"><span class="ev-h">${esc(t('evTitle'))}</span>${nav}</div>`
+    + `<div class="ev-view"><div class="ev-track" style="transform:translateX(-${EV.i * 100}%)">${list.map(card).join('')}</div></div>`;
+  const go = i => { EV.i = (i + EV.n) % EV.n; renderEvents(); };
+  box.querySelectorAll('.ev-arr').forEach(b => b.onclick = () => go(EV.i + Number(b.dataset.d)));
+  box.querySelectorAll('.ev-dot').forEach(b => b.onclick = () => go(Number(b.dataset.i)));
   box.querySelectorAll('[data-url]').forEach(b => b.onclick = () => open(b.dataset.url));
+  // a swipe (mouse or touch) to the side: the next / the previous
+  const view = box.querySelector('.ev-view'); let x0 = null;
+  view.onpointerdown = e => { x0 = e.clientX; };
+  view.onpointerup = e => { if (x0 != null && Math.abs(e.clientX - x0) > 40 && EV.n > 1) go(EV.i + (e.clientX < x0 ? 1 : -1)); x0 = null; };
 }
 setInterval(renderEvents, 60000);   // "in 25 min" goes on counting
 const avatar = (url, cls = '') => `<i class="av ${cls}"${url ? ` style="--av:url('${String(url).replace(/['"()\\\s<>&]/g, encodeURIComponent)}')"` : ''}></i>`;
@@ -1198,13 +1214,14 @@ function popClose() {
 // the player menu (Online, chat, rooms, own card): mention him in the chat (signed in, not me, the name known), his stats
 // on our site (the page finds him by SteamID and opens his card) or his Steam profile. Only the SteamID is needed.
 function nickMenu(btn, steam, name) {
-  const pop = $('pop'), id = 'nick:' + steam;
-  if (!steam || (pop.dataset.id === id && !pop.classList.contains('hidden'))) return popClose();
+  // no SteamID (a player in the rooms while the server sends none): the stats found by his name, no Steam profile
+  const pop = $('pop'), q = steam || name, id = 'nick:' + q;
+  if (!q || (pop.dataset.id === id && !pop.classList.contains('hidden'))) return popClose();
   const host = LIVE.host || 'https://dow2.fintebtc.de';
-  const urls = [host + '/stats/?q=' + encodeURIComponent(steam) + '&lang=' + encodeURIComponent(lang), 'https://steamcommunity.com/profiles/' + steam];
+  const urls = [host + '/stats/?q=' + encodeURIComponent(q) + '&lang=' + encodeURIComponent(lang), steam ? 'https://steamcommunity.com/profiles/' + steam : ''];
   const tag = name && CH.me && CH.me.signed_in && String(CH.me.steam) !== String(steam);
   pop.innerHTML = '<div class="nick-menu">' + (tag ? `<button data-tag="1">${esc(t('onTag'))}</button>` : '')
-    + `<button data-u="0">${esc(t('nickStats'))}</button><button data-u="1">${esc(t('nickSteam'))}</button></div>`;
+    + `<button data-u="0">${esc(t('nickStats'))}</button>` + (steam ? `<button data-u="1">${esc(t('nickSteam'))}</button>` : '') + '</div>';
   pop.querySelectorAll('[data-u]').forEach(b => b.onclick = () => { popClose(); open(urls[b.dataset.u]); });
   pop.querySelectorAll('[data-tag]').forEach(b => b.onclick = () => { popClose(); chMention(name); });
   pop.dataset.id = id;
@@ -1220,9 +1237,9 @@ function nickMenu(btn, steam, name) {
 function nickBind(el, steam, name, mention) {
   if (!el) return;
   const menu = e => { e.preventDefault(); e.stopPropagation(); nickMenu(el, steam, name); };
-  if (steam) { el.oncontextmenu = menu; el.style.cursor = 'pointer'; }
+  if (steam || name) { el.oncontextmenu = menu; el.style.cursor = 'pointer'; }
   if (mention && name) el.onclick = e => { e.stopPropagation(); popClose(); chMention(name); };
-  else if (steam) el.onclick = menu;
+  else if (steam || name) el.onclick = menu;
 }
 
 // launcher self-update, offered and never forced. LU: a newer launcher this copy can install itself (launcher_check);
@@ -1289,9 +1306,20 @@ function render() {
   });
 
   // news: the team's posts from launcher.json and the release notes of the launcher and the patches, newest first
-  const news = (cfg.news || []).map(n => ({ date: n.date || '', title: L(n.title), text: L(n.text), url: n.url }))
-    .concat((S.release_news || []).map(n => ({ date: n.date, title: n.title, items: n.items || [], url: n.url })))
-    .sort((x, y) => String(y.date).localeCompare(String(x.date))).slice(0, 12);
+  // 02.11 (siritos): newest first also within one day (by the version in the title: 1.3.16 above 1.3.15); a release is
+  // left out when the team wrote its own post about that version (in the player's language); a release has no link
+  // (its GitHub page is not news for a player) and its title says "Launcher 1.3.16" / "Add-ons 0.1.6" in his language
+  const verOf = s => (String(s || '').match(/(\d+)\.(\d+)\.(\d+)/) || []).slice(1).map(Number);
+  const cmpVer = (a, b) => { for (let i = 0; i < 3; i++) { const d = (b[i] || 0) - (a[i] || 0); if (d) return d; } return 0; };
+  // a link only when it leads somewhere about the post: the site's front page (".../elite/", what the launcher version
+  // posts carry) is no link at all
+  const posts = (cfg.news || []).map(n => ({ date: n.date || '', title: L(n.title), text: L(n.text), url: /^https?:\/\//.test(n.url || '') && !/^https?:\/\/[^/]+\/elite\/?$/.test(n.url) ? n.url : '' }));
+  const told = new Set(posts.map(p => verOf(p.title).join('.')).filter(Boolean));
+  const rel = (S.release_news || []).filter(n => !(n.kind !== 'patches' && told.has(verOf(n.version || n.title).join('.'))))
+    .map(n => ({ date: n.date, ts: n.ts, title: n.version ? t(n.kind === 'patches' ? 'newsRelPatches' : 'newsRelLauncher', { v: n.version }) : n.title, items: n.items || [] }));
+  const news = posts.concat(rel)
+    .sort((x, y) => String(y.date).localeCompare(String(x.date)) || cmpVer(verOf(x.title), verOf(y.title)) || String(y.ts || '').localeCompare(String(x.ts || '')))
+    .slice(0, 12);
   // a news item is plain text (siritos 02.11: the whole item as a link led nowhere and cut the text): the link, when
   // there is one, is an icon next to the title; a long text or list folds open and shut under "Read all / Collapse"
   const nkey = n => n.date + '|' + n.title;
@@ -1571,7 +1599,7 @@ function roomCard(r) {
   const per = cap ? Math.max(1, Math.round(cap / 2)) : 0;
   const pl = p => `<div class="rp${p.host ? ' host' : ''}">`
     + (p.race ? `<img src="${A}${p.hero != null ? 'heroes/' + p.race + '_' + p.hero : 'races/' + p.race}.png" alt="" data-fb="${A}races/${p.race}.png">` : '')
-    + `<span>${roomFlag(p.country)}</span><span class="nm"${p.steam ? ` data-steam="${esc(p.steam)}" data-name="${esc(p.name || '')}"` : ''}>${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
+    + `<span>${roomFlag(p.country)}</span><span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
   const teams = [0, 1].map(tm => {
     const ps = (r.players || []).filter(p => (p.team | 0) === tm);
     return `<div class="team">${ps.map(pl).join('')}${Array(per ? Math.max(0, per - ps.length) : 0).fill(`<div class="rp free">${esc(t('roomsFree'))}</div>`).join('')}</div>`;
@@ -1591,7 +1619,7 @@ async function roomsLoad() {
     box.innerHTML = R.length ? R.map(roomCard).join('') : `<div class="note">${esc(t('roomsNone'))}</div>`;
     box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
     // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
-    box.querySelectorAll('.rp .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name));
+    box.querySelectorAll('.rp .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name));   // no SteamID yet: the stats by name
   } catch (e) { box.innerHTML = `<div class="note">${esc(t('roomsErr'))}</div>`; }
 }
 function roomsWatch() {
@@ -1711,6 +1739,28 @@ const onUser = s => LIVE.users[s] || {};
 const onWho = s => `<button class="nm" data-steam="${esc(s)}" data-name="${esc(onUser(s).name || '')}">${esc(onUser(s).name || 'Player')}</button>`;
 // the server sends unix times and its own clock with every snapshot: minutes count right even when the PC clock is off
 const onMins = ts => t('onMin', { n: Math.max(0, Math.round((Date.now() / 1000 + LIVE.skew - ts) / 60)) });
+
+// The snapshot of the Online block: /c/live; a ladder server without it yet (02.11: the live servers answer 404) - the
+// same snapshot put together from the old answers, /mm/live (searching, matches) and /c/online (the launcher open)
+async function liveSnapshot() {
+  try { const d = await invoke('c_api', { path: 'live' }); if (d && d.users) return d; } catch (e) { /* the old way below */ }
+  const [mm, on] = await Promise.all([invoke('mm_live'), invoke('c_api', { path: 'online' })]);
+  const now = Math.floor(Date.now() / 1000), users = {}, sid = x => String(x || '');
+  const put = p => { const s = sid(p && p.steam); if (s && !users[s]) users[s] = { name: p.name || 'Player', avatar: p.avatar || '', rating: p.rating }; return s; };
+  (on.online || []).forEach(put);   // these carry the avatars: first
+  const ingame = (mm.matches || []).map(m => ({
+    id: m.id, mode: m.mode, map: m.map, state: m.state === 'playing' ? 'playing' : 'setup',
+    started: m.state === 'playing' && m.since != null ? now - m.since : null,
+    team1: (m.team1 || []).map(p => ({ steam: put(p), race: p.race })), team2: (m.team2 || []).map(p => ({ steam: put(p), race: p.race })),
+    watchers: (m.watchers || []).map(put).filter(Boolean),
+  }));
+  const busy = new Set(ingame.flatMap(m => [...m.team1, ...m.team2].map(x => x.steam).concat(m.watchers)));
+  const searching = (mm.searching || []).filter(p => p.steam && !busy.has(sid(p.steam)))
+    .map(p => ({ steam: put(p), mode: p.mode, race: p.race, since: now - (p.waiting || 0) }));
+  searching.forEach(p => busy.add(p.steam));
+  const launcher = (on.online || []).filter(u => u.steam && !busy.has(sid(u.steam))).map(u => ({ steam: sid(u.steam), state: u.state || 'menu' }));
+  return { now, host: mm.host, users, searching, ingame, launcher };
+}
 
 function onLive(d) {   // a full snapshot
   Object.assign(LIVE, { users: d.users || {}, searching: d.searching || [], ingame: d.ingame || [], launcher: d.launcher || [], ok: true });
@@ -2093,7 +2143,9 @@ function streamState(up) {
     if (STREAM.up || STREAM.poll) return;
     STREAM.poll = setInterval(async () => {
       if (document.hidden) return;
-      if (STREAM.n++ % 3 === 0) { try { onLive(await invoke('c_api', { path: 'live' })); } catch (e) { ON.err = true; onRender(); } }
+      // without the stream the server does not see that the launcher is open: "I'm here" every 30 s (it forgets in 90)
+      if (STREAM.n % 6 === 0) chHello();
+      if (STREAM.n++ % 3 === 0) { try { onLive(await liveSnapshot()); } catch (e) { ON.err = true; onRender(); } }
       chLoad('feed', 'new');
     }, 5000);
   }, 30000);
@@ -2120,7 +2172,7 @@ async function chInit() {
     try { const r = await invoke('c_login_local'); if (r && r.signed_in) { CH.me = r; chMe(); } } catch (e) {}
   }
   // the stream may already be up: the snapshot, the card and the history are read once here, the rest comes as events
-  try { onLive(await invoke('c_api', { path: 'live' })); } catch (e) { ON.err = true; onRender(); }
+  try { onLive(await liveSnapshot()); } catch (e) { ON.err = true; onRender(); }
   try { streamState(await invoke('c_stream_up')); } catch (e) { streamState(false); }
   chHello(); chProfile();
   chLoad('feed');
@@ -2260,7 +2312,7 @@ $('hkReset').onclick = async () => {
 // Settings has two tabs, General and Hotkeys (the bindings are read when the tab is first opened)
 document.querySelectorAll('.set-tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.set-tab').forEach(x => x.classList.toggle('on', x === b));
-  ['setMain', 'hotkeys'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
+  ['setMain', 'setNet', 'hotkeys'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
   if (b.dataset.set === 'hotkeys' && !HK.data) hkLoad();
 });
 
