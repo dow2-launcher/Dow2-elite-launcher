@@ -1,0 +1,2 @@
+- Releases are made by GitHub: every version is a GitHub Release (installers, signatures, notes), our mirrors copy it within two minutes, the self-update also asks GitHub when no mirror answers.
+- News from the releases of the dow2-launcher organization.

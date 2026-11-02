@@ -1471,7 +1471,7 @@ async fn rooms_live() -> Result<Value, String> {
 
 /// Repositories whose GitHub Releases become news: CI makes every release from the changelog,
 /// so a new launcher or patch set shows up in the news without anyone writing it by hand.
-const NEWS_REPOS: [&str; 2] = ["pivolan/Dow2-elite-launcher", "pivolan/Dow2-patches"];
+const NEWS_REPOS: [&str; 2] = ["dow2-launcher/Dow2-elite-launcher", "dow2-launcher/Dow2-patches"];
 
 /// The latest releases of NEWS_REPOS as news: {date, title, items, url}, newest first.
 /// None when GitHub can't be reached: the cached copy (news.json) stays.

@@ -124,11 +124,11 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           # the public key is keys/updater.pub in the repository root, one level up from app/ (the launcher compiles
-          # it in too). Updates come from our mirrors (dl/updater.json), not from GitHub: a build reaches the players only
-          # when it is released there by hand after a check (owner, 29.10) - CI only builds and stages.
+          # it in too). The self-update asks our mirrors first (Moscow, Germany, rts: fast for the players, they copy
+          # every GitHub Release within ~2 min), GitHub's own latest release last.
           # Read into a variable: without the file the step stops here, not after the whole build with an empty key
           pubkey="$(tr -d '[:space:]' < ../keys/updater.pub)"
-          printf '{"bundle":{"createUpdaterArtifacts":true},"plugins":{"updater":{"pubkey":"%s","endpoints":["https://dow2ru.fintebtc.de/elite/dl/updater.json","https://dow2.fintebtc.de/elite/dl/updater.json","https://rts.fintebtc.de/elite/dl/updater.json"]}}}' \
+          printf '{"bundle":{"createUpdaterArtifacts":true},"plugins":{"updater":{"pubkey":"%s","endpoints":["https://dow2ru.fintebtc.de/elite/dl/updater.json","https://dow2.fintebtc.de/elite/dl/updater.json","https://rts.fintebtc.de/elite/dl/updater.json","https://github.com/dow2-launcher/Dow2-elite-launcher/releases/latest/download/updater.json"]}}}' \
             "$pubkey" > "$RUNNER_TEMP/updater.conf.json"
           # on failure the last lines go into the run's annotations: readable without access to the logs
           set -o pipefail
@@ -305,10 +305,11 @@ jobs:
           git checkout -- keys/public.key
 
   # On a push to main: a published GitHub Release vX.Y.Z - the tag on this commit, the installers, their signatures,
-  # updater.json, SHA256SUMS, the source zip, and the changelog as the description. This is only the git side and does
-  # NOT reach players: the self-update reads the mirrors (dl/updater.json), not GitHub, and the files are put on the
-  # mirrors by hand on the server. If vX.Y.Z is already released, the build stays green and only warns to raise the
-  # version. Delivery is not done here.
+  # updater.json, SHA256SUMS, the source zip, and the changelog as the description. THIS IS THE RELEASE TO THE PLAYERS
+  # (owner, 02.11.2026): the GitHub Release is the main source of the launcher. The server (rts, elite-launcher-gh-sync,
+  # every 90 s) copies a new release to our mirrors after checking every self-update signature against the updater key
+  # pinned on the server, and writes the mirrors' updater.json / latest.json / the update button of 1.2.x - the launchers
+  # see the update within ~2 min. Same version as the last release = nothing new is published (raise the version).
   release:
     needs: [version, publish]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -328,8 +329,9 @@ jobs:
           path: dist
       - name: Assemble the release
         run: |
-          # updater.json points at the mirror download folder (dl/), the layout the files take once released
-          python3 scripts/updater_manifest.py "$VERSION" "https://dow2.fintebtc.de/elite/dl" dist > dist/updater.json
+          # updater.json of the release points at the release's own files (GitHub = the main source; the mirrors write
+          # their own updater.json pointing at their copies)
+          python3 scripts/updater_manifest.py "$VERSION" "https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG" dist > dist/updater.json
           ( cd dist && ls | grep -vE '\.sig$|^SHA256SUMS$|^updater\.json$' | xargs sha256sum > SHA256SUMS )
           { cat "changelog/$VERSION/en.md"; echo; echo "_Built from ${GITHUB_SHA}._"; } > notes.md
           ls -la dist
@@ -341,50 +343,3 @@ jobs:
           fi
           gh release create "$TAG" dist/* --title "Elite Launcher $VERSION" --notes-file notes.md --target "$GITHUB_SHA"
           echo "Released **$TAG** ($(ls dist | wc -l) files)" >> "$GITHUB_STEP_SUMMARY"
-
-  # Off: delivery to players is done by hand on the server, not from here. When turned on, a push to main ships the
-  # installers to the download folder on the server: rsync to "$DEPLOY_USER@$DEPLOY_HOST:" (variables and key in the
-  # dow2 environment); the key is scoped on the server, write-only into that one folder.
-  deploy:
-    needs: [version, launcher]
-    if: false
-    runs-on: ubuntu-24.04
-    environment: dow2
-    env:
-      V: ${{ needs.version.outputs.number }}
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: deploy-*
-          merge-multiple: true
-          path: dist
-      - name: Build latest.json
-        run: |
-          rm -f dist/*.sig   # self-update signatures only matter in updater.json on the GitHub Release
-          cat > dist/latest.json <<EOF
-          {
-            "version": "$V",
-            "files": {
-              "win": "EliteLauncher-$V-setup.exe",
-              "win_portable": "EliteLauncher-$V-windows-portable.zip",
-              "linux": "EliteLauncher-$V.AppImage",
-              "deb": "elite-launcher_${V}_amd64.deb",
-              "mac": "EliteLauncher-$V-mac.zip",
-              "src": "elite-launcher-src-$V.zip"
-            }
-          }
-          EOF
-          ls -la dist
-      - name: Rsync to the download folder
-        env:
-          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
-          KNOWN: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
-          USER: ${{ vars.DEPLOY_USER }}
-          HOST: ${{ vars.DEPLOY_HOST }}
-        run: |
-          install -d -m700 ~/.ssh
-          printf '%s\n' "$KEY" > ~/.ssh/deploy_key; chmod 600 ~/.ssh/deploy_key
-          printf '%s\n' "$KNOWN" > ~/.ssh/known_hosts
-          rsync -rtvz --omit-dir-times \
-            -e "ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts" \
-            dist/ "$USER@$HOST:"
