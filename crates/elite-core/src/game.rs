@@ -71,6 +71,18 @@ pub fn steam_libraries() -> Vec<PathBuf> {
     libs
 }
 
+/// Where the game keeps Documents\My Games: on Linux under Proton - inside the game's prefix, else the user's Documents.
+pub fn documents_dir() -> Option<PathBuf> {
+    #[cfg(target_os = "linux")]
+    {
+        let g = crate::config::GameInfo::default();
+        if let Some(d) = find_game(&g.folder, &g.marker).and_then(|dir| crate::proton::prefix_documents(&dir, g.steam_appid)) {
+            return Some(d);
+        }
+    }
+    dirs::document_dir()
+}
+
 pub fn find_game(folder: &str, marker: &str) -> Option<PathBuf> {
     steam_libraries()
         .into_iter()

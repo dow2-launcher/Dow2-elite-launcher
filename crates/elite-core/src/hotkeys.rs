@@ -39,7 +39,7 @@ fn group_of(section: &str, campaign: bool) -> &'static str {
 }
 
 pub fn settings_dir() -> Option<PathBuf> {
-    dirs::document_dir().map(|d| d.join("My Games").join("Dawn of War II - Retribution").join("Settings"))
+    crate::game::documents_dir().map(|d| d.join("My Games").join("Dawn of War II - Retribution").join("Settings"))
 }
 
 fn key_line(l: &str) -> Option<(String, String)> {
