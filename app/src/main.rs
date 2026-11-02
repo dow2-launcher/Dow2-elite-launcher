@@ -725,6 +725,58 @@ fn enforce_off(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Vec
     done
 }
 
+/// DLLs of add-ons that are gone from the catalog without a component of their own to clean up after them
+/// (02.11.2026: LoadingRatings.dll is part of LobbyStats.dll again). Renamed to *.off like enforce_off does,
+/// unless an add-on of the catalog injects that name again.
+const RETIRED_DLLS: &[&str] = &["LoadingRatings.dll"];
+
+/// Add-ons that are no longer in the catalog: renamed ones (matchtimer -> matchtimer_r2, lobbystats -> lobbystats_r3...)
+/// and retired ones. Nothing else ever touches them: enforce_off and sync_components go only through the catalog, so
+/// their state and their DLLs stayed in the game folder for good (players' logs 01-02.11.2026: MatchTimer v4, Relay 2,
+/// LoadingRatings loaded with those add-ons off). Their files go, except the ones a current add-on or Elite owns now;
+/// a DLL that goes leaves InjectedFiles unless a current add-on injects it. Before every start and every update.
+fn drop_orphans(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
+    use std::collections::HashSet;
+    let known: HashSet<String> = cfg.components.iter().map(|c| update::component_key(&c.id)).collect();
+    let main = update::Game::new(dir);
+    let mut owned: HashSet<String> = main.load_state().files.iter().map(|f| f.path.to_ascii_lowercase()).collect();
+    for c in &cfg.components {
+        owned.extend(update::Game::component(dir, &c.id).load_state().files.iter().map(|f| f.path.to_ascii_lowercase()));
+    }
+    let injected: HashSet<String> = cfg.components.iter().filter(|c| !c.inject.is_empty()).map(|c| c.inject.to_ascii_lowercase()).collect();
+    let mut gone = Vec::new();
+    let unlist = |name: &str| {
+        if !injected.contains(&name.to_ascii_lowercase()) {
+            if let Ok(names) = elite::set_injected_all(dir, name, false) { for n in names { main.accept_local_edit(&n); } }
+        }
+    };
+    for id in update::Game::component_ids(dir) {
+        if known.contains(&id) { continue; }
+        let g = update::Game::component(dir, &id);
+        let n_files = g.load_state().files.len();
+        let Ok(removed) = g.uninstall_keeping(|p| owned.contains(&p.to_ascii_lowercase())) else { continue };
+        // its saved game originals go back only if nothing of it is shared with a current add-on (a renamed one would
+        // get its files overwritten)
+        if removed.len() == n_files { restore_originals(dir, &id); }
+        for f in removed {
+            let name = f.rsplit('/').next().unwrap_or(&f).to_string();
+            if name.to_ascii_lowercase().ends_with(".dll") { unlist(&name); }
+            gone.push(format!("{id}: {f}"));
+        }
+    }
+    for name in RETIRED_DLLS {
+        if injected.contains(&name.to_ascii_lowercase()) { continue; }
+        let p = dir.join("Elite_DLLs").join(name);
+        if p.is_file() {
+            let mut o = p.as_os_str().to_owned(); o.push(".off");
+            let _ = std::fs::remove_file(&o);
+            if std::fs::rename(&p, &o).is_ok() { gone.push(format!("retired: Elite_DLLs/{name} -> .off")); }
+        }
+        unlist(name);
+    }
+    gone
+}
+
 /// Component wanted by the player and not replaced by a hand-installed copy.
 fn comp_on(dir: &std::path::Path, c: &elite_core::config::Component, s: &Settings) -> bool {
     s.components.get(&c.id).copied().unwrap_or(c.default) && found_conflicts(dir, c).is_empty()
@@ -904,6 +956,7 @@ fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m:
     if main.load_state().version.is_empty() {
         return Ok(()); // Elite itself is not installed yet
     }
+    drop_orphans(dir, cfg);
     for c in &cfg.components {
         let on = comp_on(dir, c, s);
         let g = update::Game::component(dir, &c.id);
@@ -1229,8 +1282,10 @@ fn start_game(app: &App) -> Result<Value, String> {
     let dir = game_dir(&app).ok_or("game folder not found")?;
     let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
     // what the checks of our add-ons did is told to the player (siritos 02.11): only add-ons of launcher.json and their
-    // hand-installed copies, nothing else in the game folder; loader: the stand-alone dow2-patches package's winmm.dll
+    // hand-installed copies, and the ones gone from the catalog (drop_orphans) - nothing else in the game folder;
+    // loader: the stand-alone dow2-patches package's winmm.dll
     let mut off = enforce_off(&dir, &cfg, &app.settings.lock().unwrap().clone());
+    off.extend(drop_orphans(&dir, &cfg));
     drop_conflicting(&dir, &cfg);
     for n in sync_injected(&dir, &cfg, &app.settings.lock().unwrap().clone()) {
         if !off.iter().any(|x| x.to_ascii_lowercase().ends_with(&n.to_ascii_lowercase())) { off.push(n); }
