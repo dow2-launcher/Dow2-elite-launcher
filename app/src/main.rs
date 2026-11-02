@@ -1650,6 +1650,37 @@ async fn mm_live() -> Result<Value, String> {
     }).await.map_err(|e| e.to_string())?
 }
 
+/// The events banner (siritos 02.11: kept in git - events.json of this repository, edited and pushed to main): read from
+/// GitHub, then jsDelivr (GitHub is blocked in places), at the start and every 15 minutes by the window; the last good
+/// copy is kept for offline; never read - the copy built into this launcher. launcher.json "events", when the owner
+/// sets them, still go first (the window decides).
+const EVENTS_URLS: [&str; 2] = [
+    "https://raw.githubusercontent.com/dow2-launcher/Dow2-elite-launcher/main/events.json",
+    "https://cdn.jsdelivr.net/gh/dow2-launcher/Dow2-elite-launcher@main/events.json",
+];
+const EVENTS_BUILT_IN: &str = include_str!("../../events.json");
+#[tauri::command]
+async fn events_get() -> Value {
+    tauri::async_runtime::spawn_blocking(|| {
+        let ok = |v: &Value| v["events"].is_array();
+        for url in EVENTS_URLS {
+            let Ok(r) = HTTP.get(url).timeout(Duration::from_secs(10)).call() else { continue };
+            let Ok(text) = r.into_string() else { continue };
+            if let Ok(v) = serde_json::from_str::<Value>(&text) {
+                if ok(&v) {
+                    let _ = std::fs::write(data_dir().join("events.json"), &text);
+                    return json!({"events": v["events"], "source": url});
+                }
+            }
+        }
+        if let Some(v) = std::fs::read(data_dir().join("events.json")).ok().and_then(|b| serde_json::from_slice::<Value>(&b).ok()).filter(ok) {
+            return json!({"events": v["events"], "source": "cache"});
+        }
+        let v: Value = serde_json::from_str(EVENTS_BUILT_IN).unwrap_or_default();
+        json!({"events": if ok(&v) { v["events"].clone() } else { json!([]) }, "source": "built-in"})
+    }).await.unwrap_or_else(|_| json!({"events": []}))
+}
+
 /// Repositories whose GitHub Releases become news: CI makes every release from the changelog,
 /// so a new launcher or patch set shows up in the news without anyone writing it by hand.
 const NEWS_REPOS: [&str; 2] = ["dow2-launcher/Dow2-elite-launcher", "dow2-launcher/Dow2-patches"];
@@ -1895,7 +1926,7 @@ fn main() {
             get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
-            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live
+            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get
         ])
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")

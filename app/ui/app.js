@@ -1054,22 +1054,17 @@ const NEWS_OPEN = new Set();   // news items the player unfolded (date|title), f
 // ISO time with its zone). Shown: what goes on now and what starts in the next 14 days, one card at a time, as high as
 // the player's card; the arrows, the dots or a swipe go to the next. The date is the main thing; "in 25 min" / "on now"
 // only in the last 2 hours before the start.
-// EV_DEMO: only while launcher.json has no "events" yet - a local try-out of the slider.
-// TODO before a release: drop EV_DEMO once the server sends real events.
-const EV_DEMO = (() => {
-  const at = (days, h) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, 0, 0, 0); return d.toISOString(); };
-  const soon = new Date(Date.now() + 75 * 60000).toISOString();
-  return [
-    { id: 'demo-now', title: { en: 'Evening 2v2 on the ladder', ru: 'Вечерние 2v2 в ладдере' }, start: soon, place: { en: 'automatch, our servers', ru: 'автоматч, наши серверы' } },
-    { id: 'demo-3v3', title: { en: 'Team evening: 3v3 on our servers', ru: 'Командный вечер: 3v3 на наших серверах' }, start: at(1, 20), end: at(1, 23), place: 'Discord · Elite' },
-    { id: 'demo-cup', title: { en: 'Elite Cup 1v1 - qualifiers', ru: 'Elite Cup 1v1 — отборочные' }, start: at(5, 18), end: at(5, 22), place: { en: 'sign-up on the site', ru: 'запись на сайте' }, url: 'https://dow2.fintebtc.de/elite/' },
-  ];
-})();
+// Where they come from (siritos 02.11): launcher.json "events" when the owner sets them; else events.json of the
+// launcher repository, edited in git (events_get: GitHub, jsDelivr, the last copy, the built-in one), every 15 minutes.
+let EVENTS = [];
+function eventsLoad() { invoke('events_get').then(d => { EVENTS = (d && Array.isArray(d.events)) ? d.events : []; renderEvents(); }).catch(() => {}); }
+eventsLoad();
+setInterval(eventsLoad, 15 * 60000);
 const EV = { i: 0, n: 0 };
 function renderEvents() {
   const box = $('evBox'); if (!box || !S) return;
   const real = Array.isArray((S.config || {}).events), now = Date.now(), soon = now + 14 * 86400000;
-  const list = (real ? S.config.events : EV_DEMO).map(e => ({ ...e, s: Date.parse(e.start), e: Date.parse(e.end || e.start) || Date.parse(e.start) }))
+  const list = (real ? S.config.events : EVENTS).map(e => ({ ...e, s: Date.parse(e.start), e: Date.parse(e.end || e.start) || Date.parse(e.start) }))
     .filter(e => e.s && e.e >= now && e.s <= soon).sort((a, b) => a.s - b.s);
   box.classList.toggle('hidden', !list.length);
   if (!list.length) return;
