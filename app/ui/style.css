@@ -311,8 +311,8 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
    the options of an add-on that is on in an inset block, the labels of the lists in one column */
 /* cards in columns of at least 440 px - one in a small window, two or three on a big one; a card is never split */
 .addon-all{flex:1;min-height:0;overflow:auto;margin:0 -14px;padding:0 14px 6px}
-/* a grid, row by row from the left (siritos 02.11: the columns put a lone card in the middle); cards keep their own height */
-.addon-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:10px;align-items:start}
+/* a grid, row by row from the left (siritos 02.11: the columns put a lone card in the middle) */
+.addon-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:10px;align-items:stretch}   /* a row as high as its tallest card */
 .addon-all .addon{margin:0;border:1px solid var(--line);border-top:1px solid var(--line);background:linear-gradient(#1b1712,#14110d);padding:10px 14px 12px}
 .addon-all .addon:not(.off){border-color:var(--line2)}
 .addon-all .addon.off{background:rgba(0,0,0,.08)}
