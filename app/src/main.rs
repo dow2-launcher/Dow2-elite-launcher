@@ -1328,7 +1328,7 @@ fn start_game(app: &App) -> Result<Value, String> {
             Ok(run) if exe.is_file() => {
                 ensure_steam_running();
                 c_log(&format!("launch: {} run {} (prefix {})", run.proton.display(), exe.display(), run.compat_data.display()));
-                return run.command(&exe, &[], &dir).spawn().map(|_| ()).map_err(|e| format!("cannot start {} through Proton: {e}", exe_name));
+                return run.command(&exe, &[], &dir).spawn().map(|_| guard).map_err(|e| format!("cannot start {} through Proton: {e}", exe_name));
             }
             Ok(_) => c_log(&format!("launch: {} not in the game folder - steam -applaunch", exe_name)),
             Err(e) => c_log(&format!("launch: no Proton run ({e}) - steam -applaunch")),
