@@ -1,0 +1,1 @@
+- A Lobbies tab: the custom games being set up right now (the same list as the game browser) - map, mode, Elite / vanilla / other mod, the players of both teams with race, hero, flag and rating, open slots, password.

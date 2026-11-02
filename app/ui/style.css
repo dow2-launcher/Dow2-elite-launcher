@@ -393,3 +393,22 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .ch-head::after{display:none}
 .ch-day{display:flex;align-items:center;gap:10px;margin:8px 0 2px;font:700 11px Cinzel,serif;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
 .ch-day::before,.ch-day::after{content:"";flex:1;height:1px;background:var(--sep)}
+
+/* 1.3.15: open lobbies */
+.rooms-page{width:100%;max-width:1060px;display:flex;flex-direction:column;min-height:0}
+.rooms-page .h em{font-style:normal;color:var(--gold2)}
+.rooms-grid{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:10px;align-content:start;margin:8px -14px 0;padding:0 14px 6px}
+.room{display:grid;grid-template-columns:84px 1fr;gap:10px;background:rgba(0,0,0,.25);border:1px solid var(--line2);padding:9px;min-width:0}
+.room .mmap{width:84px;height:84px;border:1px solid var(--line2);background:#0e0c0a center/cover no-repeat}
+.room .rh{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.room .rn{font-weight:600;overflow-wrap:anywhere}
+.room .rmap{font-size:12px;color:var(--muted);margin:2px 0 5px}
+.room .teams{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}
+.room .team{min-width:0}.room .team+.team{border-left:1px solid var(--line2);padding-left:8px}
+.room .rp{display:flex;align-items:center;gap:4px;font-size:12.5px;line-height:21px;white-space:nowrap;overflow:hidden}
+.room .rp img{width:17px;height:17px;object-fit:contain;flex:none}
+.room .rp .nm{overflow:hidden;text-overflow:ellipsis}.room .rp.host .nm{color:var(--gold2)}
+.room .rp .rt{color:var(--muted);font-size:11.5px}
+.room .rp.free{color:var(--muted);font-style:italic;opacity:.7}
+.room .rfoot{margin-top:4px;font-size:11.5px;color:var(--muted)}
+.tag.elite{color:var(--gold2);border-color:var(--gold)}.tag.van{color:#9fb8c8;border-color:#4a5a66}.tag.oth{color:#c9a0d8;border-color:#5d4566}
