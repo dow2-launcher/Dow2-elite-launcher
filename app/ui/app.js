@@ -1119,15 +1119,14 @@ function popClose() {
   document.querySelectorAll('.qm.on').forEach(x => x.classList.remove('on'));
 }
 
-// a click on a player's name (Online, own card): mention him in the chat (the owner's 1.3.12 click, when a name is given
-// and I am signed in), his stats on our site (the page finds him by SteamID and opens his card) or his Steam profile.
-// Nothing from the server is needed, only the SteamID.
+// the player menu (Online, chat, rooms, own card): mention him in the chat (signed in, not me, the name known), his stats
+// on our site (the page finds him by SteamID and opens his card) or his Steam profile. Only the SteamID is needed.
 function nickMenu(btn, steam, name) {
   const pop = $('pop'), id = 'nick:' + steam;
   if (!steam || (pop.dataset.id === id && !pop.classList.contains('hidden'))) return popClose();
   const host = LIVE.host || 'https://dow2.fintebtc.de';
   const urls = [host + '/stats/?q=' + encodeURIComponent(steam) + '&lang=' + encodeURIComponent(lang), 'https://steamcommunity.com/profiles/' + steam];
-  const tag = name && CH.me && CH.me.signed_in && CH.me.steam !== steam;
+  const tag = name && CH.me && CH.me.signed_in && String(CH.me.steam) !== String(steam);
   pop.innerHTML = '<div class="nick-menu">' + (tag ? `<button data-tag="1">${esc(t('onTag'))}</button>` : '')
     + `<button data-u="0">${esc(t('nickStats'))}</button><button data-u="1">${esc(t('nickSteam'))}</button></div>`;
   pop.querySelectorAll('[data-u]').forEach(b => b.onclick = () => { popClose(); open(urls[b.dataset.u]); });
@@ -1139,6 +1138,15 @@ function nickMenu(btn, steam, name) {
   const r = btn.getBoundingClientRect();
   pop.style.left = Math.max(8, Math.min(window.innerWidth - pop.offsetWidth - 8, r.left)) + 'px';
   pop.style.top = (r.bottom + 4 + pop.offsetHeight > window.innerHeight - 8 ? r.top - pop.offsetHeight - 4 : r.bottom + 4) + 'px';
+}
+// a player's name or avatar: the menu on a click and on a right click; mention = a name in the chat, where a click
+// mentions him (the owner's 1.3.6 / 1.3.12) and only the right click opens the menu
+function nickBind(el, steam, name, mention) {
+  if (!el) return;
+  const menu = e => { e.preventDefault(); e.stopPropagation(); nickMenu(el, steam, name); };
+  if (steam) { el.oncontextmenu = menu; el.style.cursor = 'pointer'; }
+  if (mention && name) el.onclick = e => { e.stopPropagation(); popClose(); chMention(name); };
+  else if (steam) el.onclick = menu;
 }
 
 // launcher self-update, offered and never forced. LU: a newer launcher this copy can install itself (launcher_check);
@@ -1460,7 +1468,7 @@ function roomCard(r) {
   const per = cap ? Math.max(1, Math.round(cap / 2)) : 0;
   const pl = p => `<div class="rp${p.host ? ' host' : ''}">`
     + (p.race ? `<img src="${A}${p.hero != null ? 'heroes/' + p.race + '_' + p.hero : 'races/' + p.race}.png" alt="" data-fb="${A}races/${p.race}.png">` : '')
-    + `<span>${roomFlag(p.country)}</span><span class="nm">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
+    + `<span>${roomFlag(p.country)}</span><span class="nm"${p.steam ? ` data-steam="${esc(p.steam)}" data-name="${esc(p.name || '')}"` : ''}>${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
   const teams = [0, 1].map(tm => {
     const ps = (r.players || []).filter(p => (p.team | 0) === tm);
     return `<div class="team">${ps.map(pl).join('')}${Array(per ? Math.max(0, per - ps.length) : 0).fill(`<div class="rp free">${esc(t('roomsFree'))}</div>`).join('')}</div>`;
@@ -1479,6 +1487,8 @@ async function roomsLoad() {
     $('roomsN').textContent = R.length;
     box.innerHTML = R.length ? R.map(roomCard).join('') : `<div class="note">${esc(t('roomsNone'))}</div>`;
     box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
+    // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
+    box.querySelectorAll('.rp .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name));
   } catch (e) { box.innerHTML = `<div class="note">${esc(t('roomsErr'))}</div>`; }
 }
 function roomsWatch() {
@@ -1635,9 +1645,10 @@ function onRender() {
   $('onTotal').textContent = LIVE.ok ? String(ids.size) : '';
   $('onGroups').innerHTML = html;
   // a name: the menu (mention in the chat - the owner's 1.3.12 click - / stats / Steam); the avatar opens the Steam profile (1.3.12)
-  $('onGroups').querySelectorAll('.nm[data-steam]').forEach(b => b.onclick = e => { e.stopPropagation(); nickMenu(b, b.dataset.steam, b.dataset.name); });
-  $('onGroups').querySelectorAll('.on-p').forEach(r => { const a = r.querySelector('.av'), n = r.querySelector('.nm[data-steam]');
-    if (a && n && n.dataset.steam) { a.style.cursor = 'pointer'; a.title = 'Steam'; a.onclick = () => open('https://steamcommunity.com/profiles/' + n.dataset.steam); } });
+  // the name and the avatar of a player: the player menu (stats, Steam, mention in the chat)
+  $('onGroups').querySelectorAll('.nm[data-steam]').forEach(b => nickBind(b, b.dataset.steam, b.dataset.name));
+  $('onGroups').querySelectorAll('.on-p').forEach(r => { const n = r.querySelector('.nm[data-steam]');
+    if (n) nickBind(r.querySelector('.av'), n.dataset.steam, n.dataset.name); });
   $('onGroups').querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
     ON.shut.has(b.dataset.g) ? ON.shut.delete(b.dataset.g) : ON.shut.add(b.dataset.g);
     try { localStorage.setItem('onShut', JSON.stringify([...ON.shut])); } catch (e) {}
@@ -1740,7 +1751,8 @@ function chMe() {
       + `<button class="me-out" id="chOut" title="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}"><svg viewBox="0 0 24 24" aria-hidden="true">`
       + '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button></div>'
       + (line ? `<div class="me-rt">${line}</div>` : '') + games + '</div>';
-    $('meName').onclick = e => { e.stopPropagation(); nickMenu(e.currentTarget, me.steam); };
+    // my own name and avatar: the menu (no "mention": that is me)
+    nickBind($('meName'), me.steam, ''); nickBind(box.querySelector('.me-av'), me.steam, '');
     $('chOut').onclick = chLogout;
   } else {
     // waiting for the browser: the button stays live (a new click opens Steam again), Cancel stops the wait
@@ -1852,8 +1864,8 @@ function chRender(force, older) {
   const row = (m, extra, tail) => {
     const k = dayKey(m.ts), head = k !== prev ? `<div class="ch-day"><span>${esc(dayName(m.ts))}</span></div>` : ''; prev = k;
     const text = chText(m), tr = text !== chOrig(m);   // translated: the original on hover
-    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${extra}"><span class="ch-av" data-steam="${esc(m.steam)}" title="Steam">` + avatar(m.avatar) + `</span>`
-      + `<div><div class="w"><b data-name="${esc(m.name)}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${tail}</div>`
+    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${extra}"><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">` + avatar(m.avatar) + `</span>`
+      + `<div><div class="w"><b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${tail}</div>`
       + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${mention(esc(text))}</div></div></div>`;
   };
   const sent = list.map(m => row(m, '', '')).join('');   // first: the day headings run on into the queue
@@ -1864,8 +1876,9 @@ function chRender(force, older) {
   const html = sent + out.join('');
   box.innerHTML = html || `<div class="ch-empty">${esc(t('chEmpty'))}</div>`;
   // the owner's 1.3.6 behaviour stays in the chat: a name tags the player, the avatar opens the Steam profile
-  box.querySelectorAll('.ch-av[data-steam]').forEach(a => a.onclick = () => a.dataset.steam && open('https://steamcommunity.com/profiles/' + a.dataset.steam));
-  box.querySelectorAll('b[data-name]').forEach(b => b.onclick = () => chMention(b.dataset.name));
+  box.querySelectorAll('.ch-av[data-steam]').forEach(a => nickBind(a, a.dataset.steam, a.dataset.name));
+  // the chat: a click on a name mentions the player (1.3.6), a right click and the avatar open the player menu
+  box.querySelectorAll('b[data-name]').forEach(b => nickBind(b, b.dataset.steam, b.dataset.name, true));
   box.querySelectorAll('[data-retry]').forEach(b => b.onclick = () => { const o = CH.out.find(x => x.cid === b.dataset.retry); if (o) { o.state = 'sending'; o.tries = 0; chOutSave(); chRender(); chPump(); } });
   box.querySelectorAll('[data-drop]').forEach(b => b.onclick = () => { CH.out = CH.out.filter(x => x.cid !== b.dataset.drop); chOutSave(); chRender(); });
   if (older) box.scrollTop = box.scrollHeight - h0 + top0;   // older messages added on top: the view stays where it was
