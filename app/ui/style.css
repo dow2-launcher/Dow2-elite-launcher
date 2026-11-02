@@ -526,8 +526,9 @@ footer:has(#statusText:empty) .foot-links{display:flex}
 .addon-gh::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
 .addon-all>.addon-note{margin-bottom:10px}
 /* room between an add-on's text and its options, and between the options themselves (siritos 02.11: nothing sticks) */
-.addon-all .addon-opts{display:flex;flex-direction:column;gap:6px;margin-top:12px;padding:10px 12px}
+.addon-all .addon-opts{display:flex;flex-direction:column;gap:6px;margin-top:12px;padding:0;border:0;background:none}
+.addon-opts-h{margin-bottom:2px;font:700 10px Cinzel,serif;letter-spacing:1.5px;color:var(--gold);text-transform:uppercase}
 .addon-all .addon-opt{min-height:28px;line-height:1.35}
 .addon-all .addon-opt.pick{gap:12px}
-.addon-all .addon-sub{margin:4px 0 0;padding:6px 0 2px 12px;display:flex;flex-direction:column;gap:6px}
+.addon-all .addon-sub{margin:4px 0 0;padding:0;border:0;display:flex;flex-direction:column;gap:6px}
 .addon-all .addon-sub .addon-grp{margin-bottom:0}
