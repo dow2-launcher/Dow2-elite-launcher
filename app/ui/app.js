@@ -182,11 +182,11 @@ const T = {
     "addonNext": "version {v} comes with the next update",
     "addonCheck": "Check add-ons for updates", "addonChecking": "Checking…", "addonSame": "Everything is up to date ({time})", "addonChanged": "Add-ons updated", "addonNew": "new: {name}", "addonGone": "removed: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: its settings changed",
     "addonLater": "takes effect the next time the game starts",
-    "addonsLaterAll": "Changes take effect the next time the game starts.", "addonChangedN": "Add-ons changed: {n} - marked below",
+    "addonChangedN": "Add-ons changed: {n} - marked below",
     "chipNew": "new", "chipUpdated": "updated", "chipOpts": "settings changed",
     "newsAll": "Read all", "newsLess": "Collapse", "newsLink": "Open the link",
     "evTitle": "Coming up", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d", "evDemo": "example",
-    "guardOff": "Not loaded (not turned on in the launcher): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
+    "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher",
     "launcherUpdating": "Updating the launcher… {p}",
@@ -390,11 +390,11 @@ const T = {
     "addonNext": "версия {v} встанет со следующим обновлением",
     "addonCheck": "Проверить обновления дополнений", "addonChecking": "Проверяю…", "addonSame": "Всё актуально ({time})", "addonChanged": "Дополнения обновились", "addonNew": "новое: {name}", "addonGone": "убрано: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: изменились настройки",
     "addonLater": "действует со следующего запуска игры",
-    "addonsLaterAll": "Изменения действуют со следующего запуска игры.", "addonChangedN": "Изменилось дополнений: {n} — отмечены в списке",
+    "addonChangedN": "Изменилось дополнений: {n} — отмечены в списке",
     "chipNew": "новое", "chipUpdated": "обновлено", "chipOpts": "изменились настройки",
     "newsAll": "Читать полностью", "newsLess": "Свернуть", "newsLink": "Открыть ссылку",
     "evTitle": "Ближайшие события", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.", "evDemo": "пример",
-    "guardOff": "Не загружено (не включено в лаунчере): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
+    "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер",
     "launcherUpdating": "Обновляю лаунчер… {p}",
@@ -593,11 +593,11 @@ const T = {
     "addonNext": "la versión {v} llega con la próxima actualización",
     "addonCheck": "Buscar actualizaciones de complementos", "addonChecking": "Comprobando…", "addonSame": "Todo al día ({time})", "addonChanged": "Complementos actualizados", "addonNew": "nuevo: {name}", "addonGone": "retirado: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: cambiaron sus ajustes",
     "addonLater": "se aplica la próxima vez que inicies el juego",
-    "addonsLaterAll": "Los cambios se aplican la próxima vez que inicies el juego.", "addonChangedN": "Complementos cambiados: {n} — marcados abajo",
+    "addonChangedN": "Complementos cambiados: {n} — marcados abajo",
     "chipNew": "nuevo", "chipUpdated": "actualizado", "chipOpts": "ajustes cambiados",
     "newsAll": "Leer todo", "newsLess": "Contraer", "newsLink": "Abrir el enlace",
     "evTitle": "Próximos eventos", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d", "evDemo": "ejemplo",
-    "guardOff": "No cargado (no activado en el launcher): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
+    "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher",
     "launcherUpdating": "Actualizando el launcher… {p}",
@@ -796,11 +796,11 @@ const T = {
     "addonNext": "la version {v} arrive avec la prochaine mise à jour",
     "addonCheck": "Vérifier les mises à jour des modules", "addonChecking": "Vérification…", "addonSame": "Tout est à jour ({time})", "addonChanged": "Modules mis à jour", "addonNew": "nouveau : {name}", "addonGone": "retiré : {name}", "addonChgVer": "{name} : {from} → {to}", "addonOpts": "{name} : ses réglages ont changé",
     "addonLater": "s’applique au prochain lancement du jeu",
-    "addonsLaterAll": "Les changements s’appliquent au prochain lancement du jeu.", "addonChangedN": "Modules modifiés : {n} — marqués ci-dessous",
+    "addonChangedN": "Modules modifiés : {n} — marqués ci-dessous",
     "chipNew": "nouveau", "chipUpdated": "mis à jour", "chipOpts": "réglages modifiés",
     "newsAll": "Tout lire", "newsLess": "Réduire", "newsLink": "Ouvrir le lien",
     "evTitle": "À venir", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j", "evDemo": "exemple",
-    "guardOff": "Non chargé (non activé dans le lanceur) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
+    "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher",
     "launcherUpdating": "Mise à jour du launcher… {p}",
@@ -999,11 +999,11 @@ const T = {
     "addonNext": "Version {v} kommt mit dem nächsten Update",
     "addonCheck": "Erweiterungen auf Updates prüfen", "addonChecking": "Prüfe…", "addonSame": "Alles aktuell ({time})", "addonChanged": "Erweiterungen aktualisiert", "addonNew": "neu: {name}", "addonGone": "entfernt: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: Einstellungen geändert",
     "addonLater": "gilt ab dem nächsten Spielstart",
-    "addonsLaterAll": "Änderungen gelten ab dem nächsten Spielstart.", "addonChangedN": "Geänderte Erweiterungen: {n} — unten markiert",
+    "addonChangedN": "Geänderte Erweiterungen: {n} — unten markiert",
     "chipNew": "neu", "chipUpdated": "aktualisiert", "chipOpts": "Einstellungen geändert",
     "newsAll": "Alles lesen", "newsLess": "Einklappen", "newsLink": "Link öffnen",
     "evTitle": "Demnächst", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.", "evDemo": "Beispiel",
-    "guardOff": "Nicht geladen (im Launcher nicht aktiviert): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
+    "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren",
     "launcherUpdating": "Launcher wird aktualisiert… {p}",
@@ -1103,13 +1103,11 @@ function verOpen(on) {
 const verNum = x => String(x || '').replace(/^[a-z_]+-(?=[0-9])/i, '');
 // what the last check changed, per add-on (siritos 02.11: marked on the add-on itself, not one line for all): new / ver / opts
 const COMP_CHG = {};
-// the Add-ons tab: the installed version, the next one when an update waits, what the last check changed
+// the Add-ons tab: what the last check changed, next to the name (the versions are in the line under the description)
 function compChips(c) {
-  const inst = verNum(c.installed), next = verNum(c.latest), k = COMP_CHG[c.id];
+  const k = COMP_CHG[c.id];
   return '<span class="addon-chips">'
     + (k ? `<span class="chip hot">${esc(t(k === 'new' ? 'chipNew' : k === 'ver' ? 'chipUpdated' : 'chipOpts'))}</span>` : '')
-    + (inst || next ? `<span class="chip" title="${esc(t('addonVer', { v: inst || next }))}">v${esc(inst || next)}</span>` : '')
-    + (inst && next && next !== inst ? `<span class="chip up" title="${esc(t('addonNext', { v: next }))}">→ ${esc(next)}</span>` : '')
     + '</span>';
 }
 // "Version 0.7.0", plus the one the next update brings
@@ -1145,6 +1143,7 @@ function compList(box, list, full) {
       + (full ? '' : `<button class="qm ${$('pop').dataset.id === c.id ? 'on' : ''}" data-info="${esc(c.id)}" aria-label="${esc(t('addonInfo', { name: L(c.name) || c.id }))}">?</button>`)
       + `<label class="switch"><input type="checkbox" role="switch" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled ? 'checked' : ''} ${lock ? 'disabled' : ''}><i></i></label></div>`
       + (full ? (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
+          + `<div class="addon-ver">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
           + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') : '')
       + (c.enabled && (c.options || []).length ? '<div class="addon-opts">' + optsHtml(c, lock) + '</div>' : '')
       + '</div>').join('');
