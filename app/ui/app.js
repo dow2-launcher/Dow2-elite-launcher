@@ -1719,7 +1719,7 @@ function chShowRoom() {
   document.querySelectorAll('.ch-tab').forEach(b => b.classList.toggle('on', b.dataset.room === CH.room));
   $('chatPane').classList.toggle('hidden', CH.room === 'dev');
   $('devPane').classList.toggle('hidden', CH.room !== 'dev');
-  if (CH.room !== 'dev') { CH.unread[chKey(CH.room)] = 0; chRender(true); if (!CH.msgs[chKey(CH.room)]) chLoad(chKey(CH.room)); }
+  if (CH.room !== 'dev') { CH.chatRoom = CH.room; CH.unread[chKey(CH.room)] = 0; chRender(true); if (!CH.msgs[chKey(CH.room)]) chLoad(chKey(CH.room)); }
   chUnread(); FB.open = CH.room === 'dev'; fbWatch();
 }
 // the card above the news: avatar, name, 1v1 rating and games of the season (the stream's me); signed out - the Steam button
@@ -1797,8 +1797,9 @@ function chMentionsMe(m) {
   if (!me || !me.name || m.steam === me.steam) return false;
   return String(chOrig(m) || '').toLowerCase().includes('@' + me.name.toLowerCase());
 }
-// RU and EN are one feed in two languages (the tab picks the language), General is a room of its own
-const chKey = room => room === 'all' ? 'all' : 'feed';
+// The server keeps one common chat (ladder 9f6817f): every message is in every tab - General shows the original, RU and
+// EN its translation (orig / ru / en of each message). So one list for all three tabs; the tab only picks the language.
+const chKey = () => 'feed';
 const chOrig = m => m.orig || m.text;
 const chText = m => CH.room === 'ru' ? (m.ru || chOrig(m)) : CH.room === 'en' ? (m.en || chOrig(m)) : chOrig(m);
 // live: messages that just came (the stream, or the poll while it is down), not history - a mention of me beeps once (1.3.12)
@@ -1819,7 +1820,9 @@ function chPut(key, ms, live) {   // messages into a list in id order, each once
 }
 // history: the last 100 at start, 100 older when scrolled to the top; after an id while the stream is down
 async function chLoad(key, how) {
-  const room = key === 'all' ? 'all' : 'ru', list = CH.msgs[key] || [];
+  // asked as "all": the server would cut a translated tab at the first message still being translated; here the
+  // original shows until its msg_tr comes
+  const room = 'all', list = CH.msgs[key] || [];
   const q = how === 'older' ? `limit=100&before=${list[0].id}` : how === 'new' && list.length ? `after=${list[list.length - 1].id}` : 'limit=100';
   let d; try { d = await invoke('c_api', { path: `msgs?room=${room}&${q}` }); } catch (e) { return; }
   let changed = chPut(key, d.msgs || [], how === 'new');
@@ -1878,7 +1881,9 @@ function chMention(name) {                                     // a click on a n
 }
 // unread messages on a tab the player is not looking at (RU and EN together: one feed)
 function chUnread() {
-  document.querySelectorAll('.ch-tab').forEach(b => { const r = b.dataset.room; b.dataset.n = r === 'dev' ? '' : (CH.unread[chKey(r)] || '') });
+  // one feed: the number on one tab only - the open one, or the last chat tab while the developers' chat is open
+  const at = CH.room === 'dev' ? (CH.chatRoom || 'all') : CH.room;
+  document.querySelectorAll('.ch-tab').forEach(b => { b.dataset.n = b.dataset.room === at ? (CH.unread[chKey()] || '') : ''; });
 }
 // sending: the message is in the feed at once with a clock, the box is cleared, the button never locks. One sender for
 // all, in order; the same cid on every try, so a retry never makes a duplicate. The queue survives a restart.
@@ -1922,9 +1927,9 @@ function chEvent(ev, d) {
     if (key === chKey(CH.room)) chRender();
   } else if (ev === 'msg_tr') {
     const m = (CH.msgs.feed || []).find(x => x.id === d.id);
-    if (m) { m.ru = d.ru; m.en = d.en; if (chKey(CH.room) === 'feed') chRender(); }
+    if (m) { m.ru = d.ru; m.en = d.en; if (CH.room === 'ru' || CH.room === 'en') chRender(); }
   } else if (ev === 'msg_del') {
-    for (const k of ['all', 'feed']) if (CH.msgs[k]) CH.msgs[k] = CH.msgs[k].filter(m => m.id !== d.id);
+    if (CH.msgs.feed) CH.msgs.feed = CH.msgs.feed.filter(m => m.id !== d.id);
     chRender();
   } else if (ev === 'reset') { CH.msgs[chKey(d.room)] = []; chLoad(chKey(d.room)); }
   else if (ev === 'me') { CH.prof = { ok: true, rating: d.rating, stats: { games: d.games, wins: d.wins, losses: d.losses } }; chMe(); }
@@ -1944,7 +1949,7 @@ function streamState(up) {
     STREAM.poll = setInterval(async () => {
       if (document.hidden) return;
       if (STREAM.n++ % 3 === 0) { try { onLive(await invoke('c_api', { path: 'live' })); } catch (e) { ON.err = true; onRender(); } }
-      chLoad('all', 'new'); chLoad('feed', 'new');
+      chLoad('feed', 'new');
     }, 5000);
   }, 30000);
 }
@@ -1973,7 +1978,7 @@ async function chInit() {
   try { onLive(await invoke('c_api', { path: 'live' })); } catch (e) { ON.err = true; onRender(); }
   try { streamState(await invoke('c_stream_up')); } catch (e) { streamState(false); }
   chHello(); chProfile();
-  chLoad('all'); chLoad('feed');
+  chLoad('feed');
   if (CH.out.some(o => o.state === 'sending')) chPump();
 }
 chInit();
