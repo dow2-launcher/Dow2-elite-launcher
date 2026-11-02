@@ -186,7 +186,7 @@ const T = {
     "addonChangedN": "Add-ons changed: {n} - marked below",
     "chipNew": "new", "chipUpdated": "updated", "chipOpts": "settings changed",
     "newsAll": "Read all", "newsLess": "Collapse", "newsLink": "Open the link",
-    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Servers", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Servers", "myStats": "My stats", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_experiment": "Experiments", "cat_other": "Other", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher",
@@ -395,7 +395,7 @@ const T = {
     "addonChangedN": "Изменилось дополнений: {n} — отмечены в списке",
     "chipNew": "новое", "chipUpdated": "обновлено", "chipOpts": "изменились настройки",
     "newsAll": "Читать полностью", "newsLess": "Свернуть", "newsLink": "Открыть ссылку",
-    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Серверы", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
+    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Серверы", "myStats": "Моя статистика", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_experiment": "Эксперименты", "cat_other": "Другое", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер",
@@ -599,7 +599,7 @@ const T = {
     "addonChangedN": "Complementos cambiados: {n} — marcados abajo",
     "chipNew": "nuevo", "chipUpdated": "actualizado", "chipOpts": "ajustes cambiados",
     "newsAll": "Leer todo", "newsLess": "Contraer", "newsLink": "Abrir el enlace",
-    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Servidores", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
+    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Servidores", "myStats": "Mis estadísticas", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_experiment": "Experimentos", "cat_other": "Otros", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
     "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher",
@@ -803,7 +803,7 @@ const T = {
     "addonChangedN": "Modules modifiés : {n} — marqués ci-dessous",
     "chipNew": "nouveau", "chipUpdated": "mis à jour", "chipOpts": "réglages modifiés",
     "newsAll": "Tout lire", "newsLess": "Réduire", "newsLink": "Ouvrir le lien",
-    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Serveurs", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
+    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Serveurs", "myStats": "Mes statistiques", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_experiment": "Expériences", "cat_other": "Autres", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
     "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher",
@@ -1007,7 +1007,7 @@ const T = {
     "addonChangedN": "Geänderte Erweiterungen: {n} — unten markiert",
     "chipNew": "neu", "chipUpdated": "aktualisiert", "chipOpts": "Einstellungen geändert",
     "newsAll": "Alles lesen", "newsLess": "Einklappen", "newsLink": "Link öffnen",
-    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Server", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Server", "myStats": "Meine Statistik", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_experiment": "Experimente", "cat_other": "Sonstiges", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
     "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren",
@@ -1048,6 +1048,15 @@ const mb = b => b >= 1e9 ? (b / 1e9).toFixed(2) + ' GB' : (b / 1e6).toFixed(b < 
 const mbps = b => b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB/s' : Math.max(1, Math.round(b / 1e3)) + ' KB/s';
 // a round avatar: the picture over the default figure, which shows while it loads, when it fails or when there is none
 const NEWS_OPEN = new Set();   // news items the player unfolded (date|title), for this run only
+// the footer links' icons, by where they lead: Discord, ModDB (the mod's news), our stats / ladder (a chart), else a link
+function linkIcon(url) {
+  const u = String(url || '').toLowerCase();
+  const svg = (body, fill) => `<svg viewBox="0 0 24 24" aria-hidden="true" class="${fill ? 'fill' : ''}">${body}</svg>`;
+  if (u.includes('discord')) return svg('<path d="M19.6 5.3A17 17 0 0 0 15.4 4l-.5 1.1a15.7 15.7 0 0 0-5.8 0L8.6 4a17 17 0 0 0-4.2 1.3C1.7 9.3 1 13.2 1.3 17a17.2 17.2 0 0 0 5.2 2.6l1.1-1.8a11 11 0 0 1-1.7-.8l.4-.3a12.2 12.2 0 0 0 11.4 0l.4.3a11 11 0 0 1-1.7.8l1.1 1.8a17.2 17.2 0 0 0 5.2-2.6c.4-4.4-.6-8.3-3.1-11.7zM8.7 14.7c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1zm6.6 0c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1z"/>', true);
+  if (u.includes('moddb')) return svg('<path d="M4 5h13a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V5z"/><path d="M19 9h1a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0"/><path d="M7 9h8M7 12h8M7 15h5"/>');
+  if (/\/(stats|ladder)\b/.test(u)) return svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>');
+  return svg('<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>');
+}
 
 // ---------- the events, a slider above the news (siritos 02.11) ----------
 // launcher.json "events": [{id, title, start, end?, place?, url?}] (title / place: a string or {en, ru, ...}; start / end:
@@ -1075,10 +1084,12 @@ function renderEvents() {
   const soonTag = e => e.s <= now ? `<span class="ev-tag now">${esc(t('evNow'))}</span>`
     : e.s - now < 2 * 3600000 ? `<span class="ev-tag">${esc(mins(e) < 60 ? t('evInM', { n: mins(e) }) : t('evInH', { n: Math.round(mins(e) / 60) }))}</span>` : '';
   const d = ms => new Date(ms), hm = ms => d(ms).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
-  const card = e => `<div class="ev-card"><div class="ev-date"><b>${d(e.s).getDate()}</b><span>${esc(d(e.s).toLocaleDateString(lang, { month: 'short' }).replace('.', ''))}</span></div>`
-    + `<div class="ev-body"><div class="ev-t" title="${esc(L(e.title))}">${esc(L(e.title))}</div>`
-    + `<div class="ev-when">${esc(d(e.s).toLocaleDateString(lang, { weekday: 'long' }))}, ${esc(hm(e.s))}${e.end && e.e > e.s ? ' – ' + esc(hm(e.e)) : ''}${soonTag(e)}</div>`
-    + (e.place ? `<div class="ev-p">${esc(L(e.place))}</div>` : '') + '</div>'
+  // the points under the title: "info" - a list, or {ru: [...], en: [...]}; an older event's "place" as one point
+  const info = e => { const i = e.info, arr = Array.isArray(i) ? i : (i && typeof i === 'object' ? (i[lang] || i.en || []) : []);
+    return (arr.length ? arr : e.place ? [L(e.place)] : []).slice(0, 3); };
+  const card = e => `<div class="ev-card"><div class="ev-date"><b>${d(e.s).getDate()}</b><span>${esc(d(e.s).toLocaleDateString(lang, { month: 'short' }).replace('.', ''))}</span><i>${esc(hm(e.s))}</i></div>`
+    + `<div class="ev-body"><div class="ev-t"><span title="${esc(L(e.title))}">${esc(L(e.title))}</span>${soonTag(e)}</div>`
+    + (info(e).length ? `<ul class="ev-info">${info(e).map(x => `<li title="${esc(x)}">${esc(x)}</li>`).join('')}</ul>` : '') + '</div>'
     + (e.url ? `<button class="news-link" data-url="${esc(e.url)}" title="${esc(t('newsLink'))}" aria-label="${esc(t('newsLink'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>` : '')
     + '</div>';
   const side = dir => EV.n > 1 ? `<button class="ev-side" data-d="${dir}" aria-label="${dir < 0 ? '‹' : '›'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${dir < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>` : '';
@@ -1147,13 +1158,20 @@ function optsHtml(c, lock) {
   return parts.map(p => p.g ? `<div class="addon-sub"><div class="addon-grp">${esc(p.g)}</div>${p.list.map(one).join('')}</div>` : p.list.map(one).join('')).join('');
 }
 
+// The groups of the Add-ons tab, in this order; an add-on without launcher.json "category" is put in one by its id (the
+// "_r2"/"_r3" ends of the ids left out)
+const COMP_CATS = ['network', 'interface', 'gameplay', 'experiment', 'other'];
+const COMP_CAT_BY_ID = { relay: 'network', automatch: 'network', lobbystats: 'interface', loadingratings: 'interface', matchtimer: 'interface',
+  cooldowns: 'interface', reverse: 'gameplay', obsfix: 'gameplay', netprobe: 'experiment', ownlobby: 'experiment' };
+const compCat = c => COMP_CATS.includes(c.category) ? c.category : COMP_CAT_BY_ID[String(c.id).replace(/_(r\d+|off)$/, '')] || 'other';
+// an add-on taken away from everyone (its version "...-off": the old AI, the developers' diagnostics) is not shown at all
+const compShown = c => !/(^|-)off$/i.test(String(c.latest || ''));
 // add-on rows: a switch each and its own options under it once it is on; the details behind "?" on the home screen,
 // written out on the Add-ons tab (full)
 function compList(box, list, full) {
   const lock = S.busy || S.game_running;   // the game holds the add-on files while it runs
   const nameHtml = c => { const n = L(c.name) || c.id, m = n.match(/^(.+?)\s*\(([^()]+)\)$/); return m ? `${esc(m[1])}<small>${esc(m[2])}</small>` : esc(n); };
-  box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '')
-    + list.map(c => `<div class="addon ${c.enabled ? '' : 'off'}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
+  const card = c => `<div class="addon ${c.enabled ? '' : 'off'}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
       + (full ? compChips(c) : '')
       + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '')
       + (full ? '' : `<button class="qm ${$('pop').dataset.id === c.id ? 'on' : ''}" data-info="${esc(c.id)}" aria-label="${esc(t('addonInfo', { name: L(c.name) || c.id }))}">?</button>`)
@@ -1162,7 +1180,12 @@ function compList(box, list, full) {
           + `<div class="addon-ver">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
           + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') : '')
       + (c.enabled && (c.options || []).length ? '<div class="addon-opts">' + optsHtml(c, lock) + '</div>' : '')
-      + '</div>').join('');
+      + '</div>';
+  // the Add-ons tab in groups (siritos 02.11): launcher.json "category" when the owner sets it, else by the add-on id
+  const groups = full ? COMP_CATS.map(k => ({ k, list: list.filter(c => compCat(c) === k) })).filter(g => g.list.length) : null;
+  box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '')
+    + (full ? groups.map(g => `<div class="addon-group"><div class="addon-gh">${esc(t('cat_' + g.k))}</div><div class="addon-cols">${g.list.map(card).join('')}</div></div>`).join('')
+      : list.map(card).join(''));
   box.querySelectorAll('.qm').forEach(b => b.onclick = e => { e.stopPropagation(); popAddon(b, list.find(c => c.id === b.dataset.info)); });
   box.querySelectorAll('input[data-opt]').forEach(cb => cb.onchange = () =>
     invoke('set_comp_option', { comp: cb.dataset.comp, opt: cb.dataset.opt, on: cb.checked }).then(reload).catch(e => toast(e, true)));
@@ -1208,13 +1231,14 @@ function popClose() {
 
 // the player menu (Online, chat, rooms, own card): mention him in the chat (signed in, not me, the name known), his stats
 // on our site (the page finds him by SteamID and opens his card) or his Steam profile. Only the SteamID is needed.
-function nickMenu(btn, steam, name) {
+function nickMenu(btn, steam, name, noTag) {
   // no SteamID (a player in the rooms while the server sends none): the stats found by his name, no Steam profile
   const pop = $('pop'), q = steam || name, id = 'nick:' + q;
   if (!q || (pop.dataset.id === id && !pop.classList.contains('hidden'))) return popClose();
   const host = LIVE.host || 'https://dow2.fintebtc.de';
   const urls = [host + '/stats/?q=' + encodeURIComponent(q) + '&lang=' + encodeURIComponent(lang), steam ? 'https://steamcommunity.com/profiles/' + steam : ''];
-  const tag = name && CH.me && CH.me.signed_in && String(CH.me.steam) !== String(steam);
+  // noTag: a player who is not in our chat (the rooms: Relic's players) - no "mention"
+  const tag = !noTag && name && CH.me && CH.me.signed_in && String(CH.me.steam) !== String(steam);
   pop.innerHTML = '<div class="nick-menu">' + (tag ? `<button data-tag="1">${esc(t('onTag'))}</button>` : '')
     + `<button data-u="0">${esc(t('nickStats'))}</button>` + (steam ? `<button data-u="1">${esc(t('nickSteam'))}</button>` : '') + '</div>';
   pop.querySelectorAll('[data-u]').forEach(b => b.onclick = () => { popClose(); open(urls[b.dataset.u]); });
@@ -1229,9 +1253,9 @@ function nickMenu(btn, steam, name) {
 }
 // a player's name or avatar: the menu on a click and on a right click; mention = a name in the chat, where a click
 // mentions him (the owner's 1.3.6 / 1.3.12) and only the right click opens the menu
-function nickBind(el, steam, name, mention) {
+function nickBind(el, steam, name, mention, noTag) {
   if (!el) return;
-  const menu = e => { e.preventDefault(); e.stopPropagation(); nickMenu(el, steam, name); };
+  const menu = e => { e.preventDefault(); e.stopPropagation(); nickMenu(el, steam, name, noTag); };
   if (steam || name) { el.oncontextmenu = menu; el.style.cursor = 'pointer'; }
   if (mention && name) el.onclick = e => { e.stopPropagation(); popClose(); chMention(name); };
   else if (steam || name) el.onclick = menu;
@@ -1335,17 +1359,13 @@ function render() {
     b.classList.toggle('hidden', !more);
     b.onclick = () => { const k = el.dataset.k; NEWS_OPEN.has(k) ? NEWS_OPEN.delete(k) : NEWS_OPEN.add(k); render(); };
   });
-  const more = cfg.news_more;
-  $('newsMore').classList.toggle('hidden', !more?.url);
-  if (more?.url) { $('newsMore').textContent = (L(more.title) || t('allNews')) + ' ›'; $('newsMore').onclick = () => open(more.url); }
-
   renderEvents();
 
-  // links
+  // links (siritos 02.11): no block of their own and no "All news on ModDB" under the news - icons in the footer, where
+  // "Elite 3.2 is ready" and the game folder used to stand (the version is on the version button anyway)
   const links = cfg.links || [];
-  $('linksBox').classList.toggle('hidden', !links.length);
-  $('links').innerHTML = links.map((l, i) => `<button data-i="${i}">${esc(L(l.title))}</button>`).join('');
-  $('links').querySelectorAll('button').forEach(b => b.onclick = () => open(links[+b.dataset.i].url));
+  $('footLinks').innerHTML = links.map((l, i) => `<button class="foot-link" data-i="${i}" title="${esc(l.url || '')}">${linkIcon(l.url)}<span>${esc(L(l.title))}</span></button>`).join('');
+  $('footLinks').querySelectorAll('button').forEach(b => b.onclick = () => open(links[+b.dataset.i].url));
 
   // game / steam missing → guide the player
   const setup = $('setup');
@@ -1391,7 +1411,7 @@ function render() {
   if (notMain) $('verWarn').textContent = t('youPlay', { name: L(activeCh.name) }) + ' ' + t('notMain', { name: L(mainCh.name) });
 
   // add-ons: only the game server on the home screen (or what launcher.json marks "home"), all of them on the Add-ons tab
-  const comps = S.components || [];
+  const comps = (S.components || []).filter(compShown);
   const pinned = comps.some(c => c.home) ? comps.filter(c => c.home)
     : comps.filter(c => c.id === 'relay');   // until launcher.json marks them
   $('compBox').classList.toggle('hidden', !pinned.length);
@@ -1430,6 +1450,9 @@ function render() {
       : S.installed_version ? esc(t('ready', { v: activeCh ? L(activeCh.name).replace(/^Elite\s+/i, '') : S.installed_version })) : (S.config_loaded ? '' : esc(t('connecting')));
     const hint = L(cfg.launch?.[S.os]?.hint);
     $('statusMeta').textContent = [hint, winPath(S.game_dir)].filter(Boolean).join(' · ');
+    // all is well (ready, no launch hint): the line steps aside for the links (siritos 02.11: "Elite 3.2 is ready" and the
+    // game folder are not news); any download, check or error writes the line again and it comes back (CSS :has)
+    if (!S.last_error && S.installed_version && !hint) { $('statusText').innerHTML = ''; $('statusMeta').textContent = ''; }
   }
 
   // settings
@@ -1614,7 +1637,7 @@ async function roomsLoad() {
     box.innerHTML = R.length ? R.map(roomCard).join('') : `<div class="note">${esc(t('roomsNone'))}</div>`;
     box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
     // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
-    box.querySelectorAll('.rp .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name));   // no SteamID yet: the stats by name
+    box.querySelectorAll('.rp .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));   // the stats (by name until the server sends SteamIDs), Steam when there; no "mention"
   } catch (e) { box.innerHTML = `<div class="note">${esc(t('roomsErr'))}</div>`; }
 }
 function roomsWatch() {
@@ -1925,12 +1948,15 @@ function chMe() {
     // the name and the sign-out icon on one line, everything under the name on the same left edge
     box.innerHTML = avatar(me.avatar, 'me-av')
       + `<div class="me-info"><div class="me-top"><button class="nm" id="meName" title="${esc(t('chSignedIn', { name: me.name }))}">${esc(me.name || me.steam)}</button>`
+      // my stats (my dossier on our stats page) next to the sign-out (siritos 02.11: where the stats link went)
+      + `<button class="me-out me-stats" id="meStats" title="${esc(t('myStats'))}" aria-label="${esc(t('myStats'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>`
       + `<button class="me-out" id="chOut" title="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}"><svg viewBox="0 0 24 24" aria-hidden="true">`
       + '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button></div>'
       + (line ? `<div class="me-rt">${line}</div>` : '') + games + '</div>';
     // my own name and avatar: the menu (no "mention": that is me)
     nickBind($('meName'), me.steam, ''); nickBind(box.querySelector('.me-av'), me.steam, '');
     $('chOut').onclick = chLogout;
+    $('meStats').onclick = () => open((LIVE.host || 'https://dow2.fintebtc.de') + '/stats/?q=' + encodeURIComponent(me.steam) + '&lang=' + encodeURIComponent(lang));
   } else {
     // waiting for the browser: the button stays live (a new click opens Steam again), Cancel stops the wait
     box.innerHTML = `<div class="me-note">${esc(t(CH.waiting ? 'chWaiting' : 'prNote'))}</div><div class="me-act"><button class="btn gold small" id="chIn">${esc(CH.me && CH.me.local_name ? t('chLoginAs', { name: CH.me.local_name }) : t('chLogin'))}</button>`

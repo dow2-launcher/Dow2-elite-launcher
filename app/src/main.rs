@@ -521,7 +521,7 @@ fn get_status(app: State<'_, App>) -> Value {
         "dismissed": s.dismissed,
         "mirror_count": mirrors(&s, cfg.as_ref()).count(),
         "components": cfgd.components.iter().map(|c| json!({
-            "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home,
+            "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category,
             "enabled": s.components.get(&c.id).copied().unwrap_or(c.default),
             "conflicts": dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default(),
             "installed": dir.as_ref().map(|d| update::Game::component(d, &c.id).load_state().version).unwrap_or_default(),

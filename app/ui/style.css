@@ -65,20 +65,22 @@ nav{margin-left:auto;display:flex;gap:4px}
 .ev-view{flex:1;min-width:0;overflow:hidden;touch-action:pan-y;user-select:none}
 .ev-track{display:flex;transition:transform .25s ease}
 @media (prefers-reduced-motion:reduce){.ev-track{transition:none}}
-.ev-card{flex:0 0 100%;display:flex;align-items:flex-start;gap:10px;min-width:0;padding:2px 6px}
-.ev-date{flex:none;width:48px;padding:5px 0 4px;display:flex;flex-direction:column;align-items:center;border:1px solid var(--brass);background:rgba(0,0,0,.25);line-height:1}
-.ev-date b{font:700 22px Cinzel,serif;color:var(--gold2)}
-.ev-date span{margin-top:3px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
-.ev-body{flex:1;min-width:0}
-.ev-t{font:700 15px/1.25 Spectral,serif;color:var(--bone);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.ev-when{margin-top:3px;font-size:12px;color:var(--soft)}
-.ev-when::first-letter{text-transform:uppercase}
-.ev-tag{display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;background:#5a4519;color:var(--gold2);font:600 10px/15px Spectral,serif;vertical-align:1px}
+.ev-card{flex:0 0 100%;display:flex;align-items:center;gap:10px;min-width:0;padding:0 6px;height:64px}
+.ev-date{flex:none;width:50px;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--brass);background:rgba(0,0,0,.25);line-height:1}
+.ev-date b{font:700 20px Cinzel,serif;color:var(--gold2)}
+.ev-date span{margin-top:2px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.ev-date i{margin-top:4px;font:600 11px Spectral,serif;font-style:normal;color:var(--bone)}
+.ev-body{flex:1;min-width:0;align-self:center}
+.ev-t{display:flex;align-items:center;gap:6px;min-width:0}
+.ev-t span{min-width:0;font:700 14px/1.25 Spectral,serif;color:var(--bone);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-info{margin:3px 0 0;padding:0;list-style:none}
+.ev-info li{position:relative;padding-left:11px;font-size:12px;line-height:1.35;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-info li::before{content:"";position:absolute;left:2px;top:.6em;width:4px;height:4px;border-radius:50%;background:var(--gold)}
+.ev-tag{flex:none;display:inline-block;padding:0 6px;border-radius:8px;background:#5a4519;color:var(--gold2);font:600 10px/15px Spectral,serif}
 .ev-tag.now{background:#33461f;color:#c9e59e}
-.ev-p{margin-top:1px;font-size:12px;color:var(--muted)}
 /* a narrow left column (small window): smaller buttons and date, more room for the title */
 .ev-box{container-type:inline-size}
-@container (max-width:290px){.ev-side{width:20px}.ev-side svg{width:16px;height:16px}.ev-date{width:38px}.ev-date b{font-size:17px}.ev-card{gap:7px;padding:2px 3px}.ev-t{font-size:14px}}
+@container (max-width:290px){.ev-side{width:20px}.ev-side svg{width:16px;height:16px}.ev-date{width:42px}.ev-date b{font-size:17px}.ev-card{gap:7px;padding:0 3px}.ev-t span{font-size:13px}}
 .more{display:block;width:calc(100% + 28px);margin:0 -14px;padding:9px 14px;text-align:left;background:none;border:0;border-top:1px solid var(--sep);color:#e2c06a;font-size:13px}
 .more:hover{color:var(--gold2)}
 .links{display:flex;flex-wrap:wrap;gap:6px}
@@ -505,3 +507,27 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .net-h{font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .net-ms{font-size:12px;color:var(--soft);text-align:right}
 .net-r .chip{justify-self:start;border-color:#5d7a3a;color:#b5d58a}
+
+/* the footer (siritos 02.11): while all is well the links stand where "Elite 3.2 is ready" and the game folder were;
+   a download, a check or an error writes the status line and it comes back in their place */
+.foot-links{flex:1;min-width:0;display:none;align-items:center;gap:6px;flex-wrap:wrap}
+footer:has(#statusText:empty) .status{display:none}
+footer:has(#statusText:empty) .foot-links{display:flex}
+.foot-link{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px 0 10px;border:1px solid var(--line);background:#14110d;color:var(--soft);font:600 13px Spectral,serif;cursor:pointer}
+.foot-link svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.foot-link svg.fill{fill:currentColor;stroke:none}
+.foot-link:hover,.foot-link:focus-visible{border-color:var(--gold);color:var(--gold2)}
+/* my stats next to the sign-out in the player card */
+.me-stats+.me-out{margin-left:2px}
+
+/* the Add-ons tab in groups: a heading per group, the group's cards in columns */
+.addon-group+.addon-group{margin-top:14px}
+.addon-gh{display:flex;align-items:center;gap:10px;margin:2px 0 8px;font:700 11px Cinzel,serif;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase}
+.addon-gh::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
+.addon-all>.addon-note{margin-bottom:10px}
+/* room between an add-on's text and its options, and between the options themselves (siritos 02.11: nothing sticks) */
+.addon-all .addon-opts{display:flex;flex-direction:column;gap:6px;margin-top:12px;padding:10px 12px}
+.addon-all .addon-opt{min-height:28px;line-height:1.35}
+.addon-all .addon-opt.pick{gap:12px}
+.addon-all .addon-sub{margin:4px 0 0;padding:6px 0 2px 12px;display:flex;flex-direction:column;gap:6px}
+.addon-all .addon-sub .addon-grp{margin-bottom:0}

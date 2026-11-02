@@ -67,6 +67,9 @@ pub struct Component {
     pub default: bool,
     /// Also on the home screen, not only on the Add-ons tab: the ones players switch most (automatch, relay).
     pub home: bool,
+    /// The group on the Add-ons tab: "network", "interface", "gameplay", "experiment" (02.11.2026); empty - the window
+    /// picks one by the id.
+    pub category: String,
     /// DLL to add to `InjectedFiles=` in Elite.launchconfig while the component is on.
     pub inject: String,
     /// Switches the player can tick under the component; each one is written to an ini file in the game folder.
