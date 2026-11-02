@@ -39,6 +39,9 @@ pub struct LauncherConfig {
     /// Button under the news list, e.g. the ModDB news page.
     pub news_more: Option<Link>,
     pub announcements: Vec<Announcement>,
+    /// The nearest events, a banner above the news: [{id, title, start, end?, place?, url?}], passed to the window as is.
+    /// None (no "events" in launcher.json) - the window shows its own example; Some([]) - no banner.
+    pub events: Option<Vec<serde_json::Value>>,
     pub links: Vec<Link>,
     /// Extra mirrors (base URLs ending with '/'); tried after the built-in ones that answered.
     pub mirrors: Vec<String>,

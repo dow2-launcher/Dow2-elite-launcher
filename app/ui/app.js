@@ -182,6 +182,11 @@ const T = {
     "addonNext": "version {v} comes with the next update",
     "addonCheck": "Check add-ons for updates", "addonChecking": "Checking…", "addonSame": "Everything is up to date ({time})", "addonChanged": "Add-ons updated", "addonNew": "new: {name}", "addonGone": "removed: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: its settings changed",
     "addonLater": "takes effect the next time the game starts",
+    "addonsLaterAll": "Changes take effect the next time the game starts.", "addonChangedN": "Add-ons changed: {n} - marked below",
+    "chipNew": "new", "chipUpdated": "updated", "chipOpts": "settings changed",
+    "newsAll": "Read all", "newsLess": "Collapse", "newsLink": "Open the link",
+    "evTitle": "Coming up", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d", "evDemo": "example",
+    "guardOff": "Not loaded (not turned on in the launcher): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher",
     "launcherUpdating": "Updating the launcher… {p}",
@@ -385,6 +390,11 @@ const T = {
     "addonNext": "версия {v} встанет со следующим обновлением",
     "addonCheck": "Проверить обновления дополнений", "addonChecking": "Проверяю…", "addonSame": "Всё актуально ({time})", "addonChanged": "Дополнения обновились", "addonNew": "новое: {name}", "addonGone": "убрано: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: изменились настройки",
     "addonLater": "действует со следующего запуска игры",
+    "addonsLaterAll": "Изменения действуют со следующего запуска игры.", "addonChangedN": "Изменилось дополнений: {n} — отмечены в списке",
+    "chipNew": "новое", "chipUpdated": "обновлено", "chipOpts": "изменились настройки",
+    "newsAll": "Читать полностью", "newsLess": "Свернуть", "newsLink": "Открыть ссылку",
+    "evTitle": "Ближайшие события", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.", "evDemo": "пример",
+    "guardOff": "Не загружено (не включено в лаунчере): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер",
     "launcherUpdating": "Обновляю лаунчер… {p}",
@@ -583,6 +593,11 @@ const T = {
     "addonNext": "la versión {v} llega con la próxima actualización",
     "addonCheck": "Buscar actualizaciones de complementos", "addonChecking": "Comprobando…", "addonSame": "Todo al día ({time})", "addonChanged": "Complementos actualizados", "addonNew": "nuevo: {name}", "addonGone": "retirado: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: cambiaron sus ajustes",
     "addonLater": "se aplica la próxima vez que inicies el juego",
+    "addonsLaterAll": "Los cambios se aplican la próxima vez que inicies el juego.", "addonChangedN": "Complementos cambiados: {n} — marcados abajo",
+    "chipNew": "nuevo", "chipUpdated": "actualizado", "chipOpts": "ajustes cambiados",
+    "newsAll": "Leer todo", "newsLess": "Contraer", "newsLink": "Abrir el enlace",
+    "evTitle": "Próximos eventos", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d", "evDemo": "ejemplo",
+    "guardOff": "No cargado (no activado en el launcher): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher",
     "launcherUpdating": "Actualizando el launcher… {p}",
@@ -781,6 +796,11 @@ const T = {
     "addonNext": "la version {v} arrive avec la prochaine mise à jour",
     "addonCheck": "Vérifier les mises à jour des modules", "addonChecking": "Vérification…", "addonSame": "Tout est à jour ({time})", "addonChanged": "Modules mis à jour", "addonNew": "nouveau : {name}", "addonGone": "retiré : {name}", "addonChgVer": "{name} : {from} → {to}", "addonOpts": "{name} : ses réglages ont changé",
     "addonLater": "s’applique au prochain lancement du jeu",
+    "addonsLaterAll": "Les changements s’appliquent au prochain lancement du jeu.", "addonChangedN": "Modules modifiés : {n} — marqués ci-dessous",
+    "chipNew": "nouveau", "chipUpdated": "mis à jour", "chipOpts": "réglages modifiés",
+    "newsAll": "Tout lire", "newsLess": "Réduire", "newsLink": "Ouvrir le lien",
+    "evTitle": "À venir", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j", "evDemo": "exemple",
+    "guardOff": "Non chargé (non activé dans le lanceur) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher",
     "launcherUpdating": "Mise à jour du launcher… {p}",
@@ -979,6 +999,11 @@ const T = {
     "addonNext": "Version {v} kommt mit dem nächsten Update",
     "addonCheck": "Erweiterungen auf Updates prüfen", "addonChecking": "Prüfe…", "addonSame": "Alles aktuell ({time})", "addonChanged": "Erweiterungen aktualisiert", "addonNew": "neu: {name}", "addonGone": "entfernt: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: Einstellungen geändert",
     "addonLater": "gilt ab dem nächsten Spielstart",
+    "addonsLaterAll": "Änderungen gelten ab dem nächsten Spielstart.", "addonChangedN": "Geänderte Erweiterungen: {n} — unten markiert",
+    "chipNew": "neu", "chipUpdated": "aktualisiert", "chipOpts": "Einstellungen geändert",
+    "newsAll": "Alles lesen", "newsLess": "Einklappen", "newsLink": "Link öffnen",
+    "evTitle": "Demnächst", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.", "evDemo": "Beispiel",
+    "guardOff": "Nicht geladen (im Launcher nicht aktiviert): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren",
     "launcherUpdating": "Launcher wird aktualisiert… {p}",
@@ -1017,6 +1042,41 @@ const L = x => x == null ? '' : typeof x === 'string' ? x : (x[lang] || x.en || 
 const mb = b => b >= 1e9 ? (b / 1e9).toFixed(2) + ' GB' : (b / 1e6).toFixed(b < 1e7 ? 2 : 1) + ' MB';
 const mbps = b => b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB/s' : Math.max(1, Math.round(b / 1e3)) + ' KB/s';
 // a round avatar: the picture over the default figure, which shows while it loads, when it fails or when there is none
+const NEWS_OPEN = new Set();   // news items the player unfolded (date|title), for this run only
+
+// ---------- the nearest events, a banner above the news (siritos 02.11) ----------
+// launcher.json "events": [{id, title, start, end?, place?, url?}] (title / place: a string or {en, ru, ...}; start / end:
+// ISO time with its zone). Shown: what goes on now and what starts in the next 14 days, the nearest 3.
+// EV_DEMO: only while launcher.json has no "events" yet - a local try-out of the banner, marked "example" on screen.
+// TODO before a release: drop EV_DEMO (or keep it off) once the server sends real events.
+const EV_DEMO = (() => {
+  const at = (days, h) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(h, 0, 0, 0); return d.toISOString(); };
+  return [
+    { id: 'demo-3v3', title: { en: 'Team evening: 3v3 on our servers', ru: 'Командный вечер: 3v3 на наших серверах' }, start: at(1, 20), end: at(1, 23), place: 'Discord · Elite' },
+    { id: 'demo-cup', title: { en: 'Elite Cup 1v1 - qualifiers', ru: 'Elite Cup 1v1 — отборочные' }, start: at(5, 18), end: at(5, 22), place: { en: 'sign-up on the site', ru: 'запись на сайте' }, url: 'https://dow2.fintebtc.de/elite/' },
+  ];
+})();
+function renderEvents() {
+  const box = $('evBox'); if (!box || !S) return;
+  const real = Array.isArray((S.config || {}).events), now = Date.now(), soon = now + 14 * 86400000;
+  const list = (real ? S.config.events : EV_DEMO).map(e => ({ ...e, s: Date.parse(e.start), e: Date.parse(e.end || e.start) || Date.parse(e.start) }))
+    .filter(e => e.s && e.e >= now && e.s <= soon).sort((a, b) => a.s - b.s).slice(0, 3);
+  box.classList.toggle('hidden', !list.length);
+  if (!list.length) return;
+  const when = e => {
+    if (e.s <= now) return t('evNow');
+    const m = Math.round((e.s - now) / 60000);
+    return m < 60 ? t('evInM', { n: m }) : m < 48 * 60 ? t('evInH', { n: Math.round(m / 60) }) : t('evInD', { n: Math.round(m / 1440) });
+  };
+  const date = ms => new Date(ms).toLocaleString(lang, { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+  box.innerHTML = `<div class="h"><span>${esc(t('evTitle'))}</span>${real ? '' : `<span class="chip">${esc(t('evDemo'))}</span>`}</div>`
+    + list.map(e => `<div class="ev ${e.s <= now ? 'now' : ''}"><div class="ev-when"><b>${esc(when(e))}</b><span>${esc(date(e.s))}</span></div>`
+      + `<div class="ev-body"><div class="ev-t">${esc(L(e.title))}</div>${e.place ? `<div class="ev-p">${esc(L(e.place))}</div>` : ''}</div>`
+      + (e.url ? `<button class="news-link" data-url="${esc(e.url)}" title="${esc(t('newsLink'))}" aria-label="${esc(t('newsLink'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>` : '')
+      + '</div>').join('');
+  box.querySelectorAll('[data-url]').forEach(b => b.onclick = () => open(b.dataset.url));
+}
+setInterval(renderEvents, 60000);   // "in 25 min" goes on counting
 const avatar = (url, cls = '') => `<i class="av ${cls}"${url ? ` style="--av:url('${String(url).replace(/['"()\\\s<>&]/g, encodeURIComponent)}')"` : ''}></i>`;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const open = url => url && invoke('open_url', { url }).catch(e => toast(e, true));
@@ -1039,10 +1099,22 @@ function verOpen(on) {
   $('verBtn').classList.toggle('on', on);
 }
 
+// the add-on name in front of the number goes ("lobbystats-0.10.1" -> 0.10.1; the ids got "_r2"/"_r3" on 30.10 and no longer matched)
+const verNum = x => String(x || '').replace(/^[a-z_]+-(?=[0-9])/i, '');
+// what the last check changed, per add-on (siritos 02.11: marked on the add-on itself, not one line for all): new / ver / opts
+const COMP_CHG = {};
+// the Add-ons tab: the installed version, the next one when an update waits, what the last check changed
+function compChips(c) {
+  const inst = verNum(c.installed), next = verNum(c.latest), k = COMP_CHG[c.id];
+  return '<span class="addon-chips">'
+    + (k ? `<span class="chip hot">${esc(t(k === 'new' ? 'chipNew' : k === 'ver' ? 'chipUpdated' : 'chipOpts'))}</span>` : '')
+    + (inst || next ? `<span class="chip" title="${esc(t('addonVer', { v: inst || next }))}">v${esc(inst || next)}</span>` : '')
+    + (inst && next && next !== inst ? `<span class="chip up" title="${esc(t('addonNext', { v: next }))}">→ ${esc(next)}</span>` : '')
+    + '</span>';
+}
 // "Version 0.7.0", plus the one the next update brings
 function compVer(c) {
-  // the add-on name in front of the number goes ("lobbystats-0.10.1" -> 0.10.1; the ids got "_r2"/"_r3" on 30.10 and no longer matched)
-  const v = x => String(x || '').replace(/^[a-z_]+-(?=[0-9])/i, '');
+  const v = verNum;
   return c.installed ? t('addonVer', { v: v(c.installed) }) + (c.latest && c.latest !== c.installed ? ', ' + t('addonNext', { v: v(c.latest) }) : '')
     : c.latest ? t('addonVer', { v: v(c.latest) }) : '';
 }
@@ -1068,11 +1140,11 @@ function compList(box, list, full) {
   const nameHtml = c => { const n = L(c.name) || c.id, m = n.match(/^(.+?)\s*\(([^()]+)\)$/); return m ? `${esc(m[1])}<small>${esc(m[2])}</small>` : esc(n); };
   box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '')
     + list.map(c => `<div class="addon ${c.enabled ? '' : 'off'}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
+      + (full ? compChips(c) : '')
       + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '')
       + (full ? '' : `<button class="qm ${$('pop').dataset.id === c.id ? 'on' : ''}" data-info="${esc(c.id)}" aria-label="${esc(t('addonInfo', { name: L(c.name) || c.id }))}">?</button>`)
       + `<label class="switch"><input type="checkbox" role="switch" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled ? 'checked' : ''} ${lock ? 'disabled' : ''}><i></i></label></div>`
       + (full ? (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
-          + `<div class="addon-ver">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
           + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') : '')
       + (c.enabled && (c.options || []).length ? '<div class="addon-opts">' + optsHtml(c, lock) + '</div>' : '')
       + '</div>').join('');
@@ -1216,16 +1288,31 @@ function render() {
   const news = (cfg.news || []).map(n => ({ date: n.date || '', title: L(n.title), text: L(n.text), url: n.url }))
     .concat((S.release_news || []).map(n => ({ date: n.date, title: n.title, items: n.items || [], url: n.url })))
     .sort((x, y) => String(y.date).localeCompare(String(x.date))).slice(0, 12);
-  $('news').innerHTML = news.map(n => (n.url ? `<a class="news-item" href="#" data-url="${esc(n.url)}">` : '<div class="news-item">')
-    + `<div class="t">${esc(n.title)}</div>` + (n.date ? `<div class="d">${esc(day(n.date))}</div>` : '')
-    + (n.text ? `<div class="x">${esc(n.text)}</div>` : '')
-    + (n.items && n.items.length ? `<ul>${n.items.slice(0, 3).map(x => `<li>${esc(x)}</li>`).join('')}${n.items.length > 3 ? '<li>…</li>' : ''}</ul>` : '')
-    + (n.url ? '</a>' : '</div>')).join('')
-    || `<div class="news-empty">${esc(S.config_loaded ? t('noNews') : t('connecting'))}</div>`;
-  $('news').querySelectorAll('[data-url]').forEach(el => el.onclick = e => { e.preventDefault(); open(el.dataset.url); });
+  // a news item is plain text (siritos 02.11: the whole item as a link led nowhere and cut the text): the link, when
+  // there is one, is an icon next to the title; a long text or list folds open and shut under "Read all / Collapse"
+  const nkey = n => n.date + '|' + n.title;
+  $('news').innerHTML = news.map(n => {
+    const isOpen = NEWS_OPEN.has(nkey(n)), items = n.items || [];
+    return `<div class="news-item ${isOpen ? 'open' : ''}" data-k="${esc(nkey(n))}"><div class="nt"><div class="t">${esc(n.title)}</div>`
+      + (n.url ? `<button class="news-link" data-url="${esc(n.url)}" title="${esc(t('newsLink'))}" aria-label="${esc(t('newsLink'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>` : '')
+      + '</div>' + (n.date ? `<div class="d">${esc(day(n.date))}</div>` : '')
+      + (n.text ? `<div class="x">${esc(n.text)}</div>` : '')
+      + (items.length ? `<ul>${(isOpen ? items : items.slice(0, 3)).map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '')
+      + `<button class="news-fold hidden" data-more="${items.length > 3 ? 1 : 0}">${esc(t(isOpen ? 'newsLess' : 'newsAll'))}</button></div>`;
+  }).join('') || `<div class="news-empty">${esc(S.config_loaded ? t('noNews') : t('connecting'))}</div>`;
+  $('news').querySelectorAll('.news-link').forEach(b => b.onclick = () => open(b.dataset.url));
+  // the fold button only where there is more to read: a text cut at 4 lines, or more than 3 items in the list
+  $('news').querySelectorAll('.news-item').forEach(el => {
+    const x = el.querySelector('.x'), b = el.querySelector('.news-fold');
+    const more = el.classList.contains('open') || b.dataset.more === '1' || (x && x.scrollHeight > x.clientHeight + 1);
+    b.classList.toggle('hidden', !more);
+    b.onclick = () => { const k = el.dataset.k; NEWS_OPEN.has(k) ? NEWS_OPEN.delete(k) : NEWS_OPEN.add(k); render(); };
+  });
   const more = cfg.news_more;
   $('newsMore').classList.toggle('hidden', !more?.url);
   if (more?.url) { $('newsMore').textContent = (L(more.title) || t('allNews')) + ' ›'; $('newsMore').onclick = () => open(more.url); }
+
+  renderEvents();
 
   // links
   const links = cfg.links || [];
@@ -1371,23 +1458,29 @@ async function reload() { S = await invoke('get_status'); render(); }
 // 1.3.13 (owner): "check add-ons for updates" - what the fresh launcher.json changed is told, also after the automatic checks
 const compSnap = cfg => Object.fromEntries(((cfg && cfg.components) || []).map(c => [c.id, { v: c.version, n: L(c.name) || c.id,
   o: ((c.settings && c.settings.length ? c.settings : c.options) || []).map(o => o.id + ':' + (o.choices || []).map(x => x.value).join('/')).join(',') }]));
+// -> [{id, k: new | ver | opts | gone, text}]
 function compDiff(a, b) {
   const out = [];
   for (const id in b) {
-    if (!a[id]) out.push(t('addonNew', { name: b[id].n }));
-    else if (a[id].v !== b[id].v) out.push(t('addonChgVer', { name: b[id].n, from: a[id].v, to: b[id].v }));
-    else if (a[id].o !== b[id].o) out.push(t('addonOpts', { name: b[id].n }));
+    if (!a[id]) out.push({ id, k: 'new', text: t('addonNew', { name: b[id].n }) });
+    else if (a[id].v !== b[id].v) out.push({ id, k: 'ver', text: t('addonChgVer', { name: b[id].n, from: verNum(a[id].v), to: verNum(b[id].v) }) });
+    else if (a[id].o !== b[id].o) out.push({ id, k: 'opts', text: t('addonOpts', { name: b[id].n }) });
   }
-  for (const id in a) if (!b[id]) out.push(t('addonGone', { name: a[id].n }));
+  for (const id in a) if (!b[id]) out.push({ id, k: 'gone', text: t('addonGone', { name: a[id].n }) });
   return out;
 }
 async function refresh() {
   const before = S && S.config ? compSnap(S.config) : null;
-  try { S = await invoke('refresh'); render(); } catch (e) { toast(e, true); return null; }
+  try { S = await invoke('refresh'); } catch (e) { toast(e, true); return null; }
   const changes = before && S.config ? compDiff(before, compSnap(S.config)) : [];
+  changes.forEach(c => { if (c.k !== 'gone') COMP_CHG[c.id] = c.k; });   // the marks on the add-ons stay until the launcher closes
+  render();
   if (changes.length) {
-    const note = $('addonCheckNote'); if (note) note.textContent = t('addonChanged') + ': ' + changes.join('; ');
-    toast(t('addonChanged') + ': ' + changes.join('; '));
+    // the count here and in a toast, what changed is marked on each add-on (a removed one is named: it is not in the list)
+    const gone = changes.filter(c => c.k === 'gone').map(c => c.text);
+    const msg = t('addonChangedN', { n: changes.length }) + (gone.length ? ' · ' + gone.join('; ') : '');
+    const note = $('addonCheckNote'); if (note) note.textContent = msg;
+    toast(msg);
   }
   // add-ons follow their checkboxes on their own: install missing ones, remove unticked ones
   const comps = S.components || [];
@@ -1410,7 +1503,12 @@ async function startUpdate(repair) {
 }
 
 async function doPlay() {
-  try { await invoke('play'); toast(t('starting')); } catch (e) { toast(e, true); }
+  try {
+    const g = await invoke('play') || {};
+    // the check before the start (launch_guard): what was taken out of the game's list, a stray stand-alone loader
+    const said = [(g.off || []).length ? t('guardOff', { list: g.off.join(', ') }) : '', g.loader ? t('guardLoader') : ''].filter(Boolean);
+    toast(said.length ? t('starting') + ' ' + said.join(' ') : t('starting'), !!g.loader);
+  } catch (e) { toast(e, true); }
 }
 
 let netActive = false;

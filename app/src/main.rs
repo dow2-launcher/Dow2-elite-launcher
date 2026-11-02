@@ -748,6 +748,43 @@ fn junk_cleanup(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Va
     json!({"moved": moved, "uninjected": dropped, "backup": bin.display().to_string()})
 }
 
+/// Before every start, after enforce_off / sync_injected (siritos 02.11.2026: nothing left from before may load with the
+/// game): a DLL in InjectedFiles of any *.launchconfig that is neither Elite's own (the installed version's manifest) nor
+/// a file of an add-on that is on comes out of the list - nothing is moved or deleted, "Clean up the junk" does that.
+/// Elite installed by hand (no manifest): nothing is touched, Elite's own DLLs could not be told apart.
+/// -> {off: [names taken out], loader: the stand-alone dow2-patches loader (winmm.dll) is still in the game folder}
+fn launch_guard(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Value {
+    let main = update::Game::new(dir);
+    let base = main.load_state().files;
+    let mut off: Vec<String> = Vec::new();
+    if !base.is_empty() {
+        let mut keep: std::collections::HashSet<String> = base.iter().map(|f| f.path.to_ascii_lowercase()).collect();
+        for c in &cfg.components {
+            if comp_on(dir, c, s) {
+                keep.extend(update::Game::component(dir, &c.id).load_state().files.iter().map(|f| f.path.to_ascii_lowercase()));
+            }
+        }
+        let mut names: Vec<String> = Vec::new();
+        for e in std::fs::read_dir(dir).into_iter().flatten().flatten() {
+            if !e.file_name().to_string_lossy().to_ascii_lowercase().ends_with(".launchconfig") { continue; }
+            let Ok(text) = std::fs::read_to_string(e.path()) else { continue };
+            if let Some(line) = text.lines().find_map(|l| l.strip_prefix("InjectedFiles=")) {
+                for n in line.split(',').map(|x| x.trim()).filter(|x| !x.is_empty()) {
+                    if !names.iter().any(|x| x.eq_ignore_ascii_case(n)) { names.push(n.to_string()); }
+                }
+            }
+        }
+        for n in names {
+            if keep.contains(&format!("elite_dlls/{}", n.to_ascii_lowercase())) { continue; }
+            if let Ok(files) = elite::set_injected_all(dir, &n, false) {
+                for f in files { main.accept_local_edit(&f); }
+            }
+            off.push(n);
+        }
+    }
+    json!({"off": off, "loader": dir.join("winmm.dll").is_file() && dir.join("dow2-patches").is_dir()})
+}
+
 /// Delete the hand-installed copy of a component: its files, their .ini next to them, and the stand-alone
 /// package's loader (winmm.dll + readmes) once its dow2-patches folder has no DLLs left.
 #[tauri::command]
@@ -1136,11 +1173,11 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
 
 /// Start the game. Never blocked by a pending update.
 #[tauri::command]
-fn play(app: State<'_, App>) -> Result<(), String> {
+fn play(app: State<'_, App>) -> Result<Value, String> {
     start_game(&app)
 }
 
-fn start_game(app: &App) -> Result<(), String> {
+fn start_game(app: &App) -> Result<Value, String> {
     if app.busy.load(Ordering::Relaxed) {
         return Err("files are being updated, wait a few seconds".into());
     }
@@ -1152,6 +1189,7 @@ fn start_game(app: &App) -> Result<(), String> {
     enforce_off(&dir, &cfg, &app.settings.lock().unwrap().clone());
     drop_conflicting(&dir, &cfg);
     sync_injected(&dir, &cfg, &app.settings.lock().unwrap().clone());
+    let guard = launch_guard(&dir, &cfg, &app.settings.lock().unwrap().clone());
     elite_core::hotkeys::refresh_if_stale(&app.settings.lock().unwrap().hotkeys);     // a patch brought new defaults
     let mut cmd = match os_name() {
         "windows" => cfg.launch.windows.clone(),
@@ -1180,7 +1218,7 @@ fn start_game(app: &App) -> Result<(), String> {
     let mut c = std::process::Command::new(&program);
     c.args(cmd.args.iter().map(|a| sub(a))).current_dir(&game);
     match c.spawn() {
-        Ok(_) => Ok(()),
+        Ok(_) => Ok(guard),
         // 740 = программа требует прав администратора (Elite.exe так помечен). Обычный запуск такого не умеет,
         // а оболочка Windows умеет: `start` показывает обычный запрос UAC и задаёт рабочую папку.
         #[cfg(windows)]
@@ -1189,7 +1227,7 @@ fn start_game(app: &App) -> Result<(), String> {
             let mut sh = std::process::Command::new("cmd");
             sh.args(["/C", "start", "", "/D", &game, &program]).args(cmd.args.iter().map(|a| sub(a)));
             sh.creation_flags(0x0800_0000); // CREATE_NO_WINDOW — без мигающей консоли
-            sh.spawn().map(|_| ()).map_err(|e2| format!("cannot start {program} as administrator: {e2}"))
+            sh.spawn().map(|_| guard).map_err(|e2| format!("cannot start {program} as administrator: {e2}"))
         }
         Err(e) => Err(format!("cannot start {program}: {e}")),
     }
@@ -1831,6 +1869,31 @@ mod junk_tests {
         assert!(lc.contains("MMFind.dll") && lc.contains("MiscFixes.dll") && !lc.contains("Relay.dll"), "{lc}");
         let bin = std::path::PathBuf::from(r["backup"].as_str().unwrap());
         assert!(bin.join("dow2-patches").join("ReinforceFix.dll").is_file() && bin.join("Elite_DLLs").join("Relay.dll").is_file(), "kept in the backup");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn launch_guard_unloads_what_is_not_ours() {
+        let d = std::env::temp_dir().join(format!("guard_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        for p in ["Elite_DLLs", ".elite_launcher"] { std::fs::create_dir_all(d.join(p)).unwrap(); }
+        for f in ["Elite_DLLs/MiscFixes.dll", "Elite_DLLs/MMFind.dll", "Elite_DLLs/Old.dll"] { std::fs::write(d.join(f), b"x").unwrap(); }
+        std::fs::write(d.join("Elite.launchconfig"), "IsRetribution=true\nInjectedFiles=MiscFixes.dll, Old.dll, MMFind.dll, Gone.dll\n").unwrap();
+        std::fs::write(d.join("Elite_Test.launchconfig"), "InjectedFiles=Old.dll\n").unwrap();
+        std::fs::write(d.join(".elite_launcher/state.json"), r#"{"files":[{"path":"Elite_DLLs/MiscFixes.dll","size":1,"mtime":0,"sha":""}]}"#).unwrap();
+        std::fs::write(d.join(".elite_launcher/component-automatch.json"), r#"{"version":"mmfind-0.32","files":[{"path":"Elite_DLLs/MMFind.dll","size":1,"mtime":0,"sha":""}]}"#).unwrap();
+        let mut cfg = LauncherConfig::default();
+        cfg.components = vec![elite_core::config::Component { id: "automatch".into(), inject: "MMFind.dll".into(), default: true, ..Default::default() }];
+        let r = launch_guard(&d, &cfg, &Settings::default());
+        let lc = std::fs::read_to_string(d.join("Elite.launchconfig")).unwrap();
+        assert!(lc.contains("MiscFixes.dll") && lc.contains("MMFind.dll") && !lc.contains("Old.dll") && !lc.contains("Gone.dll"), "{lc}");
+        assert!(!std::fs::read_to_string(d.join("Elite_Test.launchconfig")).unwrap().contains("Old.dll"), "every launch config");
+        assert!(d.join("Elite_DLLs/Old.dll").is_file(), "nothing is moved or deleted");
+        assert_eq!(r["off"].as_array().unwrap().len(), 2, "{r}");
+        // Elite installed by hand: no manifest, nothing touched
+        std::fs::remove_file(d.join(".elite_launcher/state.json")).unwrap();
+        std::fs::write(d.join("Elite.launchconfig"), "InjectedFiles=MiscFixes.dll, Old.dll\n").unwrap();
+        assert!(launch_guard(&d, &cfg, &Settings::default())["off"].as_array().unwrap().is_empty());
         let _ = std::fs::remove_dir_all(&d);
     }
 }

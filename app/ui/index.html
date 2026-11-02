@@ -16,7 +16,7 @@
 
   <main id="home" class="view home">
     <aside class="col">
-      <section class="panel me-box hidden" id="meBox"></section>
+      <section class="panel ev-box hidden" id="evBox"></section>
       <section class="panel news-panel">
         <div class="h" data-t="news"></div>
         <div id="news" class="news-list"></div>
@@ -52,6 +52,7 @@
     </section>
 
     <aside class="col">
+      <section class="panel me-box hidden" id="meBox"></section>
       <section class="panel on-box" id="onBox">
         <div class="h"><span data-t="online"></span><span class="on-total" id="onTotal"></span></div>
         <div class="on-groups" id="onGroups"></div>
@@ -76,8 +77,8 @@
 
   <main id="addons" class="view hidden">
     <section class="panel addons-page">
-      <div class="h" data-t="components"></div>
-      <div class="row addon-check"><button class="btn" id="addonCheck" data-t="addonCheck"></button><span class="note" id="addonCheckNote"></span></div>
+      <div class="h hk-head addons-head"><span data-t="components"></span><span class="hk-note" id="addonCheckNote"></span><div class="hk-act"><button class="btn small" id="addonCheck" data-t="addonCheck"></button></div></div>
+      <div class="note addons-later" data-t="addonsLaterAll"></div>
       <div class="addon-all" id="allCompList"></div>
     </section>
   </main>
@@ -106,7 +107,7 @@
       <label data-t="repairTitle"></label>
       <div class="row"><button class="btn" id="repair" data-t="repair"></button><span class="note" data-t="repairNote"></span></div>
       <label data-t="junkTitle"></label>
-      <div class="row"><button class="btn" id="junk" data-t="junk"></button><span class="note" data-t="junkNote"></span></div>
+      <div class="row"><button class="btn red" id="junk" data-t="junk"></button><span class="note" data-t="junkNote"></span></div>
       <label data-t="diagTitle"></label>
       <div class="row"><input id="diagName" data-tp="diagName"><button class="btn gold" id="sendLogs" data-t="sendLogs"></button></div>
       <div class="note" data-t="sendLogsNote"></div>
