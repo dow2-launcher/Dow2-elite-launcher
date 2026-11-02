@@ -1,0 +1,7 @@
+- Players: a click on a player's name or avatar (Online, chat, rooms, your own card) opens a menu - mention in the chat, the player's stats, the Steam profile. In the chat a click on a name still mentions the player.
+- Online and the chat come from the ladder server by one live stream instead of asking every few seconds; with an older server the launcher reads Online the old way.
+- Chat: General, RU and EN are one chat in three languages; your message shows at once and turns normal when the server has it; unread counters on the tabs.
+- Servers: the launcher picks the mirror and the server that answer best from your computer (checked at the start and again only when one stops answering), for downloads, the chat and its own updates. Settings - Servers shows them.
+- Home: an events banner above the news; the news fold open; the links are icons at the bottom; your stats next to the sign-out.
+- Add-ons: in groups that fold; add-ons taken away from everyone are hidden; add-ons gone from the catalog are cleaned up from the game folder; before a start the launcher says what it turned off.
+- Rooms: the cards fill the window by its width.
