@@ -1,0 +1,2 @@
+- Linux: Play starts Elite through the same Proton Steam uses for the game (GE-Proton too) - no more editing the Steam launch options; Steam is started first if it is not running.
+- Linux: Send logs and the hotkeys find the game's Documents inside its Proton prefix.

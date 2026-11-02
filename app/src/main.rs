@@ -1144,7 +1144,9 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
             take(d.clone(), 0, &["log", "txt", "dmp", "mdmp", "launchconfig"], 7, 20, &mut files);
         }
         take(data_dir(), 0, &["log", "old"], 30, 4, &mut files);   // the launcher's own: community.log (Steam sign-in, chat)
-        if let Some(doc) = dirs::document_dir() {
+        // Linux under Proton: the game's Documents are inside its prefix (compatdata/56400/pfx/.../steamuser/Documents)
+        let doc = dir.as_ref().and_then(|d| elite_core::proton::prefix_documents(d, 56400)).or_else(elite_core::game::documents_dir);
+        if let Some(doc) = doc {
             take(doc.join("My Games").join("Dawn of War II - Retribution"), 3, &["txt", "log", "dmp", "mdmp", "xml", "ini"], 3, 40, &mut files);
         }
         // дампы и отчёты Windows (WER) о падениях игры
@@ -1315,6 +1317,23 @@ fn start_game(app: &App) -> Result<Value, String> {
         let v = x.replace("{game}", &game);
         if cfg!(windows) { v.replace('/', "\\") } else { v }
     };
+    // Linux: `steam -applaunch 56400` starts plain DOW2.exe under Proton (vanilla, not Elite). Run Elite.exe (or the
+    // version's own exe) through the Proton Steam uses for the game instead; anything missing -> the old way + the hint.
+    #[cfg(target_os = "linux")]
+    if cmd.program == "steam" && cmd.args.iter().any(|a| a == "-applaunch") {
+        let exe_name = cfg.channels.iter().find(|c| c.id == installed.channel && c.version == installed.version)
+            .map(|c| c.exe.clone()).filter(|e| !e.is_empty()).unwrap_or_else(|| "Elite.exe".into());
+        let exe = dir.join(&exe_name);
+        match elite_core::proton::plan(&dir, cfg.game.steam_appid) {
+            Ok(run) if exe.is_file() => {
+                ensure_steam_running();
+                c_log(&format!("launch: {} run {} (prefix {})", run.proton.display(), exe.display(), run.compat_data.display()));
+                return run.command(&exe, &[], &dir).spawn().map(|_| ()).map_err(|e| format!("cannot start {} through Proton: {e}", exe_name));
+            }
+            Ok(_) => c_log(&format!("launch: {} not in the game folder - steam -applaunch", exe_name)),
+            Err(e) => c_log(&format!("launch: no Proton run ({e}) - steam -applaunch")),
+        }
+    }
     let program = sub(&cmd.program);
     let mut c = std::process::Command::new(&program);
     c.args(cmd.args.iter().map(|a| sub(a))).current_dir(&game);
@@ -1332,6 +1351,17 @@ fn start_game(app: &App) -> Result<Value, String> {
         }
         Err(e) => Err(format!("cannot start {program}: {e}")),
     }
+}
+
+/// Linux: DoW2's Steam login goes through the Steam client, which must be running before the game starts under Proton.
+#[cfg(target_os = "linux")]
+fn ensure_steam_running() {
+    let running = || std::process::Command::new("pgrep").args(["-x", "steam"]).output().map(|o| o.status.success()).unwrap_or(false)
+        || std::process::Command::new("pgrep").args(["-f", "steamwebhelper"]).output().map(|o| o.status.success()).unwrap_or(false);
+    if running() { return; }
+    c_log("launch: Steam is not running - starting it");
+    let _ = std::process::Command::new("steam").arg("-silent").spawn();
+    for _ in 0..40 { std::thread::sleep(std::time::Duration::from_millis(500)); if running() { std::thread::sleep(std::time::Duration::from_secs(5)); return; } }
 }
 
 // ---------- Feedback chat with the developers ----------
