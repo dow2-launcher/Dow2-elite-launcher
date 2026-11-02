@@ -1177,6 +1177,9 @@ const COMP_CATS = ['network', 'interface', 'gameplay', 'experiment', 'other'];
 const COMP_CAT_BY_ID = { relay: 'network', automatch: 'network', lobbystats: 'interface', loadingratings: 'interface', matchtimer: 'interface',
   cooldowns: 'interface', reverse: 'gameplay', obsfix: 'gameplay', netprobe: 'experiment', ownlobby: 'experiment' };
 const compCat = c => COMP_CATS.includes(c.category) ? c.category : COMP_CAT_BY_ID[String(c.id).replace(/_(r\d+|off)$/, '')] || 'other';
+// the groups the player folded (only a convenience: without storage everything is open)
+const COMP_SHUT = new Set();
+try { JSON.parse(localStorage.getItem('compShut') || '[]').forEach(k => COMP_SHUT.add(k)); } catch (e) {}
 // an add-on taken away from everyone (its version "...-off": the old AI, the developers' diagnostics) is not shown at all
 const compShown = c => !/(^|-)off$/i.test(String(c.latest || ''));
 // add-on rows: a switch each and its own options under it once it is on; the details behind "?" on the home screen,
@@ -1198,8 +1201,16 @@ function compList(box, list, full) {
   // the Add-ons tab in groups (siritos 02.11): launcher.json "category" when the owner sets it, else by the add-on id
   const groups = full ? COMP_CATS.map(k => ({ k, list: list.filter(c => compCat(c) === k) })).filter(g => g.list.length) : null;
   box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '')
-    + (full ? groups.map(g => `<div class="addon-group"><div class="addon-gh">${esc(t('cat_' + g.k))}</div><div class="addon-cols">${g.list.map(card).join('')}</div></div>`).join('')
+    // a group folds on a click on its heading (kept for the next start); the heading says how many are on: "2 / 4"
+    + (full ? groups.map(g => { const shut = COMP_SHUT.has(g.k), on = g.list.filter(c => c.enabled).length;
+        return `<div class="addon-group ${shut ? 'shut' : ''}"><button class="addon-gh" data-cat="${g.k}" aria-expanded="${!shut}"><b class="chev"></b>${esc(t('cat_' + g.k))}<span>${on} / ${g.list.length}</span></button>`
+          + (shut ? '' : `<div class="addon-cols">${g.list.map(card).join('')}</div>`) + '</div>'; }).join('')
       : list.map(card).join(''));
+  box.querySelectorAll('.addon-gh[data-cat]').forEach(b => b.onclick = () => {
+    COMP_SHUT.has(b.dataset.cat) ? COMP_SHUT.delete(b.dataset.cat) : COMP_SHUT.add(b.dataset.cat);
+    try { localStorage.setItem('compShut', JSON.stringify([...COMP_SHUT])); } catch (e) {}
+    render();
+  });
   box.querySelectorAll('.qm').forEach(b => b.onclick = e => { e.stopPropagation(); popAddon(b, list.find(c => c.id === b.dataset.info)); });
   box.querySelectorAll('input[data-opt]').forEach(cb => cb.onchange = () =>
     invoke('set_comp_option', { comp: cb.dataset.comp, opt: cb.dataset.opt, on: cb.checked }).then(reload).catch(e => toast(e, true)));

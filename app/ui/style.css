@@ -311,9 +311,9 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
    the options of an add-on that is on in an inset block, the labels of the lists in one column */
 /* cards in columns of at least 440 px - one in a small window, two or three on a big one; a card is never split */
 .addon-all{flex:1;min-height:0;overflow:auto;margin:0 -14px;padding:0 14px 6px}
-.addon-cols{columns:440px;column-gap:10px}   /* the columns inside, the scroll outside: a fixed height would push columns sideways */
-.addon-cols>.addon-note{column-span:all;margin-bottom:8px}
-.addon-all .addon{break-inside:avoid;margin:0 0 10px;border:1px solid var(--line);border-top:1px solid var(--line);background:linear-gradient(#1b1712,#14110d);padding:10px 14px 12px}
+/* a grid, row by row from the left (siritos 02.11: the columns put a lone card in the middle); cards keep their own height */
+.addon-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:10px;align-items:start}
+.addon-all .addon{margin:0;border:1px solid var(--line);border-top:1px solid var(--line);background:linear-gradient(#1b1712,#14110d);padding:10px 14px 12px}
 .addon-all .addon:not(.off){border-color:var(--line2)}
 .addon-all .addon.off{background:rgba(0,0,0,.08)}
 .addon-all .addon-row{gap:10px}
@@ -522,7 +522,13 @@ footer:has(#statusText:empty) .foot-links{display:flex}
 
 /* the Add-ons tab in groups: a heading per group, the group's cards in columns */
 .addon-group+.addon-group{margin-top:14px}
-.addon-gh{display:flex;align-items:center;gap:10px;margin:2px 0 8px;font:700 11px Cinzel,serif;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase}
+/* the group heading folds the group: an arrow, the name, how many are on, the line */
+.addon-gh{display:flex;align-items:center;gap:10px;width:100%;margin:2px 0 8px;padding:4px 0;border:0;background:none;font:700 11px Cinzel,serif;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase;cursor:pointer;text-align:left}
+.addon-gh:hover{color:var(--gold2)}
+.addon-gh span{order:2;font:600 11px Spectral,serif;letter-spacing:0;color:var(--dim)}
+.addon-gh .chev{flex:none;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin:0 2px 3px}
+.addon-group.shut .addon-gh .chev{transform:rotate(-45deg);margin-bottom:0}
+.addon-group.shut .addon-gh{margin-bottom:0}
 .addon-gh::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent)}
 .addon-all>.addon-note{margin-bottom:10px}
 /* room between an add-on's text and its options, and between the options themselves (siritos 02.11: nothing sticks) */
