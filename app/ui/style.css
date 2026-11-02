@@ -23,8 +23,9 @@ nav{margin-left:auto;display:flex;gap:4px}
 
 /* panels */
 .view{flex:1;min-height:0;padding:14px 16px;overflow:hidden}
-/* the chat grows up to 820 px, then the sides take the room (siritos 02.11): left up to 380, right up to 460; centred */
-.home{display:grid;grid-template-columns:minmax(240px,380px) minmax(460px,820px) minmax(300px,460px);justify-content:center;gap:14px}
+/* the sides: 240 / 300 px up to a 1200 px window, growing to 380 / 460 at 1600 (the sizes of a big window, siritos 02.11);
+   the chat takes the rest */
+.home{display:grid;grid-template-columns:clamp(240px,calc(240px + (100vw - 1200px) * .35),380px) minmax(0,1fr) clamp(300px,calc(300px + (100vw - 1200px) * .4),460px);gap:14px}
 .col{display:flex;flex-direction:column;gap:12px;min-height:0;min-width:0}
 .panel{border:1px solid var(--line);background:linear-gradient(#1a1611,#13100c);padding:12px 14px}
 .h{font:700 12px Cinzel,serif;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:10px}
@@ -51,28 +52,33 @@ nav{margin-left:auto;display:flex;gap:4px}
 .news-item li{margin:2px 0}
 .news-empty{color:var(--muted);font-size:13px;padding:6px 0}
 /* the nearest events above the news: when (how soon + the date), what, where */
-/* the events: one card at a time, as high as the player card; the date first; the arrows and dots to go on */
-.ev-box{flex:none;padding:8px 12px 10px;border-color:var(--line2);background:linear-gradient(#231c12,#15110c);overflow:hidden}
-.ev-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+/* the events (siritos 02.11): one readable card at a time - the date, the title large on up to two lines, the day and
+   the time, the place; big buttons on both sides to go on; "1 / 3" in the heading */
+.ev-box{flex:none;padding:8px 6px 10px;border-color:var(--line2);background:linear-gradient(#231c12,#15110c);overflow:hidden}
+.ev-head{display:flex;align-items:center;gap:8px;margin:0 8px 6px}
 .ev-h{flex:1;font:700 11px Cinzel,serif;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase}
-.ev-nav{display:flex;align-items:center;gap:5px}
-.ev-arr{width:18px;height:18px;padding:0;border:0;background:none;color:var(--muted);font:700 15px/18px Spectral,serif;cursor:pointer}
-.ev-arr:hover{color:var(--gold2)}
-.ev-dot{width:6px;height:6px;padding:0;border:0;border-radius:50%;background:var(--line2);cursor:pointer}
-.ev-dot.on{background:var(--gold2)}
-.ev-view{overflow:hidden;touch-action:pan-y;user-select:none}
+.ev-count{font-size:11px;color:var(--dim)}
+.ev-stage{display:flex;align-items:stretch;gap:2px}
+.ev-side{flex:none;width:28px;display:grid;place-items:center;padding:0;border:1px solid transparent;background:rgba(0,0,0,.18);color:var(--muted);cursor:pointer}
+.ev-side svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ev-side:hover,.ev-side:focus-visible{color:var(--gold2);border-color:var(--line2);background:rgba(212,175,85,.08)}
+.ev-view{flex:1;min-width:0;overflow:hidden;touch-action:pan-y;user-select:none}
 .ev-track{display:flex;transition:transform .25s ease}
 @media (prefers-reduced-motion:reduce){.ev-track{transition:none}}
-.ev-card{flex:0 0 100%;display:flex;align-items:center;gap:10px;min-width:0}
-.ev-date{flex:none;width:46px;height:46px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--brass);background:rgba(0,0,0,.25);line-height:1}
-.ev-date b{font:700 19px Cinzel,serif;color:var(--gold2)}
-.ev-date span{margin-top:2px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+.ev-card{flex:0 0 100%;display:flex;align-items:flex-start;gap:10px;min-width:0;padding:2px 6px}
+.ev-date{flex:none;width:48px;padding:5px 0 4px;display:flex;flex-direction:column;align-items:center;border:1px solid var(--brass);background:rgba(0,0,0,.25);line-height:1}
+.ev-date b{font:700 22px Cinzel,serif;color:var(--gold2)}
+.ev-date span{margin-top:3px;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
 .ev-body{flex:1;min-width:0}
-.ev-when{font-size:11px;color:var(--soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-t{font:700 15px/1.25 Spectral,serif;color:var(--bone);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ev-when{margin-top:3px;font-size:12px;color:var(--soft)}
+.ev-when::first-letter{text-transform:uppercase}
 .ev-tag{display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;background:#5a4519;color:var(--gold2);font:600 10px/15px Spectral,serif;vertical-align:1px}
 .ev-tag.now{background:#33461f;color:#c9e59e}
-.ev-t{font:600 13px/1.3 Spectral,serif;color:var(--bone);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ev-p{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-p{margin-top:1px;font-size:12px;color:var(--muted)}
+/* a narrow left column (small window): smaller buttons and date, more room for the title */
+.ev-box{container-type:inline-size}
+@container (max-width:290px){.ev-side{width:20px}.ev-side svg{width:16px;height:16px}.ev-date{width:38px}.ev-date b{font-size:17px}.ev-card{gap:7px;padding:2px 3px}.ev-t{font-size:14px}}
 .more{display:block;width:calc(100% + 28px);margin:0 -14px;padding:9px 14px;text-align:left;background:none;border:0;border-top:1px solid var(--sep);color:#e2c06a;font-size:13px}
 .more:hover{color:var(--gold2)}
 .links{display:flex;flex-wrap:wrap;gap:6px}

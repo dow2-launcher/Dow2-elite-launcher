@@ -1069,23 +1069,23 @@ function renderEvents() {
   box.classList.toggle('hidden', !list.length);
   if (!list.length) return;
   EV.n = list.length; EV.i = Math.min(EV.i, EV.n - 1);
+  // siritos 02.11: the card must say what and when - the title large (two lines), the day, the time from - to, the place;
+  // big buttons on the sides to go to the next one
   const mins = e => Math.max(1, Math.round((e.s - now) / 60000));
   const soonTag = e => e.s <= now ? `<span class="ev-tag now">${esc(t('evNow'))}</span>`
     : e.s - now < 2 * 3600000 ? `<span class="ev-tag">${esc(mins(e) < 60 ? t('evInM', { n: mins(e) }) : t('evInH', { n: Math.round(mins(e) / 60) }))}</span>` : '';
-  const d = ms => new Date(ms);
-  const card = e => `<div class="ev-card"><div class="ev-date"><b>${d(e.s).getDate()}</b><span>${esc(d(e.s).toLocaleDateString(lang, { month: 'short' }))}</span></div>`
-    + `<div class="ev-body"><div class="ev-when">${esc(d(e.s).toLocaleDateString(lang, { weekday: 'long' }))}, ${esc(d(e.s).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }))}${soonTag(e)}</div>`
-    + `<div class="ev-t" title="${esc(L(e.title))}">${esc(L(e.title))}</div>${e.place ? `<div class="ev-p">${esc(L(e.place))}</div>` : ''}</div>`
+  const d = ms => new Date(ms), hm = ms => d(ms).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
+  const card = e => `<div class="ev-card"><div class="ev-date"><b>${d(e.s).getDate()}</b><span>${esc(d(e.s).toLocaleDateString(lang, { month: 'short' }).replace('.', ''))}</span></div>`
+    + `<div class="ev-body"><div class="ev-t" title="${esc(L(e.title))}">${esc(L(e.title))}</div>`
+    + `<div class="ev-when">${esc(d(e.s).toLocaleDateString(lang, { weekday: 'long' }))}, ${esc(hm(e.s))}${e.end && e.e > e.s ? ' – ' + esc(hm(e.e)) : ''}${soonTag(e)}</div>`
+    + (e.place ? `<div class="ev-p">${esc(L(e.place))}</div>` : '') + '</div>'
     + (e.url ? `<button class="news-link" data-url="${esc(e.url)}" title="${esc(t('newsLink'))}" aria-label="${esc(t('newsLink'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>` : '')
     + '</div>';
-  const nav = EV.n > 1 ? `<div class="ev-nav"><button class="ev-arr" data-d="-1" aria-label="‹">‹</button>`
-    + list.map((_, i) => `<button class="ev-dot ${i === EV.i ? 'on' : ''}" data-i="${i}" aria-label="${i + 1}"></button>`).join('')
-    + `<button class="ev-arr" data-d="1" aria-label="›">›</button></div>` : '';
-  box.innerHTML = `<div class="ev-head"><span class="ev-h">${esc(t('evTitle'))}</span>${nav}</div>`
-    + `<div class="ev-view"><div class="ev-track" style="transform:translateX(-${EV.i * 100}%)">${list.map(card).join('')}</div></div>`;
+  const side = dir => EV.n > 1 ? `<button class="ev-side" data-d="${dir}" aria-label="${dir < 0 ? '‹' : '›'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${dir < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>` : '';
+  box.innerHTML = `<div class="ev-head"><span class="ev-h">${esc(t('evTitle'))}</span>${EV.n > 1 ? `<span class="ev-count">${EV.i + 1} / ${EV.n}</span>` : ''}</div>`
+    + `<div class="ev-stage">${side(-1)}<div class="ev-view"><div class="ev-track" style="transform:translateX(-${EV.i * 100}%)">${list.map(card).join('')}</div></div>${side(1)}</div>`;
   const go = i => { EV.i = (i + EV.n) % EV.n; renderEvents(); };
-  box.querySelectorAll('.ev-arr').forEach(b => b.onclick = () => go(EV.i + Number(b.dataset.d)));
-  box.querySelectorAll('.ev-dot').forEach(b => b.onclick = () => go(Number(b.dataset.i)));
+  box.querySelectorAll('.ev-side').forEach(b => b.onclick = () => go(EV.i + Number(b.dataset.d)));
   box.querySelectorAll('[data-url]').forEach(b => b.onclick = () => open(b.dataset.url));
   // a swipe (mouse or touch) to the side: the next / the previous
   const view = box.querySelector('.ev-view'); let x0 = null;
@@ -2052,8 +2052,8 @@ function chRender(force, older) {
   };
   const sent = list.map(m => row(m, '', '')).join('');   // first: the day headings run on into the queue
   // ours not confirmed yet stay at the bottom: a clock while sending, "Not sent · Retry · Delete" when it failed
-  const out = CH.out.filter(o => chKey(o.room) === key).map(o => row({ ts: o.ts, steam: mine, name: me ? me.name : '', avatar: me ? me.avatar : '', orig: o.text }, o.state === 'failed' ? 'failed' : 'sending',
-    o.state === 'failed' ? `<span class="ch-fail">${esc(t('chNotSent'))} · <button data-retry="${esc(o.cid)}">${esc(t('chRetry'))}</button> · <button data-drop="${esc(o.cid)}">${esc(t('chDelete'))}</button></span>`
+  const out = CH.out.filter(o => chKey(o.room) === key).map(o => row({ ts: o.ts, steam: mine, name: me ? me.name : '', avatar: me ? me.avatar : '', orig: o.text }, o.state === 'failed' ? 'failed' : o.state === 'sent' ? '' : 'sending',
+    o.state === 'sent' ? '' : o.state === 'failed' ? `<span class="ch-fail">${esc(t('chNotSent'))} · <button data-retry="${esc(o.cid)}">${esc(t('chRetry'))}</button> · <button data-drop="${esc(o.cid)}">${esc(t('chDelete'))}</button></span>`
       : `<span class="ch-wait" title="${esc(t('chSending'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>`));
   const html = sent + out.join('');
   box.innerHTML = html || `<div class="ch-empty">${esc(t('chEmpty'))}</div>`;
@@ -2101,11 +2101,18 @@ async function chPump() {
       if (!CH.out.includes(o)) continue;                      // deleted, or confirmed by the stream meanwhile
       if (r.ok && r.msg) { CH.out = CH.out.filter(x => x !== o); chPut(chKey(o.room), [r.msg]); }
       else if (r.ok) {
-        // accepted, but the answer has no message (an older server): it stays grey until it comes back from the server -
-        // asked for at once, not at the next poll (siritos 02.11: it blinked out and came back seconds later)
-        o.state = 'sent'; o.id = r.id || 0; chOutSave(); chRender();
+        // accepted, the answer has no message (an older server): the copy is not dropped - it just turns normal at once
+        // (siritos 02.11: it blinked out and came back seconds later); the server's copy takes its place quietly
+        const me = CH.me || {};
+        if (r.id) {
+          CH.out = CH.out.filter(x => x !== o);
+          chPut(chKey(o.room), [{ id: r.id, room: o.room, steam: me.steam, name: me.name, avatar: me.avatar, text: o.text, orig: o.text, ts: o.ts, cid: o.cid }]);
+          chOutSave(); chRender();
+          continue;
+        }
+        o.state = 'sent'; chOutSave(); chRender();
         await chLoad(chKey(o.room), 'new');
-        setTimeout(() => { if (CH.out.includes(o) && o.state === 'sent') { CH.out = CH.out.filter(x => x !== o); chOutSave(); chRender(); } }, 60000);
+        setTimeout(() => { if (CH.out.includes(o) && o.state === 'sent') { CH.out = CH.out.filter(x => x !== o); chOutSave(); chRender(); } }, 300000);
         continue;
       }
       else if (r.retry_after) await chSleep(r.retry_after);    // too fast: wait as long as the server says
