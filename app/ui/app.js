@@ -186,7 +186,7 @@ const T = {
     "addonChangedN": "Add-ons changed: {n} - marked below",
     "chipNew": "new", "chipUpdated": "updated", "chipOpts": "settings changed",
     "newsAll": "Read all", "newsLess": "Collapse", "newsLink": "Open the link",
-    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Servers", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_experiment": "Experiments", "cat_other": "Other", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_experiment": "Experiments", "cat_other": "Other", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher",
@@ -395,7 +395,7 @@ const T = {
     "addonChangedN": "Изменилось дополнений: {n} — отмечены в списке",
     "chipNew": "новое", "chipUpdated": "обновлено", "chipOpts": "изменились настройки",
     "newsAll": "Читать полностью", "newsLess": "Свернуть", "newsLink": "Открыть ссылку",
-    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Серверы", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_experiment": "Эксперименты", "cat_other": "Другое", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
+    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_experiment": "Эксперименты", "cat_other": "Другое", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер",
@@ -599,7 +599,7 @@ const T = {
     "addonChangedN": "Complementos cambiados: {n} — marcados abajo",
     "chipNew": "nuevo", "chipUpdated": "actualizado", "chipOpts": "ajustes cambiados",
     "newsAll": "Leer todo", "newsLess": "Contraer", "newsLink": "Abrir el enlace",
-    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Servidores", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_experiment": "Experimentos", "cat_other": "Otros", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
+    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_experiment": "Experimentos", "cat_other": "Otros", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
     "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher",
@@ -803,7 +803,7 @@ const T = {
     "addonChangedN": "Modules modifiés : {n} — marqués ci-dessous",
     "chipNew": "nouveau", "chipUpdated": "mis à jour", "chipOpts": "réglages modifiés",
     "newsAll": "Tout lire", "newsLess": "Réduire", "newsLink": "Ouvrir le lien",
-    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Serveurs", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_experiment": "Expériences", "cat_other": "Autres", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
+    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_experiment": "Expériences", "cat_other": "Autres", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
     "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher",
@@ -1007,7 +1007,7 @@ const T = {
     "addonChangedN": "Geänderte Erweiterungen: {n} — unten markiert",
     "chipNew": "neu", "chipUpdated": "aktualisiert", "chipOpts": "Einstellungen geändert",
     "newsAll": "Alles lesen", "newsLess": "Einklappen", "newsLink": "Link öffnen",
-    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Server", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_experiment": "Experimente", "cat_other": "Sonstiges", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_experiment": "Experimente", "cat_other": "Sonstiges", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
     "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren",
@@ -1040,6 +1040,14 @@ const T = {
 
 let S = null;          // last status from Rust
 let lang = 'en';
+// the system's language (WebView2 takes the Windows display language): the first of ours among the preferred ones, else en
+const LANG_NAMES = { en: 'English', ru: 'Русский', es: 'Español', fr: 'Français', de: 'Deutsch' };
+function sysLang() {
+  for (const l of (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'])) {
+    const c = String(l).slice(0, 2).toLowerCase(); if (LANG_NAMES[c]) return c;
+  }
+  return 'en';
+}
 let prog = null;       // last progress event
 
 const t = (k, vars = {}) => (T[lang][k] || T.en[k] || k).replace(/\{(\w+)\}/g, (_, v) => vars[v] ?? '');
@@ -1101,9 +1109,9 @@ function renderEvents() {
   const info = e => { const i = e.info, arr = Array.isArray(i) ? i : (i && typeof i === 'object' ? (i[lang] || i.en || []) : []);
     return (arr.length ? arr : e.place ? [L(e.place)] : []).slice(0, 3); };
   const card = e => `<div class="ev-card"><div class="ev-date"><b>${d(e.s).getDate()}</b><span>${esc(d(e.s).toLocaleDateString(lang, { month: 'short' }).replace('.', ''))}</span><i>${esc(hm(e.s))}</i></div>`
-    + `<div class="ev-body"><div class="ev-t"><span title="${esc(L(e.title))}">${esc(L(e.title))}</span>${soonTag(e)}</div>`
+    + `<div class="ev-body"><div class="ev-t"><span title="${esc(L(e.title))}">${esc(L(e.title))}</span>${soonTag(e)}`
+    + (e.url ? `<button class="news-link ev-link" data-url="${esc(e.url)}" title="${esc(t('newsLink'))}" aria-label="${esc(t('newsLink'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>` : '') + '</div>'
     + (info(e).length ? `<ul class="ev-info">${info(e).map(x => `<li title="${esc(x)}">${esc(x)}</li>`).join('')}</ul>` : '') + '</div>'
-    + (e.url ? `<button class="news-link" data-url="${esc(e.url)}" title="${esc(t('newsLink'))}" aria-label="${esc(t('newsLink'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>` : '')
     + '</div>';
   const side = dir => EV.n > 1 ? `<button class="ev-side" data-d="${dir}" aria-label="${dir < 0 ? '‹' : '›'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${dir < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>` : '';
   box.innerHTML = `<div class="ev-head"><span class="ev-h">${esc(t('evTitle'))}</span>${EV.n > 1 ? `<span class="ev-count">${EV.i + 1} / ${EV.n}</span>` : ''}</div>`
@@ -1175,7 +1183,7 @@ function optsHtml(c, lock) {
 // "_r2"/"_r3" ends of the ids left out)
 const COMP_CATS = ['network', 'interface', 'gameplay', 'experiment', 'other'];
 const COMP_CAT_BY_ID = { relay: 'network', automatch: 'network', lobbystats: 'interface', loadingratings: 'interface', matchtimer: 'interface',
-  cooldowns: 'interface', reverse: 'gameplay', obsfix: 'gameplay', netprobe: 'experiment', ownlobby: 'experiment' };
+  cooldowns: 'interface', reverse: 'gameplay', obsfix: 'gameplay', netprobe: 'network', ownlobby: 'network' };
 const compCat = c => COMP_CATS.includes(c.category) ? c.category : COMP_CAT_BY_ID[String(c.id).replace(/_(r\d+|off)$/, '')] || 'other';
 // the groups the player folded (only a convenience: without storage everything is open)
 const COMP_SHUT = new Set();
@@ -1328,7 +1336,8 @@ function syncTrayLabels() {
 }
 
 function render() {
-  lang = S.lang || 'ru';                     // Russian unless the player picked another language in Settings
+  // the player's pick in Settings; none - the system's language (siritos 02.11), English when we have no translation
+  lang = S.lang || sysLang();
   if (!T[lang]) lang = 'en';
   document.documentElement.lang = lang;
   syncTrayLabels();
@@ -1360,7 +1369,7 @@ function render() {
   const posts = (cfg.news || []).map(n => ({ date: n.date || '', title: L(n.title), text: L(n.text), url: /^https?:\/\//.test(n.url || '') && !/^https?:\/\/[^/]+\/elite\/?$/.test(n.url) ? n.url : '' }));
   const told = new Set(posts.map(p => verOf(p.title).join('.')).filter(Boolean));
   const rel = (S.release_news || []).filter(n => !(n.kind !== 'patches' && told.has(verOf(n.version || n.title).join('.'))))
-    .map(n => ({ date: n.date, ts: n.ts, title: n.version ? t(n.kind === 'patches' ? 'newsRelPatches' : 'newsRelLauncher', { v: n.version }) : n.title, items: n.items || [] }));
+    .map(n => ({ date: n.date, ts: n.ts, title: n.version ? t(n.kind === 'patches' ? 'newsRelPatches' : 'newsRelLauncher', { v: n.version }) : n.title, items: (lang === 'ru' && (n.items_ru || []).length ? n.items_ru : n.items) || [] }));
   const news = posts.concat(rel)
     .sort((x, y) => String(y.date).localeCompare(String(x.date)) || cmpVer(verOf(x.title), verOf(y.title)) || String(y.ts || '').localeCompare(String(x.ts || '')))
     .slice(0, 12);
@@ -1480,6 +1489,7 @@ function render() {
   // settings
   $('gameDir').textContent = winPath(S.game_dir) || '—';
   $('lang').value = S.lang || '';
+  $('lang').options[0].textContent = t('langDefault', { name: LANG_NAMES[sysLang()] });   // "Default (English)": what the system gives
   $('cache').value = String(S.cache_mb);
   $('usage').checked = S.usage_stats !== false;
   $('lanShare').checked = S.lan_share !== false;

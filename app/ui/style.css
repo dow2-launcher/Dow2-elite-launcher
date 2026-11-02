@@ -538,3 +538,6 @@ footer:has(#statusText:empty) .foot-links{display:flex}
 .addon-all .addon-opt.pick{gap:12px}
 .addon-all .addon-sub{margin:4px 0 0;padding:0;border:0;display:flex;flex-direction:column;gap:6px}
 .addon-all .addon-sub .addon-grp{margin-bottom:0}
+
+/* the event link in the title row, at its right end */
+.ev-link{margin-left:auto;margin-top:0}

@@ -1766,11 +1766,28 @@ fn fetch_release_news() -> Option<Vec<Value>> {
                 "version": s("tag_name").trim_start_matches('v'),
                 "kind": if repo.ends_with("Dow2-patches") { "patches" } else { "launcher" },
                 "items": release_items(&s("body")),
+                "items_ru": release_items(&release_ru(repo, s("tag_name").trim_start_matches('v'))),
             }));
         }
     }
     out.sort_by(|a, b| b["ts"].as_str().cmp(&a["ts"].as_str()));
     Some(out)
+}
+
+/// The Russian notes of a release (siritos 02.11: releases in en and ru, Russian when the launcher speaks Russian):
+/// changelog/<version>/ru.md of the repository on main - GitHub, then jsDelivr where GitHub is blocked; "" when there is
+/// none (the window shows the English body then).
+fn release_ru(repo: &str, version: &str) -> String {
+    if version.is_empty() || !version.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-') { return String::new(); }
+    for url in [format!("https://raw.githubusercontent.com/{repo}/main/changelog/{version}/ru.md"),
+                format!("https://cdn.jsdelivr.net/gh/{repo}@main/changelog/{version}/ru.md")] {
+        match HTTP.get(&url).timeout(Duration::from_secs(8)).call() {
+            Ok(r) => return r.into_string().unwrap_or_default(),
+            Err(ureq::Error::Status(404, _)) => return String::new(),   // no Russian notes for this version
+            Err(_) => continue,                                         // GitHub not reachable: the next host
+        }
+    }
+    String::new()
 }
 
 /// The list items of a release body ("- …", continuation lines joined), markdown cut down to plain text.
