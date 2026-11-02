@@ -39,9 +39,15 @@ pub struct LauncherConfig {
     /// Button under the news list, e.g. the ModDB news page.
     pub news_more: Option<Link>,
     pub announcements: Vec<Announcement>,
+    /// The nearest events, a banner above the news: [{id, title, start, end?, place?, url?}], passed to the window as is.
+    /// None (no "events" in launcher.json) - the window shows its own example; Some([]) - no banner.
+    pub events: Option<Vec<serde_json::Value>>,
     pub links: Vec<Link>,
     /// Extra mirrors (base URLs ending with '/'); tried after the built-in ones that answered.
     pub mirrors: Vec<String>,
+    /// Extra hosts with our API (chat, the stream, rooms, logs) and /elite/dl/updater.json, e.g. "https://pl.example.org";
+    /// the launcher uses the one that answers best (02.11.2026: new servers without a new launcher).
+    pub api_hosts: Vec<String>,
     pub game: GameInfo,
     pub launch: Launch,
     pub launcher_update: Option<LauncherUpdate>,
@@ -61,6 +67,9 @@ pub struct Component {
     pub default: bool,
     /// Also on the home screen, not only on the Add-ons tab: the ones players switch most (automatch, relay).
     pub home: bool,
+    /// The group on the Add-ons tab: "network", "interface", "gameplay", "experiment" (02.11.2026); empty - the window
+    /// picks one by the id.
+    pub category: String,
     /// DLL to add to `InjectedFiles=` in Elite.launchconfig while the component is on.
     pub inject: String,
     /// Switches the player can tick under the component; each one is written to an ini file in the game folder.

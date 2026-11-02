@@ -2,3 +2,4 @@ target/
 app/gen/
 *.key
 !keys/public.key
+dist-local/

@@ -7,6 +7,8 @@
 //! * the launcher works offline with the last verified config.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod reach;
+
 use elite_core::config::{version_newer, LauncherConfig};
 use elite_core::{elite, game, net::Mirrors, update, LAUNCHER_VERSION};
 use std::collections::BTreeMap;
@@ -14,7 +16,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, LazyLock, Mutex};
 use std::time::{Duration, Instant};
 use tauri::menu::{MenuBuilder, MenuItem, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -31,6 +33,8 @@ const BUILTIN_MIRRORS: &str = match option_env!("ELITE_MIRRORS") { Some(v) => v,
 /// Public key of the launcher self-update (tauri-plugin-updater): only updates signed with its private half
 /// (the TAURI_SIGNING_PRIVATE_KEY secret, CI only) are installed. A new key pair means a new `keys/updater.pub`.
 const UPDATER_PUBKEY: &str = include_str!("../../keys/updater.pub");
+/// The last resort of the self-update (1.3.16: GitHub Releases are the release, the mirrors copy them).
+const GITHUB_UPDATER: &str = "https://github.com/dow2-launcher/Dow2-elite-launcher/releases/latest/download/updater.json";
 const DEFAULT_CACHE_MB: u64 = 6144;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
@@ -53,6 +57,10 @@ struct Settings {
     prev_channel: Option<String>,
     /// Mirror that worked last time — tried first (R2 is blocked in some countries, our server in others).
     last_mirror: String,
+    /// The order of the mirrors and of the API hosts from the last check (reach.rs): used at the start until this run's
+    /// check is done.
+    net_data: Vec<reach::Probe>,
+    net_api: Vec<reach::Probe>,
     /// Anonymous usage count (see usage_ping). None = on.
     usage_stats: Option<bool>,
     /// 1.3.12: no sound when someone @mentions me in the chat (owner: a beep by default, a tick to turn it off)
@@ -193,12 +201,64 @@ fn mirrors(s: &Settings, cfg: Option<&LauncherConfig>) -> Mirrors {
         v.extend(c.mirrors.iter().cloned());
     }
     v.extend(BUILTIN_MIRRORS.split(';').map(str::trim).filter(|x| !x.is_empty()).map(String::from));
-    // the order is ours (owner, 29.10: Moscow, then Germany, then the rest): the mirror that worked last time is no longer
-    // moved to the front - it kept players on one mirror for good; a mirror that fails is still skipped for the next one
+    // 02.11 (owner: the launcher must download everywhere): the order is the one that answers best from this computer -
+    // checked once at the start, again only when a mirror stops answering (reach.rs); a mirror the player typed in
+    // stays first. Before the first check: the order of the last run, then the order above (Moscow, Germany, the rest).
     let _ = &s.last_mirror;
     let mut seen = std::collections::HashSet::new();
     v.retain(|m| seen.insert(m.trim_end_matches('/').to_ascii_lowercase()));
-    Mirrors::new(v)
+    let own = s.extra_mirror.trim().to_string();
+    let rest: Vec<String> = v.iter().filter(|m| own.is_empty() || m.as_str() != own).cloned().collect();
+    reach::set_candidates(reach::Pool::Data, rest.clone());
+    let mut out = if own.is_empty() { vec![] } else { vec![own] };
+    out.extend(reach::order(reach::Pool::Data, rest));
+    Mirrors::new(out)
+}
+
+/// After a run through the mirrors: the first one in the order did not answer (another one did, or none) - it is lost
+/// and the mirrors are checked again in the background (reach.rs).
+fn data_note(m: &Mirrors, ok: bool) {
+    let first = m.first_base();
+    if first.is_empty() { return; }
+    if !ok || m.current_base() != first { reach::lost(reach::Pool::Data, &first); }
+}
+
+/// The API hosts of the signed launcher.json (02.11: new servers - Poland, Cloudflare - without a new launcher).
+static CFG_API_HOSTS: Mutex<Vec<String>> = Mutex::new(Vec::new());
+fn note_config(c: &LauncherConfig) {
+    *CFG_API_HOSTS.lock().unwrap() = c.api_hosts.iter().map(|h| h.trim().trim_end_matches('/').to_string()).filter(|h| h.starts_with("https://")).collect();
+    reach::set_candidates(reach::Pool::Api, api_hosts());
+}
+/// Every host with our API: the build's (ELITE_LOG_HOSTS), then launcher.json's api_hosts.
+fn api_hosts() -> Vec<String> {
+    let mut v: Vec<String> = option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).map(String::from).collect();
+    v.extend(CFG_API_HOSTS.lock().unwrap().iter().cloned());
+    let mut seen = std::collections::HashSet::new();
+    v.retain(|h| seen.insert(h.trim_end_matches('/').to_ascii_lowercase()));
+    v
+}
+/// A request to an API host failed on the way (no connection, timeout, a gateway that got no answer): the host is lost.
+/// An answer of the server itself (404, 400, a rejection) says nothing about the way there.
+fn api_err(host: &str, e: &ureq::Error) {
+    if matches!(e, ureq::Error::Transport(_) | ureq::Error::Status(502..=504, _)) { reach::lost(reach::Pool::Api, host); }
+}
+
+/// What the window shows in Settings: every mirror and API host with the time of its answer, the best first.
+fn net_status_json() -> Value {
+    let one = |pool: reach::Pool| { let (list, checked) = reach::snapshot(pool); json!({"list": list, "checked": checked}) };
+    json!({"data": one(reach::Pool::Data), "api": one(reach::Pool::Api)})
+}
+#[tauri::command]
+fn net_status() -> Value { net_status_json() }
+/// "Check again" in Settings: both pools now (the answer comes as the net_rank event too).
+#[tauri::command]
+async fn net_check() -> Value {
+    let _ = tauri::async_runtime::spawn_blocking(|| {
+        let a = std::thread::spawn(|| { let b = reach::snapshot_candidates(reach::Pool::Data); reach::check(reach::Pool::Data, &b); });
+        let b = reach::snapshot_candidates(reach::Pool::Api); reach::check(reach::Pool::Api, &b);
+        let _ = a.join();
+    }).await;
+    net_status_json()
 }
 
 fn game_dir(app: &App) -> Option<PathBuf> {
@@ -361,7 +421,12 @@ async fn launcher_check(app: AppHandle) -> Option<Value> {
     if !self_update_supported() {
         return None;
     }
-    let upd = app.updater().ok()?.check().await.ok()??;
+    // where to ask (02.11): our hosts in the order that answers best from here (each one's updater.json links its own
+    // files), GitHub Releases last; a build without our hosts keeps the endpoints of tauri.conf.json
+    let mut urls: Vec<tauri::Url> = fb_hosts().iter().filter_map(|h| tauri::Url::parse(&format!("{h}/elite/dl/updater.json")).ok()).collect();
+    urls.extend(tauri::Url::parse(GITHUB_UPDATER).ok());
+    let updater = if urls.len() > 1 { app.updater_builder().endpoints(urls).ok()?.build().ok()? } else { app.updater().ok()? };
+    let upd = updater.check().await.ok()??;
     let info = json!({"version": upd.version, "notes": upd.body});
     *app.state::<App>().launcher_update.lock().unwrap() = Some(upd);
     Some(info)
@@ -456,7 +521,7 @@ fn get_status(app: State<'_, App>) -> Value {
         "dismissed": s.dismissed,
         "mirror_count": mirrors(&s, cfg.as_ref()).count(),
         "components": cfgd.components.iter().map(|c| json!({
-            "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home,
+            "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category,
             "enabled": s.components.get(&c.id).copied().unwrap_or(c.default),
             "conflicts": dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default(),
             "installed": dir.as_ref().map(|d| update::Game::component(d, &c.id).load_state().version).unwrap_or_default(),
@@ -490,7 +555,9 @@ async fn refresh(app: AppHandle) -> Result<Value, String> {
     let res = tauri::async_runtime::spawn_blocking(move || {
         let mut m = mirrors(&s, cached.as_ref());
         m.on_status = Some(Box::new(move |msg| { let _ = appn.emit("net", msg); }));
-        update::fetch_config(&m).map(|r| (r, m.current_base()))
+        let r = update::fetch_config(&m).map(|r| (r, m.current_base()));
+        data_note(&m, r.is_ok());
+        r
     })
     .await
     .map_err(|e| e.to_string())?;
@@ -499,6 +566,7 @@ async fn refresh(app: AppHandle) -> Result<Value, String> {
             remember_mirror(&st, worked);
             let _ = std::fs::write(data_dir().join("launcher.json"), raw);
             let _ = std::fs::write(data_dir().join("launcher.json.sig"), sig);
+            note_config(&cfg);
             *st.config.lock().unwrap() = Some(cfg);
             st.last_error.lock().unwrap().clear();
         }
@@ -633,22 +701,80 @@ fn hand_copy_paths(c: &elite_core::config::Component) -> Vec<String> {
 ///   launcher's (Relay 9 closing the game, the match timer v3 crashing it) whatever the ticks said;
 /// - an add-on that is off has no DLL in Elite_DLLs: a copy left there (e.g. from before an add-on id changed) was loaded
 ///   when the game was started past the launcher (Steam, Elite.exe) with an older Elite.launchconfig.
-fn enforce_off(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) {
+/// -> what it did, for the player (siritos 02.11: only our add-ons, the ones in launcher.json, and what belongs to them):
+/// the hand-installed copies put aside and the DLLs of add-ons that are off, as "dow2-patches/X.dll" / "Elite_DLLs/X.dll".
+fn enforce_off(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Vec<String> {
     let g = update::Game::new(dir);
-    let off = |p: &std::path::Path| {
+    let mut done = Vec::new();
+    let off = |p: &std::path::Path| -> bool {
         let mut o = p.as_os_str().to_owned(); o.push(".off");
         let o = PathBuf::from(o);
         let _ = std::fs::remove_file(&o);
-        let _ = std::fs::rename(p, &o);
+        std::fs::rename(p, &o).is_ok()
     };
     for c in &cfg.components {
-        for f in found_conflicts(dir, c) { off(&g.file(&f)); }
+        for f in found_conflicts(dir, c) { if off(&g.file(&f)) { done.push(f); } }
         if c.inject.is_empty() || s.components.get(&c.id).copied().unwrap_or(c.default) { continue; }
         let cg = update::Game::component(dir, &c.id);
-        if !cg.load_state().version.is_empty() { let _ = cg.uninstall(); }
         let dll = dir.join("Elite_DLLs").join(&c.inject);
+        let was = dll.is_file();
+        if !cg.load_state().version.is_empty() { let _ = cg.uninstall(); }
         if dll.is_file() { off(&dll); }
+        if was && !dll.is_file() { done.push(format!("Elite_DLLs/{}", c.inject)); }
     }
+    done
+}
+
+/// DLLs of add-ons that are gone from the catalog without a component of their own to clean up after them
+/// (02.11.2026: LoadingRatings.dll is part of LobbyStats.dll again). Renamed to *.off like enforce_off does,
+/// unless an add-on of the catalog injects that name again.
+const RETIRED_DLLS: &[&str] = &["LoadingRatings.dll"];
+
+/// Add-ons that are no longer in the catalog: renamed ones (matchtimer -> matchtimer_r2, lobbystats -> lobbystats_r3...)
+/// and retired ones. Nothing else ever touches them: enforce_off and sync_components go only through the catalog, so
+/// their state and their DLLs stayed in the game folder for good (players' logs 01-02.11.2026: MatchTimer v4, Relay 2,
+/// LoadingRatings loaded with those add-ons off). Their files go, except the ones a current add-on or Elite owns now;
+/// a DLL that goes leaves InjectedFiles unless a current add-on injects it. Before every start and every update.
+fn drop_orphans(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
+    use std::collections::HashSet;
+    let known: HashSet<String> = cfg.components.iter().map(|c| update::component_key(&c.id)).collect();
+    let main = update::Game::new(dir);
+    let mut owned: HashSet<String> = main.load_state().files.iter().map(|f| f.path.to_ascii_lowercase()).collect();
+    for c in &cfg.components {
+        owned.extend(update::Game::component(dir, &c.id).load_state().files.iter().map(|f| f.path.to_ascii_lowercase()));
+    }
+    let injected: HashSet<String> = cfg.components.iter().filter(|c| !c.inject.is_empty()).map(|c| c.inject.to_ascii_lowercase()).collect();
+    let mut gone = Vec::new();
+    let unlist = |name: &str| {
+        if !injected.contains(&name.to_ascii_lowercase()) {
+            if let Ok(names) = elite::set_injected_all(dir, name, false) { for n in names { main.accept_local_edit(&n); } }
+        }
+    };
+    for id in update::Game::component_ids(dir) {
+        if known.contains(&id) { continue; }
+        let g = update::Game::component(dir, &id);
+        let n_files = g.load_state().files.len();
+        let Ok(removed) = g.uninstall_keeping(|p| owned.contains(&p.to_ascii_lowercase())) else { continue };
+        // its saved game originals go back only if nothing of it is shared with a current add-on (a renamed one would
+        // get its files overwritten)
+        if removed.len() == n_files { restore_originals(dir, &id); }
+        for f in removed {
+            let name = f.rsplit('/').next().unwrap_or(&f).to_string();
+            if name.to_ascii_lowercase().ends_with(".dll") { unlist(&name); }
+            gone.push(format!("{id}: {f}"));
+        }
+    }
+    for name in RETIRED_DLLS {
+        if injected.contains(&name.to_ascii_lowercase()) { continue; }
+        let p = dir.join("Elite_DLLs").join(name);
+        if p.is_file() {
+            let mut o = p.as_os_str().to_owned(); o.push(".off");
+            let _ = std::fs::remove_file(&o);
+            if std::fs::rename(&p, &o).is_ok() { gone.push(format!("retired: Elite_DLLs/{name} -> .off")); }
+        }
+        unlist(name);
+    }
+    gone
 }
 
 /// Component wanted by the player and not replaced by a hand-installed copy.
@@ -658,14 +784,18 @@ fn comp_on(dir: &std::path::Path, c: &elite_core::config::Component, s: &Setting
 
 /// The launch config lists exactly the add-ons that are on and whose DLL is in place. Elite updates and Elite's own
 /// tools rewrite Elite.launchconfig, so this runs before every start, not only when a checkbox changes.
-fn sync_injected(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) {
+/// -> the DLLs of our add-ons it took out of a launch config (an add-on that is off was still listed there).
+fn sync_injected(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Vec<String> {
     let main = update::Game::new(dir);
+    let mut out = Vec::new();
     for c in cfg.components.iter().filter(|c| !c.inject.is_empty()) {
         let on = comp_on(dir, c, s) && dir.join("Elite_DLLs").join(&c.inject).is_file();
         if let Ok(names) = elite::set_injected_all(dir, &c.inject, on) {
+            if !on && !names.is_empty() { out.push(c.inject.clone()); }
             for name in names { main.accept_local_edit(&name); }
         }
     }
+    out
 }
 
 /// Turn off launcher copies of components that now have a hand-installed copy (checked before every game start).
@@ -826,6 +956,7 @@ fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m:
     if main.load_state().version.is_empty() {
         return Ok(()); // Elite itself is not installed yet
     }
+    drop_orphans(dir, cfg);
     for c in &cfg.components {
         let on = comp_on(dir, c, s);
         let g = update::Game::component(dir, &c.id);
@@ -932,6 +1063,7 @@ fn start_update(app: AppHandle, repair: bool, components_only: Option<bool>) -> 
         compute_costs(&app2);
         let st = app2.state::<App>();
         if r.is_ok() { remember_mirror(&st, m.current_base()); }
+        if !m.cancel.load(Ordering::Relaxed) { data_note(&m, r.is_ok()); }   // a cancel says nothing about the mirrors
         st.busy.store(false, Ordering::SeqCst);
         let payload = match r {
             Ok(sum) => json!({"ok": true, "summary": sum}),
@@ -1108,16 +1240,16 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
         let who = if who.is_empty() { "anon".to_string() } else { who };
         let mut last = String::new();
         // куда слать логи — задаётся при сборке: ELITE_LOG_HOSTS="https://a;https://b" (в репозитории адресов нет)
-        let hosts: Vec<&str> = option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).collect();
+        let hosts = fb_hosts();   // the best answering first (reach.rs)
         if hosts.is_empty() { return Err("log upload is not configured in this build".into()); }
         for host in hosts {
-            match ureq::post(&format!("{host}/stats/api/logs?who={who}&uid={uid}")).set("Content-Type", "text/plain; charset=utf-8").send_bytes(out.as_bytes()) {
+            match HTTP.post(&format!("{host}/stats/api/logs?who={who}&uid={uid}")).set("Content-Type", "text/plain; charset=utf-8").send_bytes(out.as_bytes()) {
                 Ok(r) => {
                     let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                     let note = json!({"uid": uid, "name": if fb_name.is_empty() { who.clone() } else { fb_name.clone() },
                         "text": format!("📋 Отправил логи · sent logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n),
                         "launcher": LAUNCHER_VERSION, "os": os_name(), "elite": elite_v}).to_string();
-                    let _ = ureq::post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(20))
+                    let _ = HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(20))
                         .set("Content-Type", "application/json").send_string(&note);
                     // запомним, докуда дошли по каждому растущему логу — в следующий раз только новый хвост
                     let _ = std::fs::write(data_dir().join("log_sent.json"), serde_json::to_vec(&Value::Object(newmarks.clone())).unwrap_or_default());
@@ -1127,7 +1259,7 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
                     }
                     return Ok(format!("{} ({} files)", v["id"].as_str().unwrap_or("ok"), n));
                 }
-                Err(e) => last = e.to_string(),
+                Err(e) => { api_err(&host, &e); last = e.to_string(); }
             }
         }
         Err(format!("could not send logs: {last}"))
@@ -1138,11 +1270,11 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
 
 /// Start the game. Never blocked by a pending update.
 #[tauri::command]
-fn play(app: State<'_, App>) -> Result<(), String> {
+fn play(app: State<'_, App>) -> Result<Value, String> {
     start_game(&app)
 }
 
-fn start_game(app: &App) -> Result<(), String> {
+fn start_game(app: &App) -> Result<Value, String> {
     if app.busy.load(Ordering::Relaxed) {
         return Err("files are being updated, wait a few seconds".into());
     }
@@ -1151,9 +1283,16 @@ fn start_game(app: &App) -> Result<(), String> {
     }
     let dir = game_dir(&app).ok_or("game folder not found")?;
     let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
-    enforce_off(&dir, &cfg, &app.settings.lock().unwrap().clone());
+    // what the checks of our add-ons did is told to the player (siritos 02.11): only add-ons of launcher.json and their
+    // hand-installed copies, and the ones gone from the catalog (drop_orphans) - nothing else in the game folder;
+    // loader: the stand-alone dow2-patches package's winmm.dll
+    let mut off = enforce_off(&dir, &cfg, &app.settings.lock().unwrap().clone());
+    off.extend(drop_orphans(&dir, &cfg));
     drop_conflicting(&dir, &cfg);
-    sync_injected(&dir, &cfg, &app.settings.lock().unwrap().clone());
+    for n in sync_injected(&dir, &cfg, &app.settings.lock().unwrap().clone()) {
+        if !off.iter().any(|x| x.to_ascii_lowercase().ends_with(&n.to_ascii_lowercase())) { off.push(n); }
+    }
+    let guard = json!({"off": off, "loader": dir.join("winmm.dll").is_file() && dir.join("dow2-patches").is_dir()});
     elite_core::hotkeys::refresh_if_stale(&app.settings.lock().unwrap().hotkeys);     // a patch brought new defaults
     let mut cmd = match os_name() {
         "windows" => cfg.launch.windows.clone(),
@@ -1199,7 +1338,7 @@ fn start_game(app: &App) -> Result<(), String> {
     let mut c = std::process::Command::new(&program);
     c.args(cmd.args.iter().map(|a| sub(a))).current_dir(&game);
     match c.spawn() {
-        Ok(_) => Ok(()),
+        Ok(_) => Ok(guard),
         // 740 = программа требует прав администратора (Elite.exe так помечен). Обычный запуск такого не умеет,
         // а оболочка Windows умеет: `start` показывает обычный запрос UAC и задаёт рабочую папку.
         #[cfg(windows)]
@@ -1208,7 +1347,7 @@ fn start_game(app: &App) -> Result<(), String> {
             let mut sh = std::process::Command::new("cmd");
             sh.args(["/C", "start", "", "/D", &game, &program]).args(cmd.args.iter().map(|a| sub(a)));
             sh.creation_flags(0x0800_0000); // CREATE_NO_WINDOW — без мигающей консоли
-            sh.spawn().map(|_| ()).map_err(|e2| format!("cannot start {program} as administrator: {e2}"))
+            sh.spawn().map(|_| guard).map_err(|e2| format!("cannot start {program} as administrator: {e2}"))
         }
         Err(e) => Err(format!("cannot start {program}: {e}")),
     }
@@ -1228,8 +1367,15 @@ fn ensure_steam_running() {
 // ---------- Feedback chat with the developers ----------
 // Messages and pasted pictures go to the ladder service on the log hosts (/ladder/api/fb/*), answers come back the same way.
 // The player is known only by a random id kept in the settings, plus the name they chose to give.
+/// One agent for every call to our servers: connections are kept and reused instead of a new TCP + TLS handshake per
+/// request. A request's own .timeout() still caps the whole request.
+static HTTP: LazyLock<ureq::Agent> = LazyLock::new(|| {
+    ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(10)).timeout_read(Duration::from_secs(20)).build()
+});
+
+/// Our API hosts, the one that answers best from here first (reach.rs). Every call to our API goes through this.
 fn fb_hosts() -> Vec<String> {
-    option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).map(String::from).collect()
+    reach::order(reach::Pool::Api, api_hosts())
 }
 fn fb_uid(app: &App) -> String {
     let mut s = app.settings.lock().unwrap();
@@ -1267,14 +1413,14 @@ async fn fb_send(app: AppHandle, text: String, images: Vec<String>) -> Result<Va
     tauri::async_runtime::spawn_blocking(move || {
         let mut last = "feedback is not configured in this build".to_string();
         for host in fb_hosts() {
-            match ureq::post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(60))
+            match HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(60))
                 .set("Content-Type", "application/json").send_string(&body) {
                 Ok(r) => {
                     let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                     if v["ok"].as_bool() == Some(true) { return Ok(v); }
                     return Err(v["error"].as_str().unwrap_or("rejected").to_string());
                 }
-                Err(e) => last = e.to_string(),
+                Err(e) => { api_err(&host, &e); last = e.to_string(); }
             }
         }
         Err(last)
@@ -1288,14 +1434,14 @@ async fn fb_thread(app: AppHandle) -> Result<Value, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let mut last = "feedback is not configured in this build".to_string();
         for host in fb_hosts() {
-            match ureq::get(&format!("{host}/ladder/api/fb/thread?uid={uid}")).timeout(Duration::from_secs(20)).call() {
+            match HTTP.get(&format!("{host}/ladder/api/fb/thread?uid={uid}")).timeout(Duration::from_secs(20)).call() {
                 Ok(r) => {
                     let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                     v["img_base"] = json!(format!("{host}/ladder/api/fb/img/"));
                     v["uid"] = json!(uid);
                     return Ok(v);
                 }
-                Err(e) => last = e.to_string(),
+                Err(e) => { api_err(&host, &e); last = e.to_string(); }
             }
         }
         Err(last)
@@ -1331,6 +1477,7 @@ fn c_save(app: &AppHandle, v: &Value) -> Value {
     s.c_name = v["name"].as_str().unwrap_or("").into();
     s.c_avatar = v["avatar"].as_str().unwrap_or("").into();
     save_settings(&s);
+    STREAM_GEN.fetch_add(1, Ordering::SeqCst);
     c_profile(&s)
 }
 
@@ -1346,13 +1493,13 @@ fn c_local_call(token: &str) -> Result<Value, String> {
     let body = json!({"steam": steam, "name": name, "device": device, "token": token, "launcher": LAUNCHER_VERSION, "os": os_name()}).to_string();
     let mut last = "the server is not configured in this build".to_string();
     for h in fb_hosts() {
-        match ureq::post(&format!("{h}/ladder/api/c/local")).timeout(Duration::from_secs(20)).set("Content-Type", "application/json").send_string(&body) {
+        match HTTP.post(&format!("{h}/ladder/api/c/local")).timeout(Duration::from_secs(20)).set("Content-Type", "application/json").send_string(&body) {
             Ok(r) => {
                 let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                 c_log(&format!("local: {h} -> ok={} {}", v["ok"], v["error"].as_str().unwrap_or("")));
                 return Ok(v);
             }
-            Err(e) => { c_log(&format!("local: {h} failed: {e}")); last = e.to_string(); }
+            Err(e) => { c_log(&format!("local: {h} failed: {e}")); api_err(&h, &e); last = e.to_string(); }
         }
     }
     Err(last)
@@ -1396,9 +1543,9 @@ async fn c_login(app: AppHandle) -> Result<Value, String> {
             std::thread::sleep(Duration::from_secs(2));
             if LOGIN_GEN.load(Ordering::SeqCst) != attempt { c_log("browser: cancelled (Cancel or a new click)"); return Err("cancelled".to_string()); }
             for h in fb_hosts() {
-                let r = match ureq::get(&format!("{h}/ladder/api/c/claim?nonce={nonce}")).timeout(Duration::from_secs(10)).call() {
+                let r = match HTTP.get(&format!("{h}/ladder/api/c/claim?nonce={nonce}")).timeout(Duration::from_secs(10)).call() {
                     Ok(r) => r,
-                    Err(e) => { c_log(&format!("browser: claim at {h} failed: {e}")); continue; }
+                    Err(e) => { c_log(&format!("browser: claim at {h} failed: {e}")); api_err(&h, &e); continue; }
                 };
                 let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                 if v["ok"].as_bool() == Some(true) {
@@ -1422,19 +1569,22 @@ fn c_logout(app: State<'_, App>) -> Value {
     let token = std::mem::take(&mut s.c_token);
     s.c_steam.clear(); s.c_name.clear(); s.c_avatar.clear();
     save_settings(&s);
+    STREAM_GEN.fetch_add(1, Ordering::SeqCst);
     let body = json!({"token": token}).to_string();
     std::thread::spawn(move || for h in fb_hosts() {
-        if ureq::post(&format!("{h}/ladder/api/c/logout")).timeout(Duration::from_secs(10)).set("Content-Type", "application/json").send_string(&body).is_ok() { break; }
+        if HTTP.post(&format!("{h}/ladder/api/c/logout")).timeout(Duration::from_secs(10)).set("Content-Type", "application/json").send_string(&body).is_ok() { break; }
     });
     c_profile(&s)
 }
 
-/// One call to the community API: "msgs?room=ru&after=5" and "online" are read (GET); "hello", "say", "me" are sent
-/// (POST) with the session token added here, so the page never holds it.
+/// One call to the community API: "msgs?room=ru&limit=100&before=5", "online" and "live" are read (GET); "hello",
+/// "say" (with the window's cid), "me" are sent (POST) with the session token added here, so the page never holds it.
 #[tauri::command]
 async fn c_api(app: AppHandle, path: String, body: Option<Value>) -> Result<Value, String> {
     let name = path.split('?').next().unwrap_or("").to_string();
-    if !["msgs", "online", "hello", "say", "me"].contains(&name.as_str()) { return Err("unknown call".into()); }
+    if !["msgs", "online", "live", "hello", "say", "me"].contains(&name.as_str()) { return Err("unknown call".into()); }
+    // the server holds a message up to 30 s for moderation and translation: say waits longer than that
+    let secs = if name == "say" { 40 } else { 15 };
     let post = body.map(|mut b| {
         if !b.is_object() { b = json!({}); }
         b["token"] = json!(app.state::<App>().settings.lock().unwrap().c_token.clone());
@@ -1445,12 +1595,17 @@ async fn c_api(app: AppHandle, path: String, body: Option<Value>) -> Result<Valu
         for h in fb_hosts() {
             let url = format!("{h}/ladder/api/c/{path}");
             let r = match &post {
-                Some(b) => ureq::post(&url).timeout(Duration::from_secs(15)).set("Content-Type", "application/json").send_string(b),
-                None => ureq::get(&url).timeout(Duration::from_secs(15)).call(),
+                Some(b) => HTTP.post(&url).timeout(Duration::from_secs(secs)).set("Content-Type", "application/json").send_string(b),
+                None => HTTP.get(&url).timeout(Duration::from_secs(secs)).call(),
             };
             match r {
-                Ok(r) => return serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()),
-                Err(e) => last = e.to_string(),
+                Ok(r) => {
+                    let mut v = serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
+                    if name == "msgs" { for m in v["msgs"].as_array().into_iter().flatten() { stream_note(m); } }
+                    if name == "live" { v["host"] = json!(h); }
+                    return Ok(v);
+                }
+                Err(e) => { api_err(&h, &e); last = e.to_string(); }
             }
         }
         if name != "msgs" && name != "online" && name != "hello" { c_log(&format!("api {name}: {last}")); }
@@ -1458,25 +1613,86 @@ async fn c_api(app: AppHandle, path: String, body: Option<Value>) -> Result<Valu
     }).await.map_err(|e| e.to_string())?
 }
 
-// ---------- Online: who is looking for a game, the matches being set up or played ----------
-/// The same list the ladder page shows (/ladder/api/mm/live of the ladder service on the log hosts), plus the host
-/// that answered, for links to its ladder page.
+// ---------- The live stream: one open connection instead of polling ----------
+// GET /ladder/api/c/stream on the log hosts (stream.py in dow2-ladder): the server sends only changes - Online
+// (online, presence, match, match_end, user), the chat (msg, msg_tr, msg_del, reset) and the own card (me). Each event
+// goes to the window as "c_ev" {e, d}; "c_stream" {up, host} tells it whether the stream works (else it polls).
+static STREAM_GEN: AtomicU64 = AtomicU64::new(0);   // +1 on sign-in / sign-out: the stream reconnects with the new token
+static STREAM_AFTER: LazyLock<Mutex<BTreeMap<String, u64>>> = LazyLock::new(|| Mutex::new(BTreeMap::new()));
+static STREAM_UP: AtomicBool = AtomicBool::new(false);
+
+/// Is the stream connected now? The window asks once at start: the stream may have come up before it listened.
 #[tauri::command]
-async fn online_live() -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(|| {
-        let mut last = "the ladder server is not configured in this build".to_string();
-        for host in fb_hosts() {
-            match ureq::get(&format!("{host}/ladder/api/mm/live")).timeout(Duration::from_secs(10)).call() {
-                Ok(r) => {
-                    let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
-                    v["host"] = json!(host);
-                    return Ok(v);
+fn c_stream_up() -> bool { STREAM_UP.load(Ordering::Relaxed) }
+
+/// The newest message id per room the window has (from msgs and from the stream): the server sends what came after.
+fn stream_note(m: &Value) {
+    if let (Some(room), Some(id)) = (m["room"].as_str(), m["id"].as_u64()) {
+        let mut a = STREAM_AFTER.lock().unwrap();
+        let e = a.entry(room.to_string()).or_insert(0);
+        if id > *e { *e = id; }
+    }
+}
+
+fn stream_loop(app: AppHandle) {
+    use std::io::BufRead;
+    // its own agent: a read may wait up to 60 s (the server pings every 20 s), and no overall timeout - in ureq 2 that
+    // would cap the whole response and cut the stream
+    let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(10)).timeout_read(Duration::from_secs(60)).build();
+    if api_hosts().is_empty() { return; }
+    let (mut host_i, mut fails) = (0usize, 0usize);
+    loop {
+        let gen = STREAM_GEN.load(Ordering::SeqCst);
+        // the order of the moment (reach.rs): the start uses the last run's, the check of this run may change it
+        let hosts = fb_hosts();
+        let host = hosts[host_i % hosts.len()].clone();
+        let (token, state) = {
+            let st = app.state::<App>();
+            let token = st.settings.lock().unwrap().c_token.clone();
+            (token, if st.game_running.load(Ordering::Relaxed) { "game" } else { "menu" })
+        };
+        let after = STREAM_AFTER.lock().unwrap().iter().map(|(k, v)| format!("{k}:{v}")).collect::<Vec<_>>().join(",");
+        let mut req = agent.get(&format!("{host}/ladder/api/c/stream?after={after}")).set("Accept", "text/event-stream").set("X-State", state);
+        if !token.is_empty() { req = req.set("X-Token", &token); }   // in a header, never in the address
+        let mut busy = false;
+        match req.call() {
+            Ok(r) => {
+                fails = 0;
+                STREAM_UP.store(true, Ordering::Relaxed);
+                let _ = app.emit("c_stream", json!({"up": true, "host": host}));
+                let (mut ev, mut data) = (String::new(), String::new());
+                for line in std::io::BufReader::new(r.into_reader()).lines() {
+                    let Ok(line) = line else { break };
+                    if STREAM_GEN.load(Ordering::SeqCst) != gen { break; }
+                    if line.is_empty() {
+                        if let Ok(d) = serde_json::from_str::<Value>(&data) {
+                            if ev == "msg" { stream_note(&d); }
+                            let _ = app.emit("c_ev", json!({"e": ev, "d": d}));
+                        }
+                        ev.clear(); data.clear();
+                    } else if let Some(v) = line.strip_prefix("event:") { ev = v.trim().to_string(); }
+                    else if let Some(v) = line.strip_prefix("data:") { data.push_str(v.trim_start()); }
                 }
-                Err(e) => last = e.to_string(),
+                STREAM_UP.store(false, Ordering::Relaxed);
+                let _ = app.emit("c_stream", json!({"up": false}));
+            }
+            Err(ureq::Error::Status(503, _)) => busy = true,   // the server is full: it asks for 30 s
+            Err(e) => {
+                if fails == 0 { c_log(&format!("stream {host}: {e}")); }
+                api_err(&host, &e);
+                // a lost host went to the end of the order: the new first one is tried; else the next one
+                host_i = if fb_hosts().first() != Some(&host) { 0 } else { host_i + 1 };
+                fails += 1;
             }
         }
-        Err(last)
-    }).await.map_err(|e| e.to_string())?
+        if STREAM_GEN.load(Ordering::SeqCst) != gen { continue; }   // signed in / out: at once, with the new token
+        // 1, 2, 5, 10, 30 s plus 0-2 s at random, so a server restart is not hit by everyone in the same second
+        let mut b = [0u8; 2];
+        let _ = getrandom::getrandom(&mut b);
+        let base = if busy { 30 } else { [1u64, 2, 5, 10, 30][fails.min(4)] };
+        let end = Instant::now() + Duration::from_millis(base * 1000 + u16::from_le_bytes(b) as u64 % 2000);
+        while Instant::now() < end && STREAM_GEN.load(Ordering::SeqCst) == gen { std::thread::sleep(Duration::from_millis(250)); }
+    }
 }
 
 /// 1.3.15 (owner 02.11.2026): the open lobbies - Relic's list of custom games being set up, from our ladder server
@@ -1492,11 +1708,62 @@ async fn rooms_live() -> Result<Value, String> {
                     v["host"] = json!(host);
                     return Ok(v);
                 }
-                Err(e) => last = e.to_string(),
+                Err(e) => { api_err(&host, &e); last = e.to_string(); }
             }
         }
         Err(last)
     }).await.map_err(|e| e.to_string())?
+}
+
+/// The Online block without the stream (a ladder server that has no /c/live yet): who is looking for a game and the
+/// matches, from /ladder/api/mm/live; the window joins it with /c/online (who has the launcher open).
+#[tauri::command]
+async fn mm_live() -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(|| {
+        let mut last = "the ladder server is not configured in this build".to_string();
+        for host in fb_hosts() {
+            match HTTP.get(&format!("{host}/ladder/api/mm/live")).timeout(Duration::from_secs(10)).call() {
+                Ok(r) => {
+                    let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
+                    v["host"] = json!(host);
+                    return Ok(v);
+                }
+                Err(e) => { api_err(&host, &e); last = e.to_string(); }
+            }
+        }
+        Err(last)
+    }).await.map_err(|e| e.to_string())?
+}
+
+/// The events banner (siritos 02.11: kept in git - events.json of this repository, edited and pushed to main): read from
+/// GitHub, then jsDelivr (GitHub is blocked in places), at the start and every 15 minutes by the window; the last good
+/// copy is kept for offline; never read - the copy built into this launcher. launcher.json "events", when the owner
+/// sets them, still go first (the window decides).
+const EVENTS_URLS: [&str; 2] = [
+    "https://raw.githubusercontent.com/dow2-launcher/Dow2-elite-launcher/main/events.json",
+    "https://cdn.jsdelivr.net/gh/dow2-launcher/Dow2-elite-launcher@main/events.json",
+];
+const EVENTS_BUILT_IN: &str = include_str!("../../events.json");
+#[tauri::command]
+async fn events_get() -> Value {
+    tauri::async_runtime::spawn_blocking(|| {
+        let ok = |v: &Value| v["events"].is_array();
+        for url in EVENTS_URLS {
+            let Ok(r) = HTTP.get(url).timeout(Duration::from_secs(10)).call() else { continue };
+            let Ok(text) = r.into_string() else { continue };
+            if let Ok(v) = serde_json::from_str::<Value>(&text) {
+                if ok(&v) {
+                    let _ = std::fs::write(data_dir().join("events.json"), &text);
+                    return json!({"events": v["events"], "source": url});
+                }
+            }
+        }
+        if let Some(v) = std::fs::read(data_dir().join("events.json")).ok().and_then(|b| serde_json::from_slice::<Value>(&b).ok()).filter(ok) {
+            return json!({"events": v["events"], "source": "cache"});
+        }
+        let v: Value = serde_json::from_str(EVENTS_BUILT_IN).unwrap_or_default();
+        json!({"events": if ok(&v) { v["events"].clone() } else { json!([]) }, "source": "built-in"})
+    }).await.unwrap_or_else(|_| json!({"events": []}))
 }
 
 /// Repositories whose GitHub Releases become news: CI makes every release from the changelog,
@@ -1508,7 +1775,7 @@ const NEWS_REPOS: [&str; 2] = ["dow2-launcher/Dow2-elite-launcher", "dow2-launch
 fn fetch_release_news() -> Option<Vec<Value>> {
     let mut out = Vec::new();
     for repo in NEWS_REPOS {
-        let body = ureq::get(&format!("https://api.github.com/repos/{repo}/releases?per_page=4"))
+        let body = HTTP.get(&format!("https://api.github.com/repos/{repo}/releases?per_page=4"))
             .set("Accept", "application/vnd.github+json")
             .set("User-Agent", &format!("EliteLauncher/{LAUNCHER_VERSION}"))
             .timeout(Duration::from_secs(15))
@@ -1520,16 +1787,37 @@ fn fetch_release_news() -> Option<Vec<Value>> {
         for r in list.iter().filter(|r| r["draft"] != true && r["prerelease"] != true) {
             let s = |k: &str| r[k].as_str().unwrap_or("").to_string();
             let title = if s("name").is_empty() { s("tag_name") } else { s("name") };
+            // 02.11 (siritos): no link - a release page on GitHub is not news for a player; the full time and the repo
+            // to order two releases of one day and to say "Launcher" / "Add-ons" in the player's language
             out.push(json!({
                 "date": s("published_at").chars().take(10).collect::<String>(),
+                "ts": s("published_at"),
                 "title": title,
+                "version": s("tag_name").trim_start_matches('v'),
+                "kind": if repo.ends_with("Dow2-patches") { "patches" } else { "launcher" },
                 "items": release_items(&s("body")),
-                "url": s("html_url"),
+                "items_ru": release_items(&release_ru(repo, s("tag_name").trim_start_matches('v'))),
             }));
         }
     }
-    out.sort_by(|a, b| b["date"].as_str().cmp(&a["date"].as_str()));
+    out.sort_by(|a, b| b["ts"].as_str().cmp(&a["ts"].as_str()));
     Some(out)
+}
+
+/// The Russian notes of a release (siritos 02.11: releases in en and ru, Russian when the launcher speaks Russian):
+/// changelog/<version>/ru.md of the repository on main - GitHub, then jsDelivr where GitHub is blocked; "" when there is
+/// none (the window shows the English body then).
+fn release_ru(repo: &str, version: &str) -> String {
+    if version.is_empty() || !version.chars().all(|c| c.is_ascii_alphanumeric() || c == '.' || c == '-') { return String::new(); }
+    for url in [format!("https://raw.githubusercontent.com/{repo}/main/changelog/{version}/ru.md"),
+                format!("https://cdn.jsdelivr.net/gh/{repo}@main/changelog/{version}/ru.md")] {
+        match HTTP.get(&url).timeout(Duration::from_secs(8)).call() {
+            Ok(r) => return r.into_string().unwrap_or_default(),
+            Err(ureq::Error::Status(404, _)) => return String::new(),   // no Russian notes for this version
+            Err(_) => continue,                                         // GitHub not reachable: the next host
+        }
+    }
+    String::new()
 }
 
 /// The list items of a release body ("- …", continuation lines joined), markdown cut down to plain text.
@@ -1593,10 +1881,9 @@ fn usage_ping(app: &AppHandle) {
     let hash: String = h.finalize().iter().take(16).map(|x| format!("{x:02x}")).collect();
     let elite = game_dir(&st).map(|d| update::Game::new(d).load_state().version).filter(|v| !v.is_empty()).unwrap_or_else(|| "none".into());
     let elite: String = elite.chars().filter(|c| c.is_ascii_alphanumeric() || *c == '.' || *c == '-').take(16).collect();
-    let hosts: Vec<&str> = option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).collect();
-    for host in hosts {
+    for host in fb_hosts() {
         let url = format!("{host}/stats/api/ping?h={hash}&v={LAUNCHER_VERSION}&os={}&elite={elite}", os_name());
-        if ureq::get(&url).timeout(Duration::from_secs(15)).call().is_ok() {
+        if HTTP.get(&url).timeout(Duration::from_secs(15)).call().is_ok() {
             let mut s = st.settings.lock().unwrap();
             s.ping_day = day;
             save_settings(&s);
@@ -1644,6 +1931,30 @@ fn main() {
             }));
             // 1.3.13 (owner: no traces of the 1.3.10 hang help): the hang dumps it wrote into our own folder go, once, quietly
             let _ = std::fs::remove_dir_all(data_dir().join("dumps"));
+            // which mirror and which API host answer best from here: checked once now (no ICMP - one small HTTPS answer
+            // per host), again only when a host stops answering (reach.rs); the order is kept for the next start
+            {
+                let st = app.state::<App>();
+                let s = st.settings.lock().unwrap().clone();
+                reach::seed(reach::Pool::Data, s.net_data.clone());
+                reach::seed(reach::Pool::Api, s.net_api.clone());
+                if let Some(c) = st.config.lock().unwrap().as_ref() { note_config(c); }
+                let _ = mirrors(&s, st.config.lock().unwrap().as_ref());   // sets the data candidates
+            }
+            let hn = app.handle().clone();
+            reach::on_checked(move |pool, list| {
+                let st = hn.state::<App>();
+                {
+                    let mut s = st.settings.lock().unwrap();
+                    match pool { reach::Pool::Data => s.net_data = list.to_vec(), reach::Pool::Api => s.net_api = list.to_vec() }
+                    save_settings(&s);
+                }
+                let _ = hn.emit("net_rank", net_status_json());
+            });
+            reach::check_soon(reach::Pool::Data, 0);
+            reach::check_soon(reach::Pool::Api, 0);
+            let hs = app.handle().clone();
+            std::thread::spawn(move || stream_loop(hs));
             // watch the game: the window locks add-ons while it runs and picks pending updates up once it closes
             let hg = app.handle().clone();
             std::thread::spawn(move || loop {
@@ -1715,9 +2026,9 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
-            fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, online_live, rooms_live,
+            fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
-            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api
+            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get
         ])
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")
@@ -1787,6 +2098,27 @@ mod junk_tests {
         assert!(lc.contains("MMFind.dll") && lc.contains("MiscFixes.dll") && !lc.contains("Relay.dll"), "{lc}");
         let bin = std::path::PathBuf::from(r["backup"].as_str().unwrap());
         assert!(bin.join("dow2-patches").join("ReinforceFix.dll").is_file() && bin.join("Elite_DLLs").join("Relay.dll").is_file(), "kept in the backup");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn start_checks_tell_what_they_did_with_our_addons_only() {
+        let d = std::env::temp_dir().join(format!("guard_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        for p in ["Elite_DLLs", "dow2-patches", ".elite_launcher"] { std::fs::create_dir_all(d.join(p)).unwrap(); }
+        // Relay is off but its DLL is still there and listed; a hand copy of MMFind in dow2-patches; Other.dll is not ours
+        for f in ["Elite_DLLs/MMFind.dll", "Elite_DLLs/Relay.dll", "Elite_DLLs/Other.dll", "dow2-patches/MMFind.dll"] { std::fs::write(d.join(f), b"x").unwrap(); }
+        std::fs::write(d.join("Elite.launchconfig"), "IsRetribution=true\nInjectedFiles=MMFind.dll, Relay.dll, Other.dll\n").unwrap();
+        let comp = |id: &str, dll: &str, def: bool| elite_core::config::Component { id: id.into(), inject: dll.into(), default: def, ..Default::default() };
+        let mut cfg = LauncherConfig::default();
+        cfg.components = vec![comp("automatch", "MMFind.dll", true), comp("relay_r2", "Relay.dll", false)];
+        let s = Settings::default();
+        let off = enforce_off(&d, &cfg, &s);
+        assert!(off.contains(&"dow2-patches/MMFind.dll".to_string()) && off.contains(&"Elite_DLLs/Relay.dll".to_string()), "{off:?}");
+        sync_injected(&d, &cfg, &s);
+        let lc = std::fs::read_to_string(d.join("Elite.launchconfig")).unwrap();
+        assert!(!lc.contains("Relay.dll") && lc.contains("Other.dll"), "ours out, a foreign DLL left alone: {lc}");
+        assert!(d.join("Elite_DLLs/Other.dll").is_file());
         let _ = std::fs::remove_dir_all(&d);
     }
 }

@@ -92,14 +92,30 @@ pub struct Game {
     state_name: String,
 }
 
+/// A component id as it is stored in the game folder (`component-<key>.json`).
+pub fn component_key(id: &str) -> String {
+    id.chars().filter(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_').collect()
+}
+
 impl Game {
     pub fn new(dir: impl Into<PathBuf>) -> Self {
         Game { dir: dir.into(), state_name: "state.json".into() }
     }
     /// Same game folder, separate state for an optional component (e.g. LobbyStats).
     pub fn component(dir: impl Into<PathBuf>, id: &str) -> Self {
-        let id: String = id.chars().filter(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_').collect();
-        Game { dir: dir.into(), state_name: format!("component-{id}.json") }
+        Game { dir: dir.into(), state_name: format!("component-{}.json", component_key(id)) }
+    }
+    /// Ids of every component with a state in this game folder (installed by a launcher at some point), as stored:
+    /// compare them with `component_key` of the catalog's ids.
+    pub fn component_ids(dir: &Path) -> Vec<String> {
+        let Ok(rd) = fs::read_dir(dir.join(".elite_launcher")) else { return Vec::new() };
+        rd.flatten()
+            .filter_map(|e| {
+                let n = e.file_name().to_string_lossy().to_string();
+                n.strip_prefix("component-").and_then(|r| r.strip_suffix(".json")).map(String::from)
+            })
+            .filter(|id| !id.is_empty())
+            .collect()
     }
     fn meta_dir(&self) -> PathBuf {
         self.dir.join(".elite_launcher")
@@ -122,16 +138,24 @@ impl Game {
     }
     /// Remove every file this component installed and forget it.
     pub fn uninstall(&self) -> Result<usize, Error> {
+        Ok(self.uninstall_keeping(|_| false)?.len())
+    }
+    /// Like `uninstall`, but the files `keep` says yes to stay (another component or Elite itself owns them now).
+    /// Returns the paths removed.
+    pub fn uninstall_keeping(&self, keep: impl Fn(&str) -> bool) -> Result<Vec<String>, Error> {
         let st = self.load_state();
-        let mut n = 0;
+        let mut removed = Vec::new();
         for f in &st.files {
+            if keep(&f.path) {
+                continue;
+            }
             let p = self.file(&f.path);
             if p.is_file() && fs::remove_file(&p).is_ok() {
-                n += 1;
+                removed.push(f.path.clone());
             }
         }
         let _ = fs::remove_file(self.state_path());
-        Ok(n)
+        Ok(removed)
     }
 
     /// After the launcher edits a file on purpose (e.g. Elite.launchconfig), record its new size/time
@@ -616,4 +640,31 @@ fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]
     }
     tick(f.size);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn orphan_component_uninstall_keeps_shared_files() {
+        let dir = std::env::temp_dir().join(format!("elite_orphan_test_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(dir.join("Elite_DLLs")).unwrap();
+        for f in ["MatchTimer.dll", "Old.dll"] { fs::write(dir.join("Elite_DLLs").join(f), b"x").unwrap(); }
+        let file = |p: &str| StateFile { path: p.into(), ..Default::default() };
+        // the old id installed both; the renamed one (still in the catalog) owns MatchTimer.dll now
+        let old = Game::component(&dir, "matchtimer");
+        old.save_state(&State { version: "matchtimer-3".into(), channel: "matchtimer".into(),
+                                files: vec![file("Elite_DLLs/MatchTimer.dll"), file("Elite_DLLs/Old.dll")] }).unwrap();
+        let mut ids = Game::component_ids(&dir); ids.sort();
+        assert_eq!(ids, vec!["matchtimer".to_string()]);
+        assert_eq!(component_key("matchtimer_r2!"), "matchtimer_r2");
+        let removed = old.uninstall_keeping(|p| p.eq_ignore_ascii_case("elite_dlls/matchtimer.dll")).unwrap();
+        assert_eq!(removed, vec!["Elite_DLLs/Old.dll".to_string()]);
+        assert!(dir.join("Elite_DLLs/MatchTimer.dll").is_file());
+        assert!(!dir.join("Elite_DLLs/Old.dll").exists());
+        assert!(Game::component_ids(&dir).is_empty(), "the orphan's state is forgotten");
+        let _ = fs::remove_dir_all(&dir);
+    }
 }

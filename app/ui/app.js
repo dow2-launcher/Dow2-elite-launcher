@@ -20,7 +20,15 @@ const T = {
     "prNote": "Your name, 1v1 rating and the players’ chat.",
     "prGames": "Games: {n} · {pct}% won",
     "prNoGames": "No ladder games this season yet",
-    "prRankT": "Place on the ladder (1v1, this season)",
+    "nickStats": "Player stats",
+    "nickSteam": "Steam profile",
+    "chSending": "Sending…",
+    "chNotSent": "Not sent",
+    "chRetry": "Retry",
+    "chDelete": "Delete",
+    "chOrig": "Original",
+    "onWatcher": "spectator",
+    "onWatchers": "Spectators",
     "chAll": "General",
     "chDev": "Developers",
     "chLogin": "Sign in with Steam",
@@ -29,7 +37,6 @@ const T = {
     "chPlaceholder": "Message… (Enter sends, Shift+Enter a new line)",
     "chMembers": "In the launcher",
     "chEmpty": "Quiet here. Say hi!",
-    "chPending": "sending…",
     "chWaitLogin": "Sign in with Steam in the browser, then come back here.",
     "st_menu": "in the menu",
     "st_game": "in the game",
@@ -122,6 +129,7 @@ const T = {
     "trayQuit": "Quit",
     "cacheNote": "switching back to them is instant",
     "mirror": "Extra mirror (optional)",
+    "netTitle": "Our servers from this computer", "netCheck": "Check again", "netChecking": "Checking…", "netFiles": "Files (Elite and add-on updates)", "netApi": "Chat, Online, rooms, launcher updates", "netMoscow": "Moscow", "netGermany": "Germany", "netR2": "Cloudflare (storage)", "netMs": "{n} ms", "netNone": "no answer", "netUsed": "in use", "netWait": "Checking our servers…", "netNoteDone": "Checked at the start; again when a server stops answering. No ping - one small download from each.", "netNoteOld": "The order of the last start; this one is being checked.",
     "save": "Save",
     "repairTitle": "Repair",
     "repair": "Check & repair files",
@@ -175,6 +183,11 @@ const T = {
     "addonNext": "version {v} comes with the next update",
     "addonCheck": "Check add-ons for updates", "addonChecking": "Checking…", "addonSame": "Everything is up to date ({time})", "addonChanged": "Add-ons updated", "addonNew": "new: {name}", "addonGone": "removed: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: its settings changed",
     "addonLater": "takes effect the next time the game starts",
+    "addonChangedN": "Add-ons changed: {n} - marked below",
+    "chipNew": "new", "chipUpdated": "updated", "chipOpts": "settings changed",
+    "newsAll": "Read all", "newsLess": "Collapse", "newsLink": "Open the link",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_experiment": "Experiments", "cat_other": "Other", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
+    "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher",
     "launcherUpdating": "Updating the launcher… {p}",
@@ -187,7 +200,6 @@ const T = {
     "onStatePlaying": "Playing",
     "onNobody": "Nobody is looking for a game. Start the game and press “Find a Game”.",
     "onOffline": "No connection to the ladder server, trying again…",
-    "onIdle": "In the game, in the menu",
     "onLoading": "Loading who is online…",
     "onLadder": "Ladder and match history ›",
     "race_space_marines": "Space Marines",
@@ -217,7 +229,15 @@ const T = {
     "prNote": "Ник, рейтинг 1v1 и чат с игроками.",
     "prGames": "Игр: {n} · побед {pct}%",
     "prNoGames": "В этом сезоне ещё без игр в ладдере",
-    "prRankT": "Место в ладдере (1v1, этот сезон)",
+    "nickStats": "Статистика игрока",
+    "nickSteam": "Профиль Steam",
+    "chSending": "Отправляется…",
+    "chNotSent": "Не отправлено",
+    "chRetry": "Повторить",
+    "chDelete": "Удалить",
+    "chOrig": "Оригинал",
+    "onWatcher": "зритель",
+    "onWatchers": "Зрители",
     "chAll": "Общий",
     "chDev": "Разработчикам",
     "chLogin": "Войти через Steam",
@@ -226,7 +246,6 @@ const T = {
     "chPlaceholder": "Сообщение… (Enter — отправить, Shift+Enter — новая строка)",
     "chMembers": "В лаунчере",
     "chEmpty": "Пока тихо. Напишите первым!",
-    "chPending": "отправляется…",
     "chWaitLogin": "Войдите через Steam в браузере и вернитесь сюда.",
     "st_menu": "в меню",
     "st_game": "в игре",
@@ -319,6 +338,7 @@ const T = {
     "trayQuit": "Выход",
     "cacheNote": "переключение на них — мгновенно",
     "mirror": "Дополнительное зеркало (необязательно)",
+    "netTitle": "Наши серверы с этого компьютера", "netCheck": "Проверить заново", "netChecking": "Проверяю…", "netFiles": "Файлы (обновления Elite и дополнений)", "netApi": "Чат, онлайн, комнаты, обновление лаунчера", "netMoscow": "Москва", "netGermany": "Германия", "netR2": "Cloudflare (хранилище)", "netMs": "{n} мс", "netNone": "нет ответа", "netUsed": "используется", "netWait": "Проверяю наши серверы…", "netNoteDone": "Проверено при запуске; заново — если сервер перестал отвечать. Без пинга: по одной маленькой загрузке с каждого.", "netNoteOld": "Порядок с прошлого запуска, сейчас проверяется.",
     "save": "Сохранить",
     "repairTitle": "Починка",
     "repair": "Проверить и починить",
@@ -372,6 +392,11 @@ const T = {
     "addonNext": "версия {v} встанет со следующим обновлением",
     "addonCheck": "Проверить обновления дополнений", "addonChecking": "Проверяю…", "addonSame": "Всё актуально ({time})", "addonChanged": "Дополнения обновились", "addonNew": "новое: {name}", "addonGone": "убрано: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: изменились настройки",
     "addonLater": "действует со следующего запуска игры",
+    "addonChangedN": "Изменилось дополнений: {n} — отмечены в списке",
+    "chipNew": "новое", "chipUpdated": "обновлено", "chipOpts": "изменились настройки",
+    "newsAll": "Читать полностью", "newsLess": "Свернуть", "newsLink": "Открыть ссылку",
+    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_experiment": "Эксперименты", "cat_other": "Другое", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
+    "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер",
     "launcherUpdating": "Обновляю лаунчер… {p}",
@@ -384,7 +409,6 @@ const T = {
     "onStatePlaying": "Идёт",
     "onNobody": "Никто не ищет игру. Запусти игру и нажми «Find a Game».",
     "onOffline": "Нет связи с сервером ладдера, пробую снова…",
-    "onIdle": "В игре, в меню",
     "onLoading": "Загружаю, кто онлайн…",
     "onLadder": "Ладдер и история матчей ›",
     "race_space_marines": "Космодесант",
@@ -414,7 +438,15 @@ const T = {
     "prNote": "Tu nombre, rating 1v1 y el chat de jugadores.",
     "prGames": "Partidas: {n} · {pct}% ganadas",
     "prNoGames": "Aún sin partidas de ladder esta temporada",
-    "prRankT": "Puesto en el ladder (1v1, esta temporada)",
+    "nickStats": "Estadísticas del jugador",
+    "nickSteam": "Perfil de Steam",
+    "chSending": "Enviando…",
+    "chNotSent": "No enviado",
+    "chRetry": "Reintentar",
+    "chDelete": "Borrar",
+    "chOrig": "Original",
+    "onWatcher": "espectador",
+    "onWatchers": "Espectadores",
     "chAll": "General",
     "chDev": "Desarrolladores",
     "chLogin": "Entrar con Steam",
@@ -423,7 +455,6 @@ const T = {
     "chPlaceholder": "Mensaje… (Enter envía, Shift+Enter nueva línea)",
     "chMembers": "En el launcher",
     "chEmpty": "Todo tranquilo. ¡Saluda!",
-    "chPending": "enviando…",
     "chWaitLogin": "Entra con Steam en el navegador y vuelve aquí.",
     "st_menu": "en el menú",
     "st_game": "en el juego",
@@ -511,6 +542,7 @@ const T = {
     "trayQuit": "Salir",
     "cacheNote": "volver a ellas es instantáneo",
     "mirror": "Espejo adicional (opcional)",
+    "netTitle": "Nuestros servidores desde este equipo", "netCheck": "Comprobar de nuevo", "netChecking": "Comprobando…", "netFiles": "Archivos (actualizaciones de Elite y complementos)", "netApi": "Chat, en línea, salas, actualización del launcher", "netMoscow": "Moscú", "netGermany": "Alemania", "netR2": "Cloudflare (almacenamiento)", "netMs": "{n} ms", "netNone": "sin respuesta", "netUsed": "en uso", "netWait": "Comprobando nuestros servidores…", "netNoteDone": "Comprobado al iniciar; de nuevo si un servidor deja de responder. Sin ping: una pequeña descarga de cada uno.", "netNoteOld": "El orden del último inicio; se está comprobando.",
     "save": "Guardar",
     "repairTitle": "Reparar",
     "repair": "Comprobar y reparar archivos",
@@ -564,6 +596,11 @@ const T = {
     "addonNext": "la versión {v} llega con la próxima actualización",
     "addonCheck": "Buscar actualizaciones de complementos", "addonChecking": "Comprobando…", "addonSame": "Todo al día ({time})", "addonChanged": "Complementos actualizados", "addonNew": "nuevo: {name}", "addonGone": "retirado: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: cambiaron sus ajustes",
     "addonLater": "se aplica la próxima vez que inicies el juego",
+    "addonChangedN": "Complementos cambiados: {n} — marcados abajo",
+    "chipNew": "nuevo", "chipUpdated": "actualizado", "chipOpts": "ajustes cambiados",
+    "newsAll": "Leer todo", "newsLess": "Contraer", "newsLink": "Abrir el enlace",
+    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_experiment": "Experimentos", "cat_other": "Otros", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
+    "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher",
     "launcherUpdating": "Actualizando el launcher… {p}",
@@ -576,7 +613,6 @@ const T = {
     "onStatePlaying": "En curso",
     "onNobody": "Nadie busca partida. Inicia el juego y pulsa «Find a Game».",
     "onOffline": "Sin conexión con el servidor de la ladder, reintentando…",
-    "onIdle": "En el juego, en el menú",
     "onLoading": "Cargando quién está en línea…",
     "onLadder": "Ladder e historial de partidas ›",
     "race_space_marines": "Marines Espaciales",
@@ -606,7 +642,15 @@ const T = {
     "prNote": "Votre nom, classement 1v1 et le chat des joueurs.",
     "prGames": "Parties : {n} · {pct} % gagnées",
     "prNoGames": "Aucune partie classée cette saison",
-    "prRankT": "Place au classement (1v1, cette saison)",
+    "nickStats": "Statistiques du joueur",
+    "nickSteam": "Profil Steam",
+    "chSending": "Envoi…",
+    "chNotSent": "Non envoyé",
+    "chRetry": "Réessayer",
+    "chDelete": "Supprimer",
+    "chOrig": "Original",
+    "onWatcher": "spectateur",
+    "onWatchers": "Spectateurs",
     "chAll": "Général",
     "chDev": "Développeurs",
     "chLogin": "Se connecter avec Steam",
@@ -615,7 +659,6 @@ const T = {
     "chPlaceholder": "Message… (Entrée envoie, Maj+Entrée nouvelle ligne)",
     "chMembers": "Dans le launcher",
     "chEmpty": "C'est calme. Dites bonjour !",
-    "chPending": "envoi…",
     "chWaitLogin": "Connectez-vous avec Steam dans le navigateur, puis revenez ici.",
     "st_menu": "au menu",
     "st_game": "en jeu",
@@ -703,6 +746,7 @@ const T = {
     "trayQuit": "Quitter",
     "cacheNote": "y revenir est instantané",
     "mirror": "Miroir supplémentaire (facultatif)",
+    "netTitle": "Nos serveurs depuis cet ordinateur", "netCheck": "Vérifier à nouveau", "netChecking": "Vérification…", "netFiles": "Fichiers (mises à jour d’Elite et des modules)", "netApi": "Chat, en ligne, salons, mise à jour du lanceur", "netMoscow": "Moscou", "netGermany": "Allemagne", "netR2": "Cloudflare (stockage)", "netMs": "{n} ms", "netNone": "pas de réponse", "netUsed": "utilisé", "netWait": "Vérification de nos serveurs…", "netNoteDone": "Vérifié au démarrage ; à nouveau si un serveur ne répond plus. Sans ping : un petit téléchargement depuis chacun.", "netNoteOld": "L’ordre du dernier démarrage ; vérification en cours.",
     "save": "Enregistrer",
     "repairTitle": "Réparer",
     "repair": "Vérifier et réparer les fichiers",
@@ -756,6 +800,11 @@ const T = {
     "addonNext": "la version {v} arrive avec la prochaine mise à jour",
     "addonCheck": "Vérifier les mises à jour des modules", "addonChecking": "Vérification…", "addonSame": "Tout est à jour ({time})", "addonChanged": "Modules mis à jour", "addonNew": "nouveau : {name}", "addonGone": "retiré : {name}", "addonChgVer": "{name} : {from} → {to}", "addonOpts": "{name} : ses réglages ont changé",
     "addonLater": "s’applique au prochain lancement du jeu",
+    "addonChangedN": "Modules modifiés : {n} — marqués ci-dessous",
+    "chipNew": "nouveau", "chipUpdated": "mis à jour", "chipOpts": "réglages modifiés",
+    "newsAll": "Tout lire", "newsLess": "Réduire", "newsLink": "Ouvrir le lien",
+    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_experiment": "Expériences", "cat_other": "Autres", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
+    "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher",
     "launcherUpdating": "Mise à jour du launcher… {p}",
@@ -768,7 +817,6 @@ const T = {
     "onStatePlaying": "En cours",
     "onNobody": "Personne ne cherche de partie. Lancez le jeu et appuyez sur « Find a Game ».",
     "onOffline": "Pas de connexion au serveur du ladder, nouvel essai…",
-    "onIdle": "En jeu, dans le menu",
     "onLoading": "Chargement des joueurs en ligne…",
     "onLadder": "Ladder et historique des parties ›",
     "race_space_marines": "Space Marines",
@@ -798,7 +846,15 @@ const T = {
     "prNote": "Dein Name, 1v1-Rating und der Spieler-Chat.",
     "prGames": "Spiele: {n} · {pct} % gewonnen",
     "prNoGames": "Diese Saison noch keine Ladder-Spiele",
-    "prRankT": "Platz in der Ladder (1v1, diese Saison)",
+    "nickStats": "Spielerstatistik",
+    "nickSteam": "Steam-Profil",
+    "chSending": "Wird gesendet…",
+    "chNotSent": "Nicht gesendet",
+    "chRetry": "Erneut senden",
+    "chDelete": "Löschen",
+    "chOrig": "Original",
+    "onWatcher": "Zuschauer",
+    "onWatchers": "Zuschauer",
     "chAll": "Allgemein",
     "chDev": "Entwickler",
     "chLogin": "Mit Steam anmelden",
@@ -807,7 +863,6 @@ const T = {
     "chPlaceholder": "Nachricht… (Enter sendet, Umschalt+Enter neue Zeile)",
     "chMembers": "Im Launcher",
     "chEmpty": "Noch still hier. Sag hallo!",
-    "chPending": "wird gesendet…",
     "chWaitLogin": "Im Browser mit Steam anmelden und hierher zurückkommen.",
     "st_menu": "im Menü",
     "st_game": "im Spiel",
@@ -895,6 +950,7 @@ const T = {
     "trayQuit": "Beenden",
     "cacheNote": "zurückwechseln geht sofort",
     "mirror": "Zusätzlicher Mirror (optional)",
+    "netTitle": "Unsere Server von diesem Computer aus", "netCheck": "Erneut prüfen", "netChecking": "Prüfe…", "netFiles": "Dateien (Updates von Elite und Erweiterungen)", "netApi": "Chat, Online, Lobbys, Launcher-Update", "netMoscow": "Moskau", "netGermany": "Deutschland", "netR2": "Cloudflare (Speicher)", "netMs": "{n} ms", "netNone": "keine Antwort", "netUsed": "in Benutzung", "netWait": "Prüfe unsere Server…", "netNoteDone": "Beim Start geprüft; erneut, wenn ein Server nicht mehr antwortet. Kein Ping – ein kleiner Download von jedem.", "netNoteOld": "Die Reihenfolge des letzten Starts; wird gerade geprüft.",
     "save": "Speichern",
     "repairTitle": "Reparieren",
     "repair": "Dateien prüfen und reparieren",
@@ -948,6 +1004,11 @@ const T = {
     "addonNext": "Version {v} kommt mit dem nächsten Update",
     "addonCheck": "Erweiterungen auf Updates prüfen", "addonChecking": "Prüfe…", "addonSame": "Alles aktuell ({time})", "addonChanged": "Erweiterungen aktualisiert", "addonNew": "neu: {name}", "addonGone": "entfernt: {name}", "addonChgVer": "{name}: {from} → {to}", "addonOpts": "{name}: Einstellungen geändert",
     "addonLater": "gilt ab dem nächsten Spielstart",
+    "addonChangedN": "Geänderte Erweiterungen: {n} — unten markiert",
+    "chipNew": "neu", "chipUpdated": "aktualisiert", "chipOpts": "Einstellungen geändert",
+    "newsAll": "Alles lesen", "newsLess": "Einklappen", "newsLink": "Link öffnen",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_experiment": "Experimente", "cat_other": "Sonstiges", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
+    "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren",
     "launcherUpdating": "Launcher wird aktualisiert… {p}",
@@ -960,7 +1021,6 @@ const T = {
     "onStatePlaying": "Läuft",
     "onNobody": "Niemand sucht ein Spiel. Starte das Spiel und drücke „Find a Game“.",
     "onOffline": "Keine Verbindung zum Ladder-Server, neuer Versuch…",
-    "onIdle": "Im Spiel, im Menü",
     "onLoading": "Lade, wer online ist…",
     "onLadder": "Ladder und Spielverlauf ›",
     "race_space_marines": "Space Marines",
@@ -980,6 +1040,14 @@ const T = {
 
 let S = null;          // last status from Rust
 let lang = 'en';
+// the system's language (WebView2 takes the Windows display language): the first of ours among the preferred ones, else en
+const LANG_NAMES = { en: 'English', ru: 'Русский', es: 'Español', fr: 'Français', de: 'Deutsch' };
+function sysLang() {
+  for (const l of (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'])) {
+    const c = String(l).slice(0, 2).toLowerCase(); if (LANG_NAMES[c]) return c;
+  }
+  return 'en';
+}
 let prog = null;       // last progress event
 
 const t = (k, vars = {}) => (T[lang][k] || T.en[k] || k).replace(/\{(\w+)\}/g, (_, v) => vars[v] ?? '');
@@ -987,6 +1055,76 @@ const L = x => x == null ? '' : typeof x === 'string' ? x : (x[lang] || x.en || 
 const mb = b => b >= 1e9 ? (b / 1e9).toFixed(2) + ' GB' : (b / 1e6).toFixed(b < 1e7 ? 2 : 1) + ' MB';
 const mbps = b => b >= 1e6 ? (b / 1e6).toFixed(1) + ' MB/s' : Math.max(1, Math.round(b / 1e3)) + ' KB/s';
 // a round avatar: the picture over the default figure, which shows while it loads, when it fails or when there is none
+const NEWS_OPEN = new Set();   // news items the player unfolded (date|title), for this run only
+// "Read all" only where there is more to read: a text cut at 4 lines, or more than 3 items in the list. Measured only
+// while the news are on screen (siritos 02.11: the window is redrawn also on another tab - a hidden text measures 0 and
+// every button went), and again whenever the list shows up or changes its size.
+function newsFolds() {
+  const box = $('news');
+  if (!box || !box.offsetWidth) return;   // not on screen: keep what was measured, the observer comes back
+  box.querySelectorAll('.news-item').forEach(el => {
+    const x = el.querySelector('.x'), b = el.querySelector('.news-fold');
+    b.classList.toggle('hidden', !(el.classList.contains('open') || b.dataset.more === '1' || (x && x.scrollHeight > x.clientHeight + 1)));
+  });
+}
+try { new ResizeObserver(() => newsFolds()).observe(document.getElementById('news')); } catch (e) {}
+if (document.fonts) document.fonts.ready.then(() => newsFolds());
+// the footer links' icons, by where they lead: Discord, ModDB (the mod's news), our stats / ladder (a chart), else a link
+function linkIcon(url) {
+  const u = String(url || '').toLowerCase();
+  const svg = (body, fill) => `<svg viewBox="0 0 24 24" aria-hidden="true" class="${fill ? 'fill' : ''}">${body}</svg>`;
+  if (u.includes('discord')) return svg('<path d="M19.6 5.3A17 17 0 0 0 15.4 4l-.5 1.1a15.7 15.7 0 0 0-5.8 0L8.6 4a17 17 0 0 0-4.2 1.3C1.7 9.3 1 13.2 1.3 17a17.2 17.2 0 0 0 5.2 2.6l1.1-1.8a11 11 0 0 1-1.7-.8l.4-.3a12.2 12.2 0 0 0 11.4 0l.4.3a11 11 0 0 1-1.7.8l1.1 1.8a17.2 17.2 0 0 0 5.2-2.6c.4-4.4-.6-8.3-3.1-11.7zM8.7 14.7c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1zm6.6 0c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1z"/>', true);
+  if (u.includes('moddb')) return svg('<path d="M4 5h13a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V5z"/><path d="M19 9h1a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0"/><path d="M7 9h8M7 12h8M7 15h5"/>');
+  if (/\/(stats|ladder)\b/.test(u)) return svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>');
+  return svg('<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>');
+}
+
+// ---------- the events, a slider above the news (siritos 02.11) ----------
+// launcher.json "events": [{id, title, start, end?, place?, url?}] (title / place: a string or {en, ru, ...}; start / end:
+// ISO time with its zone). Shown: what goes on now and what starts in the next 14 days, one card at a time, as high as
+// the player's card; the arrows, the dots or a swipe go to the next. The date is the main thing; "in 25 min" / "on now"
+// only in the last 2 hours before the start.
+// Where they come from (siritos 02.11): launcher.json "events" when the owner sets them; else events.json of the
+// launcher repository, edited in git (events_get: GitHub, jsDelivr, the last copy, the built-in one), every 15 minutes.
+let EVENTS = [];
+function eventsLoad() { invoke('events_get').then(d => { EVENTS = (d && Array.isArray(d.events)) ? d.events : []; renderEvents(); }).catch(() => {}); }
+eventsLoad();
+setInterval(eventsLoad, 15 * 60000);
+const EV = { i: 0, n: 0 };
+function renderEvents() {
+  const box = $('evBox'); if (!box || !S) return;
+  const real = Array.isArray((S.config || {}).events), now = Date.now(), soon = now + 14 * 86400000;
+  const list = (real ? S.config.events : EVENTS).map(e => ({ ...e, s: Date.parse(e.start), e: Date.parse(e.end || e.start) || Date.parse(e.start) }))
+    .filter(e => e.s && e.e >= now && e.s <= soon).sort((a, b) => a.s - b.s);
+  box.classList.toggle('hidden', !list.length);
+  if (!list.length) return;
+  EV.n = list.length; EV.i = Math.min(EV.i, EV.n - 1);
+  // siritos 02.11: the card must say what and when - the title large (two lines), the day, the time from - to, the place;
+  // big buttons on the sides to go to the next one
+  const mins = e => Math.max(1, Math.round((e.s - now) / 60000));
+  const soonTag = e => e.s <= now ? `<span class="ev-tag now">${esc(t('evNow'))}</span>`
+    : e.s - now < 2 * 3600000 ? `<span class="ev-tag">${esc(mins(e) < 60 ? t('evInM', { n: mins(e) }) : t('evInH', { n: Math.round(mins(e) / 60) }))}</span>` : '';
+  const d = ms => new Date(ms), hm = ms => d(ms).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
+  // the points under the title: "info" - a list, or {ru: [...], en: [...]}; an older event's "place" as one point
+  const info = e => { const i = e.info, arr = Array.isArray(i) ? i : (i && typeof i === 'object' ? (i[lang] || i.en || []) : []);
+    return (arr.length ? arr : e.place ? [L(e.place)] : []).slice(0, 3); };
+  const card = e => `<div class="ev-card"><div class="ev-date"><b>${d(e.s).getDate()}</b><span>${esc(d(e.s).toLocaleDateString(lang, { month: 'short' }).replace('.', ''))}</span><i>${esc(hm(e.s))}</i></div>`
+    + `<div class="ev-body"><div class="ev-t"><span title="${esc(L(e.title))}">${esc(L(e.title))}</span>${soonTag(e)}`
+    + (e.url ? `<button class="news-link ev-link" data-url="${esc(e.url)}" title="${esc(t('newsLink'))}" aria-label="${esc(t('newsLink'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>` : '') + '</div>'
+    + (info(e).length ? `<ul class="ev-info">${info(e).map(x => `<li title="${esc(x)}">${esc(x)}</li>`).join('')}</ul>` : '') + '</div>'
+    + '</div>';
+  const side = dir => EV.n > 1 ? `<button class="ev-side" data-d="${dir}" aria-label="${dir < 0 ? '‹' : '›'}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${dir < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>` : '';
+  box.innerHTML = `<div class="ev-head"><span class="ev-h">${esc(t('evTitle'))}</span>${EV.n > 1 ? `<span class="ev-count">${EV.i + 1} / ${EV.n}</span>` : ''}</div>`
+    + `<div class="ev-stage">${side(-1)}<div class="ev-view"><div class="ev-track" style="transform:translateX(-${EV.i * 100}%)">${list.map(card).join('')}</div></div>${side(1)}</div>`;
+  const go = i => { EV.i = (i + EV.n) % EV.n; renderEvents(); };
+  box.querySelectorAll('.ev-side').forEach(b => b.onclick = () => go(EV.i + Number(b.dataset.d)));
+  box.querySelectorAll('[data-url]').forEach(b => b.onclick = () => open(b.dataset.url));
+  // a swipe (mouse or touch) to the side: the next / the previous
+  const view = box.querySelector('.ev-view'); let x0 = null;
+  view.onpointerdown = e => { x0 = e.clientX; };
+  view.onpointerup = e => { if (x0 != null && Math.abs(e.clientX - x0) > 40 && EV.n > 1) go(EV.i + (e.clientX < x0 ? 1 : -1)); x0 = null; };
+}
+setInterval(renderEvents, 60000);   // "in 25 min" goes on counting
 const avatar = (url, cls = '') => `<i class="av ${cls}"${url ? ` style="--av:url('${String(url).replace(/['"()\\\s<>&]/g, encodeURIComponent)}')"` : ''}></i>`;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const open = url => url && invoke('open_url', { url }).catch(e => toast(e, true));
@@ -1009,10 +1147,20 @@ function verOpen(on) {
   $('verBtn').classList.toggle('on', on);
 }
 
+// the add-on name in front of the number goes ("lobbystats-0.10.1" -> 0.10.1; the ids got "_r2"/"_r3" on 30.10 and no longer matched)
+const verNum = x => String(x || '').replace(/^[a-z_]+-(?=[0-9])/i, '');
+// what the last check changed, per add-on (siritos 02.11: marked on the add-on itself, not one line for all): new / ver / opts
+const COMP_CHG = {};
+// the Add-ons tab: what the last check changed, next to the name (the versions are in the line under the description)
+function compChips(c) {
+  const k = COMP_CHG[c.id];
+  return '<span class="addon-chips">'
+    + (k ? `<span class="chip hot">${esc(t(k === 'new' ? 'chipNew' : k === 'ver' ? 'chipUpdated' : 'chipOpts'))}</span>` : '')
+    + '</span>';
+}
 // "Version 0.7.0", plus the one the next update brings
 function compVer(c) {
-  // the add-on name in front of the number goes ("lobbystats-0.10.1" -> 0.10.1; the ids got "_r2"/"_r3" on 30.10 and no longer matched)
-  const v = x => String(x || '').replace(/^[a-z_]+-(?=[0-9])/i, '');
+  const v = verNum;
   return c.installed ? t('addonVer', { v: v(c.installed) }) + (c.latest && c.latest !== c.installed ? ', ' + t('addonNext', { v: v(c.latest) }) : '')
     : c.latest ? t('addonVer', { v: v(c.latest) }) : '';
 }
@@ -1031,21 +1179,46 @@ function optsHtml(c, lock) {
   return parts.map(p => p.g ? `<div class="addon-sub"><div class="addon-grp">${esc(p.g)}</div>${p.list.map(one).join('')}</div>` : p.list.map(one).join('')).join('');
 }
 
+// The groups of the Add-ons tab, in this order; an add-on without launcher.json "category" is put in one by its id (the
+// "_r2"/"_r3" ends of the ids left out)
+const COMP_CATS = ['network', 'interface', 'gameplay', 'experiment', 'other'];
+const COMP_CAT_BY_ID = { relay: 'network', automatch: 'network', lobbystats: 'interface', loadingratings: 'interface', matchtimer: 'interface',
+  cooldowns: 'interface', reverse: 'gameplay', obsfix: 'gameplay', netprobe: 'network', ownlobby: 'network' };
+const compCat = c => COMP_CATS.includes(c.category) ? c.category : COMP_CAT_BY_ID[String(c.id).replace(/_(r\d+|off)$/, '')] || 'other';
+// the groups the player folded (only a convenience: without storage everything is open)
+const COMP_SHUT = new Set();
+try { JSON.parse(localStorage.getItem('compShut') || '[]').forEach(k => COMP_SHUT.add(k)); } catch (e) {}
+// an add-on taken away from everyone (its version "...-off": the old AI, the developers' diagnostics) is not shown at all
+const compShown = c => !/(^|-)off$/i.test(String(c.latest || ''));
 // add-on rows: a switch each and its own options under it once it is on; the details behind "?" on the home screen,
 // written out on the Add-ons tab (full)
 function compList(box, list, full) {
   const lock = S.busy || S.game_running;   // the game holds the add-on files while it runs
   const nameHtml = c => { const n = L(c.name) || c.id, m = n.match(/^(.+?)\s*\(([^()]+)\)$/); return m ? `${esc(m[1])}<small>${esc(m[2])}</small>` : esc(n); };
-  box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '')
-    + list.map(c => `<div class="addon ${c.enabled ? '' : 'off'}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
+  const card = c => `<div class="addon ${c.enabled ? '' : 'off'}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
+      + (full ? compChips(c) : '')
       + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '')
       + (full ? '' : `<button class="qm ${$('pop').dataset.id === c.id ? 'on' : ''}" data-info="${esc(c.id)}" aria-label="${esc(t('addonInfo', { name: L(c.name) || c.id }))}">?</button>`)
       + `<label class="switch"><input type="checkbox" role="switch" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled ? 'checked' : ''} ${lock ? 'disabled' : ''}><i></i></label></div>`
       + (full ? (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
           + `<div class="addon-ver">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
           + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') : '')
-      + (c.enabled && (c.options || []).length ? '<div class="addon-opts">' + optsHtml(c, lock) + '</div>' : '')
-      + '</div>').join('');
+      // the Add-ons tab: no box around the options (siritos 02.11) - "Settings" and the list under it
+      + (c.enabled && (c.options || []).length ? '<div class="addon-opts">' + (full ? `<div class="addon-opts-h">${esc(t('addonSettings'))}</div>` : '') + optsHtml(c, lock) + '</div>' : '')
+      + '</div>';
+  // the Add-ons tab in groups (siritos 02.11): launcher.json "category" when the owner sets it, else by the add-on id
+  const groups = full ? COMP_CATS.map(k => ({ k, list: list.filter(c => compCat(c) === k) })).filter(g => g.list.length) : null;
+  box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '')
+    // a group folds on a click on its heading (kept for the next start); the heading says how many are on: "2 / 4"
+    + (full ? groups.map(g => { const shut = COMP_SHUT.has(g.k), on = g.list.filter(c => c.enabled).length;
+        return `<div class="addon-group ${shut ? 'shut' : ''}"><button class="addon-gh" data-cat="${g.k}" aria-expanded="${!shut}"><b class="chev"></b>${esc(t('cat_' + g.k))}<span>${on} / ${g.list.length}</span></button>`
+          + (shut ? '' : `<div class="addon-cols">${g.list.map(card).join('')}</div>`) + '</div>'; }).join('')
+      : list.map(card).join(''));
+  box.querySelectorAll('.addon-gh[data-cat]').forEach(b => b.onclick = () => {
+    COMP_SHUT.has(b.dataset.cat) ? COMP_SHUT.delete(b.dataset.cat) : COMP_SHUT.add(b.dataset.cat);
+    try { localStorage.setItem('compShut', JSON.stringify([...COMP_SHUT])); } catch (e) {}
+    render();
+  });
   box.querySelectorAll('.qm').forEach(b => b.onclick = e => { e.stopPropagation(); popAddon(b, list.find(c => c.id === b.dataset.info)); });
   box.querySelectorAll('input[data-opt]').forEach(cb => cb.onchange = () =>
     invoke('set_comp_option', { comp: cb.dataset.comp, opt: cb.dataset.opt, on: cb.checked }).then(reload).catch(e => toast(e, true)));
@@ -1074,6 +1247,7 @@ function popAddon(btn, c) {
     + `<div class="v">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
     + (c.enabled && (c.conflicts || []).length ? `<div class="w">${esc(t('conflictActive'))}</div>` : '');
   pop.dataset.id = c.id;
+  pop.classList.remove('nick');
   pop.classList.remove('hidden');
   document.querySelectorAll('.qm.on').forEach(x => x.classList.remove('on'));
   btn.classList.add('on');
@@ -1086,6 +1260,38 @@ function popClose() {
   $('pop').classList.add('hidden');
   $('pop').dataset.id = '';
   document.querySelectorAll('.qm.on').forEach(x => x.classList.remove('on'));
+}
+
+// the player menu (Online, chat, rooms, own card): mention him in the chat (signed in, not me, the name known), his stats
+// on our site (the page finds him by SteamID and opens his card) or his Steam profile. Only the SteamID is needed.
+function nickMenu(btn, steam, name, noTag) {
+  // no SteamID (a player in the rooms while the server sends none): the stats found by his name, no Steam profile
+  const pop = $('pop'), q = steam || name, id = 'nick:' + q;
+  if (!q || (pop.dataset.id === id && !pop.classList.contains('hidden'))) return popClose();
+  const host = LIVE.host || 'https://dow2.fintebtc.de';
+  const urls = [host + '/stats/?q=' + encodeURIComponent(q) + '&lang=' + encodeURIComponent(lang), steam ? 'https://steamcommunity.com/profiles/' + steam : ''];
+  // noTag: a player who is not in our chat (the rooms: Relic's players) - no "mention"
+  const tag = !noTag && name && CH.me && CH.me.signed_in && String(CH.me.steam) !== String(steam);
+  pop.innerHTML = '<div class="nick-menu">' + (tag ? `<button data-tag="1">${esc(t('onTag'))}</button>` : '')
+    + `<button data-u="0">${esc(t('nickStats'))}</button>` + (steam ? `<button data-u="1">${esc(t('nickSteam'))}</button>` : '') + '</div>';
+  pop.querySelectorAll('[data-u]').forEach(b => b.onclick = () => { popClose(); open(urls[b.dataset.u]); });
+  pop.querySelectorAll('[data-tag]').forEach(b => b.onclick = () => { popClose(); chMention(name); });
+  pop.dataset.id = id;
+  pop.classList.add('nick');
+  pop.classList.remove('hidden');
+  // under the name, kept inside the window
+  const r = btn.getBoundingClientRect();
+  pop.style.left = Math.max(8, Math.min(window.innerWidth - pop.offsetWidth - 8, r.left)) + 'px';
+  pop.style.top = (r.bottom + 4 + pop.offsetHeight > window.innerHeight - 8 ? r.top - pop.offsetHeight - 4 : r.bottom + 4) + 'px';
+}
+// a player's name or avatar: the menu on a click and on a right click; mention = a name in the chat, where a click
+// mentions him (the owner's 1.3.6 / 1.3.12) and only the right click opens the menu
+function nickBind(el, steam, name, mention, noTag) {
+  if (!el) return;
+  const menu = e => { e.preventDefault(); e.stopPropagation(); nickMenu(el, steam, name, noTag); };
+  if (steam || name) { el.oncontextmenu = menu; el.style.cursor = 'pointer'; }
+  if (mention && name) el.onclick = e => { e.stopPropagation(); popClose(); chMention(name); };
+  else if (steam || name) el.onclick = menu;
 }
 
 // launcher self-update, offered and never forced. LU: a newer launcher this copy can install itself (launcher_check);
@@ -1130,7 +1336,8 @@ function syncTrayLabels() {
 }
 
 function render() {
-  lang = S.lang || 'ru';                     // Russian unless the player picked another language in Settings
+  // the player's pick in Settings; none - the system's language (siritos 02.11), English when we have no translation
+  lang = S.lang || sysLang();
   if (!T[lang]) lang = 'en';
   document.documentElement.lang = lang;
   syncTrayLabels();
@@ -1152,25 +1359,44 @@ function render() {
   });
 
   // news: the team's posts from launcher.json and the release notes of the launcher and the patches, newest first
-  const news = (cfg.news || []).map(n => ({ date: n.date || '', title: L(n.title), text: L(n.text), url: n.url }))
-    .concat((S.release_news || []).map(n => ({ date: n.date, title: n.title, items: n.items || [], url: n.url })))
-    .sort((x, y) => String(y.date).localeCompare(String(x.date))).slice(0, 12);
-  $('news').innerHTML = news.map(n => (n.url ? `<a class="news-item" href="#" data-url="${esc(n.url)}">` : '<div class="news-item">')
-    + `<div class="t">${esc(n.title)}</div>` + (n.date ? `<div class="d">${esc(day(n.date))}</div>` : '')
-    + (n.text ? `<div class="x">${esc(n.text)}</div>` : '')
-    + (n.items && n.items.length ? `<ul>${n.items.slice(0, 3).map(x => `<li>${esc(x)}</li>`).join('')}${n.items.length > 3 ? '<li>…</li>' : ''}</ul>` : '')
-    + (n.url ? '</a>' : '</div>')).join('')
-    || `<div class="news-empty">${esc(S.config_loaded ? t('noNews') : t('connecting'))}</div>`;
-  $('news').querySelectorAll('[data-url]').forEach(el => el.onclick = e => { e.preventDefault(); open(el.dataset.url); });
-  const more = cfg.news_more;
-  $('newsMore').classList.toggle('hidden', !more?.url);
-  if (more?.url) { $('newsMore').textContent = (L(more.title) || t('allNews')) + ' ›'; $('newsMore').onclick = () => open(more.url); }
+  // 02.11 (siritos): newest first also within one day (by the version in the title: 1.3.16 above 1.3.15); a release is
+  // left out when the team wrote its own post about that version (in the player's language); a release has no link
+  // (its GitHub page is not news for a player) and its title says "Launcher 1.3.16" / "Add-ons 0.1.6" in his language
+  const verOf = s => (String(s || '').match(/(\d+)\.(\d+)\.(\d+)/) || []).slice(1).map(Number);
+  const cmpVer = (a, b) => { for (let i = 0; i < 3; i++) { const d = (b[i] || 0) - (a[i] || 0); if (d) return d; } return 0; };
+  // a link only when it leads somewhere about the post: the site's front page (".../elite/", what the launcher version
+  // posts carry) is no link at all
+  const posts = (cfg.news || []).map(n => ({ date: n.date || '', title: L(n.title), text: L(n.text), url: /^https?:\/\//.test(n.url || '') && !/^https?:\/\/[^/]+\/elite\/?$/.test(n.url) ? n.url : '' }));
+  const told = new Set(posts.map(p => verOf(p.title).join('.')).filter(Boolean));
+  const rel = (S.release_news || []).filter(n => !(n.kind !== 'patches' && told.has(verOf(n.version || n.title).join('.'))))
+    .map(n => ({ date: n.date, ts: n.ts, title: n.version ? t(n.kind === 'patches' ? 'newsRelPatches' : 'newsRelLauncher', { v: n.version }) : n.title, items: (lang === 'ru' && (n.items_ru || []).length ? n.items_ru : n.items) || [] }));
+  const news = posts.concat(rel)
+    .sort((x, y) => String(y.date).localeCompare(String(x.date)) || cmpVer(verOf(x.title), verOf(y.title)) || String(y.ts || '').localeCompare(String(x.ts || '')))
+    .slice(0, 12);
+  // a news item is plain text (siritos 02.11: the whole item as a link led nowhere and cut the text): the link, when
+  // there is one, is an icon next to the title; a long text or list folds open and shut under "Read all / Collapse"
+  const nkey = n => n.date + '|' + n.title;
+  $('news').innerHTML = news.map(n => {
+    const isOpen = NEWS_OPEN.has(nkey(n)), items = n.items || [];
+    return `<div class="news-item ${isOpen ? 'open' : ''}" data-k="${esc(nkey(n))}"><div class="nt"><div class="t">${esc(n.title)}</div>`
+      + (n.url ? `<button class="news-link" data-url="${esc(n.url)}" title="${esc(t('newsLink'))}" aria-label="${esc(t('newsLink'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg></button>` : '')
+      + '</div>' + (n.date ? `<div class="d">${esc(day(n.date))}</div>` : '')
+      + (n.text ? `<div class="x">${esc(n.text)}</div>` : '')
+      + (items.length ? `<ul>${(isOpen ? items : items.slice(0, 3)).map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : '')
+      + `<button class="news-fold hidden" data-more="${items.length > 3 ? 1 : 0}">${esc(t(isOpen ? 'newsLess' : 'newsAll'))}</button></div>`;
+  }).join('') || `<div class="news-empty">${esc(S.config_loaded ? t('noNews') : t('connecting'))}</div>`;
+  $('news').querySelectorAll('.news-link').forEach(b => b.onclick = () => open(b.dataset.url));
+  $('news').querySelectorAll('.news-item').forEach(el => {
+    el.querySelector('.news-fold').onclick = () => { const k = el.dataset.k; NEWS_OPEN.has(k) ? NEWS_OPEN.delete(k) : NEWS_OPEN.add(k); render(); };
+  });
+  newsFolds();
+  renderEvents();
 
-  // links
+  // links (siritos 02.11): no block of their own and no "All news on ModDB" under the news - icons in the footer, where
+  // "Elite 3.2 is ready" and the game folder used to stand (the version is on the version button anyway)
   const links = cfg.links || [];
-  $('linksBox').classList.toggle('hidden', !links.length);
-  $('links').innerHTML = links.map((l, i) => `<button data-i="${i}">${esc(L(l.title))}</button>`).join('');
-  $('links').querySelectorAll('button').forEach(b => b.onclick = () => open(links[+b.dataset.i].url));
+  $('footLinks').innerHTML = links.map((l, i) => `<button class="foot-link" data-i="${i}" title="${esc(l.url || '')}">${linkIcon(l.url)}<span>${esc(L(l.title))}</span></button>`).join('');
+  $('footLinks').querySelectorAll('button').forEach(b => b.onclick = () => open(links[+b.dataset.i].url));
 
   // game / steam missing → guide the player
   const setup = $('setup');
@@ -1216,7 +1442,7 @@ function render() {
   if (notMain) $('verWarn').textContent = t('youPlay', { name: L(activeCh.name) }) + ' ' + t('notMain', { name: L(mainCh.name) });
 
   // add-ons: only the game server on the home screen (or what launcher.json marks "home"), all of them on the Add-ons tab
-  const comps = S.components || [];
+  const comps = (S.components || []).filter(compShown);
   const pinned = comps.some(c => c.home) ? comps.filter(c => c.home)
     : comps.filter(c => c.id === 'relay');   // until launcher.json marks them
   $('compBox').classList.toggle('hidden', !pinned.length);
@@ -1255,17 +1481,22 @@ function render() {
       : S.installed_version ? esc(t('ready', { v: activeCh ? L(activeCh.name).replace(/^Elite\s+/i, '') : S.installed_version })) : (S.config_loaded ? '' : esc(t('connecting')));
     const hint = L(cfg.launch?.[S.os]?.hint);
     $('statusMeta').textContent = [hint, winPath(S.game_dir)].filter(Boolean).join(' · ');
+    // all is well (ready, no launch hint): the line steps aside for the links (siritos 02.11: "Elite 3.2 is ready" and the
+    // game folder are not news); any download, check or error writes the line again and it comes back (CSS :has)
+    if (!S.last_error && S.installed_version && !hint) { $('statusText').innerHTML = ''; $('statusMeta').textContent = ''; }
   }
 
   // settings
   $('gameDir').textContent = winPath(S.game_dir) || '—';
   $('lang').value = S.lang || '';
+  $('lang').options[0].textContent = t('langDefault', { name: LANG_NAMES[sysLang()] });   // "Default (English)": what the system gives
   $('cache').value = String(S.cache_mb);
   $('usage').checked = S.usage_stats !== false;
   $('lanShare').checked = S.lan_share !== false;
   $('muteMention').checked = !!S.mute_mention; $('closeQuits').checked = !!S.close_quits;
   $('mirror').value = S.extra_mirror || '';
   $('mirrorInfo').textContent = t('mirrors', { n: S.mirror_count });
+  renderNet();
   $('repair').disabled = S.busy || S.game_running || !S.installed_version;
   $('junk').disabled = S.busy || S.game_running || !S.installed_version;
   $('about').textContent = `Elite Launcher ${S.launcher_version} · ${S.os}`;
@@ -1310,23 +1541,29 @@ async function reload() { S = await invoke('get_status'); render(); }
 // 1.3.13 (owner): "check add-ons for updates" - what the fresh launcher.json changed is told, also after the automatic checks
 const compSnap = cfg => Object.fromEntries(((cfg && cfg.components) || []).map(c => [c.id, { v: c.version, n: L(c.name) || c.id,
   o: ((c.settings && c.settings.length ? c.settings : c.options) || []).map(o => o.id + ':' + (o.choices || []).map(x => x.value).join('/')).join(',') }]));
+// -> [{id, k: new | ver | opts | gone, text}]
 function compDiff(a, b) {
   const out = [];
   for (const id in b) {
-    if (!a[id]) out.push(t('addonNew', { name: b[id].n }));
-    else if (a[id].v !== b[id].v) out.push(t('addonChgVer', { name: b[id].n, from: a[id].v, to: b[id].v }));
-    else if (a[id].o !== b[id].o) out.push(t('addonOpts', { name: b[id].n }));
+    if (!a[id]) out.push({ id, k: 'new', text: t('addonNew', { name: b[id].n }) });
+    else if (a[id].v !== b[id].v) out.push({ id, k: 'ver', text: t('addonChgVer', { name: b[id].n, from: verNum(a[id].v), to: verNum(b[id].v) }) });
+    else if (a[id].o !== b[id].o) out.push({ id, k: 'opts', text: t('addonOpts', { name: b[id].n }) });
   }
-  for (const id in a) if (!b[id]) out.push(t('addonGone', { name: a[id].n }));
+  for (const id in a) if (!b[id]) out.push({ id, k: 'gone', text: t('addonGone', { name: a[id].n }) });
   return out;
 }
 async function refresh() {
   const before = S && S.config ? compSnap(S.config) : null;
-  try { S = await invoke('refresh'); render(); } catch (e) { toast(e, true); return null; }
+  try { S = await invoke('refresh'); } catch (e) { toast(e, true); return null; }
   const changes = before && S.config ? compDiff(before, compSnap(S.config)) : [];
+  changes.forEach(c => { if (c.k !== 'gone') COMP_CHG[c.id] = c.k; });   // the marks on the add-ons stay until the launcher closes
+  render();
   if (changes.length) {
-    const note = $('addonCheckNote'); if (note) note.textContent = t('addonChanged') + ': ' + changes.join('; ');
-    toast(t('addonChanged') + ': ' + changes.join('; '));
+    // the count here and in a toast, what changed is marked on each add-on (a removed one is named: it is not in the list)
+    const gone = changes.filter(c => c.k === 'gone').map(c => c.text);
+    const msg = t('addonChangedN', { n: changes.length }) + (gone.length ? ' · ' + gone.join('; ') : '');
+    const note = $('addonCheckNote'); if (note) note.textContent = msg;
+    toast(msg);
   }
   // add-ons follow their checkboxes on their own: install missing ones, remove unticked ones
   const comps = S.components || [];
@@ -1349,7 +1586,12 @@ async function startUpdate(repair) {
 }
 
 async function doPlay() {
-  try { await invoke('play'); toast(t('starting')); } catch (e) { toast(e, true); }
+  try {
+    const g = await invoke('play') || {};
+    // the check before the start (launch_guard): what was taken out of the game's list, a stray stand-alone loader
+    const said = [(g.off || []).length ? t('guardOff', { list: g.off.join(', ') }) : '', g.loader ? t('guardLoader') : ''].filter(Boolean);
+    toast(said.length ? t('starting') + ' ' + said.join(' ') : t('starting'), !!g.loader);
+  } catch (e) { toast(e, true); }
 }
 
 let netActive = false;
@@ -1374,7 +1616,7 @@ listen('launcher_progress', e => {
   $('statusMeta').textContent = total ? `${mb(done)} / ${mb(total)}` : mb(done);
 });
 listen('news', () => { if (S) reload(); });
-listen('game_running', e => { if (!S) return; S.game_running = e.payload; render(); if (!e.payload) refresh(); chHello(); });   // "in the game" for the others right away, not at the next 30 s hello
+listen('game_running', e => { if (!S) return; S.game_running = e.payload; render(); if (!e.payload) refresh(); chHello(); });   // menu / game goes to the server when it changes, not on a timer
 listen('progress', e => { netActive = false; prog = e.payload; if (S) { S.busy = true; renderProgress(prog); } });
 listen('update_done', async e => {
   await reload();
@@ -1407,7 +1649,7 @@ function roomCard(r) {
   const per = cap ? Math.max(1, Math.round(cap / 2)) : 0;
   const pl = p => `<div class="rp${p.host ? ' host' : ''}">`
     + (p.race ? `<img src="${A}${p.hero != null ? 'heroes/' + p.race + '_' + p.hero : 'races/' + p.race}.png" alt="" data-fb="${A}races/${p.race}.png">` : '')
-    + `<span>${roomFlag(p.country)}</span><span class="nm">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
+    + `<span>${roomFlag(p.country)}</span><span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
   const teams = [0, 1].map(tm => {
     const ps = (r.players || []).filter(p => (p.team | 0) === tm);
     return `<div class="team">${ps.map(pl).join('')}${Array(per ? Math.max(0, per - ps.length) : 0).fill(`<div class="rp free">${esc(t('roomsFree'))}</div>`).join('')}</div>`;
@@ -1426,6 +1668,8 @@ async function roomsLoad() {
     $('roomsN').textContent = R.length;
     box.innerHTML = R.length ? R.map(roomCard).join('') : `<div class="note">${esc(t('roomsNone'))}</div>`;
     box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
+    // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
+    box.querySelectorAll('.rp .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));   // the stats (by name until the server sends SteamIDs), Steam when there; no "mention"
   } catch (e) { box.innerHTML = `<div class="note">${esc(t('roomsErr'))}</div>`; }
 }
 function roomsWatch() {
@@ -1449,7 +1693,36 @@ $('addonCheck').onclick = async () => {
 };
 $('closeQuits').onchange = e => invoke('set_setting', { key: 'close_quits', value: e.target.checked }).then(reload);
 $('cache').onchange = e => invoke('set_setting', { key: 'cache_mb', value: +e.target.value }).then(reload);
-$('saveMirror').onclick = () => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
+// ---------- Settings: how our servers answer from here (reach.rs) ----------
+// two groups - the files (updates of Elite and the add-ons) and everything else (chat, Online, rooms, the launcher's own
+// update); in each the one in use first; checked at the start and when one stops answering, or by the button
+const NET_PLACE = { 'dow2ru.fintebtc.de': 'netMoscow', 'dow2.fintebtc.de': 'netGermany', 'rts.fintebtc.de': 'netGermany' };
+const netHost = b => String(b || '').replace(/^https?:\/\//, '').split('/')[0];
+const netPlace = b => { const h = netHost(b); return NET_PLACE[h] ? t(NET_PLACE[h]) : /\.r2\.dev$/.test(h) ? t('netR2') : h; };
+var NET_LAST = null;   // (var: render() may call renderNet before this line ran) the last answer, drawn again with the rest of the window (the language may come later)
+function renderNet(d) {
+  if (d) NET_LAST = d; else d = NET_LAST;
+  if (!d || !$('netList')) return;
+  const grp = (key, g) => {
+    const list = (g && g.list) || [];
+    if (!list.length) return '';
+    return `<div class="net-g"><div class="net-gh">${esc(t(key))}</div>` + list.map((p, i) => `<div class="net-r ${p.ms != null ? 'ok' : 'off'}">`
+      + `<i></i><span class="net-p">${esc(netPlace(p.base))}</span><span class="net-h">${esc(netHost(p.base))}</span>`
+      + `<span class="net-ms">${p.ms != null ? esc(t('netMs', { n: p.ms })) : esc(t('netNone'))}</span>`
+      + (i === 0 && p.ms != null ? `<span class="chip">${esc(t('netUsed'))}</span>` : '<span></span>') + '</div>').join('') + '</div>';
+  };
+  $('netList').innerHTML = grp('netFiles', d.data) + grp('netApi', d.api) || `<div class="note">${esc(t('netWait'))}</div>`;
+  const checked = d.data && d.data.checked && d.api && d.api.checked;
+  $('netNote').textContent = checked ? t('netNoteDone') : t('netNoteOld');
+}
+invoke('net_status').then(renderNet).catch(() => {});
+listen('net_rank', e => renderNet(e.payload));
+$('netCheck').onclick = async () => {
+  const b = $('netCheck'); b.disabled = true; $('netNote').textContent = t('netChecking');
+  try { renderNet(await invoke('net_check')); } catch (e) { toast(e, true); }
+  b.disabled = false;
+};
+$('saveMirror').onclick =() => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
 $('repair').onclick = () => startUpdate(true);
 // "Clean up the junk": stray plugins into a backup folder, then check & repair puts Elite and the ticked add-ons back
 $('junk').onclick = () => {
@@ -1496,7 +1769,10 @@ setInterval(() => { if (S && !S.busy) refresh(); launcherCheck(); }, 15 * 60 * 1
 // ---------- Online (home, above the add-ons): who is looking for a game, who is in a match ----------
 // The same list the ladder page shows: /ladder/api/mm/live of the ladder service on the log hosts, every 15 seconds
 // (every minute while the window is hidden). Only names here; the details are on the ladder page linked below the block.
-const ON = { d: null, err: false, timer: null, shut: new Set(), users: [] };   // users: who has the launcher open (from the players' chat "hello")
+// The Online block comes ready from the ladder server: the snapshot (online / c/live) and then only changes over the
+// stream (presence, match, match_end, user). Each person is in one group only, the server sorts that out.
+const LIVE = { users: {}, searching: [], ingame: [], launcher: [], host: '', ok: false, skew: 0 };
+const ON = { err: false, shut: new Set(), t: null };
 // the groups the player folded stay folded (only a convenience: without storage everything opens)
 try { ON.shut = new Set(JSON.parse(localStorage.getItem('onShut') || '[]')); } catch (e) {}
 const RACES = ['space_marines', 'chaos_marines', 'eldar', 'orks', 'tyranids', 'imperial_guard', 't_tau', 'z_unecron', 'ordo_malleus'];
@@ -1507,84 +1783,113 @@ const raceImg = r => {
   if (r === 'random') return `<span class="race race-rnd" role="img" aria-label="${esc(t('race_random'))}" title="${esc(t('race_random'))}">?</span>`;
   return RACES.includes(r) ? `<img class="race" src="races/${r}.png" alt="${esc(t('race_' + r))}" title="${esc(t('race_' + r))}">` : '<span class="race"></span>';
 };
-// the ladder server knows no avatars: take it from the launcher list (the chat "hello") or the signed-in card, by SteamID
-const onAv = p => {
-  if (p.avatar || !p.steam) return p.avatar || '';
-  const me = CH.me && CH.me.signed_in ? [CH.me] : [];
-  const u = [...ON.users, ...me].find(u => String(u.steam) === String(p.steam));
-  return u ? u.avatar : '';
-};
 // the 1v1 rating; none yet (no ladder games this season) - a dash, so the dots after it stay in one column
 const onRt = r => r ? `<span class="rt">${Number(r) | 0}</span>` : `<span class="rt none" title="${esc(t('prNoGames'))}">—</span>`;
-const onWho = p => `<button class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}" title="${esc(t('onTag'))}">${esc(p.name || 'Player')}</button>`;
+const onUser = s => LIVE.users[s] || {};
+const onWho = s => `<button class="nm" data-steam="${esc(s)}" data-name="${esc(onUser(s).name || '')}">${esc(onUser(s).name || 'Player')}</button>`;
+// the server sends unix times and its own clock with every snapshot: minutes count right even when the PC clock is off
+const onMins = ts => t('onMin', { n: Math.max(0, Math.round((Date.now() / 1000 + LIVE.skew - ts) / 60)) });
+
+// The snapshot of the Online block: /c/live; a ladder server without it yet (02.11: the live servers answer 404) - the
+// same snapshot put together from the old answers, /mm/live (searching, matches) and /c/online (the launcher open)
+async function liveSnapshot() {
+  try { const d = await invoke('c_api', { path: 'live' }); if (d && d.users) return d; } catch (e) { /* the old way below */ }
+  const [mm, on] = await Promise.all([invoke('mm_live'), invoke('c_api', { path: 'online' })]);
+  const now = Math.floor(Date.now() / 1000), users = {}, sid = x => String(x || '');
+  const put = p => { const s = sid(p && p.steam); if (s && !users[s]) users[s] = { name: p.name || 'Player', avatar: p.avatar || '', rating: p.rating }; return s; };
+  (on.online || []).forEach(put);   // these carry the avatars: first
+  const ingame = (mm.matches || []).map(m => ({
+    id: m.id, mode: m.mode, map: m.map, state: m.state === 'playing' ? 'playing' : 'setup',
+    started: m.state === 'playing' && m.since != null ? now - m.since : null,
+    team1: (m.team1 || []).map(p => ({ steam: put(p), race: p.race })), team2: (m.team2 || []).map(p => ({ steam: put(p), race: p.race })),
+    watchers: (m.watchers || []).map(put).filter(Boolean),
+  }));
+  const busy = new Set(ingame.flatMap(m => [...m.team1, ...m.team2].map(x => x.steam).concat(m.watchers)));
+  const searching = (mm.searching || []).filter(p => p.steam && !busy.has(sid(p.steam)))
+    .map(p => ({ steam: put(p), mode: p.mode, race: p.race, since: now - (p.waiting || 0) }));
+  searching.forEach(p => busy.add(p.steam));
+  const launcher = (on.online || []).filter(u => u.steam && !busy.has(sid(u.steam))).map(u => ({ steam: sid(u.steam), state: u.state || 'menu' }));
+  return { now, host: mm.host, users, searching, ingame, launcher };
+}
+
+function onLive(d) {   // a full snapshot
+  Object.assign(LIVE, { users: d.users || {}, searching: d.searching || [], ingame: d.ingame || [], launcher: d.launcher || [], ok: true });
+  if (d.host) LIVE.host = d.host;
+  if (d.now) LIVE.skew = d.now - Date.now() / 1000;
+  ON.err = false; onSoon();
+}
+function onEvent(ev, d) {
+  if (ev === 'online') return onLive(d);
+  if (ev === 'user') { LIVE.users[d.steam] = { name: d.name, avatar: d.avatar, rating: d.rating }; if (CH.me && d.steam === CH.me.steam) chMe(); }
+  else if (ev === 'presence') {
+    // out of every group, then into the new one (ingame: the match event carries the teams)
+    LIVE.searching = LIVE.searching.filter(p => p.steam !== d.steam);
+    LIVE.launcher = LIVE.launcher.filter(p => p.steam !== d.steam);
+    if (d.group === 'searching') LIVE.searching.push({ steam: d.steam, mode: d.mode, race: d.race, since: d.since });
+    if (d.group === 'launcher') LIVE.launcher.push({ steam: d.steam, state: d.state });
+  } else if (ev === 'match') {
+    const i = LIVE.ingame.findIndex(m => m.id === d.id);
+    if (i >= 0) LIVE.ingame[i] = d; else LIVE.ingame.push(d);
+  } else if (ev === 'match_end') LIVE.ingame = LIVE.ingame.filter(m => m.id !== d.id);
+  else return;
+  onSoon();
+}
+function onSoon() {   // at most one redraw in 500 ms, however many events come
+  if (ON.t) return;
+  ON.t = setTimeout(() => { ON.t = null; onRender(); }, 500);
+}
 
 function onRender() {
   if (!S) return;
-  const d = ON.d, look = (d?.searching || []).filter(p => p.mode !== 'watch'), matches = d?.matches || [];   // spectators wait to watch, not to play
-  // a group folds on a click on its heading
   const group = (key, title, n, body) => {
     const open = !ON.shut.has(key);
     return `<div class="on-g ${key} ${open ? '' : 'shut'}"><button class="on-gh" data-g="${key}" aria-expanded="${open}" ${body ? '' : 'disabled'}>`
       + `<i></i>${esc(title)}<span>${esc(String(n))}</span>${body ? '<b class="chev"></b>' : ''}</button>${open ? body : ''}</div>`;
   };
-  const st = { creating: 'onStateCreating', lobby: 'onStateLobby', playing: 'onStatePlaying' };
+  const look = LIVE.searching, matches = LIVE.ingame, inL = LIVE.launcher;
+  const players = matches.flatMap(m => [...m.team1, ...m.team2]);
   let html = '';
   // first load: grey rows in place of the names; no answer: say so
-  if (!d) html = ON.err ? `<div class="on-empty">${esc(t('onOffline'))}</div>`
+  if (!LIVE.ok) html = ON.err ? `<div class="on-empty">${esc(t('onOffline'))}</div>`
     : `<div class="on-skel" role="status" aria-label="${esc(t('onLoading'))}">${'<div><i></i><b></b></div>'.repeat(5)}</div>`;
   else {
     if (ON.err) html += `<div class="on-stale">${esc(t('onOffline'))}</div>`;   // the last list stays, marked as old
-    // looking for a game: avatar, name, race, the mode on the right
-    if (look.length) html += group('look', t('onSearching'), look.length,
-      look.map(p => `<div class="on-p">${avatar(onAv(p))}${onWho(p)}${raceImg(p.race)}<span class="tag">${esc(p.mode)}</span></div>`).join(''));
-    if (!look.length && !matches.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
-    // who has the launcher open (signed in with Steam): the avatar, the 1v1 rating and a dot for menu / game / search / match;
-    // those already named above (looking for a game) or below (playing in a match) are not named twice
-    const sid = p => String(p.steam || '');
-    const players = matches.flatMap(m => [...(m.team1 || []), ...(m.team2 || [])]);
-    const shown = new Set([...look, ...players].map(sid).filter(Boolean));
-    const users = ON.users.filter(u => !shown.has(sid(u)));
-    if (users.length) html += group('launcher', t('chMembers'), users.length, users.map(u => '<div class="on-p on-u">'
-      + avatar(u.avatar) + onWho(u)
-      + onRt(u.rating) + `<span class="st st-${esc(u.state)}" title="${esc(t('st_' + u.state))}"></span></div>`).join(''));
-    // the last group, only a number: games that talked to the ladder server in the last minute (the number on the ladder
-    // page) minus those looking for a game or watching, those in a match and those already named above with the game on
-    const inMatches = matches.reduce((n, m) => n + (m.team1 || []).length + (m.team2 || []).length + (m.watchers || []).length, 0);
-    const counted = new Set([...(d.searching || []), ...matches.flatMap(m => m.watchers || []), ...players].map(sid).filter(Boolean));
-    const named = users.filter(u => u.state === 'game' && !counted.has(sid(u))).length;   // not subtracted twice
-    html += group('idle', t('onIdle'), Math.max(0, (Number(d.online) || 0) - (d.searching || []).length - inMatches - named), '');
-    // in a match, the last group and the biggest: a card per match - mode, map, how long - and who plays which race, team against team
-    const pl = p => `<div class="on-p">${avatar(onAv(p))}${onWho(p)}${raceImg(p.race)}${onRt(p.rating)}</div>`;
+    if (!look.length && !matches.length && !inL.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
+    // looking for a game: avatar, name, race, mode (spectators marked), how long
+    if (look.length) html += group('look', t('onSearching'), look.length, look.map(p => `<div class="on-p">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${raceImg(p.race)}`
+      + `<span class="tag">${esc(p.mode === 'watch' ? t('onWatcher') : p.mode)}</span><span class="since">${esc(onMins(p.since))}</span></div>`).join(''));
+    // the launcher open: avatar, 1v1 rating, a dot for menu / game
+    if (inL.length) html += group('launcher', t('chMembers'), inL.length, [...inL].sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''))
+      .map(p => `<div class="on-p on-u">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${onRt(onUser(p.steam).rating)}`
+        + `<span class="st st-${esc(p.state)}" title="${esc(t('st_' + p.state))}"></span></div>`).join(''));
+    // in a match, the last group and the biggest: a card per match - mode, map, getting ready / how long it plays -
+    // team against team, the spectators
+    const pl = x => `<div class="on-p">${avatar(onUser(x.steam).avatar)}${onWho(x.steam)}${raceImg(x.race)}${onRt(onUser(x.steam).rating)}</div>`;
     const map = m => String(m || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
-    if (matches.length) html += group('match', t('onInMatchH'), matches.reduce((n, m) => n + (m.team1 || []).length + (m.team2 || []).length, 0),
-      matches.map(m => `<div class="on-mc"><div class="on-mh"><span class="tag ${esc(m.state)}">${esc(m.mode)}</span><span class="map">${esc(map(m.map))}</span>`
-        + `<span class="since">${esc(t(st[m.state] || 'onStateCreating'))}${m.state === 'playing' && m.since ? ' · ' + esc(t('onMin', { n: Math.round(m.since / 60) })) : ''}</span></div>`
-        + (m.team1 || []).map(pl).join('') + '<div class="vs">vs</div>' + (m.team2 || []).map(pl).join('') + '</div>').join(''));
+    if (matches.length) html += group('match', t('onInMatchH'), players.length, matches.map(m => `<div class="on-mc"><div class="on-mh">`
+      + `<span class="tag ${m.state === 'playing' ? 'playing' : 'creating'}">${esc(m.mode)}</span><span class="map">${esc(map(m.map))}</span>`
+      + `<span class="since">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span></div>`
+      + m.team1.map(pl).join('') + '<div class="vs">vs</div>' + m.team2.map(pl).join('')
+      + (m.watchers.length ? `<div class="on-wt">${esc(t('onWatchers'))}: ${m.watchers.map(onWho).join(', ')}</div>` : '') + '</div>').join(''));
   }
+  // "Online N" in the heading: everyone in the groups once, spectators too
+  const ids = new Set([...look.map(p => p.steam), ...players.map(x => x.steam), ...matches.flatMap(m => m.watchers), ...inL.map(p => p.steam)]);
+  $('onTotal').textContent = LIVE.ok ? String(ids.size) : '';
   $('onGroups').innerHTML = html;
-  // 1.3.12 (owner): a click on a name in Online tags that player in the chat message; the avatar opens the Steam profile
-  $('onGroups').querySelectorAll('.nm[data-name]').forEach(b => b.onclick = () => b.dataset.name && chMention(b.dataset.name));
-  $('onGroups').querySelectorAll('.on-p').forEach(r => { const a = r.querySelector('.av, img'), n = r.querySelector('.nm[data-steam]');
-    if (a && n && n.dataset.steam) { a.style.cursor = 'pointer'; a.title = 'Steam'; a.onclick = () => open('https://steamcommunity.com/profiles/' + n.dataset.steam); } });
+  // a name: the menu (mention in the chat - the owner's 1.3.12 click - / stats / Steam); the avatar opens the Steam profile (1.3.12)
+  // the name and the avatar of a player: the player menu (stats, Steam, mention in the chat)
+  $('onGroups').querySelectorAll('.nm[data-steam]').forEach(b => nickBind(b, b.dataset.steam, b.dataset.name));
+  $('onGroups').querySelectorAll('.on-p').forEach(r => { const n = r.querySelector('.nm[data-steam]');
+    if (n) nickBind(r.querySelector('.av'), n.dataset.steam, n.dataset.name); });
   $('onGroups').querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
     ON.shut.has(b.dataset.g) ? ON.shut.delete(b.dataset.g) : ON.shut.add(b.dataset.g);
     try { localStorage.setItem('onShut', JSON.stringify([...ON.shut])); } catch (e) {}
     onRender();
   });
-  $('onLadder').classList.toggle('hidden', !d?.host);
-  $('onLadder').onclick = () => open((ON.d?.host || '') + '/ladder/');
+  $('onLadder').classList.toggle('hidden', !LIVE.host);
+  $('onLadder').onclick = () => open(LIVE.host + '/ladder/');
 }
-async function onLoad() {
-  try { ON.d = await invoke('online_live'); ON.err = false; }
-  catch (e) { ON.err = true; }
-  onRender();
-}
-function onPoll() {
-  clearTimeout(ON.timer);
-  onLoad().finally(() => { ON.timer = setTimeout(onPoll, document.hidden ? 60000 : 15000); });
-}
-document.addEventListener('visibilitychange', () => { if (!document.hidden) onPoll(); });
-onPoll();
+setInterval(() => LIVE.ok && onRender(), 30000);   // the minutes go on without any event
 
 
 // ---------- feedback chat with the developers ----------
@@ -1605,7 +1910,7 @@ async function fbInit() {
     if (!items.length) return;
     e.preventDefault(); items.forEach(i => fbAddFile(i.getAsFile()));
   });
-  fbLoad(); FB.timer = setInterval(fbLoad, 20000);
+  fbWatch();
 }
 function fbAddFile(f) {
   if (!f) return;
@@ -1629,6 +1934,12 @@ async function fbSend() {
   } catch (e) { toast(e, true); }
   $('fbSend').disabled = false;
 }
+function fbWatch() {   // the developers' chat: asked every 20 s only while its tab is open and the window seen
+  clearInterval(FB.timer); FB.timer = null;
+  if (!FB.open || document.hidden) return;
+  fbLoad(); FB.timer = setInterval(fbLoad, 20000);
+}
+document.addEventListener('visibilitychange', () => fbWatch());
 async function fbLoad() {
   let d; try { d = await invoke('fb_thread'); } catch (e) { return; }
   const key = JSON.stringify(d.messages.map(m => m.id));
@@ -1645,30 +1956,39 @@ fbInit();
 
 // ---------- players' chat, Steam sign-in and the player's card (ladder service /ladder/api/c/*) ----------
 // Rooms General / RU / EN (the server's all / ru / en) next to the developers' chat.
-const CH = { room: 'all', last: {}, msgs: {}, pending: {}, me: null, prof: null, waiting: false, timer: null };   // pending: sent, not yet back from the server
+const CH = { room: 'all', msgs: {}, out: [], unread: {}, full: {}, me: null, prof: null, waiting: false };
 try { CH.room = localStorage.getItem('chRoom') || 'all'; } catch (e) {}
 function chShowRoom() {
   document.querySelectorAll('.ch-tab').forEach(b => b.classList.toggle('on', b.dataset.room === CH.room));
   $('chatPane').classList.toggle('hidden', CH.room === 'dev');
   $('devPane').classList.toggle('hidden', CH.room !== 'dev');
-  if (CH.room !== 'dev') { chRender(true); chLoad(); }
+  if (CH.room !== 'dev') { CH.chatRoom = CH.room; CH.unread[chKey(CH.room)] = 0; chRender(true); if (!CH.msgs[chKey(CH.room)]) chLoad(chKey(CH.room)); }
+  chUnread(); FB.open = CH.room === 'dev'; fbWatch();
 }
-// the card above the news: avatar, name, 1v1 rating, place and games of the season; signed out - the Steam button
+// the card above the news: avatar, name, 1v1 rating and games of the season (the stream's me); signed out - the Steam button
 function chMe() {
   const me = CH.me && CH.me.signed_in ? CH.me : null, box = $('meBox');
   box.classList.toggle('hidden', !CH.me || CH.me.configured === false);
   box.classList.toggle('out', !me);
   if (me) {
     const p = CH.prof || {}, st = p.stats;
-    const rating = p.rating || (ON.users.find(u => u.steam === me.steam) || {}).rating;
-    const line = [rating ? `<b>${Number(rating) | 0}</b> 1v1` : '', st && st.rank ? `<span title="${esc(t('prRankT'))}">#${Number(st.rank) | 0}</span>` : ''].filter(Boolean).join(' · ');
+    const rating = p.rating || (LIVE.users[me.steam] || {}).rating;
+    // no ladder place (#N): the server would build the whole season board for one player (plan, decision 4)
+    const line = rating ? `<b>${Number(rating) | 0}</b> 1v1` : '';
     const games = !st ? '' : st.games ? `<div class="me-st" title="${esc(st.wins + ' – ' + st.losses)}">${esc(t('prGames', { n: st.games, pct: Math.round(100 * st.wins / st.games) }))}</div>`
       : `<div class="me-st">${esc(t('prNoGames'))}</div>`;
+    // the name and the sign-out icon on one line, everything under the name on the same left edge
     box.innerHTML = avatar(me.avatar, 'me-av')
-      + `<div class="me-info"><button class="nm" id="meName" title="${esc(t('chSignedIn', { name: me.name }))}">${esc(me.name || me.steam)}</button>`
-      + (line ? `<div class="me-rt">${line}</div>` : '') + games + `</div><button class="me-out" id="chOut">${esc(t('chLogout'))}</button>`;
-    $('meName').onclick = () => open('https://steamcommunity.com/profiles/' + me.steam);
+      + `<div class="me-info"><div class="me-top"><button class="nm" id="meName" title="${esc(t('chSignedIn', { name: me.name }))}">${esc(me.name || me.steam)}</button>`
+      // my stats (my dossier on our stats page) next to the sign-out (siritos 02.11: where the stats link went)
+      + `<button class="me-out me-stats" id="meStats" title="${esc(t('myStats'))}" aria-label="${esc(t('myStats'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>`
+      + `<button class="me-out" id="chOut" title="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}"><svg viewBox="0 0 24 24" aria-hidden="true">`
+      + '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button></div>'
+      + (line ? `<div class="me-rt">${line}</div>` : '') + games + '</div>';
+    // my own name and avatar: the menu (no "mention": that is me)
+    nickBind($('meName'), me.steam, ''); nickBind(box.querySelector('.me-av'), me.steam, '');
     $('chOut').onclick = chLogout;
+    $('meStats').onclick = () => open((LIVE.host || 'https://dow2.fintebtc.de') + '/stats/?q=' + encodeURIComponent(me.steam) + '&lang=' + encodeURIComponent(lang));
   } else {
     // waiting for the browser: the button stays live (a new click opens Steam again), Cancel stops the wait
     box.innerHTML = `<div class="me-note">${esc(t(CH.waiting ? 'chWaiting' : 'prNote'))}</div><div class="me-act"><button class="btn gold small" id="chIn">${esc(CH.me && CH.me.local_name ? t('chLoginAs', { name: CH.me.local_name }) : t('chLogin'))}</button>`
@@ -1722,26 +2042,62 @@ document.addEventListener('pointerdown', () => { try { chAudio = chAudio || new 
 function chMentionsMe(m) {
   const me = CH.me && CH.me.signed_in ? CH.me : null;
   if (!me || !me.name || m.steam === me.steam) return false;
-  return String(m.text || '').toLowerCase().includes('@' + me.name.toLowerCase());
+  return String(chOrig(m) || '').toLowerCase().includes('@' + me.name.toLowerCase());
 }
-async function chLoad(room) {
-  const r = room || CH.room; if (r === 'dev') return;
-  let d; try { d = await invoke('c_api', { path: `msgs?room=${r}&after=${CH.last[r] || 0}` }); } catch (e) { return; }
-  const list = CH.msgs[r] || (CH.msgs[r] = []);
-  let changed = false;
-  const first = !CH.loaded?.[r]; CH.loaded = CH.loaded || {}; CH.loaded[r] = true;   // the first load is history: no beep
-  let ping = false; CH.pinged = CH.pinged || new Set();   // one beep per message, also when two rooms show it
-  for (const m of d.msgs || []) if (!list.some(x => x.id === m.id)) { list.push(m); changed = true;
-    if (!first && chMentionsMe(m) && !CH.pinged.has(m.ts + '|' + m.steam)) { CH.pinged.add(m.ts + '|' + m.steam); ping = true; } }
+// Two kinds of server (siritos 02.11: on the live, older one the tabs changed nothing):
+// - the new one (ladder 9f6817f) keeps one common chat: every message carries orig / ru / en, General shows the original,
+//   RU and EN its translation - one list ("feed") for all three tabs, the tab only picks the language;
+// - the older one has three rooms of their own (all / ru / en) and no translations - a list per tab, as in 1.3.15.
+// Which one: the first messages tell (an "orig" field); until then the rooms of their own.
+const chKey = room => CH.feed ? 'feed' : (room === 'ru' || room === 'en' ? room : 'all');
+const chKeys = () => CH.feed ? ['feed'] : ['all', 'ru', 'en'];
+function chFeedSeen(ms) {   // a message with "orig": the new server - the room lists become the one feed
+  if (CH.feed || !(ms || []).some(m => m && m.orig !== undefined)) return;
+  CH.feed = true;
+  const all = [].concat(CH.msgs.all || [], CH.msgs.ru || [], CH.msgs.en || []);
+  CH.msgs = {}; CH.full = {};
+  chPut('feed', all.filter((m, i) => all.findIndex(x => x.id === m.id) === i));
+  CH.unread = {}; chUnread();
+}
+const chOrig = m => m.orig || m.text;
+const chText = m => CH.room === 'ru' ? (m.ru || chOrig(m)) : CH.room === 'en' ? (m.en || chOrig(m)) : chOrig(m);
+// live: messages that just came (the stream, or the poll while it is down), not history - a mention of me beeps once (1.3.12)
+function chPut(key, ms, live) {   // messages into a list in id order, each once; ours waiting in the queue are confirmed by their cid
+  const list = CH.msgs[key] || (CH.msgs[key] = []);
+  let changed = false, ping = false;
+  CH.pinged = CH.pinged || new Set();
+  for (const m of ms) {
+    const i = list.findIndex(x => x.id === m.id);
+    if (i >= 0) { list[i] = m; continue; }
+    let j = list.length; while (j > 0 && list[j - 1].id > m.id) j--;
+    list.splice(j, 0, m); changed = true;
+    // ours waiting grey in the queue: confirmed by the cid (a new server), by the id the "say" answer gave, or - a server
+    // that keeps neither - by our own text sent in the last minute
+    const mine = CH.me && CH.me.signed_in && String(m.steam) === String(CH.me.steam);
+    const done = o => (m.cid && o.cid === m.cid) || (o.id && o.id === m.id)
+      || (o.state === 'sent' && mine && chOrig(m) === o.text && Math.abs((m.ts || 0) - o.ts) < 120);
+    if (CH.out.some(done)) { const o = CH.out.find(done); CH.out = CH.out.filter(x => x !== o); chOutSave(); }
+    if (live && chMentionsMe(m) && !CH.pinged.has(m.id)) { CH.pinged.add(m.id); ping = true; }
+  }
   if (ping) chBeep();
-  if ((d.deleted || []).length) { const n = list.length; CH.msgs[r] = list.filter(m => !d.deleted.includes(m.id)); changed = changed || n !== CH.msgs[r].length; }
-  const l2 = CH.msgs[r]; if (l2.length > 2000) l2.splice(0, l2.length - 2000);
-  if (l2.length) CH.last[r] = Math.max(CH.last[r] || 0, l2[l2.length - 1].id);
-  if (r === CH.room && (changed || !CH.shown)) chRender();
+  return changed;
 }
-function chRender(force) {
-  const box = $('chMsgs'), list = CH.msgs[CH.room] || [];
-  const atEnd = box.scrollTop + box.clientHeight > box.scrollHeight - 30;
+// history: the last 100 at start, 100 older when scrolled to the top; after an id while the stream is down
+async function chLoad(key, how) {
+  // the feed is asked as "all": the server would cut a translated tab at the first message still being translated, here
+  // the original shows until its msg_tr comes; a room of its own is asked as itself
+  const room = key === 'feed' ? 'all' : key, list = CH.msgs[key] || [];
+  const q = how === 'older' ? `limit=100&before=${list[0].id}` : how === 'new' && list.length ? `after=${list[list.length - 1].id}` : 'limit=100';
+  let d; try { d = await invoke('c_api', { path: `msgs?room=${room}&${q}` }); } catch (e) { return; }
+  if (!CH.feed && key !== 'feed') { chFeedSeen(d.msgs); if (CH.feed) key = 'feed'; }
+  let changed = chPut(key, d.msgs || [], how === 'new');
+  if ((d.deleted || []).length) { const n = CH.msgs[key].length; CH.msgs[key] = CH.msgs[key].filter(m => !d.deleted.includes(m.id)); changed = changed || n !== CH.msgs[key].length; }
+  if (how === 'older') CH.full[key] = (d.msgs || []).length < 100;
+  if ((changed || !CH.shown) && chKey(CH.room) === key) chRender(false, how === 'older');
+}
+function chRender(force, older) {
+  const box = $('chMsgs'), key = chKey(CH.room), list = CH.msgs[key] || [];
+  const atEnd = box.scrollTop + box.clientHeight > box.scrollHeight - 30, h0 = box.scrollHeight, top0 = box.scrollTop;
   const time = ts => new Date(ts * 1000).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   // a heading for every day: Today, Yesterday, 29 October (with the year when it is not this one)
   const dayKey = ts => { const d = new Date(ts * 1000); return d.getFullYear() * 10000 + d.getMonth() * 100 + d.getDate(); };
@@ -1751,23 +2107,36 @@ function chRender(force) {
     if (d.toDateString() === y.toDateString()) return t('chYesterday');
     return d.toLocaleDateString(lang, d.getFullYear() === now.getFullYear() ? { day: 'numeric', month: 'long' } : { day: 'numeric', month: 'long', year: 'numeric' });
   };
-  const mine = CH.me && CH.me.signed_in ? CH.me.steam : '';
-  const myName = CH.me && CH.me.signed_in ? (CH.me.name || '') : '';
+  const me = CH.me && CH.me.signed_in ? CH.me : null, mine = me ? me.steam : '';
+  const myName = me ? (me.name || '') : '';
   // @mentions: the names of the players in this room (longest first, so "@Ab Cd" wins over "@Ab"), escaped like the text
   const names = [...new Set(list.map(m => m.name).filter(Boolean))].sort((a, b) => b.length - a.length);
   const mention = html => names.reduce((h, n) => h.split('@' + esc(n)).join(`\u0000${n === myName ? 1 : 0}${esc(n)}\u0001`), html)
     .replace(/\u0000([01])([^\u0001]*)\u0001/g, (_, me, n) => `<span class="ch-at${me === '1' ? ' me' : ''}">@${n}</span>`);
   let prev = null;
-  const pend = (CH.pending[CH.room] || []).map(p => `<div class="ch-m mine pending">` + avatar(CH.me && CH.me.avatar)
-    + `<div><div class="w"><b>${esc((CH.me && CH.me.name) || '')}</b><span>${esc(t('chPending'))}</span></div><div class="tx">${esc(p.text)}</div></div></div>`).join('');
-  box.innerHTML = (list.length || pend) ? list.map(m => {
+  const row = (m, extra, tail) => {
     const k = dayKey(m.ts), head = k !== prev ? `<div class="ch-day"><span>${esc(dayName(m.ts))}</span></div>` : ''; prev = k;
-    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''}"><span class="ch-av" data-steam="${esc(m.steam)}" title="Steam">` + avatar(m.avatar) + `</span>`
-      + `<div><div class="w"><b data-name="${esc(m.name)}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span></div><div class="tx">${mention(esc(m.text))}</div></div></div>`;
-  }).join('') + pend : `<div class="ch-empty">${esc(t('chEmpty'))}</div>`;
-  box.querySelectorAll('.ch-av[data-steam]').forEach(a => a.onclick = () => open('https://steamcommunity.com/profiles/' + a.dataset.steam));
-  box.querySelectorAll('b[data-name]').forEach(b => b.onclick = () => chMention(b.dataset.name));
-  if (atEnd || force || !CH.shown) box.scrollTop = box.scrollHeight; CH.shown = true;
+    const text = chText(m), tr = text !== chOrig(m);   // translated: the original on hover
+    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${extra}"><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">` + avatar(m.avatar) + `</span>`
+      + `<div><div class="w"><b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${tail}</div>`
+      + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${mention(esc(text))}</div></div></div>`;
+  };
+  const sent = list.map(m => row(m, '', '')).join('');   // first: the day headings run on into the queue
+  // ours not confirmed yet stay at the bottom: a clock while sending, "Not sent · Retry · Delete" when it failed
+  const out = CH.out.filter(o => chKey(o.room) === key).map(o => row({ ts: o.ts, steam: mine, name: me ? me.name : '', avatar: me ? me.avatar : '', orig: o.text }, o.state === 'failed' ? 'failed' : o.state === 'sent' ? '' : 'sending',
+    o.state === 'sent' ? '' : o.state === 'failed' ? `<span class="ch-fail">${esc(t('chNotSent'))} · <button data-retry="${esc(o.cid)}">${esc(t('chRetry'))}</button> · <button data-drop="${esc(o.cid)}">${esc(t('chDelete'))}</button></span>`
+      : `<span class="ch-wait" title="${esc(t('chSending'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>`));
+  const html = sent + out.join('');
+  box.innerHTML = html || `<div class="ch-empty">${esc(t('chEmpty'))}</div>`;
+  // the owner's 1.3.6 behaviour stays in the chat: a name tags the player, the avatar opens the Steam profile
+  box.querySelectorAll('.ch-av[data-steam]').forEach(a => nickBind(a, a.dataset.steam, a.dataset.name));
+  // the chat: a click on a name mentions the player (1.3.6), a right click and the avatar open the player menu
+  box.querySelectorAll('b[data-name]').forEach(b => nickBind(b, b.dataset.steam, b.dataset.name, true));
+  box.querySelectorAll('[data-retry]').forEach(b => b.onclick = () => { const o = CH.out.find(x => x.cid === b.dataset.retry); if (o) { o.state = 'sending'; o.tries = 0; chOutSave(); chRender(); chPump(); } });
+  box.querySelectorAll('[data-drop]').forEach(b => b.onclick = () => { CH.out = CH.out.filter(x => x.cid !== b.dataset.drop); chOutSave(); chRender(); });
+  if (older) box.scrollTop = box.scrollHeight - h0 + top0;   // older messages added on top: the view stays where it was
+  else if (atEnd || force || !CH.shown) box.scrollTop = box.scrollHeight;
+  CH.shown = true;
 }
 function chMention(name) {                                     // a click on a name in the chat tags that player in my message
   const el = $('chText'); if (!el || !name) return;
@@ -1776,33 +2145,117 @@ function chMention(name) {                                     // a click on a n
   el.value = before + pre + at + el.value.slice(s1);
   const pos = (before + pre + at).length; el.focus(); el.setSelectionRange(pos, pos);
 }
-async function chSay() {
-  if (CH.sending || CH.room === 'dev') return;                 // one send at a time: extra Enter presses do nothing (no duplicates)
-  const el = $('chText'), text = el.value.trim(); if (!text) return;
-  CH.sending = true; $('chSend').disabled = true;
-  el.value = '';                                               // clear at once: the message leaves the box the moment you press Enter
-  const room = CH.room, p = { text }, pl = CH.pending[room] || (CH.pending[room] = []);
-  pl.push(p); chRender(true);                                  // in the chat at once, grey, until the server has published it
-  const drop = () => { const i = pl.indexOf(p); if (i >= 0) pl.splice(i, 1); };
-  try {
-    const r = await invoke('c_api', { path: 'say', body: { room, text } });
-    if (r.ok) { await chLoad(room); drop(); if (room === CH.room) chRender(true); }   // the published one takes its place
-    else { drop(); chRender(); el.value = text; toast(r.error || 'error', true); }  // rejected by moderation: the text back in the box
-  } catch (e) { drop(); chRender(); el.value = text; toast(e, true); }
-  CH.sending = false; $('chSend').disabled = false;
+// unread messages on a tab the player is not looking at (RU and EN together: one feed)
+function chUnread() {
+  // rooms of their own: each tab its own number; one feed: the number on one tab only - the open one, or the last chat
+  // tab while the developers' chat is open
+  const at = CH.room === 'dev' ? (CH.chatRoom || 'all') : CH.room;
+  document.querySelectorAll('.ch-tab').forEach(b => {
+    const r = b.dataset.room;
+    b.dataset.n = r === 'dev' ? '' : CH.feed ? (r === at ? (CH.unread.feed || '') : '') : (CH.unread[chKey(r)] || '');
+  });
 }
+// sending: the message is in the feed at once with a clock, the box is cleared, the button never locks. One sender for
+// all, in order; the same cid on every try, so a retry never makes a duplicate. The queue survives a restart.
+function chOutSave() {
+  try { localStorage.setItem('chOut', JSON.stringify(CH.out.map(({ cid, room, text, ts, state, id }) => ({ cid, room, text, ts, state, id })))); } catch (e) {}
+}
+function chSay() {
+  if (CH.room === 'dev') return;
+  const el = $('chText'), text = el.value.trim(); if (!text) return;
+  const cid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  CH.out.push({ cid, room: CH.room, text, ts: Math.floor(Date.now() / 1000), state: 'sending', tries: 0 });
+  el.value = ''; chOutSave(); chRender(true); chPump();
+}
+const chSleep = ms => new Promise(r => setTimeout(r, ms));
+async function chPump() {
+  if (CH.pumping) return; CH.pumping = true;
+  try {
+    for (let o; (o = CH.out.find(x => x.state === 'sending'));) {
+      let r; try { r = await invoke('c_api', { path: 'say', body: { room: o.room, text: o.text, cid: o.cid } }); } catch (e) { r = { ok: false, error: String(e), retry: true }; }
+      if (!CH.out.includes(o)) continue;                      // deleted, or confirmed by the stream meanwhile
+      if (r.ok && r.msg) { CH.out = CH.out.filter(x => x !== o); chPut(chKey(o.room), [r.msg]); }
+      else if (r.ok) {
+        // accepted, the answer has no message (an older server): the copy is not dropped - it just turns normal at once
+        // (siritos 02.11: it blinked out and came back seconds later); the server's copy takes its place quietly
+        const me = CH.me || {};
+        if (r.id) {
+          CH.out = CH.out.filter(x => x !== o);
+          chPut(chKey(o.room), [{ id: r.id, room: o.room, steam: me.steam, name: me.name, avatar: me.avatar, text: o.text, orig: o.text, ts: o.ts, cid: o.cid }]);
+          chOutSave(); chRender();
+          continue;
+        }
+        o.state = 'sent'; chOutSave(); chRender();
+        await chLoad(chKey(o.room), 'new');
+        setTimeout(() => { if (CH.out.includes(o) && o.state === 'sent') { CH.out = CH.out.filter(x => x !== o); chOutSave(); chRender(); } }, 300000);
+        continue;
+      }
+      else if (r.retry_after) await chSleep(r.retry_after);    // too fast: wait as long as the server says
+      else if (r.retry) {                                      // no answer (network, the 30 s of the check): 3 more tries, then "Not sent"
+        o.tries = (o.tries || 0) + 1;
+        if (o.tries > 3) o.state = 'failed'; else await chSleep([2000, 5000, 10000][o.tries - 1]);
+      } else {                                                 // rejected (moderation, ban, signed out): the text back in the box, why in a toast
+        CH.out = CH.out.filter(x => x !== o);
+        if (!$('chText').value.trim()) $('chText').value = o.text;
+        toast(r.error || 'error', true);
+      }
+      chOutSave(); chRender();
+    }
+  } finally { CH.pumping = false; }
+}
+// stream events of the chat and the own card
+function chEvent(ev, d) {
+  if (ev === 'msg') {
+    chFeedSeen([d]);
+    const key = chKey(d.room);
+    if (!chPut(key, [d], true)) return;
+    if (key !== chKey(CH.room) || CH.room === 'dev' || document.hidden) { CH.unread[key] = (CH.unread[key] || 0) + 1; chUnread(); }
+    if (key === chKey(CH.room)) chRender();
+  } else if (ev === 'msg_tr') {
+    const m = (CH.msgs[chKey(CH.room)] || []).find(x => x.id === d.id);
+    if (m) { m.ru = d.ru; m.en = d.en; if (CH.room === 'ru' || CH.room === 'en') chRender(); }
+  } else if (ev === 'msg_del') {
+    for (const k of Object.keys(CH.msgs)) CH.msgs[k] = CH.msgs[k].filter(m => m.id !== d.id);
+    chRender();
+  } else if (ev === 'reset') { CH.msgs[chKey(d.room)] = []; chLoad(chKey(d.room)); }
+  else if (ev === 'me') { CH.prof = { ok: true, rating: d.rating, stats: { games: d.games, wins: d.wins, losses: d.losses } }; chMe(); }
+}
+// "I'm here" with menu / game: at start and when that changes (the stream itself keeps the presence)
 async function chHello() {
   let d; try { d = await invoke('c_api', { path: 'hello', body: { state: S && S.game_running ? 'game' : 'menu' } }); } catch (e) { return; }
   if (d.signed_in === false && CH.me && CH.me.signed_in) { CH.me = await invoke('c_logout'); CH.prof = null; chMe(); }   // the session is gone on the server
-  ON.users = d.online || []; onRender();       // shown in the Online block on the right
-  if (CH.me && CH.me.signed_in && !CH.prof) chMe();   // the rating from this list until the profile answers
+}
+// without the stream (not up in 30 s, or down): Online every 15 s and the chat every 5 s while the window is seen
+const STREAM = { up: false, timer: null, poll: null, n: 0 };
+function streamState(up) {
+  STREAM.up = up; clearTimeout(STREAM.timer);
+  if (up) { clearInterval(STREAM.poll); STREAM.poll = null; return; }
+  STREAM.timer = setTimeout(() => {
+    if (STREAM.up || STREAM.poll) return;
+    STREAM.poll = setInterval(async () => {
+      if (document.hidden) return;
+      // without the stream the server does not see that the launcher is open: "I'm here" every 30 s (it forgets in 90)
+      if (STREAM.n % 6 === 0) chHello();
+      if (STREAM.n++ % 3 === 0) { try { onLive(await liveSnapshot()); } catch (e) { ON.err = true; onRender(); } }
+      chKeys().forEach(k => chLoad(k, 'new'));
+    }, 5000);
+  }, 30000);
 }
 async function chInit() {
   try { CH.me = await invoke('c_status'); } catch (e) {}
+  // the queue of the last run; one already accepted ("sent") is in the history by now - dropped after 10 minutes
+  try { CH.out = JSON.parse(localStorage.getItem('chOut') || '[]').map(o => ({ ...o, tries: 0 })).filter(o => o.state !== 'sent' || Date.now() / 1000 - o.ts < 600); } catch (e) {}
+  listen('c_ev', e => { const { e: ev, d } = e.payload; onEvent(ev, d); chEvent(ev, d); });
+  listen('c_stream', e => { if (e.payload.host) LIVE.host = e.payload.host; streamState(e.payload.up); });
   document.querySelectorAll('.ch-tab').forEach(b => b.onclick = () => { CH.room = b.dataset.room; try { localStorage.setItem('chRoom', CH.room); } catch (e) {} chShowRoom(); });
   $('chIn2').onclick = chLogin;
   $('chSend').onclick = chSay;
   $('chText').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chSay(); } };
+  $('chMsgs').onscroll = () => {   // at the top: 100 older ones
+    const key = chKey(CH.room), box = $('chMsgs');
+    if (box.scrollTop < 40 && !CH.full[key] && !CH.older && (CH.msgs[key] || []).length) { CH.older = true; chLoad(key, 'older').finally(() => { CH.older = false; }); }
+  };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { CH.unread[chKey(CH.room)] = 0; chUnread(); } });
   chMe(); chShowRoom();
   // signed in by itself with the Steam account of this computer (no button, no browser, quiet on failure);
   // not after the player pressed "Sign out" - until they sign in again by hand
@@ -1810,9 +2263,12 @@ async function chInit() {
   if (!(CH.me && CH.me.signed_in) && CH.me && CH.me.local_found && CH.me.configured !== false && !noAuto) {
     try { const r = await invoke('c_login_local'); if (r && r.signed_in) { CH.me = r; chMe(); } } catch (e) {}
   }
+  // the stream may already be up: the snapshot, the card and the history are read once here, the rest comes as events
+  try { onLive(await liveSnapshot()); } catch (e) { ON.err = true; onRender(); }
+  try { streamState(await invoke('c_stream_up')); } catch (e) { streamState(false); }
   chHello(); chProfile();
-  ['all', 'ru', 'en'].forEach(r => r !== CH.room && chLoad(r));          // every room's history at once: switching tabs is instant
-  setInterval(() => { chLoad(); if (CH.room !== 'all') chLoad('all'); }, 5000); setInterval(chHello, 30000); setInterval(chProfile, 10 * 60 * 1000);
+  chKeys().forEach(k => chLoad(k));
+  if (CH.out.some(o => o.state === 'sending')) chPump();
 }
 chInit();
 
@@ -1948,7 +2404,7 @@ $('hkReset').onclick = async () => {
 // Settings has two tabs, General and Hotkeys (the bindings are read when the tab is first opened)
 document.querySelectorAll('.set-tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.set-tab').forEach(x => x.classList.toggle('on', x === b));
-  ['setMain', 'hotkeys'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
+  ['setMain', 'setNet', 'hotkeys'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
   if (b.dataset.set === 'hotkeys' && !HK.data) hkLoad();
 });
 

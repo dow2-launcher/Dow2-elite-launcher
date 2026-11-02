@@ -16,15 +16,10 @@
 
   <main id="home" class="view home">
     <aside class="col">
-      <section class="panel me-box hidden" id="meBox"></section>
+      <section class="panel ev-box hidden" id="evBox"></section>
       <section class="panel news-panel">
         <div class="h" data-t="news"></div>
         <div id="news" class="news-list"></div>
-        <button class="more hidden" id="newsMore"></button>
-      </section>
-      <section class="panel" id="linksBox">
-        <div class="h" data-t="links"></div>
-        <div id="links" class="links"></div>
       </section>
     </aside>
 
@@ -52,8 +47,9 @@
     </section>
 
     <aside class="col">
+      <section class="panel me-box hidden" id="meBox"></section>
       <section class="panel on-box" id="onBox">
-        <div class="h" data-t="online"></div>
+        <div class="h"><span data-t="online"></span><span class="on-total" id="onTotal"></span></div>
         <div class="on-groups" id="onGroups"></div>
         <button class="more hidden" id="onLadder" data-t="onLadder"></button>
       </section>
@@ -76,15 +72,13 @@
 
   <main id="addons" class="view hidden">
     <section class="panel addons-page">
-      <div class="h" data-t="components"></div>
-      <div class="row addon-check"><button class="btn" id="addonCheck" data-t="addonCheck"></button><span class="note" id="addonCheckNote"></span></div>
-      <div class="addon-all" id="allCompList"></div>
+      <div class="h hk-head addons-head"><span data-t="components"></span><span class="hk-note" id="addonCheckNote"></span><div class="hk-act"><button class="btn small" id="addonCheck" data-t="addonCheck"></button></div></div>      <div class="addon-all" id="allCompList"></div>
     </section>
   </main>
 
   <main id="settings" class="view hidden">
     <div class="set-wrap">
-    <nav class="set-tabs"><button class="set-tab on" data-set="setMain"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span data-t="setGeneral"></span></button><button class="set-tab" data-set="hotkeys"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="hotkeys"></span></button></nav>
+    <nav class="set-tabs"><button class="set-tab on" data-set="setMain"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span data-t="setGeneral"></span></button><button class="set-tab" data-set="setNet"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span data-t="netTab"></span></button><button class="set-tab" data-set="hotkeys"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="hotkeys"></span></button></nav>
     <section class="panel settings" id="setMain">
       <label data-t="gameFolder"></label>
       <div class="row"><div class="path" id="gameDir"></div><button class="btn" id="browse" data-t="browse"></button><button class="btn" id="openDir" data-t="open"></button></div>
@@ -92,9 +86,6 @@
       <div class="row"><select id="lang"><option value="">По умолчанию (Русский)</option><option value="en">English</option><option value="ru">Русский</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div>
       <label data-t="cache"></label>
       <div class="row"><select id="cache"><option value="0">0</option><option value="2048">2 GB</option><option value="6144">6 GB</option><option value="12288">12 GB</option></select><span class="note" data-t="cacheNote"></span></div>
-      <label data-t="mirror"></label>
-      <div class="row"><input id="mirror" placeholder="https://example.org/elite/"><button class="btn" id="saveMirror" data-t="save"></button></div>
-      <div class="note" id="mirrorInfo"></div>
       <label data-t="usageTitle"></label>
       <div class="row"><label class="chk"><input type="checkbox" id="usage"><span data-t="usage"></span></label></div>
       <div class="note" data-t="usageNote"></div>
@@ -106,13 +97,21 @@
       <label data-t="repairTitle"></label>
       <div class="row"><button class="btn" id="repair" data-t="repair"></button><span class="note" data-t="repairNote"></span></div>
       <label data-t="junkTitle"></label>
-      <div class="row"><button class="btn" id="junk" data-t="junk"></button><span class="note" data-t="junkNote"></span></div>
+      <div class="row"><button class="btn red" id="junk" data-t="junk"></button><span class="note" data-t="junkNote"></span></div>
       <label data-t="diagTitle"></label>
       <div class="row"><input id="diagName" data-tp="diagName"><button class="btn gold" id="sendLogs" data-t="sendLogs"></button></div>
       <div class="note" data-t="sendLogsNote"></div>
       <label data-t="unTitle"></label>
       <div class="row"><button class="btn red" id="uninstall" data-t="unBtn"></button><span class="note" data-t="unNote"></span></div>
       <div class="about" id="about"></div>
+    </section>
+    <section class="panel settings hidden" id="setNet">
+      <div class="h hk-head"><span data-t="netTitle"></span><div class="hk-act"><button class="btn small" id="netCheck" data-t="netCheck"></button></div></div>
+      <div class="note" id="netNote"></div>
+      <div class="net-list" id="netList"></div>
+      <label data-t="mirror"></label>
+      <div class="row"><input id="mirror" placeholder="https://example.org/elite/"><button class="btn" id="saveMirror" data-t="save"></button></div>
+      <div class="note" id="mirrorInfo"></div>
     </section>
     <section class="panel hk hidden" id="hotkeys">
       <div class="h hk-head"><span data-t="hotkeys"></span><span class="hk-note" id="hkState"></span><div class="hk-act"><button class="btn small" id="hkReset" data-t="hkReset"></button><button class="btn gold small hidden" id="hkSave" data-t="save"></button></div></div>
@@ -136,6 +135,7 @@
       <div class="bar hidden" id="bar"><i id="barFill"></i></div>
       <div class="meta" id="statusMeta"></div>
     </div>
+    <nav class="foot-links" id="footLinks"></nav>
     <button class="btn small hidden" id="cancel" data-t="cancel"></button>
     <div class="ver-pick">
       <div class="ver-list hidden" id="verList"></div>
