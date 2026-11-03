@@ -1,0 +1,4 @@
+- Lobbies: no "?" on the Elite / vanilla tags and no notes in brackets.
+- Lobbies: observers in a row of their own under the teams, with their own icon (when the room has any).
+- Lobbies (experiment): a Join button on Elite rooms without a password while the RoomJoin add-on is on - the game starts and walks into the room by itself; if it can't, the public games list stays.
+- Lobbies: a long name on one line, in full on hover; a player with a random race gets the "?".
