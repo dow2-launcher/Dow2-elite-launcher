@@ -1734,7 +1734,7 @@ async function roomJoin(id, name, btn) {
     if (r && r.running) { if (!r.front) toast(t('roomsJoinRunning')); }   // the game came to the front: its cover says the rest
     else { toast(t('roomsJoinStart', { name: name || '' })); doPlay(false); }
   } catch (e) { toast(e, true); }
-  setTimeout(() => { if (btn) btn.disabled = false; }, 5000);
+  setTimeout(() => { if (btn) btn.disabled = false; }, 30000);   // one request per click: a second one landed over the lobby (03.11)
 }
 function roomsWatch() {
   clearInterval(RM.timer); RM.timer = 0;
