@@ -255,11 +255,16 @@ fn net_status() -> Value { net_status_json() }
 /// - a connect to Relic's battle relays (ports 27000-27099 carry every online game) - closed or slow ports;
 /// - a STREAM to Relic: 16 requests of ~7 KB on one kept connection (110 KB) - in Russia the way to foreign hosting often
 ///   passes a connect and the first ~33 KB, then stops (DPI; NetProbe 2-3.11.2026), and a match on such a way drops later.
-/// Problem = a relay port closed, the median connect over 350 ms, or the stream stopped / took over 12 s.
+/// Problem = a relay port closed, the median connect over 200 ms (players in Europe and Moscow connect in 100-130 ms; TvangeS,
+/// Ukraine, 327 ms -> 540-640 ms round trips in the game, jerky), or the stream stopped / took over 12 s.
+/// Also offered to players whose Relay.ini still says Mode=bridge: before Relay 17 (02.11.2026) "every game through our server"
+/// was a mode of the one tick; the new forwarding tick is separate and off, so those players silently lost it.
 const RELIC_RELAYS: [&str; 3] = ["54.87.3.63:27008", "44.203.117.150:27004", "184.198.184.150:27002"];
 #[tauri::command]
-async fn relic_probe() -> Value {
-    tauri::async_runtime::spawn_blocking(|| {
+async fn relic_probe(app: State<'_, App>) -> Result<Value, String> {
+    let old_bridge = game_dir(&app).and_then(|d| std::fs::read_to_string(d.join("Elite_DLLs").join("Relay.ini")).ok())
+        .map(|t| t.lines().any(|l| l.trim().eq_ignore_ascii_case("Mode=bridge"))).unwrap_or(false);
+    Ok(tauri::async_runtime::spawn_blocking(move || {
         use std::net::{SocketAddr, TcpStream};
         let mut ms: Vec<i64> = Vec::new(); let mut closed = 0;
         for a in RELIC_RELAYS {
@@ -282,15 +287,17 @@ async fn relic_probe() -> Value {
         }
         let secs = t0.elapsed().as_secs_f64();
         let stream_ok = got == 16;
-        let problem = closed > 0 || median > 350 || !stream_ok;
+        let slow = median > 200;
+        let problem = closed > 0 || slow || !stream_ok || old_bridge;
         let why = if closed > 0 { format!("{closed} of {} Relic game server ports do not answer", RELIC_RELAYS.len()) }
             else if !stream_ok { format!("the stream to Relic stopped after {} KB ({err})", bytes / 1024) }
-            else if median > 350 { format!("Relic answers in {median} ms") } else { String::new() };
+            else if slow { format!("Relic answers in {median} ms") }
+            else if old_bridge { "your earlier setting sent every game through our server".into() } else { String::new() };
         c_log(&format!("relic probe: relays {:?} ms, stream {got}/16 requests {} KB in {:.1} s{}{}", ms, bytes / 1024, secs,
                        if problem { " - PROBLEM: " } else { "" }, why));
         json!({"relays_ms": ms, "median_ms": median, "closed": closed, "stream_ok": stream_ok, "stream_kb": bytes / 1024,
-               "stream_s": (secs * 10.0).round() / 10.0, "problem": problem, "why": why})
-    }).await.unwrap_or_else(|e| json!({"problem": false, "why": e.to_string()}))
+               "stream_s": (secs * 10.0).round() / 10.0, "problem": problem, "why": why, "old_bridge": old_bridge})
+    }).await.unwrap_or_else(|e| json!({"problem": false, "why": e.to_string()})))
 }
 
 /// "Check again" in Settings: both pools now (the answer comes as the net_rank event too).
