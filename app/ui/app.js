@@ -122,7 +122,7 @@ const T = {
     "usageTitle": "Anonymous usage count",
     "usage": "Count me as a launcher user",
     "usageNote": "Once a day the launcher sends a hash that changes every day, plus its version, OS and the Elite version. No names, Steam or hardware data; days can't be linked to each other.",
-    "onTag": "Mention in the chat", "roomsTab": "Lobbies", "roomsTitle": "Open lobbies", "roomsNote": "Custom games being set up right now - the same list as the game browser. Elite or vanilla is told by the races, the army badges and the map.", "roomsNone": "Nobody is setting up a game right now.", "roomsErr": "The list is not available right now.", "roomsFree": "open", "roomsVan": "vanilla", "roomsOther": "other mod", "roomsObs": "observers", "roomsPw": "password", "roomsJoin": "Join", "roomsJoinStart": "Starting the game and joining {name}...", "roomsJoinRunning": "The game is running: go to its main menu, the join starts there", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
+    "onTag": "Mention in the chat", "roomsTab": "Lobbies", "roomsTitle": "Open lobbies", "roomsNote": "Custom games being set up right now - the same list as the game browser. Elite or vanilla is told by the races, the army badges and the map.", "roomsNone": "Nobody is setting up a game right now.", "roomsErr": "The list is not available right now.", "roomsFree": "open", "roomsVan": "vanilla", "roomsOther": "other mod", "roomsObs": "observers", "roomsPw": "password", "roomsJoin": "Join", "roomsJoinStart": "Starting the game and joining {name}...", "roomsJoinRunning": "The game is running: switch to it, the join starts there", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
     "lanTitle": "Local network",
     "lanShare": "Download Elite from other launchers on the local network and share it with them (faster; every file is checked against the signed version)",
     "trayOpen": "Open Elite Launcher",
@@ -326,7 +326,7 @@ const T = {
     "usageTitle": "Анонимная статистика",
     "usage": "Учитывать меня в числе пользователей лаунчера",
     "usageNote": "Раз в сутки лаунчер отправляет хеш, который каждый день новый, плюс свою версию, ОС и версию Elite. Никаких ников, Steam или данных о компьютере; связать дни между собой нельзя.",
-    "onTag": "Упомянуть в чате", "roomsTab": "Комнаты", "roomsJoin": "Войти", "roomsJoinStart": "Запускаю игру и вхожу в {name}...", "roomsJoinRunning": "Игра уже запущена: выйдите в её главное меню, вход начнётся там", "roomsTitle": "Открытые лобби", "roomsNote": "Кастомки, которые сейчас собираются, — тот же список, что в браузере игр. Elite или ваниль — по расам, значкам армий и карте.", "roomsNone": "Сейчас никто не собирает игру.", "roomsErr": "Список сейчас недоступен.", "roomsFree": "свободно", "roomsVan": "ваниль", "roomsOther": "другой мод", "roomsObs": "наблюдатели", "roomsPw": "с паролем", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
+    "onTag": "Упомянуть в чате", "roomsTab": "Комнаты", "roomsJoin": "Войти", "roomsJoinStart": "Запускаю игру и вхожу в {name}...", "roomsJoinRunning": "Игра уже запущена: переключитесь в неё, вход начнётся там", "roomsTitle": "Открытые лобби", "roomsNote": "Кастомки, которые сейчас собираются, — тот же список, что в браузере игр. Elite или ваниль — по расам, значкам армий и карте.", "roomsNone": "Сейчас никто не собирает игру.", "roomsErr": "Список сейчас недоступен.", "roomsFree": "свободно", "roomsVan": "ваниль", "roomsOther": "другой мод", "roomsObs": "наблюдатели", "roomsPw": "с паролем", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
     "lanTitle": "Локальная сеть",
     "lanShare": "Качать Elite с других лаунчеров в локальной сети и раздавать им (быстрее; каждый файл сверяется с подписанной версией)",
     "trayOpen": "Открыть Elite Launcher",
@@ -1703,7 +1703,7 @@ async function roomJoin(id, name, btn) {
   if (btn) btn.disabled = true;
   try {
     const r = await invoke('room_join', { id: Number(id), name: name || '' });
-    if (r && r.running) toast(t('roomsJoinRunning'));
+    if (r && r.running) { if (!r.front) toast(t('roomsJoinRunning')); }   // the game came to the front: its cover says the rest
     else { toast(t('roomsJoinStart', { name: name || '' })); doPlay(false); }
   } catch (e) { toast(e, true); }
   setTimeout(() => { if (btn) btn.disabled = false; }, 5000);
