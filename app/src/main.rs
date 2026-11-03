@@ -1448,9 +1448,6 @@ fn start_game(app: &App) -> Result<Value, String> {
         if !off.iter().any(|x| x.to_ascii_lowercase().ends_with(&n.to_ascii_lowercase())) { off.push(n); }
     }
     let guard = json!({"off": off, "loader": dir.join("winmm.dll").is_file() && dir.join("dow2-patches").is_dir()});
-    // the player's SteamID64 for our add-ons: under Proton the registry value they read (ActiveProcess\ActiveUser) is
-    // empty and MMFind sent steam 0 - the automatch host never found itself in the room (ZHDH 02.11.2026)
-    let steam_env = elite_core::game::steam_local_user().map(|(id, _)| id).filter(|id| id.len() == 17 && id.bytes().all(|b| b.is_ascii_digit()));
     elite_core::hotkeys::refresh_if_stale(&app.settings.lock().unwrap().hotkeys);     // a patch brought new defaults
     let mut cmd = match os_name() {
         "windows" => cfg.launch.windows.clone(),
@@ -1491,7 +1488,6 @@ fn start_game(app: &App) -> Result<Value, String> {
                 // 1.4.0 showed only "launch:", never why the game did not come up
                 let plog = data_dir().join("proton.log");
                 let mut c = run.command(&exe, &[], &dir);
-                if let Some(id) = &steam_env { c.env("ELITE_STEAMID", id); }
                 if let Ok(f) = std::fs::File::create(&plog) {
                     if let Ok(f2) = f.try_clone() { c.stdout(f).stderr(f2); }
                 }
@@ -1522,7 +1518,6 @@ fn start_game(app: &App) -> Result<Value, String> {
     let program = sub(&cmd.program);
     let mut c = std::process::Command::new(&program);
     c.args(cmd.args.iter().map(|a| sub(a))).current_dir(&game);
-    if let Some(id) = &steam_env { c.env("ELITE_STEAMID", id); }
     match c.spawn() {
         Ok(_) => Ok(guard),
         // 740 = программа требует прав администратора (Elite.exe так помечен). Обычный запуск такого не умеет,
@@ -1533,7 +1528,6 @@ fn start_game(app: &App) -> Result<Value, String> {
             let mut sh = std::process::Command::new("cmd");
             sh.args(["/C", "start", "", "/D", &game, &program]).args(cmd.args.iter().map(|a| sub(a)));
             sh.creation_flags(0x0800_0000); // CREATE_NO_WINDOW — без мигающей консоли
-            if let Some(id) = &steam_env { sh.env("ELITE_STEAMID", id); }
             sh.spawn().map(|_| guard).map_err(|e2| format!("cannot start {program} as administrator: {e2}"))
         }
         Err(e) => Err(format!("cannot start {program}: {e}")),
