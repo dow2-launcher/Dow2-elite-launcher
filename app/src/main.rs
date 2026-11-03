@@ -495,6 +495,24 @@ mod procs {
         pub fn CloseHandle(h: isize) -> i32;
         fn MultiByteToWideChar(cp: u32, flags: u32, s: *const u8, n: i32, w: *mut u16, wn: i32) -> i32;
     }
+    #[link(name = "user32")]
+    extern "system" {
+        fn FindWindowW(class: *const u16, title: *const u16) -> isize;
+        fn IsIconic(w: isize) -> i32;
+        fn ShowWindow(w: isize, cmd: i32) -> i32;
+        fn SetForegroundWindow(w: isize) -> i32;
+    }
+    /// The game's window to the front, restored if minimized (Lobbies, Join while the game runs: 03.11.2026). Right after the
+    /// player's click in the launcher, Windows lets the launcher hand the foreground on. -> a window was there
+    pub fn game_to_front() -> bool {
+        let title: Vec<u16> = "Dawn of War II".encode_utf16().chain(std::iter::once(0)).collect();
+        unsafe {
+            let w = FindWindowW(std::ptr::null(), title.as_ptr());
+            if w == 0 { return false; }
+            if IsIconic(w) != 0 { ShowWindow(w, 9 /* SW_RESTORE */); }
+            SetForegroundWindow(w); true
+        }
+    }
     /// Text a console program wrote (OEM code page: cp866 on a Russian Windows) as a String.
     pub fn oem_text(b: &[u8]) -> String {
         if b.is_empty() || b.len() > i32::MAX as usize { return String::from_utf8_lossy(b).into_owned(); }
@@ -1957,7 +1975,12 @@ fn room_join(app: State<'_, App>, id: u64, name: String) -> Result<Value, String
     let name: String = name.chars().filter(|c| !c.is_control()).take(64).collect();
     std::fs::write(d.join("RoomJoin.txt"), format!("{id}\n{name}\n")).map_err(|e| e.to_string())?;
     c_log(&format!("rooms: join request for room {id} ({name})"));
-    Ok(json!({ "running": app.game_running.load(Ordering::Relaxed) || is_game_running() }))
+    let running = app.game_running.load(Ordering::Relaxed) || is_game_running();
+    #[cfg(windows)]
+    let front = running && procs::game_to_front();
+    #[cfg(not(windows))]
+    let front = false;
+    Ok(json!({ "running": running, "front": front }))
 }
 
 /// 1.3.15 (owner 02.11.2026): the open lobbies - Relic's list of custom games being set up, from our ladder server
