@@ -152,8 +152,8 @@ const T = {
     "conflictText": "Found a hand-installed copy: {files}. It conflicts with the launcher version, so the launcher keeps its own copy off while these files are there.",
     "conflictRemove": "Delete these files",
     "conflictKeep": "Leave as is",
-    "conflictKeepNote": "Leave it as is and everything will work: the copy in the folder does the job.",
-    "conflictActive": "Using the copy from the game folder (dow2-patches) — the launcher version is off",
+    "conflictKeepNote": "While the copy is there, Play asks to put it aside.",
+    "conflictActive": "An old copy is in the game folder (dow2-patches) — Play will ask to put it aside",
     "conflictRemoved": "Deleted: {files}",
     "main": "Main",
     "mainNote": "the lobbies play this",
@@ -188,6 +188,7 @@ const T = {
     "newsAll": "Read all", "newsLess": "Collapse", "newsLink": "Open the link",
     "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_experiment": "Experiments", "cat_other": "Other", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
+    "playAfterSync": "Updating the add-ons first — the game starts by itself after that.", "oldTitle": "Old copies of the add-ons in the game folder", "oldText": "These files are old hand-installed copies of our add-ons. The game would load them next to the launcher's. Put them aside and the game starts (they go to .elite_cache, nothing is deleted).", "oldRemove": "Put aside", "oldLater": "Not now", "oldRemoved": "Put aside: {n} files",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher", "fwdOffer": "Your connection to Relic's game servers has trouble ({why}). Our forwarding servers can carry your games to Relic.", "fwdOn": "Turn on forwarding", "fwdLater": "Not now", "fwdDone": "Forwarding servers are on - they work from the next game start.",
     "launcherUpdating": "Updating the launcher… {p}",
@@ -361,8 +362,8 @@ const T = {
     "conflictText": "Найдена копия, поставленная вручную: {files}. Она будет конфликтовать с версией из лаунчера, поэтому пока эти файлы на месте, лаунчер свою копию не включает.",
     "conflictRemove": "Удалить эти файлы",
     "conflictKeep": "Оставить как есть",
-    "conflictKeepNote": "Если оставить как есть — всё и так будет работать: копия в папке делает то же самое.",
-    "conflictActive": "Работает копия из папки игры (dow2-patches) — версия лаунчера отключена",
+    "conflictKeepNote": "Пока копия на месте, «Играть» будет просить её убрать.",
+    "conflictActive": "В папке игры лежит старая копия (dow2-patches) — «Играть» попросит её убрать",
     "conflictRemoved": "Удалено: {files}",
     "main": "Основная",
     "mainNote": "на ней играют в лобби",
@@ -397,6 +398,7 @@ const T = {
     "newsAll": "Читать полностью", "newsLess": "Свернуть", "newsLink": "Открыть ссылку",
     "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_experiment": "Эксперименты", "cat_other": "Другое", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
+    "playAfterSync": "Сначала обновляю дополнения — игра запустится сама.", "oldTitle": "Старые копии дополнений в папке игры", "oldText": "Эти файлы — старые копии наших дополнений, поставленные вручную. Игра загрузит их рядом с версиями из лаунчера. Уберите их, и игра запустится (они переносятся в .elite_cache, ничего не удаляется).", "oldRemove": "Убрать", "oldLater": "Не сейчас", "oldRemoved": "Убрано: {n} файлов",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер", "fwdOffer": "Связь с игровыми серверами Relic с проблемами ({why}). Наши форвардинг-серверы могут вести ваши игры до Relic.", "fwdOn": "Включить форвардинг", "fwdLater": "Не сейчас", "fwdDone": "Форвардинг-серверы включены — работают со следующего запуска игры.",
     "launcherUpdating": "Обновляю лаунчер… {p}",
@@ -565,8 +567,8 @@ const T = {
     "conflictText": "Se encontró una copia instalada a mano: {files}. Entra en conflicto con la versión del launcher, así que el launcher no activa la suya mientras estos archivos estén ahí.",
     "conflictRemove": "Borrar estos archivos",
     "conflictKeep": "Dejar como está",
-    "conflictKeepNote": "Si lo dejas como está, todo funcionará igual: la copia de la carpeta hace el mismo trabajo.",
-    "conflictActive": "Se usa la copia de la carpeta del juego (dow2-patches); la versión del launcher está desactivada",
+    "conflictKeepNote": "Mientras la copia esté ahí, «Jugar» pedirá apartarla.",
+    "conflictActive": "Hay una copia antigua en la carpeta del juego (dow2-patches): «Jugar» pedirá apartarla",
     "conflictRemoved": "Borrado: {files}",
     "main": "Principal",
     "mainNote": "se juega en los lobbies",
@@ -601,6 +603,7 @@ const T = {
     "newsAll": "Leer todo", "newsLess": "Contraer", "newsLink": "Abrir el enlace",
     "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_experiment": "Experimentos", "cat_other": "Otros", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
     "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
+    "playAfterSync": "Primero se actualizan los complementos; luego el juego se inicia solo.", "oldTitle": "Copias antiguas de los complementos en la carpeta del juego", "oldText": "Estos archivos son copias antiguas de nuestros complementos instaladas a mano. El juego las cargaría junto a las del launcher. Apártalas y el juego se inicia (van a .elite_cache, no se borra nada).", "oldRemove": "Apartarlas", "oldLater": "Ahora no", "oldRemoved": "Apartados: {n} archivos",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher", "fwdOffer": "Tu conexión con los servidores de Relic tiene problemas ({why}). Nuestros servidores de reenvío pueden llevar tus partidas a Relic.", "fwdOn": "Activar reenvío", "fwdLater": "Ahora no", "fwdDone": "Reenvío activado: funciona desde el próximo inicio del juego.",
     "launcherUpdating": "Actualizando el launcher… {p}",
@@ -769,8 +772,8 @@ const T = {
     "conflictText": "Une copie installée à la main a été trouvée : {files}. Elle entre en conflit avec la version du launcher, donc le launcher garde la sienne désactivée tant que ces fichiers sont là.",
     "conflictRemove": "Supprimer ces fichiers",
     "conflictKeep": "Laisser tel quel",
-    "conflictKeepNote": "Si vous laissez tel quel, tout fonctionnera : la copie du dossier fait le même travail.",
-    "conflictActive": "La copie du dossier du jeu (dow2-patches) est utilisée — la version du launcher est désactivée",
+    "conflictKeepNote": "Tant que la copie est là, « Jouer » demandera de la mettre de côté.",
+    "conflictActive": "Une ancienne copie est dans le dossier du jeu (dow2-patches) — « Jouer » demandera de la mettre de côté",
     "conflictRemoved": "Supprimé : {files}",
     "main": "Principale",
     "mainNote": "c'est celle des lobbies",
@@ -805,6 +808,7 @@ const T = {
     "newsAll": "Tout lire", "newsLess": "Réduire", "newsLink": "Ouvrir le lien",
     "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_experiment": "Expériences", "cat_other": "Autres", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
     "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
+    "playAfterSync": "Mise à jour des modules d'abord — le jeu démarrera ensuite tout seul.", "oldTitle": "Anciennes copies des modules dans le dossier du jeu", "oldText": "Ces fichiers sont d'anciennes copies de nos modules installées à la main. Le jeu les chargerait à côté de celles du launcher. Mettez-les de côté et le jeu démarre (elles vont dans .elite_cache, rien n'est supprimé).", "oldRemove": "Mettre de côté", "oldLater": "Pas maintenant", "oldRemoved": "Mis de côté : {n} fichiers",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher", "fwdOffer": "Votre connexion aux serveurs de Relic a des problèmes ({why}). Nos serveurs de relais peuvent acheminer vos parties vers Relic.", "fwdOn": "Activer le relais", "fwdLater": "Plus tard", "fwdDone": "Relais activé : actif au prochain lancement du jeu.",
     "launcherUpdating": "Mise à jour du launcher… {p}",
@@ -973,8 +977,8 @@ const T = {
     "conflictText": "Eine von Hand installierte Kopie wurde gefunden: {files}. Sie kollidiert mit der Launcher-Version, daher lässt der Launcher seine eigene aus, solange diese Dateien da sind.",
     "conflictRemove": "Diese Dateien löschen",
     "conflictKeep": "So lassen",
-    "conflictKeepNote": "Wenn du es so lässt, funktioniert trotzdem alles: die Kopie im Ordner erledigt dasselbe.",
-    "conflictActive": "Die Kopie aus dem Spielordner (dow2-patches) wird verwendet – die Launcher-Version ist aus",
+    "conflictKeepNote": "Solange die Kopie da ist, bittet „Spielen“ darum, sie beiseitezulegen.",
+    "conflictActive": "Eine alte Kopie liegt im Spielordner (dow2-patches) – „Spielen“ bittet darum, sie beiseitezulegen",
     "conflictRemoved": "Gelöscht: {files}",
     "main": "Haupt",
     "mainNote": "diese Version spielen die Lobbys",
@@ -1009,6 +1013,7 @@ const T = {
     "newsAll": "Alles lesen", "newsLess": "Einklappen", "newsLink": "Link öffnen",
     "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_experiment": "Experimente", "cat_other": "Sonstiges", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
     "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
+    "playAfterSync": "Zuerst werden die Add-ons aktualisiert – das Spiel startet danach von selbst.", "oldTitle": "Alte Kopien der Add-ons im Spielordner", "oldText": "Diese Dateien sind alte, von Hand installierte Kopien unserer Add-ons. Das Spiel würde sie neben den Launcher-Versionen laden. Beiseitelegen, dann startet das Spiel (sie kommen nach .elite_cache, nichts wird gelöscht).", "oldRemove": "Beiseitelegen", "oldLater": "Nicht jetzt", "oldRemoved": "Beiseitegelegt: {n} Dateien",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren", "fwdOffer": "Deine Verbindung zu Relics Spielservern hat Probleme ({why}). Unsere Weiterleitungsserver können deine Spiele zu Relic bringen.", "fwdOn": "Weiterleitung einschalten", "fwdLater": "Nicht jetzt", "fwdDone": "Weiterleitung eingeschaltet - ab dem nächsten Spielstart.",
     "launcherUpdating": "Launcher wird aktualisiert… {p}",
@@ -1305,6 +1310,9 @@ function renderLauncherBanner() {
   }
   b.classList.toggle('hidden', !v);
   if (!v) return;
+  // launcher.json already names a newer launcher and the updater has not found it yet (the mirrors copy a release a
+  // little later): ask again every minute, not every 15, so Update comes without a restart (owner 03.11.2026)
+  if (lu && (!LU || versionNewer(lu.version, LU.version))) launcherRetrySoon();
   b.classList.toggle('link', !LU);
   $('launcherBtn').classList.toggle('hidden', !LU || !!LU.installing);
   if (LU) {
@@ -1343,6 +1351,17 @@ function renderFwdBanner() {
 async function relicProbe() {
   try { FWD = await invoke('relic_probe'); } catch (e) { FWD = null; }
   if (S) renderFwdBanner();
+}
+let luRetry = null, luTries = 0;
+function launcherRetrySoon() {
+  if (luRetry || luTries >= 60) return;          // an hour at most (a portable copy never finds one: no self-update)
+  luRetry = setTimeout(() => { luRetry = null; luTries++; launcherCheck(); }, 60000);
+}
+// "1.4.10" > "1.4.9"
+function versionNewer(a, b) {
+  const x = String(a || '').split('.').map(n => parseInt(n, 10) || 0), y = String(b || '').split('.').map(n => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); }
+  return false;
 }
 async function launcherCheck() {
   try { const r = await invoke('launcher_check'); if (r && !LU?.installing) LU = r; } catch (e) { /* offline: try again later */ }
@@ -1594,7 +1613,7 @@ async function refresh() {
   }
   // add-ons follow their checkboxes on their own: install missing ones, remove unticked ones
   const comps = S.components || [];
-  if (S.installed_version && !S.busy && !S.game_running && comps.some(c => { const want = c.enabled && !(c.conflicts || []).length; return want !== !!c.installed || (want && c.latest && c.installed && c.installed !== c.latest); })) {
+  if (S.installed_version && !S.busy && !S.game_running && compsNeedSync()) {
     try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); } catch (e) { /* will retry next refresh */ }
   }
   return changes;
@@ -1612,13 +1631,57 @@ async function startUpdate(repair) {
   catch (e) { toast(e, true); }
 }
 
-async function doPlay() {
+// an add-on that is on is missing or older than the catalog's, or one that is off is still installed
+const compsNeedSync = () => (S.components || []).some(c => { const want = c.enabled && !(c.conflicts || []).length; return want !== !!c.installed || (want && c.latest && c.installed && c.installed !== c.latest); });
+let playAfterSync = false;
+// 1.4.2 (owner 03.11.2026): Play checks our add-ons first - the ticked ones in place and current (brought first, then the
+// game starts by itself), the leftovers of the others gone (the launcher does that before the start); old copies of
+// our add-ons (stand-alone package) are the only thing that stops it: the player is asked to put them aside
+async function doPlay(synced) {
+  if (!synced && S.installed_version && !S.busy && compsNeedSync()) {
+    try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; playAfterSync = true; render(); toast(t('playAfterSync')); return; }
+    catch (e) { /* not now: start with what is there */ }
+  }
   try {
     const g = await invoke('play') || {};
     // the check before the start (launch_guard): what was taken out of the game's list, a stray stand-alone loader
     const said = [(g.off || []).length ? t('guardOff', { list: g.off.join(', ') }) : '', g.loader ? t('guardLoader') : ''].filter(Boolean);
     toast(said.length ? t('starting') + ' ' + said.join(' ') : t('starting'), !!g.loader);
-  } catch (e) { toast(e, true); }
+  } catch (e) {
+    const s = String(e);
+    if (s.startsWith('old-copies:')) { if (await askOldCopies(s.slice('old-copies:'.length).split('\n'))) doPlay(); }
+    else toast(e, true);
+  }
+}
+
+// old copies of our add-ons (the stand-alone dow2-patches package, the old LobbyStats folder): the game would load them
+// next to the launcher's. Asked once the window opens (checked in the background) and when Play finds them.
+// -> true when they were put aside
+let oldAsking = false;
+async function askOldCopies(files) {
+  if (oldAsking || !files.length) return false;
+  oldAsking = true;
+  const ok = await new Promise(done => {
+    const m = document.createElement('div');
+    m.className = 'modal';
+    m.innerHTML = `<div class="box"><h3>${esc(t('oldTitle'))}</h3><p>${esc(t('oldText'))}</p><p class="note">${files.map(esc).join('<br>')}</p>
+      <div class="row"><button class="btn red" id="ocDel">${esc(t('oldRemove'))}</button><button class="btn gold" id="ocLater">${esc(t('oldLater'))}</button></div></div>`;
+    document.body.appendChild(m);
+    const close = v => { m.remove(); done(v); };
+    m.querySelector('#ocDel').onclick = () => close(true);
+    m.querySelector('#ocLater').onclick = () => close(false);
+  });
+  oldAsking = false;
+  if (!ok) return false;
+  try {
+    const moved = await invoke('remove_old_copies');
+    toast(t('oldRemoved', { n: moved.length }));
+    await reload();
+    return true;
+  } catch (e) { toast(e, true); return false; }
+}
+async function oldCopiesCheck() {
+  try { const f = await invoke('old_copies_scan'); if (f && f.length && S && !S.game_running) await askOldCopies(f); } catch (e) { /* no game folder yet */ }
 }
 
 let netActive = false;
@@ -1656,6 +1719,8 @@ listen('update_done', async e => {
       $('statusMeta').textContent = t('metaDone', { dl: mb(r.summary.downloaded), re: mb(r.summary.reused), fc: mb(r.summary.from_cache) });
     }
   } else toast(r.cancelled ? t('cancelled') : r.error, !r.cancelled);
+  // Play brought the add-ons first: now the game
+  if (playAfterSync) { playAfterSync = false; if (r.ok && S && !S.busy && !S.game_running) doPlay(true); }
 });
 
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
@@ -1787,7 +1852,7 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { verOpen(false); popClose(); } });
 window.addEventListener('resize', popClose);
 
-reload().then(refresh);
+reload().then(refresh).then(oldCopiesCheck);
 launcherCheck();
 setTimeout(relicProbe, 8000);                 // after start-up traffic settles; once per launcher start
 // every 15 minutes: new Elite versions, announcements and a newer launcher
@@ -1883,9 +1948,9 @@ function onRender() {
   else {
     if (ON.err) html += `<div class="on-stale">${esc(t('onOffline'))}</div>`;   // the last list stays, marked as old
     if (!look.length && !matches.length && !inL.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
-    // looking for a game: avatar, name, race, mode (spectators marked), how long
+    // looking for a game: avatar, name, race, mode (spectators marked); no time (owner 03.11.2026: not needed)
     if (look.length) html += group('look', t('onSearching'), look.length, look.map(p => `<div class="on-p">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${raceImg(p.race)}`
-      + `<span class="tag">${esc(p.mode === 'watch' ? t('onWatcher') : p.mode)}</span><span class="since">${esc(onMins(p.since))}</span></div>`).join(''));
+      + `<span class="tag">${esc(p.mode === 'watch' ? t('onWatcher') : p.mode)}</span></div>`).join(''));
     // the launcher open: avatar, 1v1 rating, a dot for menu / game
     if (inL.length) html += group('launcher', t('chMembers'), inL.length, [...inL].sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''))
       .map(p => `<div class="on-p on-u">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${onRt(onUser(p.steam).rating)}`
