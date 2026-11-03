@@ -491,8 +491,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .room .team{min-width:0}.room .team+.team{border-left:1px solid var(--line2);padding-left:8px}
 .room .rp{display:flex;align-items:center;gap:4px;font-size:12.5px;line-height:21px;white-space:nowrap;overflow:hidden}
 .room .rp img{width:17px;height:17px;object-fit:contain;flex:none}
-.room .rp .rndw{display:inline-grid;place-items:center;width:17px;height:17px;flex:none;color:var(--gold2)}
-.room .rp .rnd{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6}.room .rp .rnd circle{fill:currentColor;stroke:none}
+.room .rp .race-rnd{width:17px;height:17px;font-size:13px;box-sizing:border-box}
 .room .rp .nm{overflow:hidden;text-overflow:ellipsis}.room .rp.host .nm{color:var(--gold2)}
 .room .rp .rt{color:var(--muted);font-size:11.5px}
 .room .rp.free{color:var(--muted);font-style:italic;opacity:.7}
