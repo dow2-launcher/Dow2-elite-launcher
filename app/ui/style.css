@@ -492,6 +492,9 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .room .rp .rt{color:var(--muted);font-size:11.5px}
 .room .rp.free{color:var(--muted);font-style:italic;opacity:.7}
 .room .rfoot{margin-top:4px;font-size:11.5px;color:var(--muted)}
+.room .robs{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:5px;padding-top:4px;border-top:1px dashed var(--line2);font-size:12.5px;line-height:21px;min-width:0}
+.room .robs svg{flex:none;color:var(--gold2);opacity:.85}.room .robs .ol{color:var(--muted);margin-right:2px}
+.room .robs .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.room .robs .sep,.room .robs .oc{color:var(--muted)}
 .tag.elite{color:var(--gold2);border-color:var(--gold)}.tag.van{color:#9fb8c8;border-color:#4a5a66}.tag.oth{color:#c9a0d8;border-color:#5d4566}
 
 /* Settings: how our servers answer from here - a dot, the place, the host, the time; the one in use marked */
