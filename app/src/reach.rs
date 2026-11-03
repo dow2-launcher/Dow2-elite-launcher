@@ -3,9 +3,13 @@
 //!
 //! Two pools:
 //! - Data: the mirrors (launcher.json, Elite's and the add-ons' files) - Moscow, Germany, Cloudflare R2, whatever the
-//!   signed launcher.json lists. Checked with one small file, `<base>launcher.json.sig`.
+//!   signed launcher.json lists. Checked with `<base>launcher.json` (~46 KB).
 //! - Api: our servers with the ladder API (chat, the stream, rooms, logs, usage) and the launcher's own updater.json.
-//!   Checked with `<host>/ladder/api/c/online` (a few hundred bytes of JSON).
+//!   Checked with the last 120 chat messages (~60 KB of JSON).
+//! 1.4.3 (03.11.2026, noofancy: "dow2 does not answer, trying the next one... 0.02 MB of 2.54 MB", fine with a VPN): the checks
+//! were a tiny file (89 bytes) and a few hundred bytes - on many Russian lines the way to Europe passes that and the first
+//! ~33 KB of a connection, then stops (DPI; NetProbe 2-3.11). A mirror that answered a tiny file fastest was picked and every
+//! real download stalled on it. A check now has to get a STREAM past that point; a host that stops on it is "no answer".
 //!
 //! A check is an HTTPS GET with short timeouts, every host at once (threads); the time to the whole answer is its score
 //! (DNS + TCP + TLS + HTTP - what a real request costs, unlike a ping). The ones that answered come first, fastest
@@ -101,8 +105,8 @@ pub fn check_soon(pool: Pool, gap: u64) {
 
 fn probe_url(pool: Pool, base: &str) -> String {
     match pool {
-        Pool::Data => format!("{}/launcher.json.sig", base.trim_end_matches('/')),
-        Pool::Api => format!("{}/ladder/api/c/online", base.trim_end_matches('/')),
+        Pool::Data => format!("{}/launcher.json", base.trim_end_matches('/')),
+        Pool::Api => format!("{}/ladder/api/c/msgs?room=all&after=0&limit=120", base.trim_end_matches('/')),
     }
 }
 
@@ -119,7 +123,7 @@ fn probe(pool: Pool, base: &str) -> Probe {
         use std::io::Read;
         let mut v = Vec::new();
         r.into_reader().take(256 << 10).read_to_end(&mut v).map_err(|e| e.to_string())?;
-        if v.is_empty() { Err("empty answer".to_string()) } else { Ok(()) }
+        if v.len() < 16 << 10 { Err(format!("short answer ({} bytes)", v.len())) } else { Ok(()) }   // 1.4.3: a stream, not a ping
     });
     match res {
         Ok(()) => Probe { base: base.to_string(), ms: Some(t.elapsed().as_millis().min(u32::MAX as u128) as u32), err: String::new() },

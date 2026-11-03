@@ -1,0 +1,1 @@
+- Downloads and the chat work on lines that cut connections to Europe after the first ~33 KB (common in Russia): the launcher now picks a mirror and a server only if a stream of ~50 KB gets through, not a tiny test file - before, such a mirror looked fastest and every download stalled on it.
