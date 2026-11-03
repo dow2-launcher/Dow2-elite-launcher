@@ -250,6 +250,49 @@ fn net_status_json() -> Value {
 }
 #[tauri::command]
 fn net_status() -> Value { net_status_json() }
+/// 1.4.2 (owner 03.11.2026): the way to Relic's game servers, checked at launcher start - the launcher offers our forwarding
+/// servers (add-on relay_fwd, off by default) to the players it would help, they tick it themselves. Two checks:
+/// - a connect to Relic's battle relays (ports 27000-27099 carry every online game) - closed or slow ports;
+/// - a STREAM to Relic: 16 requests of ~7 KB on one kept connection (110 KB) - in Russia the way to foreign hosting often
+///   passes a connect and the first ~33 KB, then stops (DPI; NetProbe 2-3.11.2026), and a match on such a way drops later.
+/// Problem = a relay port closed, the median connect over 350 ms, or the stream stopped / took over 12 s.
+const RELIC_RELAYS: [&str; 3] = ["54.87.3.63:27008", "44.203.117.150:27004", "184.198.184.150:27002"];
+#[tauri::command]
+async fn relic_probe() -> Value {
+    tauri::async_runtime::spawn_blocking(|| {
+        use std::net::{SocketAddr, TcpStream};
+        let mut ms: Vec<i64> = Vec::new(); let mut closed = 0;
+        for a in RELIC_RELAYS {
+            let t0 = std::time::Instant::now();
+            match a.parse::<SocketAddr>().map(|sa| TcpStream::connect_timeout(&sa, Duration::from_secs(3))) {
+                Ok(Ok(_)) => ms.push(t0.elapsed().as_millis() as i64),
+                _ => { closed += 1; ms.push(-1); }
+            }
+        }
+        let mut ok: Vec<i64> = ms.iter().copied().filter(|m| *m >= 0).collect(); ok.sort();
+        let median = ok.get(ok.len() / 2).copied().unwrap_or(-1);
+        let agent = ureq::AgentBuilder::new().timeout(Duration::from_secs(6)).build();     // one kept connection for all requests
+        let t0 = std::time::Instant::now(); let mut got = 0usize; let mut bytes = 0usize; let mut err = String::new();
+        for _ in 0..16 {
+            match agent.get("https://dow-api.reliclink.com/community/leaderboard/getAvailableLeaderboards?title=dow2r").call() {
+                Ok(r) => { let b = r.into_string().unwrap_or_default(); bytes += b.len(); got += 1; }
+                Err(e) => { err = e.to_string(); break; }
+            }
+            if t0.elapsed() > Duration::from_secs(12) { err = "too slow".into(); break; }
+        }
+        let secs = t0.elapsed().as_secs_f64();
+        let stream_ok = got == 16;
+        let problem = closed > 0 || median > 350 || !stream_ok;
+        let why = if closed > 0 { format!("{closed} of {} Relic game server ports do not answer", RELIC_RELAYS.len()) }
+            else if !stream_ok { format!("the stream to Relic stopped after {} KB ({err})", bytes / 1024) }
+            else if median > 350 { format!("Relic answers in {median} ms") } else { String::new() };
+        c_log(&format!("relic probe: relays {:?} ms, stream {got}/16 requests {} KB in {:.1} s{}{}", ms, bytes / 1024, secs,
+                       if problem { " - PROBLEM: " } else { "" }, why));
+        json!({"relays_ms": ms, "median_ms": median, "closed": closed, "stream_ok": stream_ok, "stream_kb": bytes / 1024,
+               "stream_s": (secs * 10.0).round() / 10.0, "problem": problem, "why": why})
+    }).await.unwrap_or_else(|e| json!({"problem": false, "why": e.to_string()}))
+}
+
 /// "Check again" in Settings: both pools now (the answer comes as the net_rank event too).
 #[tauri::command]
 async fn net_check() -> Value {
@@ -2054,7 +2097,8 @@ fn main() {
             get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
-            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get
+            c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
+            relic_probe
         ])
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")

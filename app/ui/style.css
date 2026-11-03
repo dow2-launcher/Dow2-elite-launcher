@@ -541,3 +541,7 @@ footer:has(#statusText:empty) .foot-links{display:flex}
 
 /* the event link in the title row, at its right end */
 .ev-link{margin-left:auto;margin-top:0}
+
+/* 1.4.2: the offer of the forwarding servers (Relic check at start) */
+#fwdBanner{max-width:min(720px,60vw);border-color:#5c4a2c;background:#2a2013}
+#fwdBanner .btn{flex:none}

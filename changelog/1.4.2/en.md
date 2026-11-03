@@ -1,0 +1,1 @@
+- When the launcher starts it checks the way to Relic's game servers (their ports and a stream of ~110 KB). If it has trouble - closed ports, a slow answer, or a stream that stops (common in Russia) - the launcher offers our forwarding servers with one button. Nothing is turned on by itself; "Not now" hides the offer for the month.

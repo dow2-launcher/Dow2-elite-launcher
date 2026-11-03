@@ -189,7 +189,7 @@ const T = {
     "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_experiment": "Experiments", "cat_other": "Other", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "launcherNew": "Elite Launcher {v} is out",
-    "launcherUpdateBtn": "Update the launcher",
+    "launcherUpdateBtn": "Update the launcher", "fwdOffer": "Your connection to Relic's game servers has trouble ({why}). Our forwarding servers can carry your games to Relic.", "fwdOn": "Turn on forwarding", "fwdLater": "Not now", "fwdDone": "Forwarding servers are on - they work from the next game start.",
     "launcherUpdating": "Updating the launcher… {p}",
     "launcherFail": "Could not update the launcher: {e}",
     "noNews": "No news yet",
@@ -398,7 +398,7 @@ const T = {
     "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_experiment": "Эксперименты", "cat_other": "Другое", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "launcherNew": "Вышел Elite Launcher {v}",
-    "launcherUpdateBtn": "Обновить лаунчер",
+    "launcherUpdateBtn": "Обновить лаунчер", "fwdOffer": "Связь с игровыми серверами Relic с проблемами ({why}). Наши форвардинг-серверы могут вести ваши игры до Relic.", "fwdOn": "Включить форвардинг", "fwdLater": "Не сейчас", "fwdDone": "Форвардинг-серверы включены — работают со следующего запуска игры.",
     "launcherUpdating": "Обновляю лаунчер… {p}",
     "launcherFail": "Не удалось обновить лаунчер: {e}",
     "noNews": "Новостей пока нет",
@@ -602,7 +602,7 @@ const T = {
     "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_experiment": "Experimentos", "cat_other": "Otros", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
     "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "launcherNew": "Ya está Elite Launcher {v}",
-    "launcherUpdateBtn": "Actualizar el launcher",
+    "launcherUpdateBtn": "Actualizar el launcher", "fwdOffer": "Tu conexión con los servidores de Relic tiene problemas ({why}). Nuestros servidores de reenvío pueden llevar tus partidas a Relic.", "fwdOn": "Activar reenvío", "fwdLater": "Ahora no", "fwdDone": "Reenvío activado: funciona desde el próximo inicio del juego.",
     "launcherUpdating": "Actualizando el launcher… {p}",
     "launcherFail": "No se pudo actualizar el launcher: {e}",
     "noNews": "Aún no hay noticias",
@@ -806,7 +806,7 @@ const T = {
     "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_experiment": "Expériences", "cat_other": "Autres", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
     "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "launcherNew": "Elite Launcher {v} est disponible",
-    "launcherUpdateBtn": "Mettre à jour le launcher",
+    "launcherUpdateBtn": "Mettre à jour le launcher", "fwdOffer": "Votre connexion aux serveurs de Relic a des problèmes ({why}). Nos serveurs de relais peuvent acheminer vos parties vers Relic.", "fwdOn": "Activer le relais", "fwdLater": "Plus tard", "fwdDone": "Relais activé : actif au prochain lancement du jeu.",
     "launcherUpdating": "Mise à jour du launcher… {p}",
     "launcherFail": "Impossible de mettre à jour le launcher : {e}",
     "noNews": "Pas encore d’actualités",
@@ -1010,7 +1010,7 @@ const T = {
     "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_experiment": "Experimente", "cat_other": "Sonstiges", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
     "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "launcherNew": "Elite Launcher {v} ist da",
-    "launcherUpdateBtn": "Launcher aktualisieren",
+    "launcherUpdateBtn": "Launcher aktualisieren", "fwdOffer": "Deine Verbindung zu Relics Spielservern hat Probleme ({why}). Unsere Weiterleitungsserver können deine Spiele zu Relic bringen.", "fwdOn": "Weiterleitung einschalten", "fwdLater": "Nicht jetzt", "fwdDone": "Weiterleitung eingeschaltet - ab dem nächsten Spielstart.",
     "launcherUpdating": "Launcher wird aktualisiert… {p}",
     "launcherFail": "Launcher konnte nicht aktualisiert werden: {e}",
     "noNews": "Noch keine Neuigkeiten",
@@ -1318,6 +1318,32 @@ function renderLauncherBanner() {
     b.onclick = () => open(lu.url);
   }
 }
+// 1.4.2 (owner 03.11.2026): Relic's game servers checked at start (relic_probe); players with a bad way to them are OFFERED our
+// forwarding servers (add-on relay_fwd, off by default) - never turned on for them. "Not now" hides the offer for this month.
+let FWD = null;
+function renderFwdBanner() {
+  const b = $('fwdBanner'); if (!b) return;
+  const c = (S?.components || []).find(x => x.id === 'relay_fwd');
+  const key = 'fwdoffer:' + new Date().toISOString().slice(0, 7);
+  const show = FWD && FWD.problem && c && !c.enabled && !(S.dismissed || []).includes(key) && !S.in_game_dir;
+  b.classList.toggle('hidden', !show);
+  if (!show) return;
+  $('fwdText').textContent = t('fwdOffer', { why: FWD.why || '' }); b.title = $('fwdText').textContent;
+  $('fwdBtn').textContent = t('fwdOn'); $('fwdLater').textContent = t('fwdLater');
+  $('fwdBtn').disabled = !!S.busy || !!S.game_running;
+  $('fwdBtn').onclick = async () => {
+    try {
+      await invoke('set_component', { id: 'relay_fwd', on: true });
+      if (S.installed_version) { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; }
+      toast(t('fwdDone')); FWD = null; reload();
+    } catch (e) { toast(e, true); }
+  };
+  $('fwdLater').onclick = async () => { try { await invoke('set_setting', { key: 'dismiss', value: key }); } catch (e) {} FWD = null; reload(); };
+}
+async function relicProbe() {
+  try { FWD = await invoke('relic_probe'); } catch (e) { FWD = null; }
+  if (S) renderFwdBanner();
+}
 async function launcherCheck() {
   try { const r = await invoke('launcher_check'); if (r && !LU?.installing) LU = r; } catch (e) { /* offline: try again later */ }
   if (S) renderLauncherBanner();
@@ -1342,6 +1368,7 @@ function render() {
   document.documentElement.lang = lang;
   syncTrayLabels();
   document.querySelectorAll('[data-t]').forEach(e => e.textContent = t(e.dataset.t));
+  renderFwdBanner();
   document.querySelectorAll('[data-tp]').forEach(e => e.placeholder = t(e.dataset.tp));
   document.querySelectorAll('[data-ta]').forEach(e => { e.title = t(e.dataset.ta); e.setAttribute('aria-label', e.title); });   // icon buttons
   const cfg = S.config || {};
@@ -1762,6 +1789,7 @@ window.addEventListener('resize', popClose);
 
 reload().then(refresh);
 launcherCheck();
+setTimeout(relicProbe, 8000);                 // after start-up traffic settles; once per launcher start
 // every 15 minutes: new Elite versions, announcements and a newer launcher
 setInterval(() => { if (S && !S.busy) refresh(); launcherCheck(); }, 15 * 60 * 1000);
 
