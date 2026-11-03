@@ -5,6 +5,7 @@
 //! * everything the Elite team may want to change (versions, news, announcements, links,
 //!   mirrors, launch commands) comes from the signed launcher.json, not from this code;
 //! * the launcher works offline with the last verified config.
+#![recursion_limit = "256"]   // get_status' json! grew past the default 128
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod reach;
@@ -585,6 +586,8 @@ fn get_status(app: State<'_, App>) -> Value {
         "extra_mirror": s.extra_mirror,
         "dismissed": s.dismissed,
         "mirror_count": mirrors(&s, cfg.as_ref()).count(),
+        // old copies of our add-ons: the window syncs the add-ons (they are put aside there) before Play starts the game
+        "old_copies": dir.as_ref().map(|d| old_copies(d, &cfgd)).unwrap_or_default(),
         "components": cfgd.components.iter().map(|c| json!({
             "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category,
             "enabled": s.components.get(&c.id).copied().unwrap_or(c.default),
@@ -837,8 +840,8 @@ fn drop_leftovers(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
 
 /// Old copies of our add-ons outside what the launcher installs, which the game would load next to (or instead of) the
 /// launcher's: the stand-alone dow2-patches package (its winmm.dll loads every DLL in dow2-patches/, whatever the ticks
-/// say) and the even older LobbyStats/ folder. The start waits until they are gone (the window offers to put them
-/// aside); nothing else blocks it. Paths relative to the game folder.
+/// say) and the even older LobbyStats/ folder. Put aside without asking before every add-on sync and every start (owner
+/// 03.11.2026: one copy of every patch - the launcher's latest). Paths relative to the game folder.
 fn old_copies(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
     let mut v: Vec<String> = Vec::new();
     for c in &cfg.components {
@@ -848,26 +851,9 @@ fn old_copies(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
     v
 }
 
-/// What start_game answers when old copies are in the way: this prefix, then the paths, one per line.
-const OLD_COPIES: &str = "old-copies:";
-
-/// Find the old copies (the window checks once it opens, in the background, and before Play).
-#[tauri::command]
-fn old_copies_scan(app: State<'_, App>) -> Vec<String> {
-    let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
-    game_dir(&app).map(|d| old_copies(&d, &cfg)).unwrap_or_default()
-}
-
 /// Put the old copies aside: into <game>/.elite_cache/old-addons-<time>/ (never deleted - can be put back by hand), with
 /// their .ini next to them; the stand-alone loader (winmm.dll, its readmes) too once dow2-patches has no DLL left.
-#[tauri::command]
-fn remove_old_copies(app: State<'_, App>) -> Result<Vec<String>, String> {
-    ensure_game_closed(&app)?;
-    let dir = game_dir(&app).ok_or("game folder not found")?;
-    let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
-    Ok(put_aside_old_copies(&dir, &cfg))
-}
-
+/// -> what moved
 fn put_aside_old_copies(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
     let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
     let bin = update::Game::new(dir).cache_dir().join(format!("old-addons-{stamp}"));
@@ -1061,38 +1047,6 @@ fn junk_cleanup(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Va
     json!({"moved": moved, "uninjected": dropped, "backup": bin.display().to_string()})
 }
 
-/// Delete the hand-installed copy of a component: its files, their .ini next to them, and the stand-alone
-/// package's loader (winmm.dll + readmes) once its dow2-patches folder has no DLLs left.
-#[tauri::command]
-fn remove_conflicts(app: State<'_, App>, id: String) -> Result<Vec<String>, String> {
-    ensure_game_closed(&app)?;
-    let dir = game_dir(&app).ok_or("game folder not found")?;
-    let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
-    let c = cfg.components.iter().find(|c| c.id == id).ok_or("unknown add-on")?;
-    let g = update::Game::new(&dir);
-    let mut removed = Vec::new();
-    for f in found_conflicts(&dir, c) {
-        let p = g.file(&f);
-        std::fs::remove_file(&p).map_err(|e| format!("{f}: {e}"))?;
-        removed.push(f.clone());
-        let ini = p.with_extension("ini");
-        if ini.is_file() && std::fs::remove_file(&ini).is_ok() {
-            removed.push(f.rsplit_once('.').map(|(a, _)| format!("{a}.ini")).unwrap_or_default());
-        }
-    }
-    let pd = dir.join("dow2-patches");
-    let dlls_left = std::fs::read_dir(&pd).map(|rd| rd.flatten().any(|e| e.file_name().to_string_lossy().to_ascii_lowercase().ends_with(".dll"))).unwrap_or(false);
-    if !dlls_left {
-        for name in ["winmm.dll", "README_EN.txt", "README_RU.txt"] {
-            if is_patches_loader_file(&dir, name) && std::fs::remove_file(dir.join(name)).is_ok() { removed.push(name.to_string()); }
-        }
-        if pd.is_dir() && std::fs::read_dir(&pd).map(|mut rd| rd.next().is_none()).unwrap_or(false) {
-            let _ = std::fs::remove_dir(&pd);
-        }
-    }
-    Ok(removed)
-}
-
 fn backup_dir(dir: &std::path::Path, id: &str) -> PathBuf {
     let id: String = id.chars().filter(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_').collect();
     dir.join(".elite_launcher").join("backup").join(id)
@@ -1134,6 +1088,7 @@ fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m:
     if main.load_state().version.is_empty() {
         return Ok(()); // Elite itself is not installed yet
     }
+    put_aside_old_copies(dir, cfg);      // one copy of every patch: the launcher's (owner 03.11.2026)
     drop_leftovers(dir, cfg);
     drop_orphans(dir, cfg);
     for c in &cfg.components {
@@ -1478,15 +1433,14 @@ fn start_game(app: &App) -> Result<Value, String> {
     let dir = game_dir(&app).ok_or("game folder not found")?;
     let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
     // old copies of our add-ons (the stand-alone package, the old LobbyStats folder) would load next to the launcher's:
-    // the only thing that stops the start - the window offers to put them aside (owner 03.11.2026)
-    let old = old_copies(&dir, &cfg);
-    if !old.is_empty() {
-        return Err(format!("{OLD_COPIES}{}", old.join("\n")));
-    }
+    // put aside without asking (owner 03.11.2026: one copy of every patch, the launcher's latest). The window brings
+    // the launcher's versions first (Play syncs the add-ons before it starts), so normally there is nothing left here.
+    let old = put_aside_old_copies(&dir, &cfg);
     // what the checks of our add-ons did is told to the player (siritos 02.11): only add-ons of launcher.json, the
     // leftovers of their DLLs, and the ones gone from the catalog (drop_orphans) - nothing else in the game folder;
     // loader: the stand-alone dow2-patches package's winmm.dll. The leftovers first: drop_orphans forgets the names.
-    let mut off = drop_leftovers(&dir, &cfg);
+    let mut off = old;
+    off.extend(drop_leftovers(&dir, &cfg));
     off.extend(enforce_off(&dir, &cfg, &app.settings.lock().unwrap().clone()));
     off.extend(drop_orphans(&dir, &cfg));
     drop_conflicting(&dir, &cfg);
@@ -1494,6 +1448,9 @@ fn start_game(app: &App) -> Result<Value, String> {
         if !off.iter().any(|x| x.to_ascii_lowercase().ends_with(&n.to_ascii_lowercase())) { off.push(n); }
     }
     let guard = json!({"off": off, "loader": dir.join("winmm.dll").is_file() && dir.join("dow2-patches").is_dir()});
+    // the player's SteamID64 for our add-ons: under Proton the registry value they read (ActiveProcess\ActiveUser) is
+    // empty and MMFind sent steam 0 - the automatch host never found itself in the room (ZHDH 02.11.2026)
+    let steam_env = elite_core::game::steam_local_user().map(|(id, _)| id).filter(|id| id.len() == 17 && id.bytes().all(|b| b.is_ascii_digit()));
     elite_core::hotkeys::refresh_if_stale(&app.settings.lock().unwrap().hotkeys);     // a patch brought new defaults
     let mut cmd = match os_name() {
         "windows" => cfg.launch.windows.clone(),
@@ -1534,6 +1491,7 @@ fn start_game(app: &App) -> Result<Value, String> {
                 // 1.4.0 showed only "launch:", never why the game did not come up
                 let plog = data_dir().join("proton.log");
                 let mut c = run.command(&exe, &[], &dir);
+                if let Some(id) = &steam_env { c.env("ELITE_STEAMID", id); }
                 if let Ok(f) = std::fs::File::create(&plog) {
                     if let Ok(f2) = f.try_clone() { c.stdout(f).stderr(f2); }
                 }
@@ -1564,6 +1522,7 @@ fn start_game(app: &App) -> Result<Value, String> {
     let program = sub(&cmd.program);
     let mut c = std::process::Command::new(&program);
     c.args(cmd.args.iter().map(|a| sub(a))).current_dir(&game);
+    if let Some(id) = &steam_env { c.env("ELITE_STEAMID", id); }
     match c.spawn() {
         Ok(_) => Ok(guard),
         // 740 = программа требует прав администратора (Elite.exe так помечен). Обычный запуск такого не умеет,
@@ -1574,6 +1533,7 @@ fn start_game(app: &App) -> Result<Value, String> {
             let mut sh = std::process::Command::new("cmd");
             sh.args(["/C", "start", "", "/D", &game, &program]).args(cmd.args.iter().map(|a| sub(a)));
             sh.creation_flags(0x0800_0000); // CREATE_NO_WINDOW — без мигающей консоли
+            if let Some(id) = &steam_env { sh.env("ELITE_STEAMID", id); }
             sh.spawn().map(|_| guard).map_err(|e2| format!("cannot start {program} as administrator: {e2}"))
         }
         Err(e) => Err(format!("cannot start {program}: {e}")),
@@ -2252,7 +2212,7 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, old_copies_scan, remove_old_copies, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
+            get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
