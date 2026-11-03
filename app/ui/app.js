@@ -1317,7 +1317,7 @@ async function relicProbe() {
 let luRetry = null, luTries = 0;
 function launcherRetrySoon() {
   if (luRetry || luTries >= 60) return;          // an hour at most (a portable copy never finds one: no self-update)
-  luRetry = setTimeout(() => { luRetry = null; luTries++; launcherCheck(); }, 60000);
+  luRetry = setTimeout(() => { luRetry = null; luTries++; launcherCheck(); }, luTries ? 60000 : 0);   // the first one at once
 }
 // "1.4.10" > "1.4.9"
 function versionNewer(a, b) {
