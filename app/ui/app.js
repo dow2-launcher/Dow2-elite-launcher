@@ -1708,7 +1708,7 @@ function roomCard(r) {
   const join = roomJoinOn() && r.game === 'elite' && !r.password && !full && r.id
     ? `<button class="rjoin" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}">${esc(t('roomsJoin'))}</button>` : '';
   return `<div class="room"><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"></div><div style="min-width:0">`
-    + `<div class="rh">${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}${tag}${r.password ? '<span class="tag">🔒</span>' : ''}<span class="rn">${esc(r.name || '—')}</span>${join}</div>`
+    + `<div class="rh">${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}${tag}${r.password ? '<span class="tag">🔒</span>' : ''}<span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${join}</div>`
     + `<div class="rmap">${esc(map)}${cap ? ' · ' + (r.players || []).length + '/' + cap : ''}</div><div class="teams">${teams}</div>${obs}`
     + (r.password ? `<div class="rfoot">${esc(t('roomsPw'))}</div>` : '') + '</div></div>';
 }

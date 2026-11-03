@@ -481,9 +481,9 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .rooms-grid{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:10px;align-content:start;margin:8px -14px 0;padding:0 14px 6px}
 .room{display:grid;grid-template-columns:84px 1fr;gap:10px;background:rgba(0,0,0,.25);border:1px solid var(--line2);padding:9px;min-width:0}
 .room .mmap{width:84px;height:84px;border:1px solid var(--line2);background:#0e0c0a center/cover no-repeat}
-.room .rh{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
-.room .rn{font-weight:600;overflow-wrap:anywhere}
-.room .rjoin{margin-left:auto;padding:2px 12px;font-size:12px;line-height:18px;border:1px solid var(--gold2);background:rgba(226,195,107,.12);color:var(--gold2);cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
+.room .rh{display:flex;flex-wrap:nowrap;align-items:center;gap:5px;min-width:0}.room .rh .tag{flex:none}
+.room .rn{font-weight:600;flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.room .rjoin{flex:none;margin-left:auto;padding:2px 12px;font-size:12px;line-height:18px;border:1px solid var(--gold2);background:rgba(226,195,107,.12);color:var(--gold2);cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
 .room .rjoin:hover{background:rgba(226,195,107,.25)}.room .rjoin:disabled{opacity:.5;cursor:default}
 .room .rmap{font-size:12px;color:var(--muted);margin:2px 0 5px}
 .room .teams{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}
