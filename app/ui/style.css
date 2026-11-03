@@ -508,7 +508,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .net-ms{font-size:12px;color:var(--soft);text-align:right}
 .net-r .chip{justify-self:start;border-color:#5d7a3a;color:#b5d58a}
 /* Settings -> Online play (1.4.5): the same rows, a line of details instead of the time; green / amber / red */
-.gn-list .net-r{grid-template-columns:10px minmax(150px,max-content) 118px minmax(0,1fr) 104px;padding:2px 0}
+.gn-list .net-r{grid-template-columns:10px minmax(150px,max-content) 118px minmax(0,1fr) 124px;padding:2px 0}
 .net-r.warn i{background:var(--amber)}
 .gn-list .net-r.warn{color:var(--bone)}
 .net-r.bad i{background:var(--blood2)}

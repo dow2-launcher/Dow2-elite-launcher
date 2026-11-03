@@ -187,6 +187,70 @@ pub fn nearest(rows: &[Value]) -> Option<usize> {
     best.map(|b| b.0)
 }
 
+// ---------- our lobby servers (OwnLobby.dll 2, Dow2-patches ownlobby/ownlobby.c, 1.4.6) ----------
+// OwnLobby puts the game's Relic lobby connection (the automatch) on our lobby server. Its rules: the servers of OwnLobby.ini
+// [OwnLobby] Servers= in order (default: the Moscow mirror, then rts), 4 at most; each: a TCP connect within 2.5 s, then -
+// unless StreamCheck=0 - the stream check: port + 2 sends 64 KB and closes, usable with 60000+ bytes within 4 s (the
+// connect included). The FIRST usable one is used; none - the game talks to Relic directly (the classic search).
+pub const LOBBY_DEFAULT: &str = "83.217.192.34:47443;rts.fintebtc.de:47443";
+pub const LOBBY_STREAM_NEED: usize = 60000;
+
+/// OwnLobby.ini: (host, port) in order and the stream check (StreamCheck=, default on).
+pub fn lobby_ini(ini: &str) -> (Vec<(String, u16)>, bool) {
+    let (mut sec, mut servers, mut stream) = (String::new(), None::<String>, true);
+    for l in ini.lines() {
+        let l = l.trim();
+        if l.starts_with('[') { sec = l.trim_matches(|c| c == '[' || c == ']').to_ascii_lowercase(); continue; }
+        if sec != "ownlobby" { continue; }
+        let Some((k, v)) = l.split_once('=') else { continue };
+        match k.trim().to_ascii_lowercase().as_str() {
+            "servers" => servers = Some(v.trim().to_string()),
+            // GetPrivateProfileInt: the leading number, 0 = off
+            "streamcheck" => stream = v.trim().chars().take_while(|c| c.is_ascii_digit() || *c == '-').collect::<String>().parse::<i64>().map(|n| n != 0).unwrap_or(false),
+            _ => {}
+        }
+    }
+    let list = servers.unwrap_or_else(|| LOBBY_DEFAULT.to_string());
+    let mut v = vec![];
+    for t in list.split([';', ',', ' ']).filter(|t| !t.is_empty()) {
+        if v.len() >= 4 { break; }
+        let (h, port) = match t.rsplit_once(':') { Some((h, p)) => (h, p.chars().take_while(|c| c.is_ascii_digit()).take(6).collect::<String>().parse::<i64>().unwrap_or(0)), None => (t, 47443) };
+        if !h.is_empty() && port > 0 && port < 65536 { v.push((h.to_string(), port as u16)); }
+    }
+    (v, stream)
+}
+
+fn resolve4(host: &str, port: u16) -> Option<SocketAddr> {
+    use std::net::ToSocketAddrs;
+    (host, port).to_socket_addrs().ok()?.find(|a| a.is_ipv4())
+}
+
+/// One lobby server as OwnLobby's watcher sees it.
+pub fn lobby_check(host: &str, port: u16, stream: bool) -> Value {
+    let Some(sa) = resolve4(host, port) else { return json!({"state": "dns"}) };
+    let t0 = Instant::now();
+    if TcpStream::connect_timeout(&sa, Duration::from_millis(2500)).is_err() { return json!({"state": "none", "ip": sa.ip().to_string()}); }
+    let connect_ms = t0.elapsed().as_millis() as u64;
+    if !stream { return json!({"state": "ok", "ip": sa.ip().to_string(), "connect_ms": connect_ms, "stream": false}); }
+    let t1 = Instant::now();
+    let mut got: Option<usize> = None;
+    if let Ok(mut s) = TcpStream::connect_timeout(&SocketAddr::new(sa.ip(), port.wrapping_add(2)), Duration::from_millis(2500)) {
+        let mut n = 0usize; let mut buf = [0u8; 8192];
+        while n < 65536 {
+            let left = Duration::from_millis(4000).saturating_sub(t1.elapsed());
+            if left.is_zero() || s.set_read_timeout(Some(left)).is_err() { break; }
+            match s.read(&mut buf) { Ok(0) | Err(_) => break, Ok(k) => n += k }
+        }
+        got = Some(n);
+    }
+    let ms = t1.elapsed().as_millis() as u64;
+    let state = match got { Some(n) if n >= LOBBY_STREAM_NEED => "ok", Some(_) => "cut", None => "noanswer" };
+    json!({"state": state, "ip": sa.ip().to_string(), "connect_ms": connect_ms, "stream": true, "bytes": got, "stream_ms": ms})
+}
+
+/// The one OwnLobby takes: the first usable in order.
+pub fn lobby_pick(rows: &[Value]) -> Option<usize> { rows.iter().position(|r| r["state"] == "ok") }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -224,6 +288,19 @@ mod tests {
         assert_eq!(nearest(&rows[..1]), None);
     }
 
+    #[test]
+    fn lobby_servers_as_ownlobby_reads_them() {
+        let (v, st) = lobby_ini("");
+        assert_eq!(v, vec![("83.217.192.34".to_string(), 47443), ("rts.fintebtc.de".to_string(), 47443)]);
+        assert!(st);
+        let (v, st) = lobby_ini("[OwnLobby]\r\nServers=a.example:1000, b.example;c.example:0;d:1;e:2;f:3\r\nStreamCheck=0\r\n");
+        assert_eq!(v, vec![("a.example".to_string(), 1000), ("b.example".to_string(), 47443), ("d".to_string(), 1), ("e".to_string(), 2)]);
+        assert!(!st);
+        let rows = vec![json!({"state": "cut"}), json!({"state": "none"}), json!({"state": "ok"}), json!({"state": "ok"})];
+        assert_eq!(lobby_pick(&rows), Some(2));
+        assert_eq!(lobby_pick(&rows[..2]), None);
+    }
+
     /// Against our nodes (network): cargo test -p elite-launcher live_nodes -- --ignored --nocapture
     #[test]
     #[ignore]
@@ -232,5 +309,6 @@ mod tests {
         for n in node_set(&signed_relays(&doc).unwrap(), &[]) {
             println!("{:<16} {:<18} udp {} tcp {}", n.ip, n.name, measure(n.ip, GAME_PORT), tcp_stream(n.ip));
         }
+        for (h, p) in lobby_ini("").0 { println!("lobby {h}:{p} {}", lobby_check(&h, p, true)); }
     }
 }

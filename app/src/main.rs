@@ -312,13 +312,14 @@ fn relic_check(old_bridge: bool) -> Value {
 }
 
 /// 1.4.5 (owner 03.11.2026): Settings -> "Online play" - Relic, our nodes and forwarding from this computer by the rules the
-/// add-ons use (netgame.rs). By the button (and once when the tab is first opened); ~10-20 s; never while the game runs.
+/// add-ons use (netgame.rs); 1.4.6: + our lobby servers (OwnLobby.dll). By the button (and once when the tab is first opened); ~10-20 s; never while the game runs.
 static GAME_NET_BUSY: AtomicBool = AtomicBool::new(false);
 #[tauri::command]
 async fn game_net_check(app: State<'_, App>) -> Result<Value, String> {
     if app.game_running.load(Ordering::Relaxed) || is_game_running() { return Ok(json!({"skipped": "game"})); }
     if GAME_NET_BUSY.swap(true, Ordering::SeqCst) { return Ok(json!({"skipped": "busy"})); }
     let ini = relay_ini(&app);
+    let lobby_ini = game_dir(&app).and_then(|d| std::fs::read_to_string(d.join("Elite_DLLs").join("OwnLobby.ini")).ok()).unwrap_or_default();
     let r = tauri::async_runtime::spawn_blocking(move || {
         // the node list: the DLL's three + the signed ladder list (what MMFind gives Relay.ini) + Relay.ini Nodes=
         let mut ladder: Option<Vec<(std::net::Ipv4Addr, String)>> = None;
@@ -340,9 +341,18 @@ async fn game_net_check(app: State<'_, App>) -> Result<Value, String> {
         if is_game_running() { return json!({"skipped": "game"}); }
         let ob = old_bridge(&ini);
         let relic = std::thread::spawn(move || relic_check(ob));
+        // 1.4.6: our lobby servers (OwnLobby.dll 2) - each as its watcher checks them, all of them (the DLL stops at the first usable)
+        let (lobbies, lobby_stream) = netgame::lobby_ini(&lobby_ini);
+        let lob: Vec<_> = lobbies.iter().cloned().map(|(h, p)| std::thread::spawn(move || netgame::lobby_check(&h, p, lobby_stream))).collect();
         let tcp: Vec<_> = nodes.iter().map(|n| { let ip = n.ip; std::thread::spawn(move || netgame::tcp_stream(ip)) }).collect();
         let tcp: Vec<Value> = tcp.into_iter().map(|h| h.join().unwrap_or(json!({"state": "none"}))).collect();
         let relic = relic.join().unwrap_or(json!({"problem": false}));
+        let lob: Vec<Value> = lobbies.iter().zip(lob).map(|((h, p), j)| {
+            let mut v = j.join().unwrap_or(json!({"state": "none"})); v["host"] = json!(h); v["port"] = json!(p); v }).collect();
+        let lob_pick = netgame::lobby_pick(&lob);
+        c_log(&format!("game net: lobby servers {}; used {}", lob.iter().map(|r| format!("{}:{} {}{}", r["host"].as_str().unwrap_or(""), r["port"],
+            r["state"].as_str().unwrap_or(""), r["bytes"].as_u64().map(|b| format!(" {b} B")).unwrap_or_default())).collect::<Vec<_>>().join(", "),
+            lob_pick.map(|i| format!("{}:{}", lob[i]["host"].as_str().unwrap_or(""), lob[i]["port"])).unwrap_or("none (Relic)".into())));
         let rows: Vec<Value> = nodes.iter().zip(udp).zip(tcp).map(|((n, u), t)| json!({"ip": n.ip.to_string(), "name": n.name, "src": n.src, "udp": u, "tcp": t})).collect();
         let near = netgame::nearest(&rows);
         c_log(&format!("game net: {} node(s) ({}), port {port}: {}; nearest {}", rows.len(), if ladder.is_some() { "ladder list" } else { "built-in list" },
@@ -351,6 +361,7 @@ async fn game_net_check(app: State<'_, App>) -> Result<Value, String> {
             near.map(|i| rows[i]["ip"].as_str().unwrap_or("").to_string()).unwrap_or("none".into())));
         json!({"nodes": rows, "nearest": near.map(|i| rows[i]["ip"].clone()).unwrap_or(json!("")), "port": port,
                "list": if ladder.is_some() { "ladder" } else { "builtin" }, "relic": relic,
+               "lobby": {"servers": lob, "pick": lob_pick, "stream_check": lobby_stream},
                "ts": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)})
     }).await.map_err(|e| e.to_string());
     GAME_NET_BUSY.store(false, Ordering::SeqCst);
