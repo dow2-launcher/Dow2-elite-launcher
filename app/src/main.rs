@@ -581,6 +581,8 @@ fn get_status(app: State<'_, App>) -> Value {
         "launcher_update": launcher_update,
         "busy": app.busy.load(Ordering::Relaxed),
         "game_running": app.game_running.load(Ordering::Relaxed),
+        // RoomJoin.dll in the game folder (its add-on, or a copy put there by hand for a test): the Lobbies tab offers "Join"
+        "roomjoin_dll": dir.as_ref().map(|d| d.join("Elite_DLLs").join("RoomJoin.dll").is_file()).unwrap_or(false),
         "last_error": app.last_error.lock().unwrap().clone(),
         "cache_mb": s.cache_mb.unwrap_or(DEFAULT_CACHE_MB),
         "extra_mirror": s.extra_mirror,
@@ -1876,6 +1878,21 @@ fn stream_loop(app: AppHandle) {
     }
 }
 
+/// Lobbies tab, "Join" (RoomJoin add-on, experiment 03.11.2026): the request for RoomJoin.dll in the game - Elite_DLLs/RoomJoin.txt,
+/// line 1 the room id (Relic's advertisement id), line 2 its name. The DLL takes it in the main menu (a request older than 3 minutes
+/// is dropped there) and writes RoomJoin_result.txt. The window then starts the game the usual way (Play) unless it runs.
+#[tauri::command]
+fn room_join(app: State<'_, App>, id: u64, name: String) -> Result<Value, String> {
+    let dir = game_dir(&app).ok_or("no game folder")?;
+    let d = dir.join("Elite_DLLs");
+    if !d.is_dir() { return Err("no Elite_DLLs folder".into()); }
+    let _ = std::fs::remove_file(d.join("RoomJoin_result.txt"));
+    let name: String = name.chars().filter(|c| !c.is_control()).take(64).collect();
+    std::fs::write(d.join("RoomJoin.txt"), format!("{id}\n{name}\n")).map_err(|e| e.to_string())?;
+    c_log(&format!("rooms: join request for room {id} ({name})"));
+    Ok(json!({ "running": app.game_running.load(Ordering::Relaxed) || is_game_running() }))
+}
+
 /// 1.3.15 (owner 02.11.2026): the open lobbies - Relic's list of custom games being set up, from our ladder server
 /// (/ladder/api/rooms: map, mode, game Elite / vanilla / other, players with race, hero, flag and rating).
 #[tauri::command]
@@ -2207,7 +2224,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
-            fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
+            fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live, room_join,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
             relic_probe
