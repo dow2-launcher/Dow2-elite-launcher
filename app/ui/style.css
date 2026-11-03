@@ -507,6 +507,24 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .net-h{font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .net-ms{font-size:12px;color:var(--soft);text-align:right}
 .net-r .chip{justify-self:start;border-color:#5d7a3a;color:#b5d58a}
+/* Settings -> Online play (1.4.5): the same rows, a line of details instead of the time; green / amber / red */
+.gn-list .net-r{grid-template-columns:10px minmax(150px,max-content) 118px minmax(0,1fr) 104px;padding:2px 0}
+.net-r.warn i{background:var(--amber)}
+.gn-list .net-r.warn{color:var(--bone)}
+.net-r.bad i{background:var(--blood2)}
+.net-r.bad .net-p,.net-r.warn .net-p{color:var(--soft)}
+.gn-i{font-size:12px;color:var(--soft)}
+.net-r .chip.off{border-color:var(--line2);color:var(--muted)}
+.net-gh .chip{margin-left:6px;vertical-align:1px;letter-spacing:0;text-transform:none}
+.net-gh .chip.hot{border-color:#5d7a3a;color:#b5d58a}
+.gn-sum{display:flex;align-items:center;gap:10px;margin:6px 0 2px;padding:5px 10px;border-left:3px solid var(--line2);background:var(--panel2);font-size:13px}
+.gn-sum>span{flex:1}
+.gn-sum.ok{border-left-color:#7aa64a}
+.gn-sum.warn{border-left-color:var(--amber)}
+.gn-sum.bad{border-left-color:var(--blood2)}
+.gn-sum.na{color:var(--muted)}
+.gn-list .net-g+.net-g{margin-top:14px}
+.gn-list .note{margin-top:4px}
 
 /* the footer (siritos 02.11): while all is well the links stand where "Elite 3.2 is ready" and the game folder were;
    a download, a check or an error writes the status line and it comes back in their place */

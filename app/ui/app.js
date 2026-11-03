@@ -185,6 +185,8 @@ const T = {
     "playAfterSync": "Updating the add-ons first — the game starts by itself after that.",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher", "fwdOffer": "Your connection to Relic's game servers has trouble ({why}). Our forwarding servers can carry your games to Relic.", "fwdOn": "Turn on forwarding", "fwdLater": "Not now", "fwdDone": "Forwarding servers are on - they work from the next game start.",
+    "gnTab": "Online play", "gnTitle": "Game servers from this computer", "gnCheck": "Check", "gnChecking": "Checking… (10-20 s)", "gnNote": "Checked by the same rules the add-ons use when they pick a server. Never while the game runs.", "gnGame": "The game is running: the check waits until it closes, so it does not disturb the match.", "gnNever": "Not checked yet.", "gnWhen": "checked at {time}", "gnRelic": "Relic", "gnRelicRelay": "Relic game server", "gnRelicApi": "Relic API (16 requests)", "gnClosed": "port closed", "gnSlowMs": "{n} ms - slow", "gnStreamOk": "{kb} KB in {s} s", "gnStreamCut": "stopped at {kb} KB", "gnRelicOk": "The connection to Relic is fine.", "gnRelicBad": "The connection to Relic has trouble: {why}. Forwarding servers can help.", "gnRelicFwdOn": "The connection to Relic has trouble: {why}. Forwarding is on.", "gnRelicWait": "Relic is checked a few seconds after the launcher starts.", "gnOwn": "Our servers for games", "gnFwd": "Forwarding servers", "gnTickOn": "on", "gnTickOff": "off", "gnTickNone": "no such add-on", "gnUdpMs": "UDP {n} ms", "gnUdpNone": "no answer over UDP", "gnBurst": "stream {got}/{n}", "gnBurstCut": "stream stops: {got}/{n}, {tail} of the last 6", "gnTcpOk": "TCP {kb} KB", "gnTcpCut": "TCP stops at {kb} KB", "gnTcpNone": "TCP: no connection", "gnNearest": "nearest", "gnNotUsed": "not used", "gnOwnPick": "Our automatch would put your game on: {node}.", "gnOwnNone": "None of our servers is usable from here - your games stay on Relic.", "gnOwnOff": "Off: games go to Relic. The tick is on the Add-ons tab.", "gnOwnHow": "Straight through our server: our automatch, when every player reaches it. Other lobbies are Relic games.", "gnFwdVia": "Relic games would go through: {node}.", "gnFwdNone": "No forwarding server is usable from here - games go straight to Relic.", "gnFwdFit": "Usable as forwarding servers: {list}.", "gnFwdOff": "Off: games go to Relic directly. The tick is on the Add-ons tab.", "gnFwdNotNeeded": "Off - not needed while the connection to Relic is fine.", "gnTcpInfo": "The game reaches our servers over UDP only. TCP is for information: a stop at ~33 KB means the line cuts long connections.", "gnListLadder": "Server list of the ladder (signed), UDP port {port}.", "gnListBuiltin": "Built-in server list (the ladder did not answer), UDP port {port}.", "gnPoland": "Poland", "gnMoscow2": "Moscow 2",
+    "gnWhyClosed": "{n} of {m} Relic game server ports do not answer", "gnWhyStream": "the stream to Relic stopped at {kb} KB", "gnWhySlow": "Relic answers in {n} ms", "gnWhyBridge": "your earlier setting sent every game through our server",
     "launcherUpdating": "Updating the launcher… {p}",
     "launcherFail": "Could not update the launcher: {e}",
     "noNews": "No news yet",
@@ -389,6 +391,8 @@ const T = {
     "playAfterSync": "Сначала обновляю дополнения — игра запустится сама.",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер", "fwdOffer": "Связь с игровыми серверами Relic с проблемами ({why}). Наши форвардинг-серверы могут вести ваши игры до Relic.", "fwdOn": "Включить форвардинг", "fwdLater": "Не сейчас", "fwdDone": "Форвардинг-серверы включены — работают со следующего запуска игры.",
+    "gnTab": "Сетевая игра", "gnTitle": "Игровые серверы с этого компьютера", "gnCheck": "Проверить", "gnChecking": "Проверяю… (10–20 с)", "gnNote": "По тем же правилам, по которым дополнения выбирают сервер. Пока игра запущена, не проверяется.", "gnGame": "Игра запущена: проверка подождёт, пока она закроется, чтобы не мешать матчу.", "gnNever": "Ещё не проверялось.", "gnWhen": "проверено в {time}", "gnRelic": "Relic", "gnRelicRelay": "Игровой сервер Relic", "gnRelicApi": "API Relic (16 запросов)", "gnClosed": "порт закрыт", "gnSlowMs": "{n} мс — медленно", "gnStreamOk": "{kb} КБ за {s} с", "gnStreamCut": "оборвалось на {kb} КБ", "gnRelicOk": "Связь с Relic в порядке.", "gnRelicBad": "Связь с Relic с проблемами: {why}. Помогут форвардинг-серверы.", "gnRelicFwdOn": "Связь с Relic с проблемами: {why}. Форвардинг включён.", "gnRelicWait": "Relic проверяется через несколько секунд после запуска лаунчера.", "gnOwn": "Свои серверы для игр", "gnFwd": "Форвардинг-серверы", "gnTickOn": "вкл.", "gnTickOff": "выкл.", "gnTickNone": "нет такого дополнения", "gnUdpMs": "UDP {n} мс", "gnUdpNone": "нет ответа по UDP", "gnBurst": "поток {got}/{n}", "gnBurstCut": "поток обрывается: {got}/{n}, {tail} из последних 6", "gnTcpOk": "TCP {kb} КБ", "gnTcpCut": "TCP обрыв на {kb} КБ", "gnTcpNone": "TCP: нет соединения", "gnNearest": "ближайший", "gnNotUsed": "не используется", "gnOwnPick": "Наш автоматч поставил бы вашу игру на: {node}.", "gnOwnNone": "Ни один наш сервер отсюда не годится — игры остаются на Relic.", "gnOwnOff": "Выключено: игры идут через Relic. Галочка — на вкладке «Дополнения».", "gnOwnHow": "Прямо через наш сервер: наш автоматч, если сервер доступен всем игрокам. Остальные лобби — игры Relic.", "gnFwdVia": "Игры Relic пошли бы через: {node}.", "gnFwdNone": "Ни один форвардинг-сервер отсюда не годится — игры идут напрямую к Relic.", "gnFwdFit": "Годятся как форвардинг-серверы: {list}.", "gnFwdOff": "Выключено: игры идут к Relic напрямую. Галочка — на вкладке «Дополнения».", "gnFwdNotNeeded": "Выключено — не нужно, пока связь с Relic в порядке.", "gnTcpInfo": "Игра ходит к нашим серверам только по UDP. TCP — для сведения: обрыв на ~33 КБ значит, что линия режет длинные соединения.", "gnListLadder": "Список серверов с ладдера (подписан), UDP-порт {port}.", "gnListBuiltin": "Встроенный список серверов (ладдер не ответил), UDP-порт {port}.", "gnPoland": "Польша", "gnMoscow2": "Москва 2",
+    "gnWhyClosed": "{n} из {m} портов игровых серверов Relic не отвечают", "gnWhyStream": "поток к Relic оборвался на {kb} КБ", "gnWhySlow": "Relic отвечает за {n} мс", "gnWhyBridge": "прежняя настройка вела все игры через наш сервер",
     "launcherUpdating": "Обновляю лаунчер… {p}",
     "launcherFail": "Не удалось обновить лаунчер: {e}",
     "noNews": "Новостей пока нет",
@@ -588,6 +592,8 @@ const T = {
     "playAfterSync": "Primero se actualizan los complementos; luego el juego se inicia solo.",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher", "fwdOffer": "Tu conexión con los servidores de Relic tiene problemas ({why}). Nuestros servidores de reenvío pueden llevar tus partidas a Relic.", "fwdOn": "Activar reenvío", "fwdLater": "Ahora no", "fwdDone": "Reenvío activado: funciona desde el próximo inicio del juego.",
+    "gnTab": "Juego en línea", "gnTitle": "Servidores de juego desde este equipo", "gnCheck": "Comprobar", "gnChecking": "Comprobando… (10-20 s)", "gnNote": "Con las mismas reglas con las que los complementos eligen servidor. Nunca mientras el juego está abierto.", "gnGame": "El juego está en marcha: la comprobación espera a que se cierre para no molestar la partida.", "gnNever": "Aún sin comprobar.", "gnWhen": "comprobado a las {time}", "gnRelic": "Relic", "gnRelicRelay": "Servidor de juego de Relic", "gnRelicApi": "API de Relic (16 peticiones)", "gnClosed": "puerto cerrado", "gnSlowMs": "{n} ms - lento", "gnStreamOk": "{kb} KB en {s} s", "gnStreamCut": "cortado en {kb} KB", "gnRelicOk": "La conexión con Relic está bien.", "gnRelicBad": "La conexión con Relic tiene problemas: {why}. Los servidores de reenvío pueden ayudar.", "gnRelicFwdOn": "La conexión con Relic tiene problemas: {why}. El reenvío está activado.", "gnRelicWait": "Relic se comprueba unos segundos después de iniciar el launcher.", "gnOwn": "Nuestros servidores para partidas", "gnFwd": "Servidores de reenvío", "gnTickOn": "activado", "gnTickOff": "desactivado", "gnTickNone": "no existe el complemento", "gnUdpMs": "UDP {n} ms", "gnUdpNone": "sin respuesta UDP", "gnBurst": "flujo {got}/{n}", "gnBurstCut": "el flujo se corta: {got}/{n}, {tail} de los 6 últimos", "gnTcpOk": "TCP {kb} KB", "gnTcpCut": "TCP se corta en {kb} KB", "gnTcpNone": "TCP: sin conexión", "gnNearest": "el más cercano", "gnNotUsed": "no se usa", "gnOwnPick": "Nuestro automatch pondría tu partida en: {node}.", "gnOwnNone": "Ninguno de nuestros servidores sirve desde aquí: las partidas se quedan en Relic.", "gnOwnOff": "Desactivado: las partidas van por Relic. La casilla está en Complementos.", "gnOwnHow": "Directo por nuestro servidor: nuestro automatch, si todos los jugadores lo alcanzan. Las demás salas son partidas de Relic.", "gnFwdVia": "Las partidas de Relic irían por: {node}.", "gnFwdNone": "Ningún servidor de reenvío sirve desde aquí: las partidas van directas a Relic.", "gnFwdFit": "Sirven como servidores de reenvío: {list}.", "gnFwdOff": "Desactivado: las partidas van directas a Relic. La casilla está en Complementos.", "gnFwdNotNeeded": "Desactivado: no hace falta mientras la conexión con Relic esté bien.", "gnTcpInfo": "El juego llega a nuestros servidores solo por UDP. TCP es informativo: un corte en ~33 KB significa que la línea corta las conexiones largas.", "gnListLadder": "Lista de servidores del ladder (firmada), puerto UDP {port}.", "gnListBuiltin": "Lista integrada (el ladder no respondió), puerto UDP {port}.", "gnPoland": "Polonia", "gnMoscow2": "Moscú 2",
+    "gnWhyClosed": "{n} de {m} puertos de los servidores de Relic no responden", "gnWhyStream": "el flujo hacia Relic se cortó en {kb} KB", "gnWhySlow": "Relic responde en {n} ms", "gnWhyBridge": "tu ajuste anterior enviaba todas las partidas por nuestro servidor",
     "launcherUpdating": "Actualizando el launcher… {p}",
     "launcherFail": "No se pudo actualizar el launcher: {e}",
     "noNews": "Aún no hay noticias",
@@ -787,6 +793,8 @@ const T = {
     "playAfterSync": "Mise à jour des modules d'abord — le jeu démarrera ensuite tout seul.",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher", "fwdOffer": "Votre connexion aux serveurs de Relic a des problèmes ({why}). Nos serveurs de relais peuvent acheminer vos parties vers Relic.", "fwdOn": "Activer le relais", "fwdLater": "Plus tard", "fwdDone": "Relais activé : actif au prochain lancement du jeu.",
+    "gnTab": "Jeu en ligne", "gnTitle": "Serveurs de jeu depuis cet ordinateur", "gnCheck": "Vérifier", "gnChecking": "Vérification… (10-20 s)", "gnNote": "Avec les mêmes règles que les modules pour choisir un serveur. Jamais pendant que le jeu tourne.", "gnGame": "Le jeu est lancé : la vérification attend sa fermeture pour ne pas gêner la partie.", "gnNever": "Pas encore vérifié.", "gnWhen": "vérifié à {time}", "gnRelic": "Relic", "gnRelicRelay": "Serveur de jeu Relic", "gnRelicApi": "API Relic (16 requêtes)", "gnClosed": "port fermé", "gnSlowMs": "{n} ms - lent", "gnStreamOk": "{kb} Ko en {s} s", "gnStreamCut": "coupé à {kb} Ko", "gnRelicOk": "La connexion à Relic va bien.", "gnRelicBad": "La connexion à Relic a des problèmes : {why}. Les serveurs de relais peuvent aider.", "gnRelicFwdOn": "La connexion à Relic a des problèmes : {why}. Le relais est activé.", "gnRelicWait": "Relic est vérifié quelques secondes après le démarrage du lanceur.", "gnOwn": "Nos serveurs pour les parties", "gnFwd": "Serveurs de relais", "gnTickOn": "activé", "gnTickOff": "désactivé", "gnTickNone": "module absent", "gnUdpMs": "UDP {n} ms", "gnUdpNone": "pas de réponse UDP", "gnBurst": "flux {got}/{n}", "gnBurstCut": "le flux se coupe : {got}/{n}, {tail} des 6 derniers", "gnTcpOk": "TCP {kb} Ko", "gnTcpCut": "TCP coupé à {kb} Ko", "gnTcpNone": "TCP : pas de connexion", "gnNearest": "le plus proche", "gnNotUsed": "non utilisé", "gnOwnPick": "Notre automatch mettrait votre partie sur : {node}.", "gnOwnNone": "Aucun de nos serveurs n’est utilisable d’ici : les parties restent sur Relic.", "gnOwnOff": "Désactivé : les parties passent par Relic. La case est dans Modules.", "gnOwnHow": "Directement par notre serveur : notre automatch, si tous les joueurs l’atteignent. Les autres salons sont des parties Relic.", "gnFwdVia": "Les parties Relic passeraient par : {node}.", "gnFwdNone": "Aucun serveur de relais n’est utilisable d’ici : les parties vont directement à Relic.", "gnFwdFit": "Utilisables comme serveurs de relais : {list}.", "gnFwdOff": "Désactivé : les parties vont directement à Relic. La case est dans Modules.", "gnFwdNotNeeded": "Désactivé - inutile tant que la connexion à Relic va bien.", "gnTcpInfo": "Le jeu joint nos serveurs uniquement en UDP. TCP est indicatif : une coupure vers ~33 Ko signifie que la ligne coupe les longues connexions.", "gnListLadder": "Liste des serveurs du ladder (signée), port UDP {port}.", "gnListBuiltin": "Liste intégrée (le ladder n’a pas répondu), port UDP {port}.", "gnPoland": "Pologne", "gnMoscow2": "Moscou 2",
+    "gnWhyClosed": "{n} des {m} ports des serveurs de Relic ne répondent pas", "gnWhyStream": "le flux vers Relic s’est coupé à {kb} Ko", "gnWhySlow": "Relic répond en {n} ms", "gnWhyBridge": "votre ancien réglage faisait passer toutes les parties par notre serveur",
     "launcherUpdating": "Mise à jour du launcher… {p}",
     "launcherFail": "Impossible de mettre à jour le launcher : {e}",
     "noNews": "Pas encore d’actualités",
@@ -986,6 +994,8 @@ const T = {
     "playAfterSync": "Zuerst werden die Add-ons aktualisiert – das Spiel startet danach von selbst.",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren", "fwdOffer": "Deine Verbindung zu Relics Spielservern hat Probleme ({why}). Unsere Weiterleitungsserver können deine Spiele zu Relic bringen.", "fwdOn": "Weiterleitung einschalten", "fwdLater": "Nicht jetzt", "fwdDone": "Weiterleitung eingeschaltet - ab dem nächsten Spielstart.",
+    "gnTab": "Online-Spiel", "gnTitle": "Spielserver von diesem Computer aus", "gnCheck": "Prüfen", "gnChecking": "Prüfe… (10-20 s)", "gnNote": "Nach denselben Regeln, mit denen die Erweiterungen einen Server wählen. Nie, während das Spiel läuft.", "gnGame": "Das Spiel läuft: die Prüfung wartet, bis es geschlossen ist, um das Match nicht zu stören.", "gnNever": "Noch nicht geprüft.", "gnWhen": "geprüft um {time}", "gnRelic": "Relic", "gnRelicRelay": "Relic-Spielserver", "gnRelicApi": "Relic-API (16 Anfragen)", "gnClosed": "Port zu", "gnSlowMs": "{n} ms - langsam", "gnStreamOk": "{kb} KB in {s} s", "gnStreamCut": "bei {kb} KB abgebrochen", "gnRelicOk": "Die Verbindung zu Relic ist in Ordnung.", "gnRelicBad": "Die Verbindung zu Relic hat Probleme: {why}. Weiterleitungsserver können helfen.", "gnRelicFwdOn": "Die Verbindung zu Relic hat Probleme: {why}. Weiterleitung ist eingeschaltet.", "gnRelicWait": "Relic wird einige Sekunden nach dem Start des Launchers geprüft.", "gnOwn": "Unsere Server für Spiele", "gnFwd": "Weiterleitungsserver", "gnTickOn": "ein", "gnTickOff": "aus", "gnTickNone": "Erweiterung fehlt", "gnUdpMs": "UDP {n} ms", "gnUdpNone": "keine UDP-Antwort", "gnBurst": "Strom {got}/{n}", "gnBurstCut": "Strom bricht ab: {got}/{n}, {tail} der letzten 6", "gnTcpOk": "TCP {kb} KB", "gnTcpCut": "TCP bricht bei {kb} KB ab", "gnTcpNone": "TCP: keine Verbindung", "gnNearest": "am nächsten", "gnNotUsed": "nicht benutzt", "gnOwnPick": "Unser Automatch würde dein Spiel auf {node} legen.", "gnOwnNone": "Keiner unserer Server ist von hier nutzbar - Spiele bleiben auf Relic.", "gnOwnOff": "Aus: Spiele laufen über Relic. Das Häkchen ist unter Erweiterungen.", "gnOwnHow": "Direkt über unseren Server: unser Automatch, wenn alle Spieler ihn erreichen. Andere Lobbys sind Relic-Spiele.", "gnFwdVia": "Relic-Spiele liefen über: {node}.", "gnFwdNone": "Kein Weiterleitungsserver ist von hier nutzbar - Spiele gehen direkt zu Relic.", "gnFwdFit": "Als Weiterleitungsserver nutzbar: {list}.", "gnFwdOff": "Aus: Spiele gehen direkt zu Relic. Das Häkchen ist unter Erweiterungen.", "gnFwdNotNeeded": "Aus - nicht nötig, solange die Verbindung zu Relic in Ordnung ist.", "gnTcpInfo": "Das Spiel erreicht unsere Server nur über UDP. TCP dient zur Info: ein Abbruch bei ~33 KB heißt, die Leitung kappt lange Verbindungen.", "gnListLadder": "Serverliste des Ladders (signiert), UDP-Port {port}.", "gnListBuiltin": "Eingebaute Serverliste (der Ladder antwortete nicht), UDP-Port {port}.", "gnPoland": "Polen", "gnMoscow2": "Moskau 2",
+    "gnWhyClosed": "{n} von {m} Ports der Relic-Spielserver antworten nicht", "gnWhyStream": "der Strom zu Relic brach bei {kb} KB ab", "gnWhySlow": "Relic antwortet in {n} ms", "gnWhyBridge": "deine frühere Einstellung schickte jedes Spiel über unseren Server",
     "launcherUpdating": "Launcher wird aktualisiert… {p}",
     "launcherFail": "Launcher konnte nicht aktualisiert werden: {e}",
     "noNews": "Noch keine Neuigkeiten",
@@ -1298,21 +1308,33 @@ function renderFwdBanner() {
   const show = FWD && FWD.problem && c && !c.enabled && !(S.dismissed || []).includes(key) && !S.in_game_dir;
   b.classList.toggle('hidden', !show);
   if (!show) return;
-  $('fwdText').textContent = t('fwdOffer', { why: FWD.why || '' }); b.title = $('fwdText').textContent;
+  $('fwdText').textContent = t('fwdOffer', { why: relicWhy(FWD) }); b.title = $('fwdText').textContent;
   $('fwdBtn').textContent = t('fwdOn'); $('fwdLater').textContent = t('fwdLater');
   $('fwdBtn').disabled = !!S.busy || !!S.game_running;
-  $('fwdBtn').onclick = async () => {
-    try {
-      await invoke('set_component', { id: 'relay_fwd', on: true });
-      if (S.installed_version) { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; }
-      toast(t('fwdDone')); FWD = null; reload();
-    } catch (e) { toast(e, true); }
-  };
+  $('fwdBtn').onclick = fwdTurnOn;
   $('fwdLater').onclick = async () => { try { await invoke('set_setting', { key: 'dismiss', value: key }); } catch (e) {} FWD = null; reload(); };
 }
+// the reason in the player's language, from the check's fields (its "why" is the English line of the log)
+function relicWhy(r) {
+  if (!r) return '';
+  if (r.closed > 0) return t('gnWhyClosed', { n: r.closed, m: (r.relays || r.relays_ms || []).length || 3 });
+  if (r.stream_ok === false) return t('gnWhyStream', { kb: r.stream_kb || 0 });
+  if (r.median_ms > 200) return t('gnWhySlow', { n: r.median_ms });
+  if (r.old_bridge) return t('gnWhyBridge');
+  return r.why || '';
+}
+async function fwdTurnOn() {
+  try {
+    await invoke('set_component', { id: 'relay_fwd', on: true });
+    if (S.installed_version) { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; }
+    toast(t('fwdDone')); FWD = null; reload();
+  } catch (e) { toast(e, true); }
+}
+var FWD_LAST = null;   // the last Relic check that ran (the banner's FWD is cleared once the player answers it)
 async function relicProbe() {
   try { FWD = await invoke('relic_probe'); } catch (e) { FWD = null; }
-  if (S) renderFwdBanner();
+  if (FWD && !FWD.skipped) FWD_LAST = FWD;
+  if (S) { renderFwdBanner(); renderGameNet(); }
 }
 let luRetry = null, luTries = 0;
 function launcherRetrySoon() {
@@ -1505,6 +1527,7 @@ function render() {
   $('mirror').value = S.extra_mirror || '';
   $('mirrorInfo').textContent = t('mirrors', { n: S.mirror_count });
   renderNet();
+  renderGameNet();
   $('repair').disabled = S.busy || S.game_running || !S.installed_version;
   $('junk').disabled = S.busy || S.game_running || !S.installed_version;
   $('about').textContent = `Elite Launcher ${S.launcher_version} · ${S.os}`;
@@ -1624,7 +1647,7 @@ listen('launcher_progress', e => {
   $('statusMeta').textContent = total ? `${mb(done)} / ${mb(total)}` : mb(done);
 });
 listen('news', () => { if (S) reload(); });
-listen('game_running', e => { if (!S) return; S.game_running = e.payload; render(); if (!e.payload) refresh(); chHello(); });   // menu / game goes to the server when it changes, not on a timer
+listen('game_running', e => { if (!S) return; S.game_running = e.payload; render(); if (!e.payload) refresh(); chHello(); if (!e.payload && FWD && FWD.skipped) setTimeout(relicProbe, 20000); });   // 1.4.5: the Relic check of the start waited for the game   // menu / game goes to the server when it changes, not on a timer
 listen('progress', e => { netActive = false; prog = e.payload; if (S) { S.busy = true; renderProgress(prog); } });
 listen('update_done', async e => {
   await reload();
@@ -1732,6 +1755,84 @@ $('netCheck').onclick = async () => {
   try { renderNet(await invoke('net_check')); } catch (e) { toast(e, true); }
   b.disabled = false;
 };
+// ---------- Settings -> Online play (1.4.5, owner 03.11.2026): Relic, our game servers and forwarding from this computer ----------
+// judged by the rules of the add-ons (netgame.rs / relay.c Relay 18-19): a node is usable when it answers UDP and a stream of
+// 40 x 1000 bytes gets through (30+ answers, 3+ of the last 6); the nearest usable one is the one the game takes. By the button,
+// and once when the tab is first opened; never while the game runs.
+var GN = null, GN_BUSY = false, GN_OPENED = false;
+var GN_PLACE = { '15.220.68.107': 'gnPoland', '116.202.106.150': 'netGermany', '83.217.192.34': 'netMoscow', '91.107.122.186': 'gnMoscow2' };
+function gnName(n) { return GN_PLACE && GN_PLACE[n.ip] ? t(GN_PLACE[n.ip]) : (n.name || n.ip); }
+function renderGameNet() {
+  const box = $('gnList'); if (!box || !S) return;
+  const comp = id => (S.components || []).find(x => x.id === id);
+  const own = comp('relay_r2'), fwd = comp('relay_fwd');
+  const tick = c => !c ? `<span class="chip">${esc(t('gnTickNone'))}</span>` : `<span class="chip ${c.enabled ? 'hot' : ''}">${esc(t(c.enabled ? 'gnTickOn' : 'gnTickOff'))}</span>`;
+  const row = (cls, place, host, info, chip) => `<div class="net-r ${cls}"><i></i><span class="net-p">${esc(place)}</span><span class="net-h">${esc(host)}</span>`
+    + `<span class="gn-i">${esc(info)}</span>${chip || '<span></span>'}</div>`;
+  const wait = key => S.game_running ? '' : `<div class="note">${esc(t(key))}</div>`;   // while the game runs the note at the top says it once
+  const sum = (cls, text, btn) => `<div class="gn-sum ${cls}"><span>${esc(text)}</span>${btn || ''}</div>`;
+  let h = '';
+  // Relic: the full check's answer, else the one of the launcher's start
+  const R = (GN && GN.relic) || FWD_LAST;
+  h += `<div class="net-g"><div class="net-gh">${esc(t('gnRelic'))}</div>`;
+  if (R && R.relays_ms) {
+    (R.relays || []).forEach((a, i) => {
+      const ms = R.relays_ms[i];
+      h += row(ms < 0 ? 'bad' : ms > 200 ? 'warn' : 'ok', t('gnRelicRelay'), a, ms < 0 ? t('gnClosed') : ms > 200 ? t('gnSlowMs', { n: ms }) : t('netMs', { n: ms }));
+    });
+    h += row(R.stream_ok ? 'ok' : 'bad', t('gnRelicApi'), 'dow-api.reliclink.com', R.stream_ok ? t('gnStreamOk', { kb: R.stream_kb, s: R.stream_s }) : t('gnStreamCut', { kb: R.stream_kb }));
+    const fwdOn = fwd && fwd.enabled;   // the offer's button is under Forwarding servers below
+    h += !R.problem ? sum('ok', t('gnRelicOk')) : sum(fwdOn ? 'warn' : 'bad', t(fwdOn ? 'gnRelicFwdOn' : 'gnRelicBad', { why: relicWhy(R) }));
+  } else h += wait('gnRelicWait');
+  h += '</div>';
+  // our nodes - one list for both ticks (Relay.dll and RelayForward.dll use the same nodes and the same rule)
+  const nodes = (GN && GN.nodes) || [];
+  const usable = nodes.filter(n => n.udp && n.udp.usable);
+  const near = nodes.find(n => GN && n.ip === GN.nearest);
+  h += `<div class="net-g"><div class="net-gh">${esc(t('gnOwn'))} ${tick(own)}</div>`;
+  if (nodes.length) {
+    nodes.forEach(n => {
+      const u = n.udp || {}, tc = n.tcp || {};
+      const cls = u.usable ? 'ok' : u.ms != null ? 'warn' : 'bad';
+      const parts = [u.ms != null ? t('gnUdpMs', { n: u.ms }) : t('gnUdpNone')];
+      if (u.ms != null) parts.push(u.usable ? t('gnBurst', { got: u.got, n: u.n }) : t('gnBurstCut', { got: u.got, n: u.n, tail: u.tail }));
+      parts.push(tc.state === 'ok' ? t('gnTcpOk', { kb: tc.kb }) : tc.state === 'cut' ? t('gnTcpCut', { kb: tc.kb }) : t('gnTcpNone'));
+      const chip = n === near ? `<span class="chip">${esc(t('gnNearest'))}</span>` : !u.usable ? `<span class="chip off">${esc(t('gnNotUsed'))}</span>` : '';
+      h += row(cls, gnName(n), n.ip, parts.join(' · '), chip);
+    });
+    h += !own ? '' : !own.enabled ? sum('na', t('gnOwnOff')) : near ? sum('ok', t('gnOwnPick', { node: gnName(near) })) : sum('bad', t('gnOwnNone'));
+    h += `<div class="note">${esc(t('gnOwnHow'))} ${esc(t('gnTcpInfo'))}</div>`;
+    h += `<div class="note">${esc(t(GN.list === 'ladder' ? 'gnListLadder' : 'gnListBuiltin', { port: GN.port }))}</div>`;
+  } else h += wait(GN_BUSY ? 'gnChecking' : 'gnNever');
+  h += '</div>';
+  // forwarding: the nearest usable node carries every Relic game (RelayForward.dll)
+  h += `<div class="net-g"><div class="net-gh">${esc(t('gnFwd'))} ${tick(fwd)}</div>`;
+  if (nodes.length && fwd) {
+    if (usable.length) h += sum(fwd.enabled ? 'ok' : 'na', t('gnFwdFit', { list: usable.map(gnName).join(', ') }));
+    if (fwd.enabled) h += near ? sum('ok', t('gnFwdVia', { node: gnName(near) })) : sum('bad', t('gnFwdNone'));
+    else if (R && R.problem) h += near ? sum('warn', t('gnFwdOff'), `<button class="btn gold small" id="gnFwdOn"${S.busy || S.game_running ? ' disabled' : ''}>${esc(t('fwdOn'))}</button>`) : sum('bad', t('gnFwdNone'));
+    else h += sum('na', R ? t('gnFwdNotNeeded') : t('gnFwdOff'));
+  } else if (!nodes.length) h += wait(GN_BUSY ? 'gnChecking' : 'gnNever');
+  h += '</div>';
+  box.innerHTML = h;
+  if ($('gnFwdOn')) $('gnFwdOn').onclick = fwdTurnOn;
+  $('gnCheck').disabled = GN_BUSY || !!S.game_running;
+  $('gnNote').textContent = S.game_running ? t('gnGame') : GN_BUSY ? t('gnChecking') : t('gnNote');
+  $('gnWhen').textContent = GN && GN.ts ? t('gnWhen', { time: new Date(GN.ts * 1000).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : '';
+}
+async function gameNetCheck() {
+  if (GN_BUSY || !S || S.game_running) { renderGameNet(); return; }
+  GN_BUSY = true; renderGameNet();
+  try {
+    const r = await invoke('game_net_check');
+    if (r && !r.skipped) {
+      GN = r;
+      if (r.relic && r.relic.relays_ms) { FWD_LAST = FWD = r.relic; renderFwdBanner(); }   // the offer follows the newest check
+    }
+  } catch (e) { toast(e, true); }
+  GN_BUSY = false; renderGameNet();
+}
+$('gnCheck').onclick = gameNetCheck;
 $('saveMirror').onclick =() => invoke('set_setting', { key: 'extra_mirror', value: $('mirror').value.trim() }).then(refresh);
 $('repair').onclick = () => startUpdate(true);
 // "Clean up the junk": stray plugins into a backup folder, then check & repair puts Elite and the ticked add-ons back
@@ -2430,8 +2531,9 @@ $('hkReset').onclick = async () => {
 // Settings has two tabs, General and Hotkeys (the bindings are read when the tab is first opened)
 document.querySelectorAll('.set-tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.set-tab').forEach(x => x.classList.toggle('on', x === b));
-  ['setMain', 'setNet', 'hotkeys'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
+  ['setMain', 'setNet', 'setGame', 'hotkeys'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
   if (b.dataset.set === 'hotkeys' && !HK.data) hkLoad();
+  if (b.dataset.set === 'setGame' && !GN_OPENED) { GN_OPENED = true; if (!GN) gameNetCheck(); }
 });
 
 // ---------------- remove Elite completely ----------------

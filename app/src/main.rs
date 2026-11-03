@@ -8,6 +8,7 @@
 #![recursion_limit = "256"]   // get_status' json! grew past the default 128
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod netgame;
 mod reach;
 
 use elite_core::config::{version_newer, LauncherConfig};
@@ -261,11 +262,20 @@ fn net_status() -> Value { net_status_json() }
 /// Also offered to players whose Relay.ini still says Mode=bridge: before Relay 17 (02.11.2026) "every game through our server"
 /// was a mode of the one tick; the new forwarding tick is separate and off, so those players silently lost it.
 const RELIC_RELAYS: [&str; 3] = ["54.87.3.63:27008", "44.203.117.150:27004", "184.198.184.150:27002"];
+fn relay_ini(app: &App) -> String {
+    game_dir(app).and_then(|d| std::fs::read_to_string(d.join("Elite_DLLs").join("Relay.ini")).ok()).unwrap_or_default()
+}
+fn old_bridge(ini: &str) -> bool { ini.lines().any(|l| l.trim().eq_ignore_ascii_case("Mode=bridge")) }
+/// 1.4.5: not while the game runs (the check would compete with a match for the line) - the window asks again once it closes.
 #[tauri::command]
 async fn relic_probe(app: State<'_, App>) -> Result<Value, String> {
-    let old_bridge = game_dir(&app).and_then(|d| std::fs::read_to_string(d.join("Elite_DLLs").join("Relay.ini")).ok())
-        .map(|t| t.lines().any(|l| l.trim().eq_ignore_ascii_case("Mode=bridge"))).unwrap_or(false);
-    Ok(tauri::async_runtime::spawn_blocking(move || {
+    if app.game_running.load(Ordering::Relaxed) || is_game_running() { return Ok(json!({"problem": false, "skipped": "game"})); }
+    let old_bridge = old_bridge(&relay_ini(&app));
+    Ok(tauri::async_runtime::spawn_blocking(move || relic_check(old_bridge))
+        .await.unwrap_or_else(|e| json!({"problem": false, "why": e.to_string()})))
+}
+fn relic_check(old_bridge: bool) -> Value {
+    {
         use std::net::{SocketAddr, TcpStream};
         let mut ms: Vec<i64> = Vec::new(); let mut closed = 0;
         for a in RELIC_RELAYS {
@@ -296,9 +306,55 @@ async fn relic_probe(app: State<'_, App>) -> Result<Value, String> {
             else if old_bridge { "your earlier setting sent every game through our server".into() } else { String::new() };
         c_log(&format!("relic probe: relays {:?} ms, stream {got}/16 requests {} KB in {:.1} s{}{}", ms, bytes / 1024, secs,
                        if problem { " - PROBLEM: " } else { "" }, why));
-        json!({"relays_ms": ms, "median_ms": median, "closed": closed, "stream_ok": stream_ok, "stream_kb": bytes / 1024,
-               "stream_s": (secs * 10.0).round() / 10.0, "problem": problem, "why": why, "old_bridge": old_bridge})
-    }).await.unwrap_or_else(|e| json!({"problem": false, "why": e.to_string()})))
+        json!({"relays": RELIC_RELAYS, "relays_ms": ms, "median_ms": median, "closed": closed, "stream_ok": stream_ok, "stream_kb": bytes / 1024,
+               "stream_s": (secs * 10.0).round() / 10.0, "stream_got": got, "problem": problem, "why": why, "old_bridge": old_bridge})
+    }
+}
+
+/// 1.4.5 (owner 03.11.2026): Settings -> "Online play" - Relic, our nodes and forwarding from this computer by the rules the
+/// add-ons use (netgame.rs). By the button (and once when the tab is first opened); ~10-20 s; never while the game runs.
+static GAME_NET_BUSY: AtomicBool = AtomicBool::new(false);
+#[tauri::command]
+async fn game_net_check(app: State<'_, App>) -> Result<Value, String> {
+    if app.game_running.load(Ordering::Relaxed) || is_game_running() { return Ok(json!({"skipped": "game"})); }
+    if GAME_NET_BUSY.swap(true, Ordering::SeqCst) { return Ok(json!({"skipped": "busy"})); }
+    let ini = relay_ini(&app);
+    let r = tauri::async_runtime::spawn_blocking(move || {
+        // the node list: the DLL's three + the signed ladder list (what MMFind gives Relay.ini) + Relay.ini Nodes=
+        let mut ladder: Option<Vec<(std::net::Ipv4Addr, String)>> = None;
+        for host in fb_hosts() {
+            match HTTP.get(&format!("{host}/ladder/api/relays")).timeout(Duration::from_secs(8)).call() {
+                Ok(r) => { ladder = serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).ok().and_then(|d| netgame::signed_relays(&d)); break; }
+                Err(e) => api_err(&host, &e),
+            }
+        }
+        let (ini_nodes, port) = netgame::ini_nodes(&ini);
+        let port = port.unwrap_or(netgame::GAME_PORT);
+        let nodes = netgame::node_set(ladder.as_deref().unwrap_or(&[]), &ini_nodes);
+        // UDP one node after another, as the DLL's ping loop does (bursts must not overlap); then Relic and TCP together
+        let mut udp: Vec<Value> = Vec::new();
+        for n in &nodes {
+            if is_game_running() { return json!({"skipped": "game"}); }   // the game started meanwhile: stop, the line is its
+            udp.push(netgame::measure(n.ip, port));
+        }
+        if is_game_running() { return json!({"skipped": "game"}); }
+        let ob = old_bridge(&ini);
+        let relic = std::thread::spawn(move || relic_check(ob));
+        let tcp: Vec<_> = nodes.iter().map(|n| { let ip = n.ip; std::thread::spawn(move || netgame::tcp_stream(ip)) }).collect();
+        let tcp: Vec<Value> = tcp.into_iter().map(|h| h.join().unwrap_or(json!({"state": "none"}))).collect();
+        let relic = relic.join().unwrap_or(json!({"problem": false}));
+        let rows: Vec<Value> = nodes.iter().zip(udp).zip(tcp).map(|((n, u), t)| json!({"ip": n.ip.to_string(), "name": n.name, "src": n.src, "udp": u, "tcp": t})).collect();
+        let near = netgame::nearest(&rows);
+        c_log(&format!("game net: {} node(s) ({}), port {port}: {}; nearest {}", rows.len(), if ladder.is_some() { "ladder list" } else { "built-in list" },
+            rows.iter().map(|r| format!("{} {} {}/{} tcp {}", r["ip"].as_str().unwrap_or(""), r["udp"]["ms"].as_u64().map(|m| format!("{m}ms")).unwrap_or("-".into()),
+                r["udp"]["got"], netgame::BURST_N, r["tcp"]["state"].as_str().unwrap_or(""))).collect::<Vec<_>>().join(", "),
+            near.map(|i| rows[i]["ip"].as_str().unwrap_or("").to_string()).unwrap_or("none".into())));
+        json!({"nodes": rows, "nearest": near.map(|i| rows[i]["ip"].clone()).unwrap_or(json!("")), "port": port,
+               "list": if ladder.is_some() { "ladder" } else { "builtin" }, "relic": relic,
+               "ts": std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)})
+    }).await.map_err(|e| e.to_string());
+    GAME_NET_BUSY.store(false, Ordering::SeqCst);
+    r
 }
 
 /// "Check again" in Settings: both pools now (the answer comes as the net_rank event too).
@@ -2210,7 +2266,7 @@ fn main() {
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
-            relic_probe
+            relic_probe, game_net_check
         ])
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")
