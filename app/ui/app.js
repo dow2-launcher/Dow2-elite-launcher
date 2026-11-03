@@ -1759,6 +1759,9 @@ $('diagName').onchange = () => { diagSaved = $('diagName').value.trim(); try { l
 // signed in: the field shows the profile's name (owner 03.11.2026) - the player sees what goes with the logs and can
 // change it; signed out: the nickname typed before, as it was
 function diagNameFromProfile() {
+  // the developers' chat (its name goes with the logs too): an empty one gets the profile's name and keeps it; a name of one's own stays
+  const me0 = CH.me && CH.me.signed_in ? CH.me : null;
+  if (me0 && me0.name && $('fbName') && !$('fbName').value.trim()) { $('fbName').value = me0.name; invoke('fb_set_name', { name: me0.name }).catch(() => {}); }
   if (diagTyped) return;
   const me = CH.me && CH.me.signed_in ? CH.me : null;
   $('diagName').value = me && me.name ? me.name : diagSaved;
@@ -1919,6 +1922,7 @@ async function fbInit() {
   try {
     const i = await invoke('fb_info');
     $('fbName').value = i.name || ''; $('fbId').textContent = 'id ' + i.uid.slice(0, 8);
+    diagNameFromProfile();   // an empty name: the signed-in profile's
   } catch (e) {}
   $('fbName').onchange = () => invoke('fb_set_name', { name: $('fbName').value });
   $('fbText').placeholder = t('fbPlaceholder');
