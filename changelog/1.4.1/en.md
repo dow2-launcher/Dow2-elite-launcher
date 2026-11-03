@@ -1,0 +1,2 @@
+- Linux: Play works again with current Proton and GE-Proton - the game is started inside the Steam Linux Runtime the tool asks for, as Steam does (1.4.0 started Proton outside it and the game silently did not come up), and without the launcher's own AppImage environment.
+- Linux: Proton's output is kept in proton.log, and how the start ended (exit code and the last lines) goes into the launcher log - both go with "Send logs".

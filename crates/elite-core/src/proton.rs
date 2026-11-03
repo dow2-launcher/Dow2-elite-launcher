@@ -163,6 +163,22 @@ fn natural(s: &str) -> Vec<u64> {
     v
 }
 
+/// 1.4.1: the Steam Linux Runtime a compatibility tool asks for (its toolmanifest.vdf: "require_tool_appid", e.g. 1628350 =
+/// SteamLinuxRuntime_sniper for Proton 8+ and GE-Proton) - its `_v2-entry-point` in whichever library holds it. Steam always runs
+/// such a tool inside that runtime; run outside it, current Proton / GE-Proton may exit at once without a word (1.4.0, ZHDH).
+pub fn runtime_for(tool_dir: &Path, libraries: &[PathBuf]) -> Option<PathBuf> {
+    let t = std::fs::read_to_string(tool_dir.join("toolmanifest.vdf")).ok()?;
+    let id = Vdf::parse(&t).find("manifest").and_then(|m| m.str("require_tool_appid").map(|x| x.to_string()))?;
+    for l in libraries {
+        let acf = l.join("steamapps").join(format!("appmanifest_{id}.acf"));
+        let Ok(a) = std::fs::read_to_string(&acf) else { continue };
+        let Some(dir) = Vdf::parse(&a).find("AppState").and_then(|m| m.str("installdir").map(|x| x.to_string())) else { continue };
+        let ep = l.join("steamapps").join("common").join(dir).join("_v2-entry-point");
+        if ep.is_file() { return Some(ep); }
+    }
+    None
+}
+
 /// Everything `proton run` needs for the game in `game_dir` (…/steamapps/common/<game>), or why not.
 #[derive(Debug, Clone)]
 pub struct ProtonRun {
@@ -170,6 +186,10 @@ pub struct ProtonRun {
     pub compat_data: PathBuf,
     pub steam_root: PathBuf,
     pub appid: u32,
+    /// the Steam Linux Runtime entry point the tool needs (None: the tool runs without one, e.g. Proton 5-7)
+    pub runtime: Option<PathBuf>,
+    pub game_dir: PathBuf,
+    pub libraries: Vec<PathBuf>,
 }
 
 pub fn plan(game_dir: &Path, appid: u32) -> Result<ProtonRun, String> {
@@ -184,16 +204,40 @@ pub fn plan(game_dir: &Path, appid: u32) -> Result<ProtonRun, String> {
     let name = roots.iter().find_map(|r| std::fs::read_to_string(r.join("config").join("config.vdf")).ok().and_then(|t| tool_name(&t, appid)));
     let libs = crate::game::steam_libraries();
     let proton = find_proton(&roots, &libs, name.as_deref()).ok_or_else(|| format!("no Proton found (Steam maps the game to {:?})", name))?;
-    Ok(ProtonRun { proton, compat_data, steam_root, appid })
+    let runtime = proton.parent().and_then(|d| runtime_for(d, &libs));
+    Ok(ProtonRun { proton, compat_data, steam_root, appid, runtime, game_dir: game_dir.to_path_buf(), libraries: libs })
 }
 
 impl ProtonRun {
-    /// `proton run <exe> <args>` with the environment Steam sets for the game.
+    /// The game as Steam starts it: `<runtime>/_v2-entry-point --verb=waitforexitandrun -- <proton> waitforexitandrun <exe>`
+    /// when the tool needs the Steam Linux Runtime, else `<proton> run <exe>`; with the environment Steam sets for the game
+    /// (the STEAM_COMPAT_* paths also tell the runtime's container which folders to show) and without the launcher's own
+    /// AppImage environment (its LD_LIBRARY_PATH / GTK / GStreamer / Python paths break Proton and Wine).
     pub fn command(&self, exe: &Path, args: &[String], cwd: &Path) -> std::process::Command {
-        let mut c = std::process::Command::new(&self.proton);
-        c.arg("run").arg(exe).args(args).current_dir(cwd)
-            .env("STEAM_COMPAT_DATA_PATH", &self.compat_data)
+        let mut c = match &self.runtime {
+            Some(rt) => {
+                let mut c = std::process::Command::new(rt);
+                c.arg("--verb=waitforexitandrun").arg("--").arg(&self.proton).arg("waitforexitandrun");
+                c
+            }
+            None => { let mut c = std::process::Command::new(&self.proton); c.arg("run"); c }
+        };
+        c.arg(exe).args(args).current_dir(cwd);
+        if std::env::var_os("APPIMAGE").is_some() || std::env::var_os("APPDIR").is_some() {
+            for k in ["LD_LIBRARY_PATH", "LD_PRELOAD", "PYTHONHOME", "PYTHONPATH", "PERLLIB", "QT_PLUGIN_PATH", "GTK_PATH", "GTK_EXE_PREFIX",
+                      "GTK_DATA_PREFIX", "GTK_IM_MODULE_FILE", "GDK_PIXBUF_MODULE_FILE", "GDK_PIXBUF_MODULEDIR", "GIO_MODULE_DIR",
+                      "GSETTINGS_SCHEMA_DIR", "GST_PLUGIN_PATH", "GST_PLUGIN_SYSTEM_PATH", "GST_PLUGIN_SYSTEM_PATH_1_0",
+                      "GST_PLUGIN_SCANNER", "GST_PLUGIN_SCANNER_1_0", "APPDIR", "APPIMAGE", "ARGV0", "OWD"] {
+                c.env_remove(k);
+            }
+        }
+        let tool = self.proton.parent().map(|d| d.to_path_buf()).unwrap_or_default();
+        let libs = self.libraries.iter().map(|l| l.to_string_lossy().to_string()).collect::<Vec<_>>().join(":");
+        c.env("STEAM_COMPAT_DATA_PATH", &self.compat_data)
             .env("STEAM_COMPAT_CLIENT_INSTALL_PATH", &self.steam_root)
+            .env("STEAM_COMPAT_INSTALL_PATH", &self.game_dir)
+            .env("STEAM_COMPAT_TOOL_PATHS", &tool)
+            .env("STEAM_COMPAT_LIBRARY_PATHS", libs)
             .env("STEAM_COMPAT_APP_ID", self.appid.to_string())
             .env("SteamAppId", self.appid.to_string())
             .env("SteamGameId", self.appid.to_string());
@@ -281,6 +325,10 @@ mod tests {
         std::fs::write(root.join("config/config.vdf"), CONFIG).unwrap();
         std::fs::write(root.join("steamapps/libraryfolders.vdf"), format!("\"libraryfolders\" {{ \"1\" {{ \"path\" \"{}\" }} }}", lib.display())).unwrap();
         let ge = root.join("compatibilitytools.d/GE-Proton9-20"); std::fs::create_dir_all(&ge).unwrap(); std::fs::write(ge.join("proton"), "").unwrap();
+        // GE-Proton asks for the sniper runtime; Steam keeps it in the first library
+        std::fs::write(ge.join("toolmanifest.vdf"), "\"manifest\"\n{\n\t\"version\" \"2\"\n\t\"commandline\" \"/proton %verb%\"\n\t\"require_tool_appid\" \"1628350\"\n\t\"use_sessions\" \"1\"\n}\n").unwrap();
+        std::fs::write(root.join("steamapps/appmanifest_1628350.acf"), "\"AppState\"\n{\n\t\"appid\" \"1628350\"\n\t\"installdir\" \"SteamLinuxRuntime_sniper\"\n}\n").unwrap();
+        let slr = root.join("steamapps/common/SteamLinuxRuntime_sniper"); std::fs::create_dir_all(&slr).unwrap(); std::fs::write(slr.join("_v2-entry-point"), "").unwrap();
         let game = lib.join("steamapps/common/Dawn of War II - Retribution"); std::fs::create_dir_all(&game).unwrap();
         std::fs::write(game.join("DOW2.exe"), "").unwrap();
         let docs = lib.join("steamapps/compatdata/56400/pfx/drive_c/users/steamuser/Documents"); std::fs::create_dir_all(&docs).unwrap();
@@ -291,6 +339,14 @@ mod tests {
         assert_eq!(r.proton, ge.join("proton").canonicalize().unwrap_or(ge.join("proton")));
         assert_eq!(r.compat_data, lib.join("steamapps/compatdata/56400"));
         assert_eq!(prefix_documents(&game, 56400), Some(docs));
+        // 1.4.1: run inside the runtime, as Steam does
+        let rt = r.runtime.clone().expect("the runtime GE-Proton asks for");
+        assert!(rt.ends_with("SteamLinuxRuntime_sniper/_v2-entry-point"));
+        let c = r.command(&game.join("Elite.exe"), &[], &game);
+        let args: Vec<String> = c.get_args().map(|a| a.to_string_lossy().to_string()).collect();
+        assert_eq!(c.get_program(), rt.as_os_str());
+        assert_eq!(args[0], "--verb=waitforexitandrun"); assert_eq!(args[1], "--");
+        assert!(args[2].ends_with("GE-Proton9-20/proton")); assert_eq!(args[3], "waitforexitandrun"); assert!(args[4].ends_with("Elite.exe"));
         std::fs::remove_dir_all(&t).ok();
     }
 }

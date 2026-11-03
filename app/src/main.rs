@@ -1327,8 +1327,34 @@ fn start_game(app: &App) -> Result<Value, String> {
         match elite_core::proton::plan(&dir, cfg.game.steam_appid) {
             Ok(run) if exe.is_file() => {
                 ensure_steam_running();
-                c_log(&format!("launch: {} run {} (prefix {})", run.proton.display(), exe.display(), run.compat_data.display()));
-                return run.command(&exe, &[], &dir).spawn().map(|_| guard).map_err(|e| format!("cannot start {} through Proton: {e}", exe_name));
+                c_log(&format!("launch: {} run {} (prefix {}, runtime {})", run.proton.display(), exe.display(), run.compat_data.display(),
+                               run.runtime.as_ref().map(|p| p.display().to_string()).unwrap_or_else(|| "none".into())));
+                // 1.4.1: Proton's own output goes to proton.log; how it ended goes to community.log (Send logs carries it) -
+                // 1.4.0 showed only "launch:", never why the game did not come up
+                let plog = data_dir().join("proton.log");
+                let mut c = run.command(&exe, &[], &dir);
+                if let Ok(f) = std::fs::File::create(&plog) {
+                    if let Ok(f2) = f.try_clone() { c.stdout(f).stderr(f2); }
+                }
+                return match c.spawn() {
+                    Ok(mut child) => {
+                        std::thread::spawn(move || {
+                            let t0 = std::time::Instant::now();
+                            let st = child.wait();
+                            let secs = t0.elapsed().as_secs();
+                            let tail = std::fs::read_to_string(&plog).unwrap_or_default();
+                            let tail: Vec<&str> = tail.lines().filter(|l| !l.trim().is_empty()).collect();
+                            let tail = tail[tail.len().saturating_sub(8)..].join(" | ");
+                            match st {
+                                Ok(s) if secs < 60 => c_log(&format!("launch: Proton ended after {secs} s ({s}) - the game did not run; proton.log: {}", tail.chars().take(1500).collect::<String>())),
+                                Ok(s) => c_log(&format!("launch: the game ended after {secs} s ({s})")),
+                                Err(e) => c_log(&format!("launch: cannot wait for Proton: {e}")),
+                            }
+                        });
+                        Ok(guard)
+                    }
+                    Err(e) => Err(format!("cannot start {} through Proton: {e}", exe_name)),
+                };
             }
             Ok(_) => c_log(&format!("launch: {} not in the game folder - steam -applaunch", exe_name)),
             Err(e) => c_log(&format!("launch: no Proton run ({e}) - steam -applaunch")),
