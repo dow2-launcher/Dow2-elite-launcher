@@ -1750,8 +1750,18 @@ $('junk').onclick = () => {
   };
 };
 // ник для логов запоминаем (localStorage может быть недоступен — тогда просто без ника)
-try { $('diagName').value = localStorage.getItem('diagName') || ''; } catch (e) {}
-$('diagName').onchange = () => { try { localStorage.setItem('diagName', $('diagName').value.trim()); } catch (e) {} };
+let diagSaved = '', diagTyped = false;
+try { diagSaved = localStorage.getItem('diagName') || ''; } catch (e) {}
+$('diagName').value = diagSaved;
+$('diagName').oninput = () => { diagTyped = true; };
+$('diagName').onchange = () => { diagSaved = $('diagName').value.trim(); try { localStorage.setItem('diagName', diagSaved); } catch (e) {} };
+// signed in: the field shows the profile's name (owner 03.11.2026) - the player sees what goes with the logs and can
+// change it; signed out: the nickname typed before, as it was
+function diagNameFromProfile() {
+  if (diagTyped) return;
+  const me = CH.me && CH.me.signed_in ? CH.me : null;
+  $('diagName').value = me && me.name ? me.name : diagSaved;
+}
 async function sendLogs(btn, label) {
   btn.disabled = true; btn.textContent = t('sending');
   try { const id = await invoke('send_logs', { who: $('diagName').value.trim() }); toast(t('logsSent', { id })); }
@@ -1977,6 +1987,7 @@ function chShowRoom() {
 }
 // the card above the news: avatar, name, 1v1 rating and games of the season (the stream's me); signed out - the Steam button
 function chMe() {
+  diagNameFromProfile();
   const me = CH.me && CH.me.signed_in ? CH.me : null, box = $('meBox');
   box.classList.toggle('hidden', !CH.me || CH.me.configured === false);
   box.classList.toggle('out', !me);
