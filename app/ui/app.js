@@ -1589,6 +1589,7 @@ let playAfterSync = false;
 // 1.4.2 (owner 03.11.2026): Play with the add-ons out of sync runs the same process as an update - the bar, Play waits -
 // and the game starts by itself when it is done; the launcher also clears the leftovers of our DLLs before the start
 async function doPlay(synced) {
+  try { await reload(); } catch (e) { /* the last status then */ }   // what is in the game folder now, not when the window last looked
   if (!synced && S.installed_version && !S.busy && compsNeedSync()) {
     try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; playAfterSync = true; render(); toast(t('playAfterSync')); return; }
     catch (e) { /* not now: start with what is there */ }
