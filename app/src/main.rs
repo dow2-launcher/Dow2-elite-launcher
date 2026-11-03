@@ -5,6 +5,7 @@
 //! * everything the Elite team may want to change (versions, news, announcements, links,
 //!   mirrors, launch commands) comes from the signed launcher.json, not from this code;
 //! * the launcher works offline with the last verified config.
+#![recursion_limit = "256"]   // get_status' json! grew past the default 128
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod reach;
@@ -425,6 +426,18 @@ mod procs {
         pub fn Process32FirstW(snap: isize, e: *mut Entry) -> i32;
         pub fn Process32NextW(snap: isize, e: *mut Entry) -> i32;
         pub fn CloseHandle(h: isize) -> i32;
+        fn MultiByteToWideChar(cp: u32, flags: u32, s: *const u8, n: i32, w: *mut u16, wn: i32) -> i32;
+    }
+    /// Text a console program wrote (OEM code page: cp866 on a Russian Windows) as a String.
+    pub fn oem_text(b: &[u8]) -> String {
+        if b.is_empty() || b.len() > i32::MAX as usize { return String::from_utf8_lossy(b).into_owned(); }
+        unsafe {
+            let n = MultiByteToWideChar(1 /* CP_OEMCP */, 0, b.as_ptr(), b.len() as i32, std::ptr::null_mut(), 0);
+            if n <= 0 { return String::from_utf8_lossy(b).into_owned(); }
+            let mut w = vec![0u16; n as usize];
+            MultiByteToWideChar(1, 0, b.as_ptr(), b.len() as i32, w.as_mut_ptr(), n);
+            String::from_utf16_lossy(&w)
+        }
     }
     pub fn running(name: &str) -> bool {
         unsafe {
@@ -441,12 +454,15 @@ mod procs {
         }
     }
 }
+/// The game, or Elite's own starter that is about to start it (it waits up to a minute for the game's window): while
+/// either runs, the add-on files stay as they are (1.4.2 - a second Play right after the first one, or an add-on update
+/// in that minute, changed DLLs under the starting game).
 fn is_game_running() -> bool {
     #[cfg(windows)]
-    { procs::running("DOW2.exe") }
+    { procs::running("DOW2.exe") || procs::running("Elite.exe") }
     #[cfg(not(windows))]
     {
-        std::process::Command::new("pgrep").args(["-fi", "dow2\\.exe"]).output().map(|o| o.status.success()).unwrap_or(false)
+        std::process::Command::new("pgrep").args(["-fi", "dow2\\.exe|[\\\\/]elite\\.exe"]).output().map(|o| o.status.success()).unwrap_or(false)
     }
 }
 
@@ -570,6 +586,8 @@ fn get_status(app: State<'_, App>) -> Value {
         "extra_mirror": s.extra_mirror,
         "dismissed": s.dismissed,
         "mirror_count": mirrors(&s, cfg.as_ref()).count(),
+        // old copies of our add-ons: the window syncs the add-ons (they are put aside there) before Play starts the game
+        "old_copies": dir.as_ref().map(|d| old_copies(d, &cfgd)).unwrap_or_default(),
         "components": cfgd.components.iter().map(|c| json!({
             "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category,
             "enabled": s.components.get(&c.id).copied().unwrap_or(c.default),
@@ -746,38 +764,143 @@ fn hand_copy_paths(c: &elite_core::config::Component) -> Vec<String> {
     v
 }
 
-/// 1.3.9 (owner 31.10.2026: an add-on that is off must not be loaded at all). Before every start:
-/// - hand-installed copies of our add-ons get renamed to *.off: the stand-alone package loaded old ones next to the
-///   launcher's (Relay 9 closing the game, the match timer v3 crashing it) whatever the ticks said;
-/// - an add-on that is off has no DLL in Elite_DLLs: a copy left there (e.g. from before an add-on id changed) was loaded
-///   when the game was started past the launcher (Steam, Elite.exe) with an older Elite.launchconfig.
-/// -> what it did, for the player (siritos 02.11: only our add-ons, the ones in launcher.json, and what belongs to them):
-/// the hand-installed copies put aside and the DLLs of add-ons that are off, as "dow2-patches/X.dll" / "Elite_DLLs/X.dll".
+/// 1.3.9 (owner 31.10.2026: an add-on that is off must not be loaded at all). Before every start an add-on that is off
+/// has no DLL in Elite_DLLs: a copy left there (e.g. from before an add-on id changed) was loaded when the game was
+/// started past the launcher (Steam, Elite.exe) with an older Elite.launchconfig. 1.4.2: the DLL is deleted, not renamed
+/// to *.off - nothing of an add-on that is off stays in Elite_DLLs (players' logs 31.10-02.11: X.dll.off files among the
+/// game's modules); turned on again, the add-on is installed again (its files come from the version cache).
+/// Hand-installed copies are not touched here any more: old_copies() finds them and the start waits until they are gone.
+/// Only our add-ons (the ones in launcher.json): never a file of Elite itself, never a DLL an add-on that is on injects.
+/// -> what it did, for the player: "Elite_DLLs/X.dll" for every DLL that went.
 fn enforce_off(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Vec<String> {
-    let g = update::Game::new(dir);
+    let elite_owned = elite_files(dir);
+    let on_injects: std::collections::HashSet<String> = cfg.components.iter()
+        .filter(|c| !c.inject.is_empty() && s.components.get(&c.id).copied().unwrap_or(c.default))
+        .map(|c| c.inject.to_ascii_lowercase()).collect();
     let mut done = Vec::new();
-    let off = |p: &std::path::Path| -> bool {
-        let mut o = p.as_os_str().to_owned(); o.push(".off");
-        let o = PathBuf::from(o);
-        let _ = std::fs::remove_file(&o);
-        std::fs::rename(p, &o).is_ok()
-    };
     for c in &cfg.components {
-        for f in found_conflicts(dir, c) { if off(&g.file(&f)) { done.push(f); } }
         if c.inject.is_empty() || s.components.get(&c.id).copied().unwrap_or(c.default) { continue; }
         let cg = update::Game::component(dir, &c.id);
         let dll = dir.join("Elite_DLLs").join(&c.inject);
         let was = dll.is_file();
         if !cg.load_state().version.is_empty() { let _ = cg.uninstall(); }
-        if dll.is_file() { off(&dll); }
-        if was && !dll.is_file() { done.push(format!("Elite_DLLs/{}", c.inject)); }
+        let rel = format!("Elite_DLLs/{}", c.inject);
+        if dll.is_file() && !on_injects.contains(&c.inject.to_ascii_lowercase()) && !elite_owned.contains(&rel.to_ascii_lowercase()) {
+            let _ = std::fs::remove_file(&dll);
+        }
+        if was && !dll.is_file() { done.push(rel); }
     }
     done
 }
 
+/// The files of Elite itself (its installed version's manifest), lower case "Elite_DLLs/X.dll" paths: never touched.
+fn elite_files(dir: &std::path::Path) -> std::collections::HashSet<String> {
+    update::Game::new(dir).load_state().files.iter().map(|f| f.path.to_ascii_lowercase()).collect()
+}
+
+/// Every DLL name that is ours (lower case): what the add-ons of the catalog inject, the retired ones, and every DLL a
+/// component the launcher ever installed lists (renamed add-ons included) - minus the files of Elite itself.
+fn our_dll_names(dir: &std::path::Path, cfg: &LauncherConfig) -> std::collections::HashSet<String> {
+    let mut v: std::collections::HashSet<String> = cfg.components.iter().filter(|c| !c.inject.is_empty())
+        .map(|c| c.inject.to_ascii_lowercase()).collect();
+    v.extend(RETIRED_DLLS.iter().map(|n| n.to_ascii_lowercase()));
+    for id in update::Game::component_ids(dir) {
+        for f in update::Game::component(dir, &id).load_state().files {
+            let name = f.path.rsplit('/').next().unwrap_or(&f.path).to_ascii_lowercase();
+            if name.ends_with(".dll") { v.insert(name); }
+        }
+    }
+    let elite = elite_files(dir);
+    v.retain(|n| !elite.contains(&format!("elite_dlls/{n}")));
+    v
+}
+
+/// Is this file name a leftover of one of our DLLs: "<ours>.dll.<anything>" - X.dll.off (older launchers turned add-ons
+/// off that way), X.dll.eliteupd (an update cut short), X.dll.bak, X.dll.old...
+fn our_leftover(name: &str, ours: &std::collections::HashSet<String>) -> bool {
+    let l = name.to_ascii_lowercase();
+    l.find(".dll.").map_or(false, |i| ours.contains(&l[..i + 4]) && l.len() > i + 5)
+}
+
+/// 1.4.2: before every start, the leftovers of our DLLs go from Elite_DLLs (deleted - they are ours and come back from
+/// the version cache or the server if ever needed). Players' logs 31.10-02.11: Cooldowns.dll.off, Relay.dll.off,
+/// Relay.dll.eliteupd... among the modules of a running game. Files of Elite and anything not ours stay as they are.
+fn drop_leftovers(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
+    let ours = our_dll_names(dir, cfg);
+    let mut gone = Vec::new();
+    let Ok(rd) = std::fs::read_dir(dir.join("Elite_DLLs")) else { return gone };
+    for e in rd.flatten() {
+        let n = e.file_name().to_string_lossy().to_string();
+        if e.path().is_file() && our_leftover(&n, &ours) && std::fs::remove_file(e.path()).is_ok() {
+            gone.push(format!("Elite_DLLs/{n}"));
+        }
+    }
+    gone
+}
+
+/// Old copies of our add-ons outside what the launcher installs, which the game would load next to (or instead of) the
+/// launcher's: the stand-alone dow2-patches package (its winmm.dll loads every DLL in dow2-patches/, whatever the ticks
+/// say) and the even older LobbyStats/ folder. Put aside without asking before every add-on sync and every start (owner
+/// 03.11.2026: one copy of every patch - the launcher's latest). Paths relative to the game folder.
+fn old_copies(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
+    let mut v: Vec<String> = Vec::new();
+    for c in &cfg.components {
+        for f in found_conflicts(dir, c) { if !v.iter().any(|x| x.eq_ignore_ascii_case(&f)) { v.push(f); } }
+    }
+    if dir.join("LobbyStats").join("LobbyStats.dll").is_file() { v.push("LobbyStats/LobbyStats.dll".into()); }
+    v
+}
+
+/// Put the old copies aside: into <game>/.elite_cache/old-addons-<time>/ (never deleted - can be put back by hand), with
+/// their .ini next to them; the stand-alone loader (winmm.dll, its readmes) too once dow2-patches has no DLL left.
+/// -> what moved
+fn put_aside_old_copies(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+    let bin = update::Game::new(dir).cache_dir().join(format!("old-addons-{stamp}"));
+    let mut moved = Vec::new();
+    let mut put = |rel: &str| {
+        let from = dir.join(rel.replace('/', std::path::MAIN_SEPARATOR_STR));
+        if !from.is_file() { return; }
+        let to = bin.join(rel.replace('/', std::path::MAIN_SEPARATOR_STR));
+        if let Some(p) = to.parent() { let _ = std::fs::create_dir_all(p); }
+        if std::fs::rename(&from, &to).is_ok() { moved.push(rel.to_string()); }
+    };
+    for f in old_copies(dir, cfg) {
+        put(&f);
+        if let Some((a, _)) = f.rsplit_once('.') { put(&format!("{a}.ini")); }
+    }
+    let pd = dir.join("dow2-patches");
+    let dlls_left = std::fs::read_dir(&pd).map(|rd| rd.flatten().any(|e| e.file_name().to_string_lossy().to_ascii_lowercase().ends_with(".dll"))).unwrap_or(false);
+    if !dlls_left {
+        for name in ["winmm.dll", "README_EN.txt", "README_RU.txt"] {
+            if is_patches_loader_file(dir, name) { put(name); }
+        }
+        if pd.is_dir() && std::fs::read_dir(&pd).map(|mut rd| rd.next().is_none()).unwrap_or(false) {
+            let _ = std::fs::remove_dir(&pd);
+        }
+    }
+    let lf = dir.join("LobbyStats");
+    if lf.is_dir() && std::fs::read_dir(&lf).map(|rd| !rd.flatten().any(|e| e.file_name().to_string_lossy().to_ascii_lowercase().ends_with(".dll"))).unwrap_or(false) {
+        if let Ok(rd) = std::fs::read_dir(&lf) {
+            for e in rd.flatten() { if e.path().is_file() { put(&format!("LobbyStats/{}", e.file_name().to_string_lossy())); } }
+        }
+        let _ = std::fs::remove_dir(&lf);
+    }
+    moved
+}
+
+/// A file of the stand-alone dow2-patches package at the top of the game folder (its winmm.dll loader names its folder
+/// in UTF-16, the readmes in plain text) - and not some other winmm.dll.
+fn is_patches_loader_file(dir: &std::path::Path, name: &str) -> bool {
+    let wide: Vec<u8> = "dow2-patches".encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
+    std::fs::read(dir.join(name))
+        .map(|b| b.windows(12).any(|w| w == b"dow2-patches") || b.windows(wide.len()).any(|w| w == wide.as_slice()))
+        .unwrap_or(false)
+}
+
 /// DLLs of add-ons that are gone from the catalog without a component of their own to clean up after them
-/// (02.11.2026: LoadingRatings.dll is part of LobbyStats.dll again). Renamed to *.off like enforce_off does,
-/// unless an add-on of the catalog injects that name again.
+/// (02.11.2026: LoadingRatings.dll is part of LobbyStats.dll again). Deleted like enforce_off does, unless an add-on of
+/// the catalog injects that name again.
 const RETIRED_DLLS: &[&str] = &["LoadingRatings.dll"];
 
 /// Add-ons that are no longer in the catalog: renamed ones (matchtimer -> matchtimer_r2, lobbystats -> lobbystats_r3...)
@@ -817,11 +940,7 @@ fn drop_orphans(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
     for name in RETIRED_DLLS {
         if injected.contains(&name.to_ascii_lowercase()) { continue; }
         let p = dir.join("Elite_DLLs").join(name);
-        if p.is_file() {
-            let mut o = p.as_os_str().to_owned(); o.push(".off");
-            let _ = std::fs::remove_file(&o);
-            if std::fs::rename(&p, &o).is_ok() { gone.push(format!("retired: Elite_DLLs/{name} -> .off")); }
-        }
+        if p.is_file() && std::fs::remove_file(&p).is_ok() { gone.push(format!("retired: Elite_DLLs/{name}")); }
         unlist(name);
     }
     gone
@@ -928,43 +1047,6 @@ fn junk_cleanup(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Va
     json!({"moved": moved, "uninjected": dropped, "backup": bin.display().to_string()})
 }
 
-/// Delete the hand-installed copy of a component: its files, their .ini next to them, and the stand-alone
-/// package's loader (winmm.dll + readmes) once its dow2-patches folder has no DLLs left.
-#[tauri::command]
-fn remove_conflicts(app: State<'_, App>, id: String) -> Result<Vec<String>, String> {
-    ensure_game_closed(&app)?;
-    let dir = game_dir(&app).ok_or("game folder not found")?;
-    let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
-    let c = cfg.components.iter().find(|c| c.id == id).ok_or("unknown add-on")?;
-    let g = update::Game::new(&dir);
-    let mut removed = Vec::new();
-    for f in found_conflicts(&dir, c) {
-        let p = g.file(&f);
-        std::fs::remove_file(&p).map_err(|e| format!("{f}: {e}"))?;
-        removed.push(f.clone());
-        let ini = p.with_extension("ini");
-        if ini.is_file() && std::fs::remove_file(&ini).is_ok() {
-            removed.push(f.rsplit_once('.').map(|(a, _)| format!("{a}.ini")).unwrap_or_default());
-        }
-    }
-    let pd = dir.join("dow2-patches");
-    let dlls_left = std::fs::read_dir(&pd).map(|rd| rd.flatten().any(|e| e.file_name().to_string_lossy().to_ascii_lowercase().ends_with(".dll"))).unwrap_or(false);
-    if !dlls_left {
-        // the loader names its folder in UTF-16, the readmes in plain text
-        let wide: Vec<u8> = "dow2-patches".encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
-        let ours = |name: &str| std::fs::read(dir.join(name))
-            .map(|b| b.windows(12).any(|w| w == b"dow2-patches") || b.windows(wide.len()).any(|w| w == wide.as_slice()))
-            .unwrap_or(false);
-        for name in ["winmm.dll", "README_EN.txt", "README_RU.txt"] {
-            if ours(name) && std::fs::remove_file(dir.join(name)).is_ok() { removed.push(name.to_string()); }
-        }
-        if pd.is_dir() && std::fs::read_dir(&pd).map(|mut rd| rd.next().is_none()).unwrap_or(false) {
-            let _ = std::fs::remove_dir(&pd);
-        }
-    }
-    Ok(removed)
-}
-
 fn backup_dir(dir: &std::path::Path, id: &str) -> PathBuf {
     let id: String = id.chars().filter(|c| c.is_ascii_alphanumeric() || *c == '-' || *c == '_').collect();
     dir.join(".elite_launcher").join("backup").join(id)
@@ -1006,6 +1088,8 @@ fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m:
     if main.load_state().version.is_empty() {
         return Ok(()); // Elite itself is not installed yet
     }
+    put_aside_old_copies(dir, cfg);      // one copy of every patch: the launcher's (owner 03.11.2026)
+    drop_leftovers(dir, cfg);
     drop_orphans(dir, cfg);
     for c in &cfg.components {
         let on = comp_on(dir, c, s);
@@ -1166,9 +1250,20 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || {
         let patches = dir.as_ref().and_then(|d| std::fs::read_dir(d.join("dow2-patches")).ok()).map(|rd| {
             let mut v: Vec<String> = rd.flatten().map(|e| e.file_name().to_string_lossy().to_string()).collect(); v.sort(); v.join(" ") }).unwrap_or_default();
-        let mut out = format!("Elite Launcher {} · {} · Elite {} ({})\nadd-ons:\n  {}\ngame: {}\ndow2-patches: {}\n\n",
+        // 1.4.2: every DLL-like file in Elite_DLLs with its size - what the game can load (players' logs: X.dll.off files
+        // among the modules were only seen in a Windows error report)
+        let elite_dlls = dir.as_ref().and_then(|d| std::fs::read_dir(d.join("Elite_DLLs")).ok()).map(|rd| {
+            let mut v: Vec<String> = rd.flatten().filter(|e| e.path().is_file()).filter_map(|e| {
+                let n = e.file_name().to_string_lossy().to_string();
+                let l = n.to_ascii_lowercase();
+                (l.ends_with(".dll") || l.contains(".dll.") || l.ends_with(".off") || l.ends_with(".asi"))
+                    .then(|| format!("{n} ({})", e.metadata().map(|m| m.len()).unwrap_or(0)))
+            }).collect();
+            v.sort_by_key(|x| x.to_ascii_lowercase()); v.join(", ") }).unwrap_or_default();
+        let mut out = format!("Elite Launcher {} · {} · Elite {} ({})\nadd-ons:\n  {}\ngame: {}\ndow2-patches: {}\nElite_DLLs: {}\n\n",
             LAUNCHER_VERSION, os_name(), installed.version, installed.channel, comps.join("\n  "),
-            dir.as_ref().map(|d| d.display().to_string()).unwrap_or_default(), if patches.is_empty() { "-" } else { &patches });
+            dir.as_ref().map(|d| d.display().to_string()).unwrap_or_default(), if patches.is_empty() { "-" } else { &patches },
+            if elite_dlls.is_empty() { "-" } else { &elite_dlls });
         // всё, что может помочь понять краш: логи дополнений, логи игры, дампы, отчёты Windows об ошибках
         let mut files: Vec<PathBuf> = Vec::new();
         let recent = |p: &std::path::Path, days: u64| std::fs::metadata(p).and_then(|m| m.modified()).ok()
@@ -1278,9 +1373,13 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
             let q = "*[System[(EventID=1000 or EventID=1001 or EventID=1002 or EventID=1026) and TimeCreated[timediff(@SystemTime) <= 604800000]]]";
             if let Ok(o) = std::process::Command::new("wevtutil").args(["qe", "Application", "/c:60", "/rd:true", "/f:text", &format!("/q:{q}")])
                 .creation_flags(0x0800_0000).output() {
-                let t = String::from_utf8_lossy(&o.stdout);
+                // wevtutil writes text in the console's OEM code page (players' logs: Russian Windows came out as ������)
+                let t = procs::oem_text(&o.stdout);
                 let ev: Vec<&str> = t.split("Event[").filter(|e| { let l = e.to_ascii_lowercase(); l.contains("dow2") || l.contains("elite") }).collect();
-                out += &format!("=== Windows event log: game crashes, last 7 days ({} events) ===\n", ev.len());
+                // Elite's own starter giving up waiting for the game's window (the game goes on) - not a game crash
+                let starter = ev.iter().filter(|e| { let l = e.to_ascii_lowercase(); l.contains("elite.exe") && l.contains("78da5") }).count();
+                out += &format!("=== Windows event log: game crashes, last 7 days ({} events{}) ===\n", ev.len(),
+                    if starter > 0 { format!(", {starter} of them Elite.exe+0x78da5: Elite's starter did not see the game window in time, the game itself goes on") } else { String::new() });
                 for e in ev { out += "Event["; out += e; }
                 out += "\n\n"; n += 1;
             }
@@ -1333,10 +1432,16 @@ fn start_game(app: &App) -> Result<Value, String> {
     }
     let dir = game_dir(&app).ok_or("game folder not found")?;
     let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
-    // what the checks of our add-ons did is told to the player (siritos 02.11): only add-ons of launcher.json and their
-    // hand-installed copies, and the ones gone from the catalog (drop_orphans) - nothing else in the game folder;
-    // loader: the stand-alone dow2-patches package's winmm.dll
-    let mut off = enforce_off(&dir, &cfg, &app.settings.lock().unwrap().clone());
+    // old copies of our add-ons (the stand-alone package, the old LobbyStats folder) would load next to the launcher's:
+    // put aside without asking (owner 03.11.2026: one copy of every patch, the launcher's latest). The window brings
+    // the launcher's versions first (Play syncs the add-ons before it starts), so normally there is nothing left here.
+    let old = put_aside_old_copies(&dir, &cfg);
+    // what the checks of our add-ons did is told to the player (siritos 02.11): only add-ons of launcher.json, the
+    // leftovers of their DLLs, and the ones gone from the catalog (drop_orphans) - nothing else in the game folder;
+    // loader: the stand-alone dow2-patches package's winmm.dll. The leftovers first: drop_orphans forgets the names.
+    let mut off = old;
+    off.extend(drop_leftovers(&dir, &cfg));
+    off.extend(enforce_off(&dir, &cfg, &app.settings.lock().unwrap().clone()));
     off.extend(drop_orphans(&dir, &cfg));
     drop_conflicting(&dir, &cfg);
     for n in sync_injected(&dir, &cfg, &app.settings.lock().unwrap().clone()) {
@@ -2101,7 +2206,7 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, remove_conflicts, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
+            get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
@@ -2134,15 +2239,55 @@ mod enforce_off_tests {
         cfg.components = vec![comp("relay_r2", "Relay.dll", false, &[]), comp("automatch", "MMFind.dll", true, &["dow2-patches/MMFind.dll"]),
                               comp("obsfix_r2", "ObsFix.dll", false, &["dow2-patches/ObsFix.dll"]),
                               comp("lobbystats_r3", "LobbyStats.dll", false, &["dow2-patches/LobbyStats.dll", "LobbyStats/LobbyStats.dll"])];
-        enforce_off(&d, &cfg, &Settings::default());
         let ex = |f: &str| d.join(f).is_file();
-        assert!(!ex("dow2-patches/Relay.dll") && ex("dow2-patches/Relay.dll.off"));
-        assert!(!ex("dow2-patches/ObsFix.dll") && !ex("dow2-patches/MMFind.dll") && !ex("LobbyStats/LobbyStats.dll"));
-        assert!(!ex("Elite_DLLs/Relay.dll") && ex("Elite_DLLs/Relay.dll.off"));
-        assert!(ex("Elite_DLLs/MMFind.dll"), "an add-on that is on keeps its DLL");
+        // the old copies are found (they stop the start) and put aside on request; the foreign DLL stays
+        let old = old_copies(&d, &cfg);
+        for f in ["dow2-patches/Relay.dll", "dow2-patches/ObsFix.dll", "dow2-patches/MMFind.dll", "LobbyStats/LobbyStats.dll"] {
+            assert!(old.iter().any(|x| x == f), "{f} in {old:?}");
+        }
+        assert!(!old.iter().any(|x| x.contains("Other")), "{old:?}");
+        let moved = put_aside_old_copies(&d, &cfg);
+        assert_eq!(moved.len(), 4, "{moved:?}");
+        assert!(old_copies(&d, &cfg).is_empty());
+        assert!(!ex("dow2-patches/Relay.dll") && !ex("dow2-patches/Relay.dll.off") && !ex("LobbyStats/LobbyStats.dll"));
         assert!(ex("dow2-patches/Other.dll"), "files that are not ours stay");
+        assert!(std::fs::read_dir(d.join(".elite_cache")).unwrap().flatten().any(|e| e.path().join("dow2-patches").join("Relay.dll").is_file()), "kept aside");
+        // an add-on that is off: its DLL is deleted, no X.dll.off left behind
+        enforce_off(&d, &cfg, &Settings::default());
+        assert!(!ex("Elite_DLLs/Relay.dll") && !ex("Elite_DLLs/Relay.dll.off"));
+        assert!(ex("Elite_DLLs/MMFind.dll"), "an add-on that is on keeps its DLL");
         enforce_off(&d, &cfg, &Settings::default());            // a second start: nothing breaks
-        assert!(ex("Elite_DLLs/Relay.dll.off"));
+        assert!(ex("Elite_DLLs/MMFind.dll"));
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn leftovers_of_our_dlls_go_and_nothing_else() {
+        let d = std::env::temp_dir().join(format!("lo_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        for p in ["Elite_DLLs", ".elite_launcher"] { std::fs::create_dir_all(d.join(p)).unwrap(); }
+        // what players' logs showed among the game's modules, plus Elite's own files and a foreign mod with its own .bak
+        for f in ["Elite_DLLs/Relay.dll.off", "Elite_DLLs/Relay.dll.eliteupd", "Elite_DLLs/Cooldowns.dll.off", "Elite_DLLs/LobbyStats.dll.bak",
+                  "Elite_DLLs/LoadingRatings.dll.off", "Elite_DLLs/OldTimer.dll.off", "Elite_DLLs/MMFind.dll", "Elite_DLLs/MMFind.ini",
+                  "Elite_DLLs/MiscFixes.dll", "Elite_DLLs/MiscFixes.dll.bak", "Elite_DLLs/Foreign.dll", "Elite_DLLs/Foreign.dll.off",
+                  "Elite_DLLs/Relay.log"] { std::fs::write(d.join(f), b"MZ").unwrap(); }
+        // Elite's MiscFixes.dll (main manifest); an add-on gone from the catalog that once installed OldTimer.dll
+        std::fs::write(d.join(".elite_launcher/state.json"), r#"{"files":[{"path":"Elite_DLLs/MiscFixes.dll","size":2,"mtime":0,"sha":""}]}"#).unwrap();
+        std::fs::write(d.join(".elite_launcher/component-oldtimer.json"), r#"{"version":"t-1","files":[{"path":"Elite_DLLs/OldTimer.dll","size":2,"mtime":0,"sha":""}]}"#).unwrap();
+        let comp = |id: &str, dll: &str, def: bool| elite_core::config::Component { id: id.into(), inject: dll.into(), default: def, ..Default::default() };
+        let mut cfg = LauncherConfig::default();
+        cfg.components = vec![comp("automatch", "MMFind.dll", true), comp("relay_r2", "Relay.dll", true),
+                              comp("cooldowns_r2", "Cooldowns.dll", false), comp("lobbystats_r3", "LobbyStats.dll", false)];
+        let gone = drop_leftovers(&d, &cfg);
+        let ex = |f: &str| d.join(f).is_file();
+        for f in ["Relay.dll.off", "Relay.dll.eliteupd", "Cooldowns.dll.off", "LobbyStats.dll.bak", "LoadingRatings.dll.off", "OldTimer.dll.off"] {
+            assert!(!ex(&format!("Elite_DLLs/{f}")), "{f} should go: {gone:?}");
+        }
+        for f in ["MMFind.dll", "MMFind.ini", "MiscFixes.dll", "MiscFixes.dll.bak", "Foreign.dll", "Foreign.dll.off", "Relay.log"] {
+            assert!(ex(&format!("Elite_DLLs/{f}")), "{f} is not a leftover of ours");
+        }
+        assert_eq!(gone.len(), 6, "{gone:?}");
+        assert!(drop_leftovers(&d, &cfg).is_empty(), "a second start: nothing more");
         let _ = std::fs::remove_dir_all(&d);
     }
 }
@@ -2190,8 +2335,10 @@ mod junk_tests {
         let mut cfg = LauncherConfig::default();
         cfg.components = vec![comp("automatch", "MMFind.dll", true), comp("relay_r2", "Relay.dll", false)];
         let s = Settings::default();
+        assert_eq!(old_copies(&d, &cfg), vec!["dow2-patches/MMFind.dll".to_string()], "the hand copy stops the start");
         let off = enforce_off(&d, &cfg, &s);
-        assert!(off.contains(&"dow2-patches/MMFind.dll".to_string()) && off.contains(&"Elite_DLLs/Relay.dll".to_string()), "{off:?}");
+        assert_eq!(off, vec!["Elite_DLLs/Relay.dll".to_string()], "{off:?}");
+        assert!(d.join("dow2-patches/MMFind.dll").is_file(), "hand copies are not touched without asking");
         sync_injected(&d, &cfg, &s);
         let lc = std::fs::read_to_string(d.join("Elite.launchconfig")).unwrap();
         assert!(!lc.contains("Relay.dll") && lc.contains("Other.dll"), "ours out, a foreign DLL left alone: {lc}");

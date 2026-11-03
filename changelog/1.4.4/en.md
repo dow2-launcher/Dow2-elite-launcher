@@ -1,0 +1,6 @@
+- Add-ons: the game always gets one, current copy of each of our add-ons. Old hand-installed copies (the dow2-patches and LobbyStats folders) are moved to .elite_cache and the launcher's version goes in; leftover DLLs (.off, .eliteupd, .bak) and the DLLs of add-ons that are off are deleted - before, the game could load them next to the current ones. Elite's own files and other people's DLLs are left alone.
+- Play: if the add-ons differ from the launcher's, the usual update runs first (the progress bar, Play waits) and then the game starts by itself.
+- While the game starts or runs, the launcher does not change add-on files.
+- Launcher update: the Update button shows up without a restart, as soon as the new version reaches our servers.
+- Online: no search time next to the players looking for a game.
+- Send logs: signed in with Steam, the nickname field already has your profile name (you can change it). The logs now list the files in Elite_DLLs; the Windows error log on a non-English system no longer comes out as "������".
