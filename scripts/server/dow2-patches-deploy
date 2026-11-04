@@ -56,7 +56,8 @@ want = json.load(open("addons.json"))
 lj_path = os.path.join(store, "launcher.json")
 lj = json.load(open(lj_path))
 comps = {c["id"]: c for c in lj["components"]}
-TEXT = ("name", "description", "default", "conflicts", "options")      # "files" is about the build, not the launcher
+TEXT = ("name", "description", "category", "order", "default", "conflicts", "options")   # "files" is about the build, not the launcher
+# 04.11.2026 (siritos): "category" (the group on the Add-ons tab) comes from addons.json too, not only by hand
 done, errs = [], []
 
 def is_dll32(p):
