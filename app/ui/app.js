@@ -180,7 +180,7 @@ const T = {
     "addonChangedN": "Add-ons changed: {n} - marked below",
     "chipNew": "new", "chipUpdated": "updated", "chipOpts": "settings changed",
     "newsAll": "Read all", "newsLess": "Collapse", "newsLink": "Open the link",
-    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Network and servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_fixes": "Fixes", "cat_experiment": "Experiments", "cat_other": "Other", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Network and servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_fixes": "Fixes", "cat_experiment": "Experiments", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "playAfterSync": "Updating the add-ons first — the game starts by itself after that.",
     "launcherNew": "Elite Launcher {v} is out",
@@ -387,7 +387,7 @@ const T = {
     "addonChangedN": "Изменилось дополнений: {n} — отмечены в списке",
     "chipNew": "новое", "chipUpdated": "обновлено", "chipOpts": "изменились настройки",
     "newsAll": "Читать полностью", "newsLess": "Свернуть", "newsLink": "Открыть ссылку",
-    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Сеть и серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_fixes": "Исправления", "cat_experiment": "Эксперименты", "cat_other": "Другое", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
+    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Сеть и серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_fixes": "Исправления", "cat_experiment": "Эксперименты", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "playAfterSync": "Сначала обновляю дополнения — игра запустится сама.",
     "launcherNew": "Вышел Elite Launcher {v}",
@@ -589,7 +589,7 @@ const T = {
     "addonChangedN": "Complementos cambiados: {n} — marcados abajo",
     "chipNew": "nuevo", "chipUpdated": "actualizado", "chipOpts": "ajustes cambiados",
     "newsAll": "Leer todo", "newsLess": "Contraer", "newsLink": "Abrir el enlace",
-    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Red y servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_fixes": "Correcciones", "cat_experiment": "Experimentos", "cat_other": "Otros", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
+    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Red y servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_fixes": "Correcciones", "cat_experiment": "Experimentos", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
     "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "playAfterSync": "Primero se actualizan los complementos; luego el juego se inicia solo.",
     "launcherNew": "Ya está Elite Launcher {v}",
@@ -791,7 +791,7 @@ const T = {
     "addonChangedN": "Modules modifiés : {n} — marqués ci-dessous",
     "chipNew": "nouveau", "chipUpdated": "mis à jour", "chipOpts": "réglages modifiés",
     "newsAll": "Tout lire", "newsLess": "Réduire", "newsLink": "Ouvrir le lien",
-    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Réseau et serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_fixes": "Correctifs", "cat_experiment": "Expériences", "cat_other": "Autres", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
+    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Réseau et serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_fixes": "Correctifs", "cat_experiment": "Expériences", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
     "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "playAfterSync": "Mise à jour des modules d'abord — le jeu démarrera ensuite tout seul.",
     "launcherNew": "Elite Launcher {v} est disponible",
@@ -993,7 +993,7 @@ const T = {
     "addonChangedN": "Geänderte Erweiterungen: {n} — unten markiert",
     "chipNew": "neu", "chipUpdated": "aktualisiert", "chipOpts": "Einstellungen geändert",
     "newsAll": "Alles lesen", "newsLess": "Einklappen", "newsLink": "Link öffnen",
-    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Netz und Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_fixes": "Fehlerbehebungen", "cat_experiment": "Experimente", "cat_other": "Sonstiges", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Netz und Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_fixes": "Fehlerbehebungen", "cat_experiment": "Experimente", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
     "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "playAfterSync": "Zuerst werden die Add-ons aktualisiert – das Spiel startet danach von selbst.",
     "launcherNew": "Elite Launcher {v} ist da",
@@ -1173,21 +1173,20 @@ function optsHtml(c, lock) {
 // its own launcher.json entry - "category" and "order" (a number, smaller = higher; Dow2-patches addons.json / store-texts.json).
 // COMP_GROUPS is only the fallback for an entry without them (the store before those fields: the forwarding servers jumped
 // between groups there); ids without the "_r2"/"_r3" ends
-const COMP_CATS = ['network', 'interface', 'gameplay', 'fixes', 'experiment', 'other'];
+const COMP_CATS = ['network', 'interface', 'gameplay', 'fixes', 'experiment'];
 const COMP_GROUPS = {
   network: ['relay', 'relay_fwd', 'automatch', 'steamkeep', 'ownlobby'],
-  interface: ['matchtimer', 'apm', 'cooldowns', 'lobbystats', 'loadingratings', 'joinsound'],
+  interface: ['matchtimer', 'apm', 'cooldowns', 'lobbystats', 'loadingratings', 'joinsound', 'rusifikator'],
   gameplay: ['reverse', 'jumpretry', 'reinforcefix'],
   fixes: ['elitefix_wmic', 'obsfix', 'crashlog'],
   experiment: ['roomjoin', 'netprobe'],
-  other: ['rusifikator'],
 };
 const compBase = c => String(c.id).replace(/_(r\d+|off)$/, '');
 // an entry with "order" is a new one: its category is trusted; an old entry (no "order") keeps the old category only for an
 // id this list does not know
 const compCat = c => (Number.isFinite(c.order) && COMP_CATS.includes(c.category) && c.category)
   || COMP_CATS.find(k => COMP_GROUPS[k].includes(compBase(c)))
-  || (COMP_CATS.includes(c.category) ? c.category : 'other');
+  || (COMP_CATS.includes(c.category) ? c.category : 'experiment');
 const compRank = c => {
   if (Number.isFinite(c.order)) return c.order;
   const i = COMP_GROUPS[compCat(c)].indexOf(compBase(c));
