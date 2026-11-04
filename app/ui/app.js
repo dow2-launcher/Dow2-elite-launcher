@@ -122,7 +122,7 @@ const T = {
     "usageTitle": "Anonymous usage count",
     "usage": "Count me as a launcher user",
     "usageNote": "Once a day the launcher sends a hash that changes every day, plus its version, OS and the Elite version. No names, Steam or hardware data; days can't be linked to each other.",
-    "onTag": "Mention in the chat", "roomsTab": "Lobbies", "roomsTitle": "Open lobbies", "roomsNote": "Custom games being set up right now - the same list as the game browser. Elite or vanilla is told by the races, the army badges and the map.", "roomsNone": "Nobody is setting up a game right now.", "roomsErr": "The list is not available right now.", "roomsFree": "open", "roomsVan": "vanilla", "roomsOther": "other mod", "roomsObs": "observers", "roomsPw": "password", "roomsJoin": "Join", "roomsJoinStart": "Starting the game and joining {name}...", "roomsJoinRunning": "The game is running: switch to it, the join starts there", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
+    "onTag": "Mention in the chat", "roomsTab": "Lobbies", "roomsTitle": "Open lobbies", "roomsNote": "Custom games being set up right now - the same list as the game browser. Elite or vanilla is told by the races, the army badges and the map.", "roomsNone": "Nobody is setting up a game right now.", "roomsErr": "The list is not available right now.", "roomsFree": "open", "roomsVan": "vanilla", "roomsOther": "other mod", "roomsObs": "observers", "roomsPw": "password", "roomsJoin": "Join", "roomsJoinStart": "Starting the game and joining {name}...", "roomsJoinRunning": "The game is running: switch to it, the join starts there", "roomsJoinBusy": "You are searching or in a match: Join waits until it ends", "roomsVerOther": "Elite {v}: not your version ({mine}), the game would not let you in", "roomsJoinUnsure": "The exact game of this room is not known yet", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
     "lanTitle": "Local network",
     "lanShare": "Download Elite from other launchers on the local network and share it with them (faster; every file is checked against the signed version)",
     "trayOpen": "Open Elite Launcher",
@@ -180,7 +180,7 @@ const T = {
     "addonChangedN": "Add-ons changed: {n} - marked below",
     "chipNew": "new", "chipUpdated": "updated", "chipOpts": "settings changed",
     "newsAll": "Read all", "newsLess": "Collapse", "newsLink": "Open the link",
-    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_experiment": "Experiments", "cat_other": "Other", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Network and servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_fixes": "Fixes", "cat_experiment": "Experiments", "cat_other": "Other", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "playAfterSync": "Updating the add-ons first — the game starts by itself after that.",
     "launcherNew": "Elite Launcher {v} is out",
@@ -329,7 +329,7 @@ const T = {
     "usageTitle": "Анонимная статистика",
     "usage": "Учитывать меня в числе пользователей лаунчера",
     "usageNote": "Раз в сутки лаунчер отправляет хеш, который каждый день новый, плюс свою версию, ОС и версию Elite. Никаких ников, Steam или данных о компьютере; связать дни между собой нельзя.",
-    "onTag": "Упомянуть в чате", "roomsTab": "Комнаты", "roomsJoin": "Войти", "roomsJoinStart": "Запускаю игру и вхожу в {name}...", "roomsJoinRunning": "Игра уже запущена: переключитесь в неё, вход начнётся там", "roomsTitle": "Открытые лобби", "roomsNote": "Кастомки, которые сейчас собираются, — тот же список, что в браузере игр. Elite или ваниль — по расам, значкам армий и карте.", "roomsNone": "Сейчас никто не собирает игру.", "roomsErr": "Список сейчас недоступен.", "roomsFree": "свободно", "roomsVan": "ваниль", "roomsOther": "другой мод", "roomsObs": "наблюдатели", "roomsPw": "с паролем", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
+    "onTag": "Упомянуть в чате", "roomsTab": "Комнаты", "roomsJoin": "Войти", "roomsJoinStart": "Запускаю игру и вхожу в {name}...", "roomsJoinRunning": "Игра уже запущена: переключитесь в неё, вход начнётся там", "roomsJoinBusy": "Вы в поиске или в матче: войти можно, когда он закончится", "roomsVerOther": "Elite {v}: не ваша версия ({mine}), игра не пустит", "roomsJoinUnsure": "Точная версия этой комнаты пока неизвестна", "roomsTitle": "Открытые лобби", "roomsNote": "Кастомки, которые сейчас собираются, — тот же список, что в браузере игр. Elite или ваниль — по расам, значкам армий и карте.", "roomsNone": "Сейчас никто не собирает игру.", "roomsErr": "Список сейчас недоступен.", "roomsFree": "свободно", "roomsVan": "ваниль", "roomsOther": "другой мод", "roomsObs": "наблюдатели", "roomsPw": "с паролем", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
     "lanTitle": "Локальная сеть",
     "lanShare": "Качать Elite с других лаунчеров в локальной сети и раздавать им (быстрее; каждый файл сверяется с подписанной версией)",
     "trayOpen": "Открыть Elite Launcher",
@@ -387,7 +387,7 @@ const T = {
     "addonChangedN": "Изменилось дополнений: {n} — отмечены в списке",
     "chipNew": "новое", "chipUpdated": "обновлено", "chipOpts": "изменились настройки",
     "newsAll": "Читать полностью", "newsLess": "Свернуть", "newsLink": "Открыть ссылку",
-    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_experiment": "Эксперименты", "cat_other": "Другое", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
+    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Сеть и серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_fixes": "Исправления", "cat_experiment": "Эксперименты", "cat_other": "Другое", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "playAfterSync": "Сначала обновляю дополнения — игра запустится сама.",
     "launcherNew": "Вышел Elite Launcher {v}",
@@ -589,7 +589,7 @@ const T = {
     "addonChangedN": "Complementos cambiados: {n} — marcados abajo",
     "chipNew": "nuevo", "chipUpdated": "actualizado", "chipOpts": "ajustes cambiados",
     "newsAll": "Leer todo", "newsLess": "Contraer", "newsLink": "Abrir el enlace",
-    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_experiment": "Experimentos", "cat_other": "Otros", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
+    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Red y servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_fixes": "Correcciones", "cat_experiment": "Experimentos", "cat_other": "Otros", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
     "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "playAfterSync": "Primero se actualizan los complementos; luego el juego se inicia solo.",
     "launcherNew": "Ya está Elite Launcher {v}",
@@ -791,7 +791,7 @@ const T = {
     "addonChangedN": "Modules modifiés : {n} — marqués ci-dessous",
     "chipNew": "nouveau", "chipUpdated": "mis à jour", "chipOpts": "réglages modifiés",
     "newsAll": "Tout lire", "newsLess": "Réduire", "newsLink": "Ouvrir le lien",
-    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_experiment": "Expériences", "cat_other": "Autres", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
+    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Réseau et serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_fixes": "Correctifs", "cat_experiment": "Expériences", "cat_other": "Autres", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
     "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "playAfterSync": "Mise à jour des modules d'abord — le jeu démarrera ensuite tout seul.",
     "launcherNew": "Elite Launcher {v} est disponible",
@@ -993,7 +993,7 @@ const T = {
     "addonChangedN": "Geänderte Erweiterungen: {n} — unten markiert",
     "chipNew": "neu", "chipUpdated": "aktualisiert", "chipOpts": "Einstellungen geändert",
     "newsAll": "Alles lesen", "newsLess": "Einklappen", "newsLink": "Link öffnen",
-    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_experiment": "Experimente", "cat_other": "Sonstiges", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Netz und Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_fixes": "Fehlerbehebungen", "cat_experiment": "Experimente", "cat_other": "Sonstiges", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
     "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "playAfterSync": "Zuerst werden die Add-ons aktualisiert – das Spiel startet danach von selbst.",
     "launcherNew": "Elite Launcher {v} ist da",
@@ -1169,12 +1169,30 @@ function optsHtml(c, lock) {
   return parts.map(p => p.g ? `<div class="addon-sub"><div class="addon-grp">${esc(p.g)}</div>${p.list.map(one).join('')}</div>` : p.list.map(one).join('')).join('');
 }
 
-// The groups of the Add-ons tab, in this order; an add-on without launcher.json "category" is put in one by its id (the
-// "_r2"/"_r3" ends of the ids left out)
-const COMP_CATS = ['network', 'interface', 'gameplay', 'experiment', 'other'];
-const COMP_CAT_BY_ID = { relay: 'network', automatch: 'network', lobbystats: 'interface', loadingratings: 'interface', matchtimer: 'interface',
-  cooldowns: 'interface', reverse: 'gameplay', obsfix: 'gameplay', netprobe: 'network', ownlobby: 'network' };
-const compCat = c => COMP_CATS.includes(c.category) ? c.category : COMP_CAT_BY_ID[String(c.id).replace(/_(r\d+|off)$/, '')] || 'other';
+// The groups of the Add-ons tab, in this order. 1.4.8 (siritos 04.11): each add-on names its group and its place in it in
+// its own launcher.json entry - "category" and "order" (a number, smaller = higher; Dow2-patches addons.json / store-texts.json).
+// COMP_GROUPS is only the fallback for an entry without them (the store before those fields: the forwarding servers jumped
+// between groups there); ids without the "_r2"/"_r3" ends
+const COMP_CATS = ['network', 'interface', 'gameplay', 'fixes', 'experiment', 'other'];
+const COMP_GROUPS = {
+  network: ['relay', 'relay_fwd', 'automatch', 'steamkeep', 'ownlobby'],
+  interface: ['matchtimer', 'apm', 'cooldowns', 'lobbystats', 'loadingratings', 'joinsound'],
+  gameplay: ['reverse', 'jumpretry', 'reinforcefix'],
+  fixes: ['elitefix_wmic', 'obsfix', 'crashlog'],
+  experiment: ['roomjoin', 'netprobe'],
+  other: ['rusifikator'],
+};
+const compBase = c => String(c.id).replace(/_(r\d+|off)$/, '');
+// an entry with "order" is a new one: its category is trusted; an old entry (no "order") keeps the old category only for an
+// id this list does not know
+const compCat = c => (Number.isFinite(c.order) && COMP_CATS.includes(c.category) && c.category)
+  || COMP_CATS.find(k => COMP_GROUPS[k].includes(compBase(c)))
+  || (COMP_CATS.includes(c.category) ? c.category : 'other');
+const compRank = c => {
+  if (Number.isFinite(c.order)) return c.order;
+  const i = COMP_GROUPS[compCat(c)].indexOf(compBase(c));
+  return i < 0 ? 1e6 : (i + 1) * 10;
+};
 // the groups the player folded (only a convenience: without storage everything is open)
 const COMP_SHUT = new Set();
 try { JSON.parse(localStorage.getItem('compShut') || '[]').forEach(k => COMP_SHUT.add(k)); } catch (e) {}
@@ -1197,7 +1215,7 @@ function compList(box, list, full) {
       + (c.enabled && (c.options || []).length ? '<div class="addon-opts">' + (full ? `<div class="addon-opts-h">${esc(t('addonSettings'))}</div>` : '') + optsHtml(c, lock) + '</div>' : '')
       + '</div>';
   // the Add-ons tab in groups (siritos 02.11): launcher.json "category" when the owner sets it, else by the add-on id
-  const groups = full ? COMP_CATS.map(k => ({ k, list: list.filter(c => compCat(c) === k) })).filter(g => g.list.length) : null;
+  const groups = full ? COMP_CATS.map(k => ({ k, list: list.filter(c => compCat(c) === k).map((c, i) => [c, i]).sort((a, b) => compRank(a[0]) - compRank(b[0]) || a[1] - b[1]).map(x => x[0]) })).filter(g => g.list.length) : null;
   box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '')
     // a group folds on a click on its heading (kept for the next start); the heading says how many are on: "2 / 4"
     + (full ? groups.map(g => { const shut = COMP_SHUT.has(g.k), on = g.list.filter(c => c.enabled).length;
@@ -1681,9 +1699,34 @@ const roomFlag = c => /^[a-z]{2}$/i.test(c || '') ? String.fromCodePoint(...[...
 // RoomJoin (experiment 03.11.2026): "Join" on an Elite room without a password while the add-on is on - the game starts (or is
 // already running) and RoomJoin.dll walks into the room from the main menu; if it can't, the game shows the public games list
 const roomJoinOn = () => !!(S && (S.roomjoin_dll || (S.components || []).find(c => String(c.id).replace(/_(r\d+|off)$/, '') === 'roomjoin' && c.enabled)));
+// 1.4.8 (review of RoomJoin 1, 03.11): no Join while I search or play (a Join then could break the match the automatch walks
+// the menus to; RoomJoin 8 drops such a request too) - from the Online block's live lists, when signed in
+const meBusy = () => {
+  const me = CH.me && CH.me.signed_in ? String(CH.me.steam || '') : '';
+  if (!me) return false;
+  return LIVE.searching.some(p => String(p.steam) === me)
+    || LIVE.ingame.some(m => [...(m.team1 || []), ...(m.team2 || [])].some(p => String(p.steam) === me) || (m.watchers || []).map(String).includes(me));
+};
+// the room's version (the ladder's exact type: the game's own mod name and version from Relic) against the installed Elite;
+// "3.2" = "3.2.0"; an installed build that is not a plain number (a test channel) is not compared
+const verParts = v => String(v || '').split(/[^0-9]+/).filter(Boolean).map(Number);
+const verSame = (a, b) => { const x = verParts(a), y = verParts(b); while (x.length && !x[x.length - 1]) x.pop(); while (y.length && !y[y.length - 1]) y.pop(); return x.join('.') === y.join('.'); };
+// Join on this room: '' = yes, else why not (the button's title). An older ladder without the exact fields (r.exact undefined): as before
+function roomJoinWhy(r) {
+  if (r.exact === undefined) return '';
+  if (!r.exact) return t('roomsJoinUnsure');
+  const mine = S && S.installed_version;
+  if (r.version && /^\d/.test(mine || '') && !verSame(r.version, mine)) return t('roomsVerOther', { v: r.version, mine });
+  return '';
+}
+function roomsJoinState() {   // the Join buttons follow my search / match at once (the list itself reloads every 15 s)
+  const busy = meBusy();
+  document.querySelectorAll('#roomsList .rjoin').forEach(b => { b.disabled = busy; b.title = busy ? t('roomsJoinBusy') : t('roomsJoin'); });
+}
 function roomCard(r) {
   const A = (RM.host || 'https://rts.fintebtc.de') + '/elite/assets/';
-  const tag = r.game === 'elite' ? `<span class="tag elite">Elite</span>`
+  const why = r.game === 'elite' ? roomJoinWhy(r) : '';
+  const tag = r.game === 'elite' ? `<span class="tag elite${why && r.exact ? ' oldv' : ''}"${why && r.exact ? ` title="${esc(why)}"` : ''}>Elite${r.version ? ' ' + esc(r.version) : ''}</span>`
     : r.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>`
     : r.game === 'other' ? `<span class="tag oth">${esc(t('roomsOther'))}</span>` : '';
   const cap = r.cap || (((r.map || '').match(/^(\d)p_/) || [])[1] | 0) || 0;
@@ -1707,8 +1750,8 @@ function roomCard(r) {
       + (nObs > obsP.length ? ` <span class="oc">+${nObs - obsP.length}</span>` : '') : `<span class="oc">${nObs}</span>`) + '</div>' : '';
   const map = r.map_title || String(r.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
   const full = r.free != null ? r.free <= 0 : false;
-  const join = roomJoinOn() && r.game === 'elite' && !r.password && !full && r.id
-    ? `<button class="rjoin" title="${esc(t('roomsJoin'))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '';
+  const join = roomJoinOn() && r.game === 'elite' && !why && !r.password && !full && r.id
+    ? `<button class="rjoin" title="${esc(meBusy() ? t('roomsJoinBusy') : t('roomsJoin'))}"${meBusy() ? ' disabled' : ''} aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '';
   return `<div class="room"><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"></div><div style="min-width:0">`
     + `<div class="rh">${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}${tag}${r.password ? '<span class="tag">🔒</span>' : ''}<span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${join}</div>`
     + `<div class="rmap">${esc(map)}${cap ? ' · ' + (r.players || []).length + '/' + cap : ''}</div><div class="teams">${teams}</div>${obs}`
@@ -1728,13 +1771,14 @@ async function roomsLoad() {
   } catch (e) { box.innerHTML = `<div class="note">${esc(t('roomsErr'))}</div>`; }
 }
 async function roomJoin(id, name, btn) {
+  if (meBusy()) { toast(t('roomsJoinBusy'), true); roomsJoinState(); return; }
   if (btn) btn.disabled = true;
   try {
     const r = await invoke('room_join', { id: Number(id), name: name || '' });
     if (r && r.running) { if (!r.front) toast(t('roomsJoinRunning')); }   // the game came to the front: its cover says the rest
     else { toast(t('roomsJoinStart', { name: name || '' })); doPlay(false); }
   } catch (e) { toast(e, true); }
-  setTimeout(() => { if (btn) btn.disabled = false; }, 2000);   // a double click only; a second Join for the same room is dropped by RoomJoin.dll
+  setTimeout(() => { if (btn) btn.disabled = meBusy(); }, 2000);   // a double click only; a second Join for the same room is dropped by RoomJoin.dll
 }
 function roomsWatch() {
   clearInterval(RM.timer); RM.timer = 0;
@@ -2010,7 +2054,7 @@ function onEvent(ev, d) {
 }
 function onSoon() {   // at most one redraw in 500 ms, however many events come
   if (ON.t) return;
-  ON.t = setTimeout(() => { ON.t = null; onRender(); }, 500);
+  ON.t = setTimeout(() => { ON.t = null; onRender(); roomsJoinState(); }, 500);
 }
 
 function onRender() {
@@ -2577,12 +2621,13 @@ $('hkReset').onclick = async () => {
   try { const d = await invoke('hotkeys_reset'); HK.data = d; HK.data.map = {}; d.bindings.forEach(b => HK.data.map[hkKey(b)] = b); HK.grid = d.grid; HK.edits = {}; HK.dirty = false; hkRender(); toast(t('hkSaved')); }
   catch (e) { toast(String(e), true); }
 };
-// Settings has two tabs, General and Hotkeys (the bindings are read when the tab is first opened)
+// Settings: General, Network and servers (1.4.8: the game servers and the launcher's servers in one tab; the game servers are
+// checked when it is first opened), Hotkeys (the bindings are read when the tab is first opened)
 document.querySelectorAll('.set-tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.set-tab').forEach(x => x.classList.toggle('on', x === b));
-  ['setMain', 'setNet', 'setGame', 'hotkeys'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
+  ['setMain', 'setNet', 'hotkeys'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
   if (b.dataset.set === 'hotkeys' && !HK.data) hkLoad();
-  if (b.dataset.set === 'setGame' && !GN_OPENED) { GN_OPENED = true; if (!GN) gameNetCheck(); }
+  if (b.dataset.set === 'setNet' && !GN_OPENED) { GN_OPENED = true; if (!GN) gameNetCheck(); }
 });
 
 // ---------------- remove Elite completely ----------------

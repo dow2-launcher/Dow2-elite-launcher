@@ -1,0 +1,4 @@
+- Lobbies: each Elite lobby shows its version.
+- Lobbies (test): the Join button shows only for lobbies of your Elite version, and not while you are searching or in a match.
+- Settings: everything about the network is in one tab, "Network and servers".
+- Add-ons: clear groups that don't move around - network, interface, gameplay, fixes, experiments.

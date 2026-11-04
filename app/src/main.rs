@@ -676,7 +676,7 @@ fn get_status(app: State<'_, App>) -> Value {
         // old copies of our add-ons: the window syncs the add-ons (they are put aside there) before Play starts the game
         "old_copies": dir.as_ref().map(|d| old_copies(d, &cfgd)).unwrap_or_default(),
         "components": cfgd.components.iter().map(|c| json!({
-            "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category,
+            "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category, "order": c.order,
             "enabled": s.components.get(&c.id).copied().unwrap_or(c.default),
             "conflicts": dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default(),
             "installed": dir.as_ref().map(|d| update::Game::component(d, &c.id).load_state().version).unwrap_or_default(),
