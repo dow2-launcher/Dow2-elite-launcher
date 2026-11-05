@@ -104,12 +104,16 @@
       <div class="row"><button class="btn red" id="uninstall" data-t="unBtn"></button><span class="note" data-t="unNote"></span></div>
       <div class="about" id="about"></div>
     </section>
-    <section class="panel settings hidden" id="setNet">
-      <!-- 1.4.8 (siritos 04.11): one tab "Network and servers" - the game servers (was "Online play"), the launcher's servers, mirror, local network -->
-      <div class="h hk-head"><span data-t="gnTitle"></span><span class="hk-note" id="gnWhen"></span><div class="hk-act"><button class="btn small" id="gnCheck" data-t="gnCheck"></button></div></div>
+    <!-- 1.4.8 (siritos 04.11): one tab "Network and servers"; 1.4.10 (05.11): two blocks in it - the game servers, then the
+         launcher's servers with the mirror and the local network - each a panel of its own, the headings not sticky, Check on the right -->
+    <div class="set-col hidden" id="setNet">
+    <section class="panel settings">
+      <div class="h net-h1"><span data-t="gnTitle"></span><span class="hk-note" id="gnWhen"></span><div class="hk-act"><button class="btn small" id="gnCheck" data-t="gnCheck"></button></div></div>
       <div class="note" id="gnNote"></div>
       <div class="net-list gn-list" id="gnList"></div>
-      <div class="h net-sub"><span data-t="netTitle"></span><div class="hk-act"><button class="btn small" id="netCheck" data-t="netCheck"></button></div></div>
+    </section>
+    <section class="panel settings">
+      <div class="h net-h1"><span data-t="netTitle"></span><div class="hk-act"><button class="btn small" id="netCheck" data-t="netCheck"></button></div></div>
       <div class="note" id="netNote"></div>
       <div class="net-list" id="netList"></div>
       <label data-t="mirror"></label>
@@ -118,6 +122,7 @@
       <label data-t="lanTitle"></label>
       <div class="row"><label class="chk"><input type="checkbox" id="lanShare"><span data-t="lanShare"></span></label></div>
     </section>
+    </div>
     <section class="panel hk hidden" id="hotkeys">
       <div class="h hk-head"><span data-t="hotkeys"></span><span class="hk-note" id="hkState"></span><div class="hk-act"><button class="btn small" id="hkReset" data-t="hkReset"></button><button class="btn gold small hidden" id="hkSave" data-t="save"></button></div></div>
       <div class="hk-top">

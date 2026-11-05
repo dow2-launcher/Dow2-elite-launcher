@@ -572,6 +572,10 @@ footer:has(#statusText:empty) .foot-links{display:flex}
 /* 1.4.2: the offer of the forwarding servers (Relic check at start) */
 #fwdBanner{max-width:min(720px,60vw);border-color:#5c4a2c;background:#2a2013}
 #fwdBanner .btn{flex:none}
-/* 1.4.8: the launcher's servers under the game servers in the one network tab - a plain (not sticky) heading with a rule above */
-.h.net-sub{margin:22px 0 10px;padding-top:14px;border-top:1px solid var(--sep)}
-.h.net-sub .hk-act{margin-left:auto;display:flex;gap:8px}
+/* 1.4.10: the network tab is two panels one under the other, each as tall as its content; the column scrolls, not the panels.
+   The heading is plain (not sticky): the title, when it was checked, Check at the right end */
+.set-wrap>.set-col{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.set-col>.panel{flex:none}
+.h.net-h1{padding-bottom:10px;border-bottom:1px solid var(--sep)}
+.h.net-h1 .hk-note{color:var(--gold2)}
+.h.net-h1 .hk-act{order:2;margin-left:auto;display:flex;gap:8px}
