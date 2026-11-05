@@ -110,9 +110,14 @@ jobs:
         with:
           targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
       - uses: Swatinem/rust-cache@v2
+      # the packages come from the Actions cache (bump `version` when the list changes): the plain apt-get install took up to
+      # 22 minutes on a slow Ubuntu mirror (release 1.4.10), from the cache it is about half a minute
       - name: Linux dependencies
         if: matrix.os == 'ubuntu-22.04'
-        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev libsoup-3.0-dev librsvg2-dev libayatana-appindicator3-dev patchelf
+        uses: awalsh128/cache-apt-pkgs-action@v1.4.3
+        with:
+          packages: libwebkit2gtk-4.1-dev libsoup-3.0-dev librsvg2-dev libayatana-appindicator3-dev patchelf
+          version: 1
       - run: cargo install tauri-cli --version "^2" --locked
       # Self-update artifacts (the installer / AppImage / .deb / .app.tar.gz plus a .sig) are signed with the updater
       # key; the public key goes into the bundler config here, so the repository and local builds don't need it.
