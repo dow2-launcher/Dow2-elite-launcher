@@ -1521,6 +1521,7 @@ fn start_game(app: &App) -> Result<Value, String> {
         if !off.iter().any(|x| x.to_ascii_lowercase().ends_with(&n.to_ascii_lowercase())) { off.push(n); }
     }
     let guard = json!({"off": off, "loader": dir.join("winmm.dll").is_file() && dir.join("dow2-patches").is_dir()});
+    roomjoin::note_launch();     // 1.4.9: Join waits for the add-on of a game started just now
     elite_core::hotkeys::refresh_if_stale(&app.settings.lock().unwrap().hotkeys);     // a patch brought new defaults
     let mut cmd = match os_name() {
         "windows" => cfg.launch.windows.clone(),

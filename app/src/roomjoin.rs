@@ -9,20 +9,163 @@
 //! Also the links `elite://join/<id>?name=...` (the ladder site's Join on a lobby): the window comes up and the join runs as
 //! from the Lobbies tab (see main.rs, the deep-link plugin).
 //!
-//! The pipe is Windows only: on Linux the game runs under Proton, whose pipes a native launcher can't open.
+//! Linux: the game runs under Proton, whose named pipes live in its wineserver - a native launcher can't open them (and
+//! AF_UNIX in Wine works only from Wine 11: Proton 9 / 10 say WSAEAFNOSUPPORT). So the launcher starts the add-on's
+//! Elite_DLLs/rjbridge.exe through the same Proton in the game's prefix (`proton run`: it joins the game's wineserver) and
+//! talks to its stdin / stdout - rjbridge passes the bytes to and from the game's pipe unchanged. No port, no file.
 
 use serde_json::{json, Value};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
-use std::time::Duration;
-#[cfg(windows)]
-use std::time::Instant;
+use std::io::{Read, Write};
+use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
 
 /// The join session that runs now; a new Join or Cancel moves it on, so an older session's thread stops telling the window.
 static GEN: AtomicU64 = AtomicU64::new(0);
 /// A link that came before the window was there to take it (the launcher started by the link).
 static PENDING: Mutex<Option<(u64, String)>> = Mutex::new(None);
+/// When this launcher last started the game: its add-ons come in some seconds later (the window waits instead of warning).
+static LAUNCHED: Mutex<Option<Instant>> = Mutex::new(None);
+pub fn note_launch() { *LAUNCHED.lock().unwrap() = Some(Instant::now()); }
+
+/// JSON lines read from a byte stream.
+#[derive(Default)]
+struct LineBuf { buf: Vec<u8> }
+impl LineBuf {
+    fn take(&mut self) -> Option<Value> {
+        while let Some(p) = self.buf.iter().position(|&b| b == b'\n') {
+            let l: Vec<u8> = self.buf.drain(..=p).collect();
+            if let Ok(v) = serde_json::from_slice::<Value>(&l[..l.len() - 1]) { return Some(v); }
+        }
+        None
+    }
+    fn push(&mut self, b: &[u8]) { self.buf.extend_from_slice(b); if self.buf.len() > 256 * 1024 { self.buf.clear(); } }
+}
+fn line_of(v: &Value) -> Vec<u8> { let mut t = v.to_string(); t.push('\n'); t.into_bytes() }
+
+/// Linux: rjbridge.exe of the add-on, through the game's Proton, to the game's pipe. Its stdout is read by a thread.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+pub struct BridgeConn { child: std::process::Child, stdin: std::process::ChildStdin, rx: std::sync::mpsc::Receiver<Vec<u8>>, lb: LineBuf }
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+impl BridgeConn {
+    /// rjbridge.exe exactly as the running game's wine runs: its environment (prefix, ESYNC / FSYNC, DLL paths - a wine
+    /// client with other sync settings is refused by the game's wineserver) taken from the game's own process, its loader.
+    #[cfg(target_os = "linux")]
+    fn command(app: &AppHandle) -> Option<std::process::Command> {
+        use tauri::Manager;
+        let st = app.state::<crate::App>();
+        let dir = crate::game_dir(&st)?;
+        let exe = dir.join("Elite_DLLs").join("rjbridge.exe");
+        if !exe.is_file() { return None; }
+        let env = game_env()?;
+        let loader = env.iter().find(|(k, _)| k == "WINELOADER").map(|(_, v)| std::path::PathBuf::from(v)).filter(|p| p.is_file())
+            .or_else(|| {
+                let appid = st.config.lock().unwrap().as_ref().map(|c| c.game.steam_appid).unwrap_or(56400);
+                elite_core::proton::plan(&dir, appid).ok().map(|r| r.proton.with_file_name("files").join("bin").join("wine")).filter(|p| p.is_file())
+            })
+            .unwrap_or_else(|| "wine".into());
+        let mut c = std::process::Command::new(loader);
+        c.arg(&exe).current_dir(&dir).env_clear().envs(env);
+        Some(c)
+    }
+    #[cfg(not(target_os = "linux"))]
+    fn command(_app: &AppHandle) -> Option<std::process::Command> { None }
+    pub fn open(app: &AppHandle) -> Option<BridgeConn> {
+        use std::process::Stdio;
+        let mut cmd = Self::command(app)?;
+        cmd.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::null());
+        let mut child = cmd.spawn().ok()?;
+        let (stdin, mut out) = (child.stdin.take()?, child.stdout.take()?);
+        let (tx, rx) = std::sync::mpsc::channel();
+        std::thread::spawn(move || {
+            let mut b = [0u8; 8192];
+            while let Ok(n) = out.read(&mut b) { if n == 0 || tx.send(b[..n].to_vec()).is_err() { break; } }
+        });
+        Some(BridgeConn { child, stdin, rx, lb: LineBuf::default() })
+    }
+    fn send(&mut self, v: &Value) -> bool { self.stdin.write_all(&line_of(v)).and_then(|_| self.stdin.flush()).is_ok() }
+    /// The next JSON line within `ms`: Ok(None) = nothing yet, Err = the bridge ended (no pipe, or the game ended).
+    fn line(&mut self, ms: u64) -> Result<Option<Value>, ()> {
+        if let Some(v) = self.lb.take() { return Ok(Some(v)); }
+        let end = Instant::now() + Duration::from_millis(ms.max(1));
+        loop {
+            let left = end.saturating_duration_since(Instant::now());
+            match self.rx.recv_timeout(left) {
+                Ok(b) => { self.lb.push(&b); if let Some(v) = self.lb.take() { return Ok(Some(v)); } }
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => return Ok(None),
+                Err(_) => return Err(()),
+            }
+            if Instant::now() >= end { return Ok(None); }
+        }
+    }
+}
+impl Drop for BridgeConn {
+    fn drop(&mut self) { let _ = self.child.kill(); let _ = self.child.wait(); }   // (its stdin closing would end it too)
+}
+/// The environment of the running game's wine process (Linux: /proc/<pid>/environ of the process whose command line names
+/// DOW2.exe and that has a WINEPREFIX), without what only that process may have (its wineserver socket fd, the preloader's
+/// reservation); path lists keep only the folders that exist here (the game may run inside the Steam runtime's container).
+#[cfg(target_os = "linux")]
+fn game_env() -> Option<Vec<(String, String)>> {
+    for e in std::fs::read_dir("/proc").ok()?.flatten() {
+        let Ok(pid) = e.file_name().to_string_lossy().parse::<u32>() else { continue };
+        let Ok(cmd) = std::fs::read(format!("/proc/{pid}/cmdline")) else { continue };
+        if !String::from_utf8_lossy(&cmd).to_ascii_lowercase().contains("dow2.exe") { continue; }
+        let Ok(raw) = std::fs::read(format!("/proc/{pid}/environ")) else { continue };
+        let env: Vec<(String, String)> = String::from_utf8_lossy(&raw).split('\0')
+            .filter_map(|kv| kv.split_once('=').map(|(k, v)| (k.to_string(), v.to_string())))
+            .filter(|(k, _)| !matches!(k.as_str(), "WINESERVERSOCKET" | "WINELOADERNOEXEC" | "WINEPRELOADRESERVE" | "_"))
+            .map(|(k, v)| if matches!(k.as_str(), "LD_LIBRARY_PATH" | "PATH" | "WINEDLLPATH") {
+                let keep: Vec<&str> = v.split(':').filter(|d| !d.is_empty() && std::path::Path::new(d).is_dir()).collect();
+                (k, keep.join(":"))
+            } else { (k, v) })
+            .collect();
+        if env.iter().any(|(k, _)| k == "WINEPREFIX") { return Some(env); }
+    }
+    None
+}
+
+/// A game's connection, whichever way it goes.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+pub enum Conn { #[cfg(windows)] Pipe(win::Conn), Bridge(BridgeConn) }
+impl Conn {
+    fn send(&mut self, v: &Value) -> bool {
+        match self { #[cfg(windows)] Conn::Pipe(c) => c.send(v), Conn::Bridge(c) => c.send(v) }
+    }
+    fn line(&mut self, ms: u64) -> Result<Option<Value>, ()> {
+        match self { #[cfg(windows)] Conn::Pipe(c) => c.line(ms), Conn::Bridge(c) => c.line(ms) }
+    }
+    /// The first line the game sends on a new connection: its status (through the bridge: once it is up).
+    fn status(&mut self) -> Option<Value> {
+        let end = Instant::now() + Duration::from_millis(if matches!(self, Conn::Bridge(_)) { 15000 } else { 1500 });
+        while Instant::now() < end {
+            match self.line(300) {
+                Ok(Some(v)) if v["ev"] == "status" => return Some(v),
+                Ok(_) => {}
+                Err(_) => return None,
+            }
+        }
+        None
+    }
+    /// The game process on Windows (its window to the front); 0 through the bridge.
+    fn pid(&self) -> u32 { match self { #[cfg(windows)] Conn::Pipe(c) => c.pid, Conn::Bridge(_) => 0 } }
+}
+/// Every game this launcher can talk to, with its status: the pipes of all DOW2.exe (Windows); the game through rjbridge (Linux).
+fn games(_app: &AppHandle) -> Vec<(Conn, Value)> {
+    #[allow(unused_mut)]
+    let mut out: Vec<(Conn, Value)> = Vec::new();
+    #[cfg(windows)]
+    for p in win::game_pids() { if let Some(mut c) = win::Conn::open(p).map(Conn::Pipe) { if let Some(s) = c.status() { out.push((c, s)); } } }
+    #[cfg(target_os = "linux")]
+    if crate::is_game_running() {
+        let t0 = Instant::now();
+        if let Some(mut c) = BridgeConn::open(_app).map(Conn::Bridge) {
+            if let Some(s) = c.status() { crate::c_log(&format!("rooms: rjbridge up in {} ms", t0.elapsed().as_millis())); out.push((c, s)); }
+        }
+    }
+    out
+}
 
 /// `elite://join/<id>?name=<url-encoded>` -> (room id, name); anything else -> None. The id: digits only (Relic's
 /// advertisement id), the name: printable, at most 64 characters.
@@ -217,45 +360,28 @@ mod win {
                 std::thread::sleep(Duration::from_millis(40));
             }
         }
-        /// The first line the game sends on a new connection: its status.
-        pub fn status(&mut self) -> Option<Value> {
-            let end = Instant::now() + Duration::from_millis(1500);
-            while Instant::now() < end {
-                match self.line(300) {
-                    Ok(Some(v)) if v["ev"] == "status" => return Some(v),
-                    Ok(_) => {}
-                    Err(_) => return None,
-                }
-            }
-            None
-        }
-    }
-    /// Every game with the pipe: (pid, its status).
-    pub fn games() -> Vec<(u32, Value)> {
-        game_pids().into_iter().filter_map(|pid| Conn::open(pid).and_then(|mut c| c.status()).map(|s| (pid, s))).collect()
     }
 }
 
 /// Before a Join: is the game running, and does it have RoomJoin's pipe. `young`: a game started less than 90 s ago (or
 /// Elite's starter without the game yet) - its add-ons may not be in yet, the window waits for the pipe instead of warning.
 #[tauri::command]
-pub async fn room_join_probe() -> Value {
-    tauri::async_runtime::spawn_blocking(probe).await.unwrap_or(Value::Null)
+pub async fn room_join_probe(app: AppHandle) -> Value {
+    tauri::async_runtime::spawn_blocking(move || probe(&app)).await.unwrap_or(Value::Null)
 }
-fn probe() -> Value {
+fn probe(app: &AppHandle) -> Value {
+    let games = games(app);
+    let running = crate::is_game_running();
+    let launched = LAUNCHED.lock().unwrap().is_some_and(|t| t.elapsed() < Duration::from_secs(120));
     #[cfg(windows)]
-    {
-        let pids = win::game_pids();
-        let games = win::games();
-        let young = pids.is_empty() && crate::is_game_running()
-            || pids.iter().any(|&p| !games.iter().any(|(g, _)| *g == p) && win::age(p).is_some_and(|a| a < Duration::from_secs(90)));
-        json!({
-            "supported": true, "running": !pids.is_empty() || crate::is_game_running(), "young": young,
-            "games": games.iter().map(|(p, s)| json!({"pid": p, "status": s})).collect::<Vec<_>>(),
-        })
-    }
+    let young = launched || running && win::game_pids().is_empty()
+        || win::game_pids().iter().any(|&p| win::age(p).is_some_and(|a| a < Duration::from_secs(90)));
     #[cfg(not(windows))]
-    { json!({"supported": false, "running": crate::is_game_running(), "young": false, "games": []}) }
+    let young = launched;
+    json!({
+        "supported": cfg!(any(windows, target_os = "linux")), "running": running || !games.is_empty(), "young": games.is_empty() && young,
+        "games": games.iter().map(|(c, s)| json!({"pid": c.pid(), "status": s})).collect::<Vec<_>>(),
+    })
 }
 
 /// Join: wait up to `wait` seconds for a game with the pipe (the window has just started it, or it is starting), bring it to
@@ -268,19 +394,11 @@ pub fn room_join(app: AppHandle, id: u64, name: String, wait: Option<u64>) -> Re
     let gen = GEN.fetch_add(1, Ordering::SeqCst) + 1;
     let wait = Duration::from_secs(wait.unwrap_or(0).min(300));
     crate::c_log(&format!("rooms: join room {id} ({name}), waiting up to {} s for the game", wait.as_secs()));
-    #[cfg(windows)]
-    {
-        std::thread::spawn(move || session(app, gen, id, name, wait));
-        Ok(json!({"started": true}))
-    }
-    #[cfg(not(windows))]
-    {
-        let _ = (app, gen, wait);
-        Err("not on this system".into())
-    }
+    if !cfg!(any(windows, target_os = "linux")) { return Err("not on this system".into()); }
+    std::thread::spawn(move || session(app, gen, id, name, wait));
+    Ok(json!({"started": true}))
 }
 
-#[cfg(windows)]
 fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration) {
     let tell = |v: Value| { if GEN.load(Ordering::SeqCst) == gen { let _ = app.emit("room_join", v); } };
     let fail = |reason: &str| {
@@ -292,8 +410,7 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration) {
     let mut told_wait = false;
     let mut conn = loop {
         if GEN.load(Ordering::SeqCst) != gen { return; }
-        let mut found: Vec<(win::Conn, Value)> = win::game_pids().into_iter()
-            .filter_map(|p| win::Conn::open(p).and_then(|mut c| c.status().map(|s| (c, s)))).collect();
+        let mut found = games(&app);
         if !found.is_empty() {
             let k = found.iter().position(|(_, s)| s["screen"] == "main").unwrap_or(0);
             break found.swap_remove(k).0;
@@ -302,9 +419,13 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration) {
         if !told_wait { told_wait = true; tell(json!({"ev": "waiting_game", "room": id})); }
         std::thread::sleep(Duration::from_millis(700));
     };
-    let pid = conn.pid;
-    let front = win::to_front(pid);
-    crate::c_log(&format!("rooms: join room {id}: game {pid} has the pipe{}", if front { ", brought to the front" } else { "" }));
+    let pid = conn.pid();
+    #[cfg(windows)]
+    let front = pid != 0 && win::to_front(pid);
+    #[cfg(not(windows))]
+    let front = false;
+    crate::c_log(&format!("rooms: join room {id}: {}{}", if pid != 0 { format!("game {pid} over its pipe") } else { "the game over TCP".into() },
+                          if front { ", brought to the front" } else { "" }));
     if !conn.send(&json!({"cmd": "join", "room": id, "name": name})) { fail("game_closed"); return; }
     let end = Instant::now() + Duration::from_secs(180);
     loop {
@@ -327,20 +448,13 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration) {
 
 /// Cancel: the waiting for the game stops, and every game with the pipe is told (its cover's Cancel; a lobby it is in stays).
 #[tauri::command]
-pub async fn room_join_cancel() -> Value {
+pub async fn room_join_cancel(app: AppHandle) -> Value {
     GEN.fetch_add(1, Ordering::SeqCst);
-    tauri::async_runtime::spawn_blocking(|| {
-        #[cfg(windows)]
-        {
-            let mut n = 0;
-            for pid in win::game_pids() {
-                if let Some(mut c) = win::Conn::open(pid) { if c.send(&json!({"cmd": "cancel"})) { n += 1; } }
-            }
-            crate::c_log(&format!("rooms: join cancelled ({n} game(s) told)"));
-            json!({"told": n})
-        }
-        #[cfg(not(windows))]
-        { json!({"told": 0}) }
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut n = 0;
+        for (mut c, _) in games(&app) { if c.send(&json!({"cmd": "cancel"})) { n += 1; } }
+        crate::c_log(&format!("rooms: join cancelled ({n} game(s) told)"));
+        json!({"told": n})
     }).await.unwrap_or(Value::Null)
 }
 
