@@ -183,6 +183,8 @@ const T = {
     "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Network and servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_fixes": "Fixes", "cat_experiment": "Experiments", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "playAfterSync": "Updating the add-ons first — the game starts by itself after that.",
+    // 1.4.11: the vanilla game next to Play
+    "rjWrongAsk": "Another game is running", "rjWrongVan": "This lobby is in vanilla Retribution, and the game running now is Elite. Close it (the launcher does not close a game itself) - then the launcher starts vanilla and joins the lobby.", "rjWrongElite": "This lobby is in Elite, and the game running now is vanilla Retribution. Close it (the launcher does not close a game itself) - then the launcher starts Elite and joins the lobby.", "rjWrongGo": "Join after I close it", "rjCloseGame": "Close the game - then the launcher starts {game} and joins {name}.", "rjWhy_wrong_game": "the other game is running (Elite instead of vanilla, or vanilla instead of Elite)", "rjVanAddonOff": "To join vanilla lobbies, turn on the add-on “Join a lobby from the launcher” in Add-ons (it works in vanilla too).", "rjVanNo": "This launcher does not start vanilla Retribution on this computer.", "vanillaH": "Without the mod", "vanillaName": "Vanilla Retribution", "vanillaNote": "The game without Elite, with our add-ons that work there", "vanillaTag": "our add-ons", "vanillaWarn": "You play vanilla Retribution: Elite lobbies and the add-ons for Elite only are not there.", "eliteOnly": "Elite only", "eliteOnlyNote": "Works only in Elite: not loaded in vanilla Retribution.", "readyVanilla": "Vanilla Retribution is ready", "guardVanillaLoader": "The loader of the add-ons is not in place yet: vanilla starts without them.", "toVanilla": "Getting vanilla Retribution ready…", "vanillaCopy": "in vanilla: version {v}",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher", "fwdOffer": "Your connection to Relic's game servers has trouble ({why}). Our forwarding servers can carry your games to Relic.", "fwdOn": "Turn on forwarding", "fwdLater": "Not now", "fwdDone": "Forwarding servers are on - they work from the next game start.",
     "gnTab": "Online play", "gnTitle": "Game servers from this computer", "gnCheck": "Check", "gnChecking": "Checking… (10-20 s)", "gnNote": "Checked by the same rules the add-ons use when they pick a server. Never while the game runs.", "gnGame": "The game is running: the check waits until it closes, so it does not disturb the match.", "gnNever": "Not checked yet.", "gnWhen": "checked at {time}", "gnRelic": "Relic", "gnRelicRelay": "Relic game server", "gnRelicApi": "Relic API (16 requests)", "gnClosed": "port closed", "gnSlowMs": "{n} ms - slow", "gnStreamOk": "{kb} KB in {s} s", "gnStreamCut": "stopped at {kb} KB", "gnRelicOk": "The connection to Relic is fine.", "gnRelicBad": "The connection to Relic has trouble: {why}. Forwarding servers can help.", "gnRelicFwdOn": "The connection to Relic has trouble: {why}. Forwarding is on.", "gnRelicWait": "Relic is checked a few seconds after the launcher starts.", "gnOwn": "Our servers for games", "gnFwd": "Forwarding servers", "gnTickOn": "on", "gnTickOff": "off", "gnTickNone": "no such add-on", "gnUdpMs": "UDP {n} ms", "gnUdpNone": "no answer over UDP", "gnBurst": "stream {got}/{n}", "gnBurstCut": "stream stops: {got}/{n}, {tail} of the last 6", "gnTcpOk": "TCP {kb} KB", "gnTcpCut": "TCP stops at {kb} KB", "gnTcpNone": "TCP: no connection", "gnNearest": "nearest", "gnNotUsed": "not used", "gnOwnPick": "Our automatch would put your game on: {node}.", "gnOwnNone": "None of our servers is usable from here - your games stay on Relic.", "gnOwnOff": "Off: games go to Relic. The tick is on the Add-ons tab.", "gnOwnHow": "Straight through our server: our automatch, when every player reaches it. Other lobbies are Relic games.", "gnFwdVia": "Relic games would go through: {node}.", "gnFwdNone": "No forwarding server is usable from here - games go straight to Relic.", "gnFwdFit": "Usable as forwarding servers: {list}.", "gnFwdOff": "Off: games go to Relic directly. The tick is on the Add-ons tab.", "gnFwdNotNeeded": "Off - not needed while the connection to Relic is fine.", "gnTcpInfo": "The game reaches our servers over UDP only. TCP is for information: a stop at ~33 KB means the line cuts long connections.", "gnListLadder": "Server list of the ladder (signed), UDP port {port}.", "gnListBuiltin": "Built-in server list (the ladder did not answer), UDP port {port}.", "gnPoland": "Poland", "gnMoscow2": "Moscow 2",
@@ -390,6 +392,8 @@ const T = {
     "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Сеть и серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_fixes": "Исправления", "cat_experiment": "Эксперименты", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "playAfterSync": "Сначала обновляю дополнения — игра запустится сама.",
+    // 1.4.11: the vanilla game next to Play
+    "rjWrongAsk": "Запущена другая игра", "rjWrongVan": "Это лобби ванильного Retribution, а сейчас запущена Elite. Закройте её (сам лаунчер игру не закрывает) — потом лаунчер запустит ваниль и войдёт в лобби.", "rjWrongElite": "Это лобби Elite, а сейчас запущен ванильный Retribution. Закройте его (сам лаунчер игру не закрывает) — потом лаунчер запустит Elite и войдёт в лобби.", "rjWrongGo": "Войти, когда я закрою", "rjCloseGame": "Закройте игру — потом лаунчер запустит {game} и войдёт в {name}.", "rjWhy_wrong_game": "запущена другая игра (Elite вместо ванили или ваниль вместо Elite)", "rjVanAddonOff": "Чтобы входить в ванильные лобби, включите дополнение «Вход в лобби из лаунчера» во вкладке «Дополнения» (оно работает и в ванили).", "rjVanNo": "На этом компьютере лаунчер не запускает ванильный Retribution.", "vanillaH": "Без мода", "vanillaName": "Ваниль Retribution", "vanillaNote": "Игра без Elite, с нашими дополнениями, которые там работают", "vanillaTag": "наши дополнения", "vanillaWarn": "Вы играете в ванильный Retribution: лобби Elite и дополнений только для Elite здесь нет.", "eliteOnly": "Только Elite", "eliteOnlyNote": "Работает только в Elite: в ванильном Retribution не загружается.", "readyVanilla": "Ваниль Retribution готова", "guardVanillaLoader": "Загрузчик дополнений ещё не на месте: ваниль запустится без них.", "toVanilla": "Готовлю ванильный Retribution…", "vanillaCopy": "в ванили: версия {v}",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер", "fwdOffer": "Связь с игровыми серверами Relic с проблемами ({why}). Наши форвардинг-серверы могут вести ваши игры до Relic.", "fwdOn": "Включить форвардинг", "fwdLater": "Не сейчас", "fwdDone": "Форвардинг-серверы включены — работают со следующего запуска игры.",
     "gnTab": "Сетевая игра", "gnTitle": "Игровые серверы с этого компьютера", "gnCheck": "Проверить", "gnChecking": "Проверяю… (10–20 с)", "gnNote": "По тем же правилам, по которым дополнения выбирают сервер. Пока игра запущена, не проверяется.", "gnGame": "Игра запущена: проверка подождёт, пока она закроется, чтобы не мешать матчу.", "gnNever": "Ещё не проверялось.", "gnWhen": "проверено в {time}", "gnRelic": "Relic", "gnRelicRelay": "Игровой сервер Relic", "gnRelicApi": "API Relic (16 запросов)", "gnClosed": "порт закрыт", "gnSlowMs": "{n} мс — медленно", "gnStreamOk": "{kb} КБ за {s} с", "gnStreamCut": "оборвалось на {kb} КБ", "gnRelicOk": "Связь с Relic в порядке.", "gnRelicBad": "Связь с Relic с проблемами: {why}. Помогут форвардинг-серверы.", "gnRelicFwdOn": "Связь с Relic с проблемами: {why}. Форвардинг включён.", "gnRelicWait": "Relic проверяется через несколько секунд после запуска лаунчера.", "gnOwn": "Свои серверы для игр", "gnFwd": "Форвардинг-серверы", "gnTickOn": "вкл.", "gnTickOff": "выкл.", "gnTickNone": "нет такого дополнения", "gnUdpMs": "UDP {n} мс", "gnUdpNone": "нет ответа по UDP", "gnBurst": "поток {got}/{n}", "gnBurstCut": "поток обрывается: {got}/{n}, {tail} из последних 6", "gnTcpOk": "TCP {kb} КБ", "gnTcpCut": "TCP обрыв на {kb} КБ", "gnTcpNone": "TCP: нет соединения", "gnNearest": "ближайший", "gnNotUsed": "не используется", "gnOwnPick": "Наш автоматч поставил бы вашу игру на: {node}.", "gnOwnNone": "Ни один наш сервер отсюда не годится — игры остаются на Relic.", "gnOwnOff": "Выключено: игры идут через Relic. Галочка — на вкладке «Дополнения».", "gnOwnHow": "Прямо через наш сервер: наш автоматч, если сервер доступен всем игрокам. Остальные лобби — игры Relic.", "gnFwdVia": "Игры Relic пошли бы через: {node}.", "gnFwdNone": "Ни один форвардинг-сервер отсюда не годится — игры идут напрямую к Relic.", "gnFwdFit": "Годятся как форвардинг-серверы: {list}.", "gnFwdOff": "Выключено: игры идут к Relic напрямую. Галочка — на вкладке «Дополнения».", "gnFwdNotNeeded": "Выключено — не нужно, пока связь с Relic в порядке.", "gnTcpInfo": "Игра ходит к нашим серверам только по UDP. TCP — для сведения: обрыв на ~33 КБ значит, что линия режет длинные соединения.", "gnListLadder": "Список серверов с ладдера (подписан), UDP-порт {port}.", "gnListBuiltin": "Встроенный список серверов (ладдер не ответил), UDP-порт {port}.", "gnPoland": "Польша", "gnMoscow2": "Москва 2",
@@ -592,6 +596,8 @@ const T = {
     "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Red y servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_fixes": "Correcciones", "cat_experiment": "Experimentos", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
     "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "playAfterSync": "Primero se actualizan los complementos; luego el juego se inicia solo.",
+    // 1.4.11: the vanilla game next to Play
+    "vanillaH": "Sin el mod", "vanillaName": "Retribution vanilla", "vanillaNote": "El juego sin Elite, con nuestros complementos que funcionan allí", "vanillaTag": "nuestros complementos", "vanillaWarn": "Juegas a Retribution vanilla: aquí no están las salas de Elite ni los complementos solo para Elite.", "eliteOnly": "Solo Elite", "eliteOnlyNote": "Funciona solo en Elite: no se carga en Retribution vanilla.", "readyVanilla": "Retribution vanilla está listo", "guardVanillaLoader": "El cargador de los complementos aún no está en su sitio: vanilla se inicia sin ellos.", "toVanilla": "Preparando Retribution vanilla…", "vanillaCopy": "en vanilla: versión {v}",
     "launcherNew": "Ya está Elite Launcher {v}",
     "launcherUpdateBtn": "Actualizar el launcher", "fwdOffer": "Tu conexión con los servidores de Relic tiene problemas ({why}). Nuestros servidores de reenvío pueden llevar tus partidas a Relic.", "fwdOn": "Activar reenvío", "fwdLater": "Ahora no", "fwdDone": "Reenvío activado: funciona desde el próximo inicio del juego.",
     "gnTab": "Juego en línea", "gnTitle": "Servidores de juego desde este equipo", "gnCheck": "Comprobar", "gnChecking": "Comprobando… (10-20 s)", "gnNote": "Con las mismas reglas con las que los complementos eligen servidor. Nunca mientras el juego está abierto.", "gnGame": "El juego está en marcha: la comprobación espera a que se cierre para no molestar la partida.", "gnNever": "Aún sin comprobar.", "gnWhen": "comprobado a las {time}", "gnRelic": "Relic", "gnRelicRelay": "Servidor de juego de Relic", "gnRelicApi": "API de Relic (16 peticiones)", "gnClosed": "puerto cerrado", "gnSlowMs": "{n} ms - lento", "gnStreamOk": "{kb} KB en {s} s", "gnStreamCut": "cortado en {kb} KB", "gnRelicOk": "La conexión con Relic está bien.", "gnRelicBad": "La conexión con Relic tiene problemas: {why}. Los servidores de reenvío pueden ayudar.", "gnRelicFwdOn": "La conexión con Relic tiene problemas: {why}. El reenvío está activado.", "gnRelicWait": "Relic se comprueba unos segundos después de iniciar el launcher.", "gnOwn": "Nuestros servidores para partidas", "gnFwd": "Servidores de reenvío", "gnTickOn": "activado", "gnTickOff": "desactivado", "gnTickNone": "no existe el complemento", "gnUdpMs": "UDP {n} ms", "gnUdpNone": "sin respuesta UDP", "gnBurst": "flujo {got}/{n}", "gnBurstCut": "el flujo se corta: {got}/{n}, {tail} de los 6 últimos", "gnTcpOk": "TCP {kb} KB", "gnTcpCut": "TCP se corta en {kb} KB", "gnTcpNone": "TCP: sin conexión", "gnNearest": "el más cercano", "gnNotUsed": "no se usa", "gnOwnPick": "Nuestro automatch pondría tu partida en: {node}.", "gnOwnNone": "Ninguno de nuestros servidores sirve desde aquí: las partidas se quedan en Relic.", "gnOwnOff": "Desactivado: las partidas van por Relic. La casilla está en Complementos.", "gnOwnHow": "Directo por nuestro servidor: nuestro automatch, si todos los jugadores lo alcanzan. Las demás salas son partidas de Relic.", "gnFwdVia": "Las partidas de Relic irían por: {node}.", "gnFwdNone": "Ningún servidor de reenvío sirve desde aquí: las partidas van directas a Relic.", "gnFwdFit": "Sirven como servidores de reenvío: {list}.", "gnFwdOff": "Desactivado: las partidas van directas a Relic. La casilla está en Complementos.", "gnFwdNotNeeded": "Desactivado: no hace falta mientras la conexión con Relic esté bien.", "gnTcpInfo": "El juego llega a nuestros servidores solo por UDP. TCP es informativo: un corte en ~33 KB significa que la línea corta las conexiones largas.", "gnListLadder": "Lista de servidores del ladder (firmada), puerto UDP {port}.", "gnListBuiltin": "Lista integrada (el ladder no respondió), puerto UDP {port}.", "gnPoland": "Polonia", "gnMoscow2": "Moscú 2",
@@ -794,6 +800,8 @@ const T = {
     "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Réseau et serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_fixes": "Correctifs", "cat_experiment": "Expériences", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
     "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "playAfterSync": "Mise à jour des modules d'abord — le jeu démarrera ensuite tout seul.",
+    // 1.4.11: the vanilla game next to Play
+    "vanillaH": "Sans le mod", "vanillaName": "Retribution vanilla", "vanillaNote": "Le jeu sans Elite, avec nos modules qui y fonctionnent", "vanillaTag": "nos modules", "vanillaWarn": "Vous jouez à Retribution vanilla : les salons Elite et les modules réservés à Elite n'y sont pas.", "eliteOnly": "Elite uniquement", "eliteOnlyNote": "Ne fonctionne que dans Elite : pas chargé dans Retribution vanilla.", "readyVanilla": "Retribution vanilla est prêt", "guardVanillaLoader": "Le chargeur des modules n'est pas encore en place : vanilla démarre sans eux.", "toVanilla": "Préparation de Retribution vanilla…", "vanillaCopy": "en vanilla : version {v}",
     "launcherNew": "Elite Launcher {v} est disponible",
     "launcherUpdateBtn": "Mettre à jour le launcher", "fwdOffer": "Votre connexion aux serveurs de Relic a des problèmes ({why}). Nos serveurs de relais peuvent acheminer vos parties vers Relic.", "fwdOn": "Activer le relais", "fwdLater": "Plus tard", "fwdDone": "Relais activé : actif au prochain lancement du jeu.",
     "gnTab": "Jeu en ligne", "gnTitle": "Serveurs de jeu depuis cet ordinateur", "gnCheck": "Vérifier", "gnChecking": "Vérification… (10-20 s)", "gnNote": "Avec les mêmes règles que les modules pour choisir un serveur. Jamais pendant que le jeu tourne.", "gnGame": "Le jeu est lancé : la vérification attend sa fermeture pour ne pas gêner la partie.", "gnNever": "Pas encore vérifié.", "gnWhen": "vérifié à {time}", "gnRelic": "Relic", "gnRelicRelay": "Serveur de jeu Relic", "gnRelicApi": "API Relic (16 requêtes)", "gnClosed": "port fermé", "gnSlowMs": "{n} ms - lent", "gnStreamOk": "{kb} Ko en {s} s", "gnStreamCut": "coupé à {kb} Ko", "gnRelicOk": "La connexion à Relic va bien.", "gnRelicBad": "La connexion à Relic a des problèmes : {why}. Les serveurs de relais peuvent aider.", "gnRelicFwdOn": "La connexion à Relic a des problèmes : {why}. Le relais est activé.", "gnRelicWait": "Relic est vérifié quelques secondes après le démarrage du lanceur.", "gnOwn": "Nos serveurs pour les parties", "gnFwd": "Serveurs de relais", "gnTickOn": "activé", "gnTickOff": "désactivé", "gnTickNone": "module absent", "gnUdpMs": "UDP {n} ms", "gnUdpNone": "pas de réponse UDP", "gnBurst": "flux {got}/{n}", "gnBurstCut": "le flux se coupe : {got}/{n}, {tail} des 6 derniers", "gnTcpOk": "TCP {kb} Ko", "gnTcpCut": "TCP coupé à {kb} Ko", "gnTcpNone": "TCP : pas de connexion", "gnNearest": "le plus proche", "gnNotUsed": "non utilisé", "gnOwnPick": "Notre automatch mettrait votre partie sur : {node}.", "gnOwnNone": "Aucun de nos serveurs n’est utilisable d’ici : les parties restent sur Relic.", "gnOwnOff": "Désactivé : les parties passent par Relic. La case est dans Modules.", "gnOwnHow": "Directement par notre serveur : notre automatch, si tous les joueurs l’atteignent. Les autres salons sont des parties Relic.", "gnFwdVia": "Les parties Relic passeraient par : {node}.", "gnFwdNone": "Aucun serveur de relais n’est utilisable d’ici : les parties vont directement à Relic.", "gnFwdFit": "Utilisables comme serveurs de relais : {list}.", "gnFwdOff": "Désactivé : les parties vont directement à Relic. La case est dans Modules.", "gnFwdNotNeeded": "Désactivé - inutile tant que la connexion à Relic va bien.", "gnTcpInfo": "Le jeu joint nos serveurs uniquement en UDP. TCP est indicatif : une coupure vers ~33 Ko signifie que la ligne coupe les longues connexions.", "gnListLadder": "Liste des serveurs du ladder (signée), port UDP {port}.", "gnListBuiltin": "Liste intégrée (le ladder n’a pas répondu), port UDP {port}.", "gnPoland": "Pologne", "gnMoscow2": "Moscou 2",
@@ -996,6 +1004,8 @@ const T = {
     "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Netz und Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_fixes": "Fehlerbehebungen", "cat_experiment": "Experimente", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
     "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "playAfterSync": "Zuerst werden die Add-ons aktualisiert – das Spiel startet danach von selbst.",
+    // 1.4.11: the vanilla game next to Play
+    "vanillaH": "Ohne Mod", "vanillaName": "Vanilla Retribution", "vanillaNote": "Das Spiel ohne Elite, mit unseren Add-ons, die dort funktionieren", "vanillaTag": "unsere Add-ons", "vanillaWarn": "Du spielst Vanilla Retribution: Elite-Lobbys und die Add-ons nur für Elite gibt es hier nicht.", "eliteOnly": "Nur Elite", "eliteOnlyNote": "Funktioniert nur in Elite: wird in Vanilla Retribution nicht geladen.", "readyVanilla": "Vanilla Retribution ist bereit", "guardVanillaLoader": "Der Lader der Add-ons ist noch nicht da: Vanilla startet ohne sie.", "toVanilla": "Vanilla Retribution wird vorbereitet…", "vanillaCopy": "in Vanilla: Version {v}",
     "launcherNew": "Elite Launcher {v} ist da",
     "launcherUpdateBtn": "Launcher aktualisieren", "fwdOffer": "Deine Verbindung zu Relics Spielservern hat Probleme ({why}). Unsere Weiterleitungsserver können deine Spiele zu Relic bringen.", "fwdOn": "Weiterleitung einschalten", "fwdLater": "Nicht jetzt", "fwdDone": "Weiterleitung eingeschaltet - ab dem nächsten Spielstart.",
     "gnTab": "Online-Spiel", "gnTitle": "Spielserver von diesem Computer aus", "gnCheck": "Prüfen", "gnChecking": "Prüfe… (10-20 s)", "gnNote": "Nach denselben Regeln, mit denen die Erweiterungen einen Server wählen. Nie, während das Spiel läuft.", "gnGame": "Das Spiel läuft: die Prüfung wartet, bis es geschlossen ist, um das Match nicht zu stören.", "gnNever": "Noch nicht geprüft.", "gnWhen": "geprüft um {time}", "gnRelic": "Relic", "gnRelicRelay": "Relic-Spielserver", "gnRelicApi": "Relic-API (16 Anfragen)", "gnClosed": "Port zu", "gnSlowMs": "{n} ms - langsam", "gnStreamOk": "{kb} KB in {s} s", "gnStreamCut": "bei {kb} KB abgebrochen", "gnRelicOk": "Die Verbindung zu Relic ist in Ordnung.", "gnRelicBad": "Die Verbindung zu Relic hat Probleme: {why}. Weiterleitungsserver können helfen.", "gnRelicFwdOn": "Die Verbindung zu Relic hat Probleme: {why}. Weiterleitung ist eingeschaltet.", "gnRelicWait": "Relic wird einige Sekunden nach dem Start des Launchers geprüft.", "gnOwn": "Unsere Server für Spiele", "gnFwd": "Weiterleitungsserver", "gnTickOn": "ein", "gnTickOff": "aus", "gnTickNone": "Erweiterung fehlt", "gnUdpMs": "UDP {n} ms", "gnUdpNone": "keine UDP-Antwort", "gnBurst": "Strom {got}/{n}", "gnBurstCut": "Strom bricht ab: {got}/{n}, {tail} der letzten 6", "gnTcpOk": "TCP {kb} KB", "gnTcpCut": "TCP bricht bei {kb} KB ab", "gnTcpNone": "TCP: keine Verbindung", "gnNearest": "am nächsten", "gnNotUsed": "nicht benutzt", "gnOwnPick": "Unser Automatch würde dein Spiel auf {node} legen.", "gnOwnNone": "Keiner unserer Server ist von hier nutzbar - Spiele bleiben auf Relic.", "gnOwnOff": "Aus: Spiele laufen über Relic. Das Häkchen ist unter Erweiterungen.", "gnOwnHow": "Direkt über unseren Server: unser Automatch, wenn alle Spieler ihn erreichen. Andere Lobbys sind Relic-Spiele.", "gnFwdVia": "Relic-Spiele liefen über: {node}.", "gnFwdNone": "Kein Weiterleitungsserver ist von hier nutzbar - Spiele gehen direkt zu Relic.", "gnFwdFit": "Als Weiterleitungsserver nutzbar: {list}.", "gnFwdOff": "Aus: Spiele gehen direkt zu Relic. Das Häkchen ist unter Erweiterungen.", "gnFwdNotNeeded": "Aus - nicht nötig, solange die Verbindung zu Relic in Ordnung ist.", "gnTcpInfo": "Das Spiel erreicht unsere Server nur über UDP. TCP dient zur Info: ein Abbruch bei ~33 KB heißt, die Leitung kappt lange Verbindungen.", "gnListLadder": "Serverliste des Ladders (signiert), UDP-Port {port}.", "gnListBuiltin": "Eingebaute Serverliste (der Ladder antwortete nicht), UDP-Port {port}.", "gnPoland": "Polen", "gnMoscow2": "Moskau 2",
@@ -1151,6 +1161,7 @@ function compChips(c) {
 // "Version 0.7.0", plus the one the next update brings
 function compVer(c) {
   const v = verNum;
+  if (VAN()) return !c.vanilla_ok ? t('eliteOnlyNote') : c.vanilla_installed ? t('vanillaCopy', { v: v(c.vanilla_installed) }) : c.latest ? t('addonVer', { v: v(c.latest) }) : '';
   return c.installed ? t('addonVer', { v: v(c.installed) }) + (c.latest && c.latest !== c.installed ? ', ' + t('addonNext', { v: v(c.latest) }) : '')
     : c.latest ? t('addonVer', { v: v(c.latest) }) : '';
 }
@@ -1197,27 +1208,30 @@ const COMP_SHUT = new Set();
 try { JSON.parse(localStorage.getItem('compShut') || '[]').forEach(k => COMP_SHUT.add(k)); } catch (e) {}
 // an add-on taken away from everyone (its version "...-off": the old AI, the developers' diagnostics) is not shown at all
 const compShown = c => !/(^|-)off$/i.test(String(c.latest || ''));
+// 1.4.11 (owner 05.11.2026): Play starts vanilla Retribution - the add-ons for Elite only are grey there, their switch locked
+const VAN = () => !!(S && S.game_mode === 'vanilla');
+const naHere = c => VAN() && !c.vanilla_ok;
 // add-on rows: a switch each and its own options under it once it is on; the details behind "?" on the home screen,
 // written out on the Add-ons tab (full)
 function compList(box, list, full) {
   const lock = S.busy || S.game_running;   // the game holds the add-on files while it runs
   const nameHtml = c => { const n = L(c.name) || c.id, m = n.match(/^(.+?)\s*\(([^()]+)\)$/); return m ? `${esc(m[1])}<small>${esc(m[2])}</small>` : esc(n); };
-  const card = c => `<div class="addon ${c.enabled ? '' : 'off'}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
-      + (full ? compChips(c) : '')
+  const card = c => `<div class="addon ${c.enabled && !naHere(c) ? '' : 'off'} ${naHere(c) ? 'na' : ''}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
+      + (full ? compChips(c) : '') + (naHere(c) ? `<span class="chip na" title="${esc(t('eliteOnlyNote'))}">${esc(t('eliteOnly'))}</span>` : '')
       + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '')
       + (full ? '' : `<button class="qm ${$('pop').dataset.id === c.id ? 'on' : ''}" data-info="${esc(c.id)}" aria-label="${esc(t('addonInfo', { name: L(c.name) || c.id }))}">?</button>`)
-      + `<label class="switch"><input type="checkbox" role="switch" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled ? 'checked' : ''} ${lock ? 'disabled' : ''}><i></i></label></div>`
+      + `<label class="switch"><input type="checkbox" role="switch" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled ? 'checked' : ''} ${lock || naHere(c) ? 'disabled' : ''}><i></i></label></div>`
       + (full ? (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
           + `<div class="addon-ver">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
           + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') : '')
       // the Add-ons tab: no box around the options (siritos 02.11) - "Settings" and the list under it
-      + (c.enabled && (c.options || []).length ? '<div class="addon-opts">' + (full ? `<div class="addon-opts-h">${esc(t('addonSettings'))}</div>` : '') + optsHtml(c, lock) + '</div>' : '')
+      + (c.enabled && !naHere(c) && (c.options || []).length ? '<div class="addon-opts">' + (full ? `<div class="addon-opts-h">${esc(t('addonSettings'))}</div>` : '') + optsHtml(c, lock) + '</div>' : '')
       + '</div>';
   // the Add-ons tab in groups (siritos 02.11): launcher.json "category" when the owner sets it, else by the add-on id
   const groups = full ? COMP_CATS.map(k => ({ k, list: list.filter(c => compCat(c) === k).map((c, i) => [c, i]).sort((a, b) => compRank(a[0]) - compRank(b[0]) || a[1] - b[1]).map(x => x[0]) })).filter(g => g.list.length) : null;
   box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '')
     // a group folds on a click on its heading (kept for the next start); the heading says how many are on: "2 / 4"
-    + (full ? groups.map(g => { const shut = COMP_SHUT.has(g.k), on = g.list.filter(c => c.enabled).length;
+    + (full ? groups.map(g => { const shut = COMP_SHUT.has(g.k), on = g.list.filter(c => c.enabled && !naHere(c)).length;
         return `<div class="addon-group ${shut ? 'shut' : ''}"><button class="addon-gh" data-cat="${g.k}" aria-expanded="${!shut}"><b class="chev"></b>${esc(t('cat_' + g.k))}<span>${on} / ${g.list.length}</span></button>`
           + (shut ? '' : `<div class="addon-cols">${g.list.map(card).join('')}</div>`) + '</div>'; }).join('')
       : list.map(card).join(''));
@@ -1233,7 +1247,7 @@ function compList(box, list, full) {
     invoke('set_comp_value', { comp: sel.dataset.comp, opt: sel.dataset.opt, value: sel.value }).then(reload).catch(e => toast(e, true)));
   box.querySelectorAll('input[data-id]').forEach(cb => cb.onchange = async () => {
     await invoke('set_component', { id: cb.dataset.id, on: cb.checked });
-    if (S.installed_version) { try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); } catch (e) { toast(e, true); } }
+    if (S.installed_version || VAN()) { try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); } catch (e) { toast(e, true); } }
     else reload();
   });
 }
@@ -1469,29 +1483,40 @@ function render() {
   const activeCh = chans.find(c => c.version === S.installed_version && c.id === S.installed_channel) || chans.find(c => c.version === S.installed_version);
   const mainCh = chans.find(c => c.id === S.main_channel);
   const locked = S.busy || S.game_running || !S.game_found || !S.config_loaded;
+  // 1.4.11: in vanilla no Elite version is the one Play starts: the installed one is a click back to Elite (no download)
   const item = c => {
-    const isActive = activeCh && c.id === activeCh.id, isMain = c.id === S.main_channel;
+    const isActive = !VAN() && activeCh && c.id === activeCh.id, isMain = c.id === S.main_channel;
     const cost = (S.costs || {})[c.version];
-    const hint = isActive ? '✓' : cost === undefined ? t('needDl') : cost === 0 ? t('instant') : t('upTo', { s: mb(cost) });
+    const hint = isActive ? '✓' : (activeCh && c.id === activeCh.id) ? t('installedTag') : cost === undefined ? t('needDl') : cost === 0 ? t('instant') : t('upTo', { s: mb(cost) });
     const tags = (isMain ? `<span class="tag main">${esc(t('main'))}</span>` : '') + (L(c.badge) && !isMain ? `<span class="tag beta">${esc(L(c.badge))}</span>` : '');
     const note = isMain ? t('mainNote') : L(c.description);
     return `<button class="vi ${isActive ? 'act' : ''}" data-id="${esc(c.id)}" ${isActive || locked ? 'disabled' : ''}><span class="nm"><b>${esc(L(c.name) || c.id)}</b>${tags}`
       + `${note ? `<small>${esc(note)}</small>` : ''}</span><span class="cost ${isActive || cost === 0 ? 'ok' : ''}"${isActive ? ` title="${esc(t('installedTag'))}"` : ''}>${esc(hint)}</span></button>`;
   };
   const live = chans.filter(c => !c.archive), arch = chans.filter(c => c.archive);
+  const vanName = L(S.vanilla?.name) || t('vanillaName');
+  const vanItem = S.vanilla_offered ? `<div class="lh">${esc(t('vanillaH'))}</div><button class="vi ${VAN() ? 'act' : ''}" data-game="vanilla" ${VAN() || S.busy || S.game_running || !S.game_found ? 'disabled' : ''}>`
+    + `<span class="nm"><b>${esc(vanName)}</b><small>${esc(L(S.vanilla?.description) || t('vanillaNote'))}</small></span><span class="cost ok">${VAN() ? '✓' : ''}</span></button>` : '';
   $('verList').innerHTML = `<div class="lh">${esc(t('versions'))}</div>` + live.map(item).join('')
-    + (arch.length ? `<div class="lh">${esc(t('archiveH'))}</div>` + arch.map(item).join('') : '');
-  $('verList').querySelectorAll('.vi:not(:disabled)').forEach(b => b.onclick = () => { verOpen(false); switchTo(b.dataset.id); });
+    + (arch.length ? `<div class="lh">${esc(t('archiveH'))}</div>` + arch.map(item).join('') : '') + vanItem;
+  $('verList').querySelectorAll('.vi:not(:disabled)').forEach(b => b.onclick = () => {
+    verOpen(false);
+    if (b.dataset.game === 'vanilla') return setGame('vanilla');
+    if (VAN() && activeCh && b.dataset.id === activeCh.id) return setGame('elite');   // back to the installed Elite
+    switchTo(b.dataset.id);
+  });
   const shown = activeCh || (!S.installed_version && mainCh);
-  $('verBtn').innerHTML = shown
+  if (VAN()) $('verBtn').innerHTML = `<b title="${esc(t('vanillaTag'))}">${esc(vanName)}</b>`;
+  else $('verBtn').innerHTML = shown
     ? `<b>${esc(L(shown.name) || shown.id)}</b><small class="${activeCh ? 'ok' : ''}">${esc(activeCh ? '✓ ' + t('installedTag') : t('notInstalledShort'))}</small>`
     // the installed version is in no channel any more (the main one moved on): "3.2" → "Elite 3.2"
     : `<b>${esc(/^\d/.test(S.installed_version) ? 'Elite ' + S.installed_version : S.installed_version || '—')}</b>${S.installed_version ? `<small class="ok">✓ ${esc(t('installedTag'))}</small>` : ''}`;
-  $('verBtn').disabled = !chans.length;
-  if (!chans.length) verOpen(false);
-  const notMain = activeCh && mainCh && activeCh.id !== mainCh.id;
-  $('verWarn').classList.toggle('hidden', !notMain);
-  if (notMain) $('verWarn').textContent = t('youPlay', { name: L(activeCh.name) }) + ' ' + t('notMain', { name: L(mainCh.name) });
+  $('verBtn').disabled = !chans.length && !S.vanilla_offered;
+  if (!chans.length && !S.vanilla_offered) verOpen(false);
+  const notMain = !VAN() && activeCh && mainCh && activeCh.id !== mainCh.id;
+  $('verWarn').classList.toggle('hidden', !notMain && !VAN());
+  if (VAN()) $('verWarn').textContent = t('vanillaWarn');
+  else if (notMain) $('verWarn').textContent = t('youPlay', { name: L(activeCh.name) }) + ' ' + t('notMain', { name: L(mainCh.name) });
 
   // add-ons: only the game server on the home screen (or what launcher.json marks "home"), all of them on the Add-ons tab
   const comps = (S.components || []).filter(compShown);
@@ -1508,9 +1533,9 @@ function render() {
   if (S.busy) { play.textContent = t('updating'); play.classList.add('install'); play.disabled = true; }
   else if (S.game_running) { play.textContent = t('running'); play.disabled = true; }
   else if (!S.game_found) { play.textContent = t('play'); play.disabled = true; }
-  else if (!S.installed_version) { play.textContent = t('install'); play.classList.add('install'); play.disabled = !S.config_loaded; }
+  else if (!S.installed_version && !VAN()) { play.textContent = t('install'); play.classList.add('install'); play.disabled = !S.config_loaded; }
   else { play.textContent = t('play'); play.disabled = false; }
-  play.onclick = () => (S.installed_version ? doPlay() : switchTo(S.main_channel || S.channel));
+  play.onclick = () => (S.installed_version || VAN() ? doPlay() : switchTo(S.main_channel || S.channel));
 
   // a newer version of the installed one: offered at the bottom of the home screen's right column, never forced
   const target = channelOf(S.installed_channel) || channelOf(S.channel);
@@ -1530,12 +1555,13 @@ function render() {
     $('statusText').classList.toggle('err', !!(S.last_error && S.config_loaded));
     $('statusText').innerHTML = S.last_error && !S.config_loaded ? esc(t('offline'))
       : S.last_error ? esc(winPath(S.last_error))
+      : VAN() ? esc(t('readyVanilla'))
       : S.installed_version ? esc(t('ready', { v: activeCh ? L(activeCh.name).replace(/^Elite\s+/i, '') : S.installed_version })) : (S.config_loaded ? '' : esc(t('connecting')));
-    const hint = L(cfg.launch?.[S.os]?.hint);
+    const hint = VAN() ? '' : L(cfg.launch?.[S.os]?.hint);   // the launch hint is about starting Elite
     $('statusMeta').textContent = [hint, winPath(S.game_dir)].filter(Boolean).join(' · ');
     // all is well (ready, no launch hint): the line steps aside for the links (siritos 02.11: "Elite 3.2 is ready" and the
     // game folder are not news); any download, check or error writes the line again and it comes back (CSS :has)
-    if (!S.last_error && S.installed_version && !hint) { $('statusText').innerHTML = ''; $('statusMeta').textContent = ''; }
+    if (!S.last_error && (S.installed_version || VAN()) && !hint) { $('statusText').innerHTML = ''; $('statusMeta').textContent = ''; }
   }
 
   // settings
@@ -1605,7 +1631,7 @@ async function refresh() {
   }
   // add-ons follow their checkboxes on their own: install missing ones, remove unticked ones
   const comps = S.components || [];
-  if (S.installed_version && !S.busy && !S.game_running && compsNeedSync()) {
+  if ((S.installed_version || VAN()) && !S.busy && !S.game_running && compsNeedSync()) {
     try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); } catch (e) { /* will retry next refresh */ }
   }
   return changes;
@@ -1626,24 +1652,36 @@ async function startUpdate(repair) {
 // the add-ons differ from what the launcher wants: one that is on is missing or older than the catalog's, one that is off
 // is still installed, or an old hand-installed copy of ours is in the game folder (the sync puts it aside - owner
 // 03.11.2026: one copy of every patch, the launcher's latest, nothing asked)
-const compsNeedSync = () => (S.old_copies || []).length > 0 || (S.components || []).some(c => {
+// 1.4.11: mode_sync - the game folder is not yet as the chosen game wants it (vanilla: its loader and copies; Elite: the
+// vanilla loader still next to DOW2.exe); in vanilla the Elite installs of the add-ons are not looked at
+const compsNeedSync = () => (S.old_copies || []).length > 0 || !!S.mode_sync || (!VAN() && (S.components || []).some(c => {
   if ((c.conflicts || []).length) return true;
   return !!c.enabled !== !!c.installed || (c.enabled && c.latest && c.installed && c.installed !== c.latest);
-});
+}));
+// pick the game Play starts and bring the add-ons for it right away (vanilla: the copies and the loader; Elite: Automatch's
+// early loader back) - the same bar as an update; the game is not started
+async function setGame(mode) {
+  try { S = await invoke('set_game_mode', { mode }); render(); } catch (e) { toast(e, true); return; }
+  if (compsNeedSync() && (S.installed_version || VAN())) {
+    try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); if (VAN()) $('statusText').textContent = t('toVanilla'); }
+    catch (e) { toast(e, true); }
+  }
+}
 let playAfterSync = false;
 // 1.4.2 (owner 03.11.2026): Play with the add-ons out of sync runs the same process as an update - the bar, Play waits -
 // and the game starts by itself when it is done; the launcher also clears the leftovers of our DLLs before the start
 async function doPlay(synced) {
   try { await reload(); } catch (e) { /* the last status then */ }   // what is in the game folder now, not when the window last looked
-  if (!synced && S.installed_version && !S.busy && compsNeedSync()) {
+  if (!synced && (S.installed_version || VAN()) && !S.busy && compsNeedSync()) {
     try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; playAfterSync = true; render(); toast(t('playAfterSync')); return; }
     catch (e) { /* not now: start with what is there */ }
   }
   try {
     const g = await invoke('play') || {};
     // the check before the start (launch_guard): what was taken out of the game's list, a stray stand-alone loader
-    const said = [(g.off || []).length ? t('guardOff', { list: g.off.join(', ') }) : '', g.loader ? t('guardLoader') : ''].filter(Boolean);
-    toast(said.length ? t('starting') + ' ' + said.join(' ') : t('starting'), !!g.loader);
+    const said = [(g.off || []).length ? t('guardOff', { list: g.off.join(', ') }) : '', g.loader ? t('guardLoader') : '',
+      g.vanilla_loader_missing ? t('guardVanillaLoader') : ''].filter(Boolean);
+    toast(said.length ? t('starting') + ' ' + said.join(' ') : t('starting'), !!(g.loader || g.vanilla_loader_missing));
   } catch (e) { toast(e, true); }
 }
 
@@ -1669,7 +1707,8 @@ listen('launcher_progress', e => {
   $('statusMeta').textContent = total ? `${mb(done)} / ${mb(total)}` : mb(done);
 });
 listen('news', () => { if (S) reload(); });
-listen('game_running', e => { if (!S) return; S.game_running = e.payload; render(); if (!e.payload) refresh(); chHello(); if (!e.payload && FWD && FWD.skipped) setTimeout(relicProbe, 20000); });   // 1.4.5: the Relic check of the start waited for the game   // menu / game goes to the server when it changes, not on a timer
+listen('game_running', e => { if (!S) return; S.game_running = e.payload; render(); if (!e.payload) refresh();
+  if (!e.payload && RJ.after) { const a = RJ.after; RJ.after = null; setTimeout(() => roomJoin(a.id, a.name, null, false, a.want), 1500); }   /* 1.4.11: the other game closed */ chHello(); if (!e.payload && FWD && FWD.skipped) setTimeout(relicProbe, 20000); });   // 1.4.5: the Relic check of the start waited for the game   // menu / game goes to the server when it changes, not on a timer
 listen('progress', e => { netActive = false; prog = e.payload; if (S) { S.busy = true; renderProgress(prog); } });
 listen('update_done', async e => {
   await reload();
@@ -1697,7 +1736,15 @@ const RM = { timer: 0, host: '' };
 const roomFlag = c => /^[a-z]{2}$/i.test(c || '') ? String.fromCodePoint(...[...c.toUpperCase()].map(x => 0x1F1A5 + x.charCodeAt(0))) : '';
 // RoomJoin (experiment 03.11.2026): "Join" on an Elite room without a password while the add-on is on - the game starts (or is
 // already running) and RoomJoin.dll walks into the room from the main menu; if it can't, the game shows the public games list
-const roomJoinOn = () => !!(S && (S.os === 'windows' || S.os === 'linux') && (S.roomjoin_dll || (S.components || []).find(c => String(c.id).replace(/_(r\d+|off)$/, '') === 'roomjoin' && c.enabled)));
+// 1.4.11 (owner 05.11.2026): vanilla lobbies too - from the launcher's vanilla game, with RoomJoin's copy for vanilla
+const rjComp = () => (S && S.components || []).find(c => String(c.id).replace(/_(r\d+|off)$/, '') === 'roomjoin');
+const roomJoinOn = game => {
+  if (!S || (S.os !== 'windows' && S.os !== 'linux')) return false;
+  const c = rjComp();
+  if (game === 'vanilla') return !!(S.vanilla_offered && c && c.enabled && c.vanilla_ok);
+  return !!(S.roomjoin_dll || (c && c.enabled));
+};
+const roomGame = r => r && r.game === 'vanilla' ? 'vanilla' : 'elite';
 // 1.4.8 (review of RoomJoin 1, 03.11): no Join while I search or play (a Join then could break the match the automatch walks
 // the menus to; RoomJoin 8 drops such a request too) - from the Online block's live lists, when signed in
 const meBusy = () => {
@@ -1771,7 +1818,7 @@ function roomCard(r) {
   const full = r.free != null ? r.free <= 0 : false;
   const here = RM.mine && String(RM.mine.room) === String(r.id);
   const join = here ? `<span class="tag here">${esc(t('roomsHere'))}</span>`
-    : roomJoinOn() && r.game === 'elite' && !r.password && !full && r.id
+    : (r.game === 'elite' || r.game === 'vanilla') && roomJoinOn(r.game) && !r.password && !full && r.id
     ? `<button class="rjoin${meBusy() ? ' wait' : ''}" title="${esc(meBusy() ? t('roomsJoinBusy') : t('roomsJoin'))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-why="${esc(why)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '';
   return `<div class="room"><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"></div><div style="min-width:0">`
     + `<div class="rh">${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}${tag}${r.password ? '<span class="tag">🔒</span>' : ''}<span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${join}</div>`
@@ -1800,7 +1847,7 @@ async function roomsLoad() {
     box.innerHTML = R.length ? R.map(roomCard).join('') : `<div class="note">${esc(t('roomsNone'))}</div>`;
     box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
     // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
-    box.querySelectorAll('.rjoin').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));
+    box.querySelectorAll('.rjoin').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));   // the room's game from the list
     box.querySelectorAll('.rp .nm[data-name], .robs .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));   // the stats (by name until the server sends SteamIDs), Steam when there; no "mention"
   } catch (e) { box.innerHTML = `<div class="note">${esc(t('roomsErr'))}</div>`; }
 }
@@ -1837,19 +1884,35 @@ async function roomTry(id, name, btn) {
   const r = roomById(id);
   const v = r && r.game === 'elite' ? roomJoinWhy(r) : '';
   if (v) { roomVerOther(v); return; }                               // another version: say so, offer to switch
-  return roomJoin(id, (r && r.name) || name || '', btn, false);
+  return roomJoin(id, (r && r.name) || name || '', btn, false, roomGame(r));
 }
-async function roomJoin(id, name, btn, leave) {
+// 1.4.11: the other game runs (Elite for a vanilla lobby or the other way round): the launcher never closes it - the player
+// closes it, then the right game starts and the join goes on (game_running below)
+async function rjWrongGame(id, name, want) {
+  const ok = await askBox(t('rjWrongAsk'), [t(want === 'vanilla' ? 'rjWrongVan' : 'rjWrongElite')],
+    [{ label: t('rjWrongGo'), cls: 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
+  if (!ok) return;
+  RJ.after = { id, name, want };
+  rjShow(t('rjCloseGame', { game: want === 'vanilla' ? (L(S.vanilla?.name) || t('vanillaName')) : 'Elite', name }), '', true);
+}
+async function roomJoin(id, name, btn, leave, game) {
   if (!S || (S.os !== 'windows' && S.os !== 'linux')) { rjShow(t('rjOnlyWin'), 'err'); return; }
   if (meBusy()) { rjShow(t('roomsJoinBusy'), 'err'); roomsJoinState(); return; }
   const room = Number(id); if (!Number.isSafeInteger(room) || room <= 0) return;
   if (btn) btn.disabled = true;
   setTimeout(() => { if (btn) btn.disabled = false; }, 2000);   // a double click only: a second Join for the same room just goes on
-  RJ.room = String(room); RJ.name = name || '';
+  RJ.room = String(room); RJ.name = name || ''; RJ.after = null;
+  const want = game === 'vanilla' ? 'vanilla' : game === 'elite' ? 'elite' : roomGame(roomById(id));
+  RJ.want = want;
+  if (want === 'vanilla' && !S.vanilla_offered) { rjShow(t('rjVanNo'), 'err'); return; }
+  if (!roomJoinOn(want)) { rjShow(t(want === 'vanilla' ? 'rjVanAddonOff' : 'rjAddonOff'), 'err'); return; }
   try {
     const p = await invoke('room_join_probe') || {};
+    // the other game runs (its command line says): no join into it - close it first, then the right one starts
+    const mine = (p.games || []).filter(g => !g.kind || g.kind === want);
+    if (p.running && !mine.length && (p.running_kind && p.running_kind !== want || (p.games || []).length)) { rjWrongGame(id, name, want); return; }
     // the lobby I am in: the game itself says (its status, RoomJoin 9+), else the list (my SteamID in a room) while the game runs
-    const g0raw = (p.games || [])[0], st = (g0raw && g0raw.status) || {};
+    const g0raw = mine[0], st = (g0raw && g0raw.status) || {};
     const g0 = st.screen === 'unknown' ? null : g0raw;   // the game has not seen its menu yet: its room 0 says nothing, the list decides
     // the game answered: its word decides (0 = in no room, the list may still show me in one for 30 s); no answer: the list
     const inRoom = g0 ? (st.room ? String(st.room) : '') : p.running && RM.mine ? RM.mine.room : '';
@@ -1864,12 +1927,17 @@ async function roomJoin(id, name, btn, leave) {
       leave = true;
     }
     let wait = 0;
-    if (!(p.games || []).length) {
+    if (!mine.length) {
       if (p.running && !p.young) { rjShow(t('rjNoPipe'), 'err'); return; }      // the heartbeat: a running game without the pipe
       if (p.running) { wait = 90; rjShow(t('rjWaitGame'), '', true); }          // just started: its add-ons are not in yet
-      else { wait = 240; rjShow(t('rjStarting', { name: RJ.name }), '', true); doPlay(false); }   // the add-ons synced first, then the game
+      else {
+        wait = 240; rjShow(t('rjStarting', { name: RJ.name }), '', true);
+        // 1.4.11: the game of the lobby - vanilla for a vanilla one, Elite for an Elite one
+        if ((want === 'vanilla') !== VAN()) { try { S = await invoke('set_game_mode', { mode: want }); render(); } catch (e) { /* the chosen game then */ } }
+        doPlay(false);   // the add-ons synced first, then the game
+      }
     }
-    await invoke('room_join', { id: room, name: RJ.name, wait, leave: !!leave });
+    await invoke('room_join', { id: room, name: RJ.name, wait, leave: !!leave, game: want });
   } catch (e) { rjShow(String(e), 'err'); }
 }
 listen('room_join', e => {
@@ -1884,20 +1952,23 @@ listen('room_join', e => {
     case 'in_lobby': rjShow(t('rjInLobby', { name }), 'ok'); RJ.here = { room: RJ.room, name, ts: Date.now() }; roomsLoad(); break;
     case 'failed': {
       if (v.reason === 'no_pipe') { rjShow(t('rjNoPipe'), 'err'); break; }
+      if (v.reason === 'wrong_game') { rjWrongGame(RJ.room, name, RJ.want || 'elite'); break; }
       const why = T[lang]['rjWhy_' + v.reason] || T.en['rjWhy_' + v.reason] ? t('rjWhy_' + v.reason) : t('rjWhy_error');
       rjShow(t('rjFailed', { name, why }) + (v.text ? ' (' + v.text + ')' : ''), v.reason === 'cancelled' ? 'ok' : 'err');
       break; }
   }
 });
-$('rjCancel').onclick = async () => { await invoke('room_join_cancel').catch(() => {}); rjShow(t('rjCancelled'), 'ok'); };
+$('rjCancel').onclick = async () => { RJ.after = null; await invoke('room_join_cancel').catch(() => {}); rjShow(t('rjCancelled'), 'ok'); };
 // elite://join/<id>?name=... (the ladder site's Join): the Lobbies tab and the same Join, if the add-on is on
 async function roomLink() {
   if (!S) return;                                     // the window takes it once its status is there (below)
   const l = await invoke('room_link_take').catch(() => null); if (!l) return;
   const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click();
   if (S.os !== 'windows' && S.os !== 'linux') { rjShow(t('rjOnlyWin'), 'err'); return; }
-  if (!roomJoinOn()) { rjShow(t('rjAddonOff'), 'err'); return; }
-  roomJoin(l.id, l.name, null, false);
+  // 1.4.11: the lobby's game - the link's own word, else the room in the list (a vanilla lobby opens vanilla)
+  let game = l.game;
+  if (!game) { try { const d = await invoke('rooms_live'); RM.last = d.rooms || RM.last; } catch (e) { /* the last list then */ } game = roomGame(roomById(l.id)); }
+  roomJoin(l.id, l.name, null, false, game);
 }
 listen('room_link', roomLink);
 function roomsWatch() {

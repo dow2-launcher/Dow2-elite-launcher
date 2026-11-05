@@ -53,6 +53,31 @@ pub struct LauncherConfig {
     pub launcher_update: Option<LauncherUpdate>,
     /// Optional add-ons the player can tick (e.g. LobbyStats). Each is a separately published version.
     pub components: Vec<Component>,
+    /// 1.4.11: plain Dawn of War II: Retribution with our add-ons that work there ("Vanilla Retribution" next to Play).
+    /// None or no loader - the launcher offers no vanilla. Older launchers ignore it.
+    pub vanilla: Option<Vanilla>,
+}
+
+/// The vanilla game (owner 05.11.2026): DOW2.exe without -modname, the add-ons whose `games` name "vanilla" are copied into
+/// `<game>/dow2-patches/` (their Elite_DLLs files, same names) and the launcher's winmm.dll loader goes next to DOW2.exe.
+/// Elite's own files are not touched in this mode.
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(default)]
+pub struct Vanilla {
+    /// Version id of the loader (`<version>.manifest` with one file, `winmm.dll`): the launcher build of Dow2-patches
+    /// vanilla-loader (-DLAUNCHER_LOADER) - a mod start (-modname Elite) loads only the early add-ons from Elite_DLLs, a vanilla
+    /// start only the DLLs of dow2-patches.
+    pub loader: String,
+    /// The name in the picker next to Play; empty - the window's own ("Vanilla Retribution").
+    pub name: Text,
+    pub description: Text,
+}
+
+impl LauncherConfig {
+    /// Is the vanilla mode offered by this catalog?
+    pub fn vanilla_loader(&self) -> Option<&str> {
+        self.vanilla.as_ref().map(|v| v.loader.as_str()).filter(|l| !l.is_empty())
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -82,6 +107,9 @@ pub struct Component {
     /// Files (relative to the game folder) of a hand-installed copy of the same patch, e.g. "dow2-patches/ObsFix.dll"
     /// from the stand-alone package. While any of them exists the launcher keeps its own copy off.
     pub conflicts: Vec<String>,
+    /// 1.4.11: the games it works in: "elite", "vanilla". Empty = Elite only (every entry before 1.4.11). An add-on without
+    /// "vanilla" is never copied for the vanilla game, whatever its tick says.
+    pub games: Vec<String>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -116,6 +144,10 @@ impl Component {
     /// The switches the player sees: `settings` when the config has them, else `options`.
     pub fn opts(&self) -> &[ComponentOption] {
         if self.settings.is_empty() { &self.options } else { &self.settings }
+    }
+    /// Does it work in `game` ("elite" / "vanilla")? No `games` = Elite only.
+    pub fn for_game(&self, game: &str) -> bool {
+        if self.games.is_empty() { game.eq_ignore_ascii_case("elite") } else { self.games.iter().any(|g| g.eq_ignore_ascii_case(game)) }
     }
 }
 
@@ -270,5 +302,22 @@ mod tests {
         assert_eq!(pick.ini_value(false, Some(&"7".to_string())), "2");   // a choice the config dropped: back to the default
         let c: Component = serde_json::from_str(r#"{"options":[{"id":"a"}],"settings":[{"id":"b"},{"id":"c"}]}"#).unwrap();
         assert_eq!(c.opts().len(), 2);
+    }
+
+    #[test]
+    fn games_and_vanilla() {
+        // an entry before 1.4.11: Elite only; unknown fields of a newer catalog are ignored
+        let old: Component = serde_json::from_str(r#"{"id":"relay_r2","inject":"Relay.dll","future":1}"#).unwrap();
+        assert!(old.for_game("elite") && !old.for_game("vanilla"));
+        let both: Component = serde_json::from_str(r#"{"id":"automatch","games":["elite","Vanilla"]}"#).unwrap();
+        assert!(both.for_game("elite") && both.for_game("vanilla"));
+        let van: Component = serde_json::from_str(r#"{"id":"x","games":["vanilla"]}"#).unwrap();
+        assert!(!van.for_game("elite"));
+        let cfg: LauncherConfig = serde_json::from_str(r#"{"components":[]}"#).unwrap();
+        assert!(cfg.vanilla_loader().is_none());
+        let cfg: LauncherConfig = serde_json::from_str(r#"{"vanilla":{"loader":"vloader-1","name":{"en":"Vanilla"}}}"#).unwrap();
+        assert_eq!(cfg.vanilla_loader(), Some("vloader-1"));
+        let cfg: LauncherConfig = serde_json::from_str(r#"{"vanilla":{}}"#).unwrap();
+        assert!(cfg.vanilla_loader().is_none());
     }
 }

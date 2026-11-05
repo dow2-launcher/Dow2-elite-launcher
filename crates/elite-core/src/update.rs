@@ -90,7 +90,15 @@ pub struct Game {
     pub dir: PathBuf,
     /// State file name: the main mod and every component keep their own list of installed files.
     state_name: String,
+    /// 1.4.11, the vanilla copy of a component: the manifest's "Elite_DLLs/X" is the file "dow2-patches/X" (same name).
+    remap: Option<(&'static str, &'static str)>,
 }
+
+/// The folder of the vanilla game's add-ons (next to DOW2.exe): the launcher's loader winmm.dll loads every DLL in it when
+/// the game runs without -modname.
+pub const VANILLA_DIR: &str = "dow2-patches";
+const VANILLA_PREFIX: &str = "vanilla-";
+const VLOADER_STATE: &str = "vloader.json";
 
 /// A component id as it is stored in the game folder (`component-<key>.json`).
 pub fn component_key(id: &str) -> String {
@@ -99,11 +107,31 @@ pub fn component_key(id: &str) -> String {
 
 impl Game {
     pub fn new(dir: impl Into<PathBuf>) -> Self {
-        Game { dir: dir.into(), state_name: "state.json".into() }
+        Game { dir: dir.into(), state_name: "state.json".into(), remap: None }
     }
     /// Same game folder, separate state for an optional component (e.g. LobbyStats).
     pub fn component(dir: impl Into<PathBuf>, id: &str) -> Self {
-        Game { dir: dir.into(), state_name: format!("component-{}.json", component_key(id)) }
+        Game { dir: dir.into(), state_name: format!("component-{}.json", component_key(id)), remap: None }
+    }
+    /// The vanilla copy of a component (1.4.11): its own state; the files of the manifest under Elite_DLLs/ go to dow2-patches/.
+    /// Apply it only with those files (see `vanilla_files`).
+    pub fn vanilla_component(dir: impl Into<PathBuf>, id: &str) -> Self {
+        Game { dir: dir.into(), state_name: format!("{VANILLA_PREFIX}{}.json", component_key(id)), remap: Some(("Elite_DLLs/", "dow2-patches/")) }
+    }
+    /// The launcher's winmm.dll loader for the vanilla game (launcher.json `vanilla.loader`).
+    pub fn vanilla_loader(dir: impl Into<PathBuf>) -> Self {
+        Game { dir: dir.into(), state_name: VLOADER_STATE.into(), remap: None }
+    }
+    /// Ids (as stored) of every component with a vanilla copy in this game folder.
+    pub fn vanilla_ids(dir: &Path) -> Vec<String> {
+        let Ok(rd) = fs::read_dir(dir.join(".elite_launcher")) else { return Vec::new() };
+        rd.flatten()
+            .filter_map(|e| {
+                let n = e.file_name().to_string_lossy().to_string();
+                n.strip_prefix(VANILLA_PREFIX).and_then(|r| r.strip_suffix(".json")).map(String::from)
+            })
+            .filter(|id| !id.is_empty())
+            .collect()
     }
     /// Ids of every component with a state in this game folder (installed by a launcher at some point), as stored:
     /// compare them with `component_key` of the catalog's ids.
@@ -171,10 +199,59 @@ impl Game {
 
     pub fn file(&self, rel: &str) -> PathBuf {
         let mut p = self.dir.clone();
-        for part in rel.split('/') {
+        for part in self.rel_path(rel).split('/') {
             p.push(part);
         }
         p
+    }
+    /// Where a manifest path is in the game folder ('/'-separated): itself, or "dow2-patches/X" for the vanilla copy.
+    pub fn rel_path(&self, rel: &str) -> String {
+        if let Some((from, to)) = self.remap {
+            if rel.get(..from.len()).is_some_and(|h| h.eq_ignore_ascii_case(from)) {
+                return format!("{to}{}", &rel[from.len()..]);
+            }
+        }
+        rel.to_string()
+    }
+    /// The installed files (game folder paths) still as the launcher left them (same size and time).
+    pub fn intact_files(&self) -> Vec<String> {
+        self.load_state().files.iter()
+            .filter(|f| mtime(&self.file(&f.path)).is_some_and(|(sz, mt)| sz == f.size && mt == f.mtime))
+            .map(|f| self.rel_path(&f.path)).collect()
+    }
+    /// Is this installed file (manifest path) on disk with the SHA-256 the state has? Hashes it: for small files.
+    pub fn file_is_installed(&self, rel: &str) -> bool {
+        let st = self.load_state();
+        let Some(f) = st.files.iter().find(|f| f.path.eq_ignore_ascii_case(rel)) else { return false };
+        File::open(self.file(rel)).and_then(cdc::sha256).map(|(sha, _)| hex(&sha) == f.sha).unwrap_or(false)
+    }
+    /// Take a file of this state out of the game folder, its copy kept in the version cache (back for free next time).
+    pub fn put_away(&self, rel: &str) -> bool {
+        let p = self.file(rel);
+        if !p.is_file() { return false; }
+        stash(self, &p, None);
+        fs::remove_file(&p).is_ok()
+    }
+    /// Put a file the launcher already has (e.g. an add-on DLL in Elite_DLLs) into the version cache under its SHA-256, so an
+    /// install of the same file elsewhere (its vanilla copy) is a local copy, also offline. Checked before it is kept.
+    pub fn seed_cache(&self, path: &Path, sha_hex: &str) {
+        if sha_hex.len() != 64 || self.cache_dir().join(sha_hex).is_file() { return; }
+        if let Ok((sha, _)) = File::open(path).and_then(cdc::sha256) {
+            if hex(&sha) == sha_hex { stash(self, path, Some(sha)); }
+        }
+    }
+    /// Forget this state without touching the files (they went elsewhere, e.g. "clean up the junk").
+    pub fn forget(&self) {
+        let _ = fs::remove_file(self.state_path());
+    }
+}
+
+/// The part of a component's manifest that is its vanilla copy: the files under Elite_DLLs/ (DLLs, their ini and helpers).
+/// Anything else (winmm.dll of Automatch, Elite.exe, the game's text files) belongs to Elite only.
+pub fn vanilla_files(man: &Manifest) -> Manifest {
+    Manifest {
+        version: man.version.clone(),
+        files: man.files.iter().filter(|f| f.path.get(..11).is_some_and(|h| h.eq_ignore_ascii_case("Elite_DLLs/")) && f.path.len() > 11).cloned().collect(),
     }
 }
 
@@ -665,6 +742,45 @@ mod tests {
         assert!(dir.join("Elite_DLLs/MatchTimer.dll").is_file());
         assert!(!dir.join("Elite_DLLs/Old.dll").exists());
         assert!(Game::component_ids(&dir).is_empty(), "the orphan's state is forgotten");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn vanilla_copy_maps_elite_dlls_to_the_patch_folder() {
+        let dir = std::env::temp_dir().join(format!("elite_vanilla_test_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(dir.join("Elite_DLLs")).unwrap();
+        let v = Game::vanilla_component(&dir, "automatch");
+        assert_eq!(v.rel_path("Elite_DLLs/MMFind.dll"), "dow2-patches/MMFind.dll");
+        assert_eq!(v.rel_path("elite_dlls/OwnLobby.ini"), "dow2-patches/OwnLobby.ini");
+        assert_eq!(v.rel_path("winmm.dll"), "winmm.dll");
+        assert_eq!(Game::component(&dir, "automatch").rel_path("Elite_DLLs/MMFind.dll"), "Elite_DLLs/MMFind.dll");
+        let fe = |p: &str| FileEntry { path: p.into(), size: 1, sha: [0; 32], chunks: vec![] };
+        let man = Manifest { version: "mmfind-0.45".into(), files: vec![fe("Elite_DLLs/MMFind.dll"), fe("Elite_DLLs/OwnLobby.dll"), fe("winmm.dll"), fe("Elite.exe"), fe("Elite_DLLs/")] };
+        let vm = vanilla_files(&man);
+        assert_eq!(vm.files.iter().map(|f| f.path.as_str()).collect::<Vec<_>>(), vec!["Elite_DLLs/MMFind.dll", "Elite_DLLs/OwnLobby.dll"]);
+        // its own state, never one of the component states the Elite side walks
+        fs::create_dir_all(dir.join("dow2-patches")).unwrap();
+        fs::write(dir.join("dow2-patches/MMFind.dll"), b"abc").unwrap();
+        let (size, mt) = mtime(&dir.join("dow2-patches/MMFind.dll")).unwrap();
+        v.save_state(&State { version: "mmfind-0.45".into(), channel: "automatch".into(),
+            files: vec![StateFile { path: "Elite_DLLs/MMFind.dll".into(), size, mtime: mt, sha: String::new() }] }).unwrap();
+        assert!(Game::component_ids(&dir).is_empty());
+        assert_eq!(Game::vanilla_ids(&dir), vec!["automatch".to_string()]);
+        assert_eq!(v.intact_files(), vec!["dow2-patches/MMFind.dll".to_string()]);
+        fs::write(dir.join("dow2-patches/MMFind.dll"), b"changed by hand").unwrap();
+        assert!(v.intact_files().is_empty(), "a file changed by hand is not the launcher's any more");
+        assert_eq!(v.uninstall().unwrap(), 1);
+        assert!(!dir.join("dow2-patches/MMFind.dll").exists() && !dir.join("Elite_DLLs/MMFind.dll").exists());
+        // the loader: put away into the cache and back
+        fs::write(dir.join("winmm.dll"), b"loader").unwrap();
+        let l = Game::vanilla_loader(&dir);
+        let sha = hex(&File::open(dir.join("winmm.dll")).and_then(cdc::sha256).unwrap().0);
+        l.save_state(&State { version: "vloader-1".into(), channel: "vanilla".into(), files: vec![StateFile { path: "winmm.dll".into(), size: 6, mtime: 0, sha: sha.clone() }] }).unwrap();
+        assert!(l.file_is_installed("winmm.dll"));
+        assert!(l.put_away("winmm.dll") && !dir.join("winmm.dll").exists());
+        assert!(dir.join(".elite_cache").join(&sha).is_file());
+        assert!(!l.file_is_installed("winmm.dll"));
         let _ = fs::remove_dir_all(&dir);
     }
 }
