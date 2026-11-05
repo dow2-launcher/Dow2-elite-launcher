@@ -1848,7 +1848,8 @@ async function roomJoin(id, name, btn, leave) {
   try {
     const p = await invoke('room_join_probe') || {};
     // the lobby I am in: the game itself says (its status, RoomJoin 9+), else the list (my SteamID in a room) while the game runs
-    const g0 = (p.games || [])[0], st = (g0 && g0.status) || {};
+    const g0raw = (p.games || [])[0], st = (g0raw && g0raw.status) || {};
+    const g0 = st.screen === 'unknown' ? null : g0raw;   // the game has not seen its menu yet: its room 0 says nothing, the list decides
     // the game answered: its word decides (0 = in no room, the list may still show me in one for 30 s); no answer: the list
     const inRoom = g0 ? (st.room ? String(st.room) : '') : p.running && RM.mine ? RM.mine.room : '';
     if (g0 && RM.mine && RM.mine.room !== inRoom) { RM.gone = { room: RM.mine.room, until: Date.now() + 40000 }; RM.mine = null; RJ.here = null; }   // the list is late: not there any more
