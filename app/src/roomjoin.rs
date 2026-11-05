@@ -156,7 +156,7 @@ fn game_kind_linux() -> Option<&'static str> {
 fn kind(c: &Conn) -> Option<&'static str> {
     match c {
         #[cfg(windows)]
-        Conn::Pipe(p) => win::cmdline(p.pid).map(|l| kind_of_cmdline(&l)),
+        Conn::Pipe(p) => win::kind(p.pid),
         #[cfg(target_os = "linux")]
         Conn::Bridge(_) => game_kind_linux(),
         #[allow(unreachable_patterns)]
@@ -322,6 +322,41 @@ mod win {
             Some(String::from_utf16_lossy(std::slice::from_raw_parts(ptr, len / 2)))
         }
     }
+    #[repr(C)]
+    struct ModEntry { size: u32, module_id: u32, pid: u32, glbl: u32, proc_cnt: u32, base: *mut u8, base_size: u32, hmod: isize,
+                      module: [u16; 256], path: [u16; 260] }
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn Module32FirstW(snap: isize, e: *mut ModEntry) -> i32;
+        fn Module32NextW(snap: isize, e: *mut ModEntry) -> i32;
+    }
+    /// The paths of the modules a process has loaded (None: not allowed - e.g. the elevated game of Elite's starter).
+    pub fn modules(pid: u32) -> Option<Vec<String>> {
+        unsafe {
+            let snap = CreateToolhelp32Snapshot(0x8 | 0x10 /* TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32 */, pid);
+            if snap == -1 { return None; }
+            let mut e: ModEntry = std::mem::zeroed(); e.size = std::mem::size_of::<ModEntry>() as u32;
+            let mut out = Vec::new();
+            let mut ok = Module32FirstW(snap, &mut e);
+            while ok != 0 {
+                let n = e.path.iter().position(|&c| c == 0).unwrap_or(e.path.len());
+                out.push(String::from_utf16_lossy(&e.path[..n]));
+                ok = Module32NextW(snap, &mut e);
+            }
+            CloseHandle(snap);
+            if out.is_empty() { None } else { Some(out) }
+        }
+    }
+    /// Which game a DOW2.exe runs: its command line (Windows 8.1+), else what it has loaded - a DLL from Elite_DLLs = Elite,
+    /// one from dow2-patches = vanilla (Profiler.dll says nothing: Elite's copy replaces the game's own, vanilla loads it too,
+    /// stand 05.11). None: not known (then nothing is decided by it).
+    pub fn kind(pid: u32) -> Option<&'static str> {
+        if let Some(l) = cmdline(pid) { return Some(super::kind_of_cmdline(&l)); }
+        let m: Vec<String> = modules(pid)?.into_iter().map(|p| p.to_ascii_lowercase()).collect();
+        if m.iter().any(|l| l.contains("\\elite_dlls\\")) { return Some("elite"); }
+        if m.iter().any(|l| l.contains("\\dow2-patches\\")) { return Some("vanilla"); }
+        None
+    }
     #[link(name = "user32")]
     extern "system" {
         fn EnumWindows(cb: extern "system" fn(isize, isize) -> i32, l: isize) -> i32;
@@ -454,7 +489,7 @@ fn probe(app: &AppHandle) -> Value {
     let young = launched;
     // 1.4.11: which game each one is (a vanilla lobby is joined only from vanilla); also a running game without the pipe
     #[cfg(windows)]
-    let running_kind = win::game_pids().first().and_then(|&p| win::cmdline(p)).map(|l| kind_of_cmdline(&l));
+    let running_kind = win::game_pids().first().and_then(|&p| win::kind(p));
     #[cfg(target_os = "linux")]
     let running_kind = if running { game_kind_linux() } else { None };
     #[cfg(not(any(windows, target_os = "linux")))]
@@ -588,13 +623,22 @@ pub async fn room_join_cancel(app: AppHandle) -> Value {
 #[cfg(test)]
 mod tests {
     /// The stand (Wine): every running DOW2.exe - its command line, which game, RoomJoin's status over its pipe.
+    /// The command line of this very process through the same call (Wine 11 has no ProcessCommandLineInformation: None there,
+    /// the modules decide).
+    #[cfg(windows)]
+    #[test]
+    #[ignore]
+    fn stand_cmdline_self() {
+        println!("self: {:?}", super::win::cmdline(std::process::id()));
+    }
     #[cfg(windows)]
     #[test]
     #[ignore]
     fn stand_probe() {
         for p in super::win::game_pids() {
             let cmd = super::win::cmdline(p);
-            let kind = cmd.as_deref().map(super::kind_of_cmdline);
+            let kind = super::win::kind(p);
+            if std::env::var_os("VT_DEBUG").is_some() { println!("  modules: {:?}", super::win::modules(p).map(|m| m.into_iter().filter(|x| x.to_ascii_lowercase().contains("dll") && (x.contains("Elite") || x.contains("patches") || x.contains("Profiler"))).collect::<Vec<_>>())); }
             let st = super::win::Conn::open(p).map(super::Conn::Pipe).and_then(|mut c| c.status());
             println!("DOW2.exe {p}: kind {kind:?}, command line {cmd:?}, RoomJoin status {}", st.map(|v| v.to_string()).unwrap_or_else(|| "none (no pipe)".into()));
             // VT_JOIN=<room id>: a join as the launcher sends it, every event for up to 90 s (a room that does not exist: the
