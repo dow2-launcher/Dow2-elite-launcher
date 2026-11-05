@@ -240,8 +240,22 @@ impl ProtonRun {
             .env("STEAM_COMPAT_LIBRARY_PATHS", libs)
             .env("STEAM_COMPAT_APP_ID", self.appid.to_string())
             .env("SteamAppId", self.appid.to_string())
-            .env("SteamGameId", self.appid.to_string());
+            .env("SteamGameId", self.appid.to_string())
+            // 1.4.11: our winmm.dll next to DOW2.exe (Automatch's early loader, the vanilla game's loader) - Wine takes its
+            // own winmm unless told to prefer the one in the game folder; Proton adds its own overrides to the player's
+            .env("WINEDLLOVERRIDES", with_native_winmm(std::env::var("WINEDLLOVERRIDES").ok().as_deref()));
         c
+    }
+}
+
+/// WINEDLLOVERRIDES with winmm=n,b added (the player's own entry for winmm, if any, is kept as it is).
+pub fn with_native_winmm(cur: Option<&str>) -> String {
+    let cur = cur.unwrap_or("").trim().trim_matches(';');
+    let has = cur.split(';').any(|e| e.split('=').next().unwrap_or("").split(',').any(|d| d.trim().eq_ignore_ascii_case("winmm")));
+    match (cur.is_empty(), has) {
+        (true, _) => "winmm=n,b".into(),
+        (false, true) => cur.to_string(),
+        (false, false) => format!("{cur};winmm=n,b"),
     }
 }
 
@@ -254,6 +268,16 @@ pub fn prefix_documents(game_dir: &Path, appid: u32) -> Option<PathBuf> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn winmm_override() {
+        use super::with_native_winmm as w;
+        assert_eq!(w(None), "winmm=n,b");
+        assert_eq!(w(Some("")), "winmm=n,b");
+        assert_eq!(w(Some("dxgi=n")), "dxgi=n;winmm=n,b");
+        assert_eq!(w(Some("mscoree,mshtml=;winmm=b")), "mscoree,mshtml=;winmm=b");   // the player's choice stays
+        assert_eq!(w(Some("d3d9,WinMM=n")), "d3d9,WinMM=n");
+    }
+
     use super::*;
     const CONFIG: &str = r#""InstallConfigStore"
 {

@@ -322,6 +322,10 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .chip{padding:0 6px;border:1px solid var(--line2);font:600 11px/17px Spectral,serif;color:var(--muted);white-space:nowrap}
 .chip.up{border-color:var(--gold);color:var(--gold2)}
 .chip.hot{border-color:#5d7a3a;color:#b5d58a}
+/* 1.4.11: vanilla Retribution - an add-on for Elite only, grey with its label, the switch locked */
+.chip.na{flex:none;border-color:#8a5d22;color:var(--amber)}
+.addon.na .addon-name,.addon.na .addon-desc,.addon.na .addon-ver{opacity:.6}
+.addon.na .switch{opacity:.4;cursor:not-allowed}
 .addon-desc{margin:2px 0 0;font-size:13px;line-height:1.45;color:var(--soft)}
 .addon-ver{margin-top:4px;font-size:12px;color:var(--dim)}
 .addon-all .addon-note{padding:6px 0 0}

@@ -87,6 +87,9 @@ struct Settings {
     c_steam: String,
     c_name: String,
     c_avatar: String,
+    /// 1.4.11 (owner 05.11.2026): "vanilla" - Play starts plain Dawn of War II: Retribution with the add-ons that work there;
+    /// anything else - Elite (the default).
+    game_mode: String,
 }
 
 struct App {
@@ -456,6 +459,8 @@ fn uninstall_elite(app: State<'_, App>, handle: AppHandle) -> Result<Value, Stri
     let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
     let mut files = 0usize;
     for c in &cfg.components { files += update::Game::component(&dir, &c.id).uninstall().unwrap_or(0); restore_originals(&dir, &c.id); }
+    for id in update::Game::vanilla_ids(&dir) { files += update::Game::vanilla_component(&dir, &id).uninstall().unwrap_or(0); }
+    files += update::Game::vanilla_loader(&dir).uninstall().unwrap_or(0);
     files += update::Game::new(&dir).uninstall().map_err(|e| e.to_string())?;
     // what Elite and the add-ons leave next to the game: their folders, launch configs, the stand-alone patch loader
     let mut gone = Vec::new();
@@ -474,7 +479,7 @@ fn uninstall_elite(app: State<'_, App>, handle: AppHandle) -> Result<Value, Stri
     }
     {
         let mut s = app.settings.lock().unwrap();
-        s.channel = None; s.prev_channel = None; save_settings(&s);
+        s.channel = None; s.prev_channel = None; s.game_mode = String::new(); save_settings(&s);
     }
     // Steam puts back the original files Elite had replaced (and the ones we just removed if they were the game's)
     let _ = handle.opener().open_url("steam://validate/56400", None::<&str>);
@@ -659,8 +664,16 @@ fn get_status(app: State<'_, App>) -> Value {
         "mirror_count": mirrors(&s, cfg.as_ref()).count(),
         // old copies of our add-ons: the window syncs the add-ons (they are put aside there) before Play starts the game
         "old_copies": dir.as_ref().map(|d| old_copies(d, &cfgd)).unwrap_or_default(),
+        // 1.4.11: the game Play starts ("elite" / "vanilla"), whether the catalog offers vanilla, and whether the game folder
+        // still has to be brought to that game (Play syncs first)
+        "game_mode": if vanilla_on(&cfgd, &s) { "vanilla" } else { "elite" },
+        "vanilla_offered": vanilla_offered(&cfgd),
+        "vanilla": cfgd.vanilla.as_ref().map(|v| json!({"name": v.name, "description": v.description})),
+        "mode_sync": dir.as_ref().map(|d| mode_sync_needed(d, &cfgd, &s)).unwrap_or(false),
         "components": cfgd.components.iter().map(|c| json!({
             "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category, "order": c.order,
+            "vanilla_ok": c.for_game("vanilla"), "elite_ok": c.for_game("elite"),
+            "vanilla_installed": dir.as_ref().map(|d| update::Game::vanilla_component(d, &c.id).load_state().version).unwrap_or_default(),
             "enabled": s.components.get(&c.id).copied().unwrap_or(c.default),
             "conflicts": dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default(),
             "installed": dir.as_ref().map(|d| update::Game::component(d, &c.id).load_state().version).unwrap_or_default(),
@@ -739,6 +752,7 @@ fn switch_to(app: AppHandle, id: String) -> Result<(), String> {
             s.prev_channel = Some(cur);
         }
         s.channel = Some(id);
+        s.game_mode = String::new();     // 1.4.11: a version of Elite picked = Elite
         save_settings(&s);
     }
     start_update(app, false, None)
@@ -799,6 +813,7 @@ fn set_comp_option(app: State<'_, App>, comp: String, opt: String, on: bool) -> 
     };
     if let (Some(dir), Some(cfg)) = (game_dir(&app), app.config.lock().unwrap().clone()) {
         apply_options(&dir, &cfg, &s);
+        apply_vanilla_options(&dir, &cfg, &s);
     }
     Ok(())
 }
@@ -815,13 +830,16 @@ fn set_comp_value(app: State<'_, App>, comp: String, opt: String, value: String)
     };
     if let (Some(dir), Some(cfg)) = (game_dir(&app), app.config.lock().unwrap().clone()) {
         apply_options(&dir, &cfg, &s);
+        apply_vanilla_options(&dir, &cfg, &s);
     }
     Ok(())
 }
 
 /// Hand-installed copies of a component that are in the game folder right now (see Component::conflicts).
+/// 1.4.11: the vanilla copies the launcher put into dow2-patches itself are not hand copies.
 fn found_conflicts(dir: &std::path::Path, c: &elite_core::config::Component) -> Vec<String> {
-    hand_copy_paths(c).into_iter().filter(|f| !f.contains("..") && update::Game::new(dir).file(f).is_file()).collect()
+    let ours = vanilla_owned(dir);
+    hand_copy_paths(c).into_iter().filter(|f| !f.contains("..") && !ours.contains(&f.to_ascii_lowercase()) && update::Game::new(dir).file(f).is_file()).collect()
 }
 
 /// Where a hand-installed copy of a component can be: its `conflicts` list and, for every add-on with a DLL, the stand-alone
@@ -919,6 +937,12 @@ fn old_copies(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
         for f in found_conflicts(dir, c) { if !v.iter().any(|x| x.eq_ignore_ascii_case(&f)) { v.push(f); } }
     }
     if dir.join("LobbyStats").join("LobbyStats.dll").is_file() { v.push("LobbyStats/LobbyStats.dll".into()); }
+    // 1.4.11: dow2-patches is the vanilla game's folder of the launcher now - a retired DLL of ours there is an old copy too
+    let ours = vanilla_owned(dir);
+    for n in RETIRED_DLLS {
+        let p = format!("{}/{n}", update::VANILLA_DIR);
+        if dir.join(update::VANILLA_DIR).join(n).is_file() && !ours.contains(&p.to_ascii_lowercase()) && !v.iter().any(|x| x.eq_ignore_ascii_case(&p)) { v.push(p); }
+    }
     v
 }
 
@@ -941,8 +965,14 @@ fn put_aside_old_copies(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<Stri
         if let Some((a, _)) = f.rsplit_once('.') { put(&format!("{a}.ini")); }
     }
     let pd = dir.join("dow2-patches");
-    let dlls_left = std::fs::read_dir(&pd).map(|rd| rd.flatten().any(|e| e.file_name().to_string_lossy().to_ascii_lowercase().ends_with(".dll"))).unwrap_or(false);
-    if !dlls_left {
+    // 1.4.11: the launcher's own vanilla copies do not count - and while they are there the stand-alone loader goes anyway
+    // (it would load them into Elite too, next to Elite_DLLs)
+    let ours = vanilla_owned(dir);
+    let dlls_left = std::fs::read_dir(&pd).map(|rd| rd.flatten().any(|e| {
+        let n = e.file_name().to_string_lossy().to_ascii_lowercase();
+        n.ends_with(".dll") && !ours.contains(&format!("dow2-patches/{n}"))
+    })).unwrap_or(false);
+    if !dlls_left || !ours.is_empty() {
         for name in ["winmm.dll", "README_EN.txt", "README_RU.txt"] {
             if is_patches_loader_file(dir, name) { put(name); }
         }
@@ -963,6 +993,7 @@ fn put_aside_old_copies(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<Stri
 /// A file of the stand-alone dow2-patches package at the top of the game folder (its winmm.dll loader names its folder
 /// in UTF-16, the readmes in plain text) - and not some other winmm.dll.
 fn is_patches_loader_file(dir: &std::path::Path, name: &str) -> bool {
+    if name.eq_ignore_ascii_case("winmm.dll") && update::Game::vanilla_loader(dir).file_is_installed("winmm.dll") { return false; }   // the launcher's own
     let wide: Vec<u8> = "dow2-patches".encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
     std::fs::read(dir.join(name))
         .map(|b| b.windows(12).any(|w| w == b"dow2-patches") || b.windows(wide.len()).any(|w| w == wide.as_slice()))
@@ -1115,6 +1146,10 @@ fn junk_cleanup(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Va
             }
         }
     }
+    // 1.4.11: dow2-patches and winmm.dll went with the rest - the vanilla copies and the loader are set up again by the check
+    // that follows (in the vanilla game) or the next vanilla start
+    for id in update::Game::vanilla_ids(dir) { update::Game::vanilla_component(dir, &id).forget(); }
+    update::Game::vanilla_loader(dir).forget();
     json!({"moved": moved, "uninjected": dropped, "backup": bin.display().to_string()})
 }
 
@@ -1155,6 +1190,15 @@ fn restore_originals(dir: &std::path::Path, id: &str) {
 
 /// Install ticked components, remove unticked ones, keep Elite.launchconfig in sync.
 fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &Mirrors, progress: &mut dyn FnMut(&update::Progress)) -> Result<(), update::Error> {
+    sync_components_with(dir, cfg, s, m, progress, &|g, v| update::load_manifest(g, m, v))
+}
+/// A version's manifest (update::load_manifest; the tests give their own).
+type LoadManifest<'a> = &'a dyn Fn(&update::Game, &str) -> Result<elite_core::manifest::Manifest, update::Error>;
+fn sync_components_with(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &Mirrors, progress: &mut dyn FnMut(&update::Progress), load: LoadManifest) -> Result<(), update::Error> {
+    if vanilla_on(cfg, s) {
+        return sync_vanilla(dir, cfg, s, m, progress, load);   // 1.4.11: Elite's files stay as they are
+    }
+    hide_vanilla_loader(dir);            // Elite: no vanilla loader next to DOW2.exe (Automatch's early one comes back below)
     let main = update::Game::new(dir);
     if main.load_state().version.is_empty() {
         return Ok(()); // Elite itself is not installed yet
@@ -1166,7 +1210,7 @@ fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m:
         let on = comp_on(dir, c, s);
         let g = update::Game::component(dir, &c.id);
         if on {
-            let man = update::load_manifest(&g, m, &c.version)?;
+            let man = load(&g, &c.version)?;
             // an add-on that replaces game files (e.g. a translation): keep the originals the first time, put them back when it is off
             if g.load_state().version.is_empty() { backup_originals(dir, &c.id, &man); }
             update::apply(&g, m, &man, &update::Options { verify_all: false, cache_limit: s.cache_mb.unwrap_or(DEFAULT_CACHE_MB) << 20, channel: c.id.clone() }, progress)?;
@@ -1185,6 +1229,176 @@ fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m:
     }
     apply_options(dir, cfg, s);
     Ok(())
+}
+
+// ---------- 1.4.11: the vanilla game (owner 05.11.2026) ----------
+// "Vanilla Retribution" in the picker next to Play: DOW2.exe without -modname, the add-ons whose launcher.json entry names
+// "vanilla" in `games`, copied from their own manifests into dow2-patches/ (their Elite_DLLs files, same names, their ini
+// there too - every DLL reads its ini next to itself), and the launcher's winmm.dll loader (launcher.json vanilla.loader)
+// next to DOW2.exe. Elite's own files (Elite_DLLs, Elite.launchconfig, Elite.exe, Profiler...) are not touched in this mode.
+// An add-on for Elite only is never copied there, whatever its tick. Back in Elite the vanilla loader goes (into the version
+// cache) and Automatch's early winmm.dll (EARLY_ONLY: OwnLobby before RLink) is put back as before. The loader itself also
+// decides by the command line (a mod start loads only Elite_DLLs' early add-ons, like Automatch's), so a game started past
+// the launcher never loads the vanilla copies into Elite.
+
+/// Is the vanilla game offered: the catalog names its loader; not on macOS (the native game loads no Windows DLLs).
+fn vanilla_offered(cfg: &LauncherConfig) -> bool {
+    cfg.vanilla_loader().is_some() && os_name() != "macos"
+}
+/// Does Play start the vanilla game?
+fn vanilla_on(cfg: &LauncherConfig, s: &Settings) -> bool {
+    s.game_mode == "vanilla" && vanilla_offered(cfg)
+}
+
+/// The files the launcher put into dow2-patches for the vanilla game and nobody changed since (lower case game folder paths).
+fn vanilla_owned(dir: &std::path::Path) -> std::collections::HashSet<String> {
+    update::Game::vanilla_ids(dir).iter()
+        .flat_map(|id| update::Game::vanilla_component(dir, id).intact_files())
+        .map(|p| p.to_ascii_lowercase()).collect()
+}
+
+/// Elite: the vanilla loader out of the game folder (kept in the version cache for the next vanilla start). -> it was there
+fn hide_vanilla_loader(dir: &std::path::Path) -> bool {
+    let l = update::Game::vanilla_loader(dir);
+    l.file_is_installed("winmm.dll") && l.put_away("winmm.dll")
+}
+
+/// Files at the top of the game folder of the Elite add-ons that are on (Automatch's early winmm.dll), put back from the
+/// version cache when they are missing - at the start, after the vanilla loader went, without the network.
+fn restore_root_files(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Vec<String> {
+    let mut back = Vec::new();
+    for c in cfg.components.iter().filter(|c| comp_on(dir, c, s)) {
+        let g = update::Game::component(dir, &c.id);
+        for f in g.load_state().files.iter().filter(|f| !f.path.contains('/') && !f.path.contains("..")) {
+            let dst = g.file(&f.path);
+            let cached = g.cache_dir().join(&f.sha);
+            if !dst.exists() && cached.is_file() && std::fs::copy(&cached, &dst).is_ok() {
+                g.accept_local_edit(&f.path);
+                back.push(f.path.clone());
+            }
+        }
+    }
+    back
+}
+
+/// Leftovers of our DLLs in dow2-patches (X.dll.eliteupd of an update cut short, X.dll.old, X.dll.off): deleted.
+fn drop_vanilla_leftovers(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
+    let ours = our_dll_names(dir, cfg);
+    let mut gone = Vec::new();
+    let Ok(rd) = std::fs::read_dir(dir.join(update::VANILLA_DIR)) else { return gone };
+    for e in rd.flatten() {
+        let n = e.file_name().to_string_lossy().to_string();
+        if e.path().is_file() && our_leftover(&n, &ours) && std::fs::remove_file(e.path()).is_ok() {
+            gone.push(format!("{}/{n}", update::VANILLA_DIR));
+        }
+    }
+    gone
+}
+
+/// The vanilla game: the launcher's loader loads every DLL in dow2-patches, so only the launcher's own copies stay there - any
+/// other DLL (of an old package of ours, or a file changed by hand) is put aside like the old copies (kept in the version cache
+/// folder, never deleted). -> what moved
+fn put_aside_foreign_vanilla(dir: &std::path::Path) -> Vec<String> {
+    let ours = vanilla_owned(dir);
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+    let bin = update::Game::new(dir).cache_dir().join(format!("old-addons-{stamp}")).join(update::VANILLA_DIR);
+    let mut moved = Vec::new();
+    let Ok(rd) = std::fs::read_dir(dir.join(update::VANILLA_DIR)) else { return moved };
+    for e in rd.flatten() {
+        let n = e.file_name().to_string_lossy().to_string();
+        let rel = format!("{}/{n}", update::VANILLA_DIR);
+        if !e.path().is_file() || !n.to_ascii_lowercase().ends_with(".dll") || ours.contains(&rel.to_ascii_lowercase()) { continue; }
+        let _ = std::fs::create_dir_all(&bin);
+        if std::fs::rename(e.path(), bin.join(&n)).is_ok() { moved.push(rel); }
+    }
+    moved
+}
+
+/// Vanilla copies that must not be there: of an add-on that is off, for Elite only, or gone from the catalog. -> what went
+fn drop_vanilla_extra(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Vec<String> {
+    let mut gone = Vec::new();
+    for id in update::Game::vanilla_ids(dir) {
+        let keep = cfg.components.iter().find(|c| update::component_key(&c.id) == id)
+            .is_some_and(|c| c.for_game("vanilla") && comp_on(dir, c, s));
+        if keep { continue; }
+        let v = update::Game::vanilla_component(dir, &id);
+        if let Ok(removed) = v.uninstall_keeping(|_| false) { gone.extend(removed.iter().map(|p| v.rel_path(p))); }
+    }
+    gone
+}
+
+/// The options of the vanilla copies: the same ini names, in dow2-patches (only options of the add-on's Elite_DLLs ini).
+fn apply_vanilla_options(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) {
+    for c in cfg.components.iter().filter(|c| c.for_game("vanilla")) {
+        let v = update::Game::vanilla_component(dir, &c.id);
+        if v.load_state().version.is_empty() { continue; }
+        for o in c.opts() {
+            if o.ini.contains("..") || !o.ini.get(..11).is_some_and(|h| h.eq_ignore_ascii_case("Elite_DLLs/")) { continue; }
+            let k = format!("{}.{}", c.id, o.id);
+            let on = s.comp_options.get(&k).copied().unwrap_or(o.default);
+            let _ = elite::set_ini_value(&v.file(&o.ini), &o.section, &o.key, &o.ini_value(on, s.comp_values.get(&k)));
+        }
+    }
+}
+
+/// The vanilla game's add-ons and loader as the ticks and the catalog want them. Never touches Elite's files.
+fn sync_vanilla(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &Mirrors, progress: &mut dyn FnMut(&update::Progress), load: LoadManifest) -> Result<(), update::Error> {
+    put_aside_old_copies(dir, cfg);      // hand copies in dow2-patches, the stand-alone loader: one copy of every patch
+    drop_vanilla_leftovers(dir, cfg);
+    drop_vanilla_extra(dir, cfg, s);
+    put_aside_foreign_vanilla(dir);
+    let opts = |id: &str| update::Options { verify_all: false, cache_limit: s.cache_mb.unwrap_or(DEFAULT_CACHE_MB) << 20, channel: id.to_string() };
+    for c in cfg.components.iter().filter(|c| c.for_game("vanilla") && comp_on(dir, c, s)) {
+        let g = update::Game::component(dir, &c.id);
+        let v = update::Game::vanilla_component(dir, &c.id);
+        let man = update::vanilla_files(&load(&g, &c.version)?);
+        if man.files.is_empty() { if !v.load_state().version.is_empty() { v.uninstall()?; } continue; }
+        // the same files Elite's copy already has: from the disk, not the network
+        let est = g.load_state();
+        for f in &man.files {
+            let h = elite_core::cdc::hex(&f.sha);
+            if est.files.iter().any(|x| x.path == f.path && x.sha == h) { v.seed_cache(&g.file(&f.path), &h); }
+        }
+        update::apply(&v, m, &man, &opts(&c.id), progress)?;
+    }
+    if let Some(ver) = cfg.vanilla_loader() {
+        let l = update::Game::vanilla_loader(dir);
+        let man = load(&l, ver)?;
+        update::apply(&l, m, &man, &opts("vanilla"), progress)?;
+    }
+    apply_vanilla_options(dir, cfg, s);
+    Ok(())
+}
+
+/// Does the game folder differ from what the chosen game wants (Play syncs first then)? Vanilla: the loader or a vanilla copy
+/// missing, old or extra. Elite: the vanilla loader still next to DOW2.exe.
+fn mode_sync_needed(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> bool {
+    let l = update::Game::vanilla_loader(dir);
+    if !vanilla_on(cfg, s) { return l.file_is_installed("winmm.dll"); }
+    if cfg.vanilla_loader() != Some(l.load_state().version.as_str()) || !l.file_is_installed("winmm.dll") { return true; }
+    let want: std::collections::HashMap<String, &str> = cfg.components.iter().filter(|c| c.for_game("vanilla") && comp_on(dir, c, s))
+        .map(|c| (update::component_key(&c.id), c.version.as_str())).collect();
+    let have = update::Game::vanilla_ids(dir);
+    if have.iter().any(|id| !want.contains_key(id)) { return true; }
+    want.iter().any(|(id, ver)| {
+        let v = update::Game::vanilla_component(dir, id);
+        let st = v.load_state();
+        st.version != *ver || v.intact_files().len() != st.files.len()
+    })
+}
+
+/// Pick the game Play starts: "vanilla" or Elite (anything else). The window syncs the add-ons for it right after.
+#[tauri::command]
+fn set_game_mode(app: State<'_, App>, mode: String) -> Result<Value, String> {
+    ensure_game_closed(&app)?;
+    if app.busy.load(Ordering::Relaxed) { return Err("files are being updated, wait a few seconds".into()); }
+    {
+        let mut s = app.settings.lock().unwrap();
+        s.game_mode = if mode == "vanilla" { "vanilla".into() } else { String::new() };
+        save_settings(&s);
+    }
+    c_log(&format!("game: {}", if mode == "vanilla" { "vanilla" } else { "elite" }));
+    Ok(get_status(app))
 }
 
 #[tauri::command]
@@ -1311,12 +1525,17 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
                 let dll = !c.inject.is_empty() && d.join("Elite_DLLs").join(&c.inject).is_file();
                 let injected = !c.inject.is_empty() && std::fs::read_to_string(d.join(elite::LAUNCHCONFIG)).map(|t| t.lines()
                     .any(|l| l.strip_prefix("InjectedFiles=").map_or(false, |r| r.split(',').any(|x| x.trim().eq_ignore_ascii_case(&c.inject))))).unwrap_or(false);
-                format!("{}: {} (latest {}, installed {}{}{}{})", c.id, if on { "ON" } else { "off" }, c.version,
+                let van = update::Game::vanilla_component(d, &c.id).load_state().version;
+                format!("{}: {} (latest {}, installed {}{}{}{}{})", c.id, if on { "ON" } else { "off" }, c.version,
                     if have.is_empty() { "-" } else { &have }, if dll { ", dll" } else { "" }, if injected { ", injected" } else { "" },
+                    if van.is_empty() { String::new() } else { format!(", vanilla copy {van}") },
                     if conf.is_empty() { String::new() } else { format!(", hand-installed copy: {}", conf.join(" ")) })
             }
             None => format!("{}: {}", c.id, c.version),
-        }).collect()
+        }).chain(std::iter::once(format!("game: {}{}", if vanilla_on(&cfg, &s) { "vanilla" } else { "elite" },
+            dir.as_ref().map(|d| { let l = update::Game::vanilla_loader(d); let v = l.load_state().version;
+                if v.is_empty() { String::new() } else { format!(" (vanilla loader {v}{})", if l.file_is_installed("winmm.dll") { ", in place" } else { ", not in place" }) } }).unwrap_or_default())))
+        .collect()
     };
     tauri::async_runtime::spawn_blocking(move || {
         let patches = dir.as_ref().and_then(|d| std::fs::read_dir(d.join("dow2-patches")).ok()).map(|rd| {
@@ -1357,6 +1576,7 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
         };
         if let Some(d) = &dir {
             take(d.join("Elite_DLLs"), 0, &["log", "ini", "txt", "dmp"], 30, 40, &mut files);
+            take(d.join(update::VANILLA_DIR), 0, &["log", "ini", "txt", "dmp"], 30, 40, &mut files);   // 1.4.11: the vanilla game's add-ons
             take(d.clone(), 0, &["log", "txt", "dmp", "mdmp", "launchconfig"], 7, 20, &mut files);
         }
         take(data_dir(), 0, &["log", "old"], 30, 4, &mut files);   // the launcher's own: community.log (Steam sign-in, chat)
@@ -1508,21 +1728,47 @@ fn start_game(app: &App) -> Result<Value, String> {
     // old copies of our add-ons (the stand-alone package, the old LobbyStats folder) would load next to the launcher's:
     // put aside without asking (owner 03.11.2026: one copy of every patch, the launcher's latest). The window brings
     // the launcher's versions first (Play syncs the add-ons before it starts), so normally there is nothing left here.
+    let settings = app.settings.lock().unwrap().clone();
+    let vanilla = vanilla_on(&cfg, &settings);
+    let guard = prepare_start(&dir, &cfg, &settings);
+    roomjoin::note_launch();     // 1.4.9: Join waits for the add-on of a game started just now
+    if !vanilla { elite_core::hotkeys::refresh_if_stale(&settings.hotkeys); }     // a patch brought new defaults
+    launch(&dir, &cfg, vanilla, guard)
+}
+
+/// The checks of the game folder right before a start (no network): what they did, for the player.
+fn prepare_start(dir: &std::path::Path, cfg: &LauncherConfig, settings: &Settings) -> Value {
+    let (dir, cfg) = (dir.to_path_buf(), cfg.clone());
+    let vanilla = vanilla_on(&cfg, settings);
     let old = put_aside_old_copies(&dir, &cfg);
     // what the checks of our add-ons did is told to the player (siritos 02.11): only add-ons of launcher.json, the
     // leftovers of their DLLs, and the ones gone from the catalog (drop_orphans) - nothing else in the game folder;
     // loader: the stand-alone dow2-patches package's winmm.dll. The leftovers first: drop_orphans forgets the names.
     let mut off = old;
-    off.extend(drop_leftovers(&dir, &cfg));
-    off.extend(enforce_off(&dir, &cfg, &app.settings.lock().unwrap().clone()));
-    off.extend(drop_orphans(&dir, &cfg));
-    drop_conflicting(&dir, &cfg);
-    for n in sync_injected(&dir, &cfg, &app.settings.lock().unwrap().clone()) {
-        if !off.iter().any(|x| x.to_ascii_lowercase().ends_with(&n.to_ascii_lowercase())) { off.push(n); }
+    if vanilla {
+        // 1.4.11: the vanilla game - only dow2-patches is checked, Elite's files stay as they are
+        off.extend(drop_vanilla_leftovers(&dir, &cfg));
+        off.extend(drop_vanilla_extra(&dir, &cfg, settings));
+        off.extend(put_aside_foreign_vanilla(&dir));
+    } else {
+        // Elite: the vanilla loader out, Automatch's early winmm.dll back (both from the version cache, no network)
+        if hide_vanilla_loader(&dir) { restore_root_files(&dir, &cfg, &settings); }
+        off.extend(drop_leftovers(&dir, &cfg));
+        off.extend(enforce_off(&dir, &cfg, &settings));
+        off.extend(drop_orphans(&dir, &cfg));
+        drop_conflicting(&dir, &cfg);
+        for n in sync_injected(&dir, &cfg, &settings) {
+            if !off.iter().any(|x| x.to_ascii_lowercase().ends_with(&n.to_ascii_lowercase())) { off.push(n); }
+        }
     }
-    let guard = json!({"off": off, "loader": dir.join("winmm.dll").is_file() && dir.join("dow2-patches").is_dir()});
-    roomjoin::note_launch();     // 1.4.9: Join waits for the add-on of a game started just now
-    elite_core::hotkeys::refresh_if_stale(&app.settings.lock().unwrap().hotkeys);     // a patch brought new defaults
+    let loader_missing = vanilla && !update::Game::vanilla_loader(&dir).file_is_installed("winmm.dll");
+    c_log(&format!("launch: {}{}", if vanilla { "vanilla" } else { "elite" }, if loader_missing { " (the vanilla loader is not in place - no add-ons)" } else { "" }));
+    json!({"off": off, "loader": is_patches_loader_file(&dir, "winmm.dll"), "vanilla": vanilla, "vanilla_loader_missing": loader_missing})
+}
+
+/// Start the game Play is for: Elite's command of launch.<os> (the version's own exe/args), or DOW2.exe for vanilla.
+fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, guard: Value) -> Result<Value, String> {
+    let (dir, cfg) = (dir.to_path_buf(), cfg.clone());
     let mut cmd = match os_name() {
         "windows" => cfg.launch.windows.clone(),
         "macos" => cfg.launch.macos.clone(),
@@ -1539,6 +1785,11 @@ fn start_game(app: &App) -> Result<Value, String> {
             cmd.args = ch.args.clone();
         }
     }
+    // 1.4.11: the vanilla game - DOW2.exe itself, no -modname (Elite's starter is what adds it)
+    if vanilla && os_name() == "windows" {
+        cmd.program = "{game}/DOW2.exe".into();
+        cmd.args.clear();
+    }
     // путь к игре без «длинного» префикса \\?\ (canonicalize на Windows его добавляет, а с ним Windows не принимает «/»)
     let game = dir.to_string_lossy().to_string();
     let game = game.strip_prefix(r"\\?\").unwrap_or(&game).to_string();
@@ -1550,8 +1801,8 @@ fn start_game(app: &App) -> Result<Value, String> {
     // version's own exe) through the Proton Steam uses for the game instead; anything missing -> the old way + the hint.
     #[cfg(target_os = "linux")]
     if cmd.program == "steam" && cmd.args.iter().any(|a| a == "-applaunch") {
-        let exe_name = cfg.channels.iter().find(|c| c.id == installed.channel && c.version == installed.version)
-            .map(|c| c.exe.clone()).filter(|e| !e.is_empty()).unwrap_or_else(|| "Elite.exe".into());
+        let exe_name = if vanilla { "DOW2.exe".to_string() } else { cfg.channels.iter().find(|c| c.id == installed.channel && c.version == installed.version)
+            .map(|c| c.exe.clone()).filter(|e| !e.is_empty()).unwrap_or_else(|| "Elite.exe".into()) };
         let exe = dir.join(&exe_name);
         match elite_core::proton::plan(&dir, cfg.game.steam_appid) {
             Ok(run) if exe.is_file() => {
@@ -2309,7 +2560,7 @@ fn main() {
             roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
-            relic_probe, game_net_check
+            relic_probe, game_net_check, set_game_mode
         ])
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")
@@ -2443,5 +2694,193 @@ mod junk_tests {
         assert!(!lc.contains("Relay.dll") && lc.contains("Other.dll"), "ours out, a foreign DLL left alone: {lc}");
         assert!(d.join("Elite_DLLs/Other.dll").is_file());
         let _ = std::fs::remove_dir_all(&d);
+    }
+}
+
+#[cfg(test)]
+mod vanilla_tests {
+    use super::*;
+    use elite_core::manifest::{FileEntry, Manifest};
+    use std::collections::BTreeMap;
+
+    const EARLY: &[u8] = b"MZ early loader of Automatch (only OwnLobby)";
+    const LOADER: &[u8] = b"MZ launcher loader (by -modname)";
+
+    // a manifest of in-memory files, their blobs put into the version cache (no network: every file comes from there)
+    fn man(dir: &std::path::Path, version: &str, files: &[(&str, &[u8])]) -> Manifest {
+        let cache = dir.join(".elite_cache");
+        std::fs::create_dir_all(&cache).unwrap();
+        Manifest { version: version.into(), files: files.iter().map(|(p, b)| {
+            let (chunks, sha, size) = elite_core::cdc::scan(*b).unwrap();
+            std::fs::write(cache.join(elite_core::cdc::hex(&sha)), b).unwrap();
+            FileEntry { path: p.to_string(), size, sha, chunks }
+        }).collect() }
+    }
+    fn snap(d: &std::path::Path) -> BTreeMap<String, (Vec<u8>, std::time::SystemTime)> {
+        std::fs::read_dir(d).unwrap().flatten().filter(|e| e.path().is_file())
+            .map(|e| (e.file_name().to_string_lossy().to_string(), (std::fs::read(e.path()).unwrap(), e.metadata().unwrap().modified().unwrap()))).collect()
+    }
+
+    #[test]
+    fn vanilla_and_elite_back_and_forth() {
+        let d = std::env::temp_dir().join(format!("vanilla_mode_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        std::fs::create_dir_all(d.join("Elite_DLLs")).unwrap();
+        std::fs::write(d.join("DOW2.exe"), b"game").unwrap();
+        std::fs::write(d.join("Elite.launchconfig"), "IsRetribution=true\nInjectedFiles=MiscFixes.dll\n").unwrap();
+        let mut mans: std::collections::HashMap<String, Manifest> = Default::default();
+        for m in [
+            man(&d, "elite-3.2", &[("Elite_DLLs/MiscFixes.dll", b"elite's own"), ("Elite.launchconfig", b"IsRetribution=true\nInjectedFiles=MiscFixes.dll\n")]),
+            man(&d, "mmfind-0.45", &[("Elite_DLLs/MMFind.dll", b"mmfind"), ("Elite_DLLs/OwnLobby.dll", b"ownlobby"), ("winmm.dll", EARLY)]),
+            man(&d, "relay-22", &[("Elite_DLLs/Relay.dll", b"relay")]),
+            man(&d, "matchtimer-8", &[("Elite_DLLs/MatchTimer.dll", b"timer")]),
+            man(&d, "shellfix-1", &[("Elite_DLLs/ShellFix.dll", b"shell")]),
+            man(&d, "vloader-1", &[("winmm.dll", LOADER)]),
+        ] { mans.insert(m.version.clone(), m); }
+        let load = |_: &update::Game, v: &str| mans.get(v).cloned().ok_or_else(|| update::Error::Bad(format!("no {v}")));
+        let comp = |id: &str, ver: &str, dll: &str, def: bool, games: &[&str]| elite_core::config::Component {
+            id: id.into(), version: ver.into(), inject: dll.into(), default: def, games: games.iter().map(|g| g.to_string()).collect(), ..Default::default() };
+        let mut cfg = LauncherConfig::default();
+        let mut mt = comp("matchtimer_r2", "matchtimer-8", "MatchTimer.dll", false, &["elite", "vanilla"]);
+        mt.options = vec![serde_json::from_str(r#"{"id":"style","ini":"Elite_DLLs/MatchTimer.ini","section":"MatchTimer","key":"Style","default":true}"#).unwrap()];
+        cfg.components = vec![comp("automatch", "mmfind-0.45", "MMFind.dll", true, &["elite", "vanilla"]), comp("relay_r2", "relay-22", "Relay.dll", true, &[]),
+                              mt, comp("shellfix", "shellfix-1", "ShellFix.dll", true, &["elite"])];
+        cfg.vanilla = Some(elite_core::config::Vanilla { loader: "vloader-1".into(), ..Default::default() });
+        let m = Mirrors::new(vec![]);
+        let mut s = Settings::default();
+        s.components.insert("matchtimer_r2".into(), true);
+        let mut nop = |_: &update::Progress| {};
+        let opt = update::Options { verify_all: false, cache_limit: 1 << 30, channel: "main".into() };
+        update::apply(&update::Game::new(&d), &m, &mans["elite-3.2"], &opt, &mut nop).unwrap();
+        let ex = |f: &str| d.join(f).is_file();
+        let read = |f: &str| std::fs::read(d.join(f)).unwrap_or_default();
+
+        // Elite as before: the add-ons in Elite_DLLs, Automatch's early loader next to DOW2.exe, nothing in dow2-patches
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        assert_eq!(read("winmm.dll"), EARLY);
+        assert!(ex("Elite_DLLs/MMFind.dll") && ex("Elite_DLLs/Relay.dll") && ex("Elite_DLLs/ShellFix.dll") && ex("Elite_DLLs/MatchTimer.dll"));
+        assert!(!d.join("dow2-patches").exists());
+        assert!(!mode_sync_needed(&d, &cfg, &s));
+        let elite_before = snap(&d.join("Elite_DLLs"));
+        let lc_before = read("Elite.launchconfig");
+
+        // -> vanilla: copies of the vanilla add-ons that are on, the launcher's loader; Elite's files not touched at all
+        s.game_mode = "vanilla".into();
+        assert!(vanilla_on(&cfg, &s) == (os_name() != "macos"));
+        if os_name() == "macos" { let _ = std::fs::remove_dir_all(&d); return; }
+        assert!(mode_sync_needed(&d, &cfg, &s));
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        assert_eq!(read("winmm.dll"), LOADER);
+        assert_eq!(read("dow2-patches/MMFind.dll"), b"mmfind");
+        assert_eq!(read("dow2-patches/OwnLobby.dll"), b"ownlobby");
+        assert_eq!(read("dow2-patches/MatchTimer.dll"), b"timer");
+        assert!(String::from_utf8(read("dow2-patches/MatchTimer.ini")).unwrap().contains("Style=1"), "the option next to its DLL");
+        assert!(!ex("dow2-patches/Relay.dll") && !ex("dow2-patches/ShellFix.dll") && !ex("dow2-patches/winmm.dll"), "Elite only: never copied");
+        assert_eq!(snap(&d.join("Elite_DLLs")), elite_before, "Elite_DLLs untouched");
+        assert_eq!(read("Elite.launchconfig"), lc_before);
+        assert!(!mode_sync_needed(&d, &cfg, &s));
+        assert!(old_copies(&d, &cfg).is_empty(), "the launcher's copies are no hand copies");
+        assert!(cfg.components.iter().all(|c| found_conflicts(&d, c).is_empty()));
+        assert!(put_aside_old_copies(&d, &cfg).is_empty() && ex("winmm.dll") && ex("dow2-patches/MMFind.dll"));
+        assert!(drop_vanilla_extra(&d, &cfg, &s).is_empty());
+
+        // a tick off in vanilla: its copy goes, its Elite copy stays
+        s.components.insert("matchtimer_r2".into(), false);
+        assert!(mode_sync_needed(&d, &cfg, &s));
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        assert!(!ex("dow2-patches/MatchTimer.dll") && ex("Elite_DLLs/MatchTimer.dll"));
+        s.components.insert("matchtimer_r2".into(), true);
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+
+        // -> Elite: the vanilla loader goes, Automatch's early one is back; the vanilla copies wait in dow2-patches
+        s.game_mode = String::new();
+        assert!(mode_sync_needed(&d, &cfg, &s), "the vanilla loader is still next to DOW2.exe");
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        assert_eq!(read("winmm.dll"), EARLY);
+        assert!(!mode_sync_needed(&d, &cfg, &s));
+        assert!(ex("dow2-patches/MMFind.dll") && old_copies(&d, &cfg).is_empty());
+
+        // the start of Elite right after vanilla without a sync (the window's own sync skipped): no network needed
+        s.game_mode = "vanilla".into();
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        assert_eq!(read("winmm.dll"), LOADER);
+        s.game_mode = String::new();
+        assert!(hide_vanilla_loader(&d));
+        assert_eq!(restore_root_files(&d, &cfg, &s), vec!["winmm.dll".to_string()]);
+        assert_eq!(read("winmm.dll"), EARLY);
+        assert!(!hide_vanilla_loader(&d), "Automatch's own loader is not the vanilla one");
+
+        // Automatch off in Elite: no winmm.dll at all, also after vanilla
+        s.game_mode = "vanilla".into();
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        s.game_mode = String::new();
+        s.components.insert("automatch".into(), false);
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        assert!(!ex("winmm.dll") && !ex("Elite_DLLs/MMFind.dll"));
+        s.components.insert("automatch".into(), true);
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        assert_eq!(read("winmm.dll"), EARLY);
+
+        // a hand copy in dow2-patches (a DLL changed by hand, the stand-alone loader): put aside, the launcher's copy back
+        s.game_mode = "vanilla".into();
+        std::fs::write(d.join("dow2-patches/MatchTimer.dll"), b"timer v1 by hand").unwrap();
+        std::fs::write(d.join("dow2-patches/Relay.dll"), b"relay by hand").unwrap();
+        assert!(old_copies(&d, &cfg).contains(&"dow2-patches/MatchTimer.dll".to_string()));
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        assert_eq!(read("dow2-patches/MatchTimer.dll"), b"timer");
+        assert!(!ex("dow2-patches/Relay.dll"), "a hand copy of an Elite-only add-on goes too");
+        std::fs::write(d.join("dow2-patches/MMClient.dll"), b"an old experiment").unwrap();
+        std::fs::write(d.join("dow2-patches/MMClient.ini"), b"[x]").unwrap();
+        assert_eq!(prepare_start(&d, &cfg, &s)["off"], json!(["dow2-patches/MMClient.dll"]), "only the launcher's DLLs are loaded in vanilla");
+        assert!(ex("dow2-patches/MMClient.ini") && ex("dow2-patches/MMFind.dll") && ex("winmm.dll"));
+        s.game_mode = String::new();
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        let wide: Vec<u8> = "dow2-patches".encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
+        std::fs::write(d.join("winmm.dll"), [b"MZ full".as_slice(), &wide].concat()).unwrap();   // the stand-alone package's loader
+        assert!(is_patches_loader_file(&d, "winmm.dll"));
+        put_aside_old_copies(&d, &cfg);
+        assert!(!ex("winmm.dll"), "with the launcher's copies there it would load them into Elite");
+
+        // the catalog takes an add-on off vanilla: its copy goes
+        s.game_mode = "vanilla".into();
+        cfg.components[2].games = vec!["elite".into()];
+        assert!(mode_sync_needed(&d, &cfg, &s));
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        assert!(!ex("dow2-patches/MatchTimer.dll") && ex("dow2-patches/MMFind.dll") && ex("Elite_DLLs/MatchTimer.dll"));
+        assert!(!mode_sync_needed(&d, &cfg, &s));
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    /// On a real game folder with a real (staging) store, as the window does it: the add-ons' sync for the chosen game, then
+    /// the checks of the start. For the stand (Wine): VT_GAME=<game folder> VT_MIRROR=<store URL> VT_MODE=vanilla|elite
+    /// [VT_TICKS=id=1,id=0] cargo test ... stand_sync -- --ignored --nocapture. The game is started by hand after it.
+    #[test]
+    #[ignore]
+    fn stand_sync() {
+        let env = |k: &str| std::env::var(k).unwrap_or_default();
+        let dir = std::path::PathBuf::from(env("VT_GAME"));
+        assert!(dir.join("DOW2.exe").is_file(), "VT_GAME");
+        let m = Mirrors::new(vec![env("VT_MIRROR")]);
+        let (cfg, _, _) = update::fetch_config(&m).expect("launcher.json from VT_MIRROR");
+        let mut s = Settings::default();
+        s.game_mode = if env("VT_MODE") == "vanilla" { "vanilla".into() } else { String::new() };
+        for kv in env("VT_TICKS").split(',').filter(|x| !x.is_empty()) {
+            if let Some((k, v)) = kv.split_once('=') { s.components.insert(k.into(), v == "1"); }
+        }
+        println!("mode {} (offered {}), sync needed before: {}", if vanilla_on(&cfg, &s) { "vanilla" } else { "elite" }, vanilla_offered(&cfg), mode_sync_needed(&dir, &cfg, &s));
+        let mut last = String::new();
+        sync_components(&dir, &cfg, &s, &m, &mut |p| { if p.phase == "downloading" && p.file != last { println!("  get {}", p.file); last = p.file.clone(); } }).expect("sync");
+        let guard = prepare_start(&dir, &cfg, &s);
+        println!("start checks: {guard}");
+        println!("sync needed after: {}", mode_sync_needed(&dir, &cfg, &s));
+        println!("old copies: {:?}", old_copies(&dir, &cfg));
+        let mut owned: Vec<String> = vanilla_owned(&dir).into_iter().collect(); owned.sort();
+        println!("vanilla copies: {owned:?}");
+        let l = update::Game::vanilla_loader(&dir);
+        println!("vanilla loader: {} in place {}", l.load_state().version, l.file_is_installed("winmm.dll"));
+        for c in &cfg.components {
+            let (e, v) = (update::Game::component(&dir, &c.id).load_state().version, update::Game::vanilla_component(&dir, &c.id).load_state().version);
+            println!("  {:<18} on {:<5} games {:?} elite {:<20} vanilla {}", c.id, comp_on(&dir, c, &s), c.games, e, v);
+        }
     }
 }

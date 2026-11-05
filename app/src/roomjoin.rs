@@ -9,6 +9,11 @@
 //! Also the links `elite://join/<id>?name=...` (the ladder site's Join on a lobby): the window comes up and the join runs as
 //! from the Lobbies tab (see main.rs, the deep-link plugin).
 //!
+//! 1.4.11 (owner 05.11.2026): vanilla lobbies too. The launcher's vanilla game has RoomJoin.dll in dow2-patches (its copy for
+//! vanilla); which game a running DOW2.exe is comes from its command line (Elite's starter adds -modname Elite) - a Join for
+//! a vanilla lobby goes only to a vanilla game, an Elite one only to Elite; the other game running -> "wrong_game", the window
+//! offers to start the right one once the player has closed this one (the launcher never closes a game itself).
+//!
 //! Linux: the game runs under Proton, whose named pipes live in its wineserver - a native launcher can't open them (and
 //! AF_UNIX in Wine works only from Wine 11: Proton 9 / 10 say WSAEAFNOSUPPORT). So the launcher starts the add-on's
 //! Elite_DLLs/rjbridge.exe through the same Proton in the game's prefix (`proton run`: it joins the game's wineserver) and
@@ -24,7 +29,7 @@ use tauri::{AppHandle, Emitter};
 /// The join session that runs now; a new Join or Cancel moves it on, so an older session's thread stops telling the window.
 static GEN: AtomicU64 = AtomicU64::new(0);
 /// A link that came before the window was there to take it (the launcher started by the link).
-static PENDING: Mutex<Option<(u64, String)>> = Mutex::new(None);
+static PENDING: Mutex<Option<(u64, String, &'static str)>> = Mutex::new(None);
 /// When this launcher last started the game: its add-ons come in some seconds later (the window waits instead of warning).
 static LAUNCHED: Mutex<Option<Instant>> = Mutex::new(None);
 pub fn note_launch() { *LAUNCHED.lock().unwrap() = Some(Instant::now()); }
@@ -59,8 +64,8 @@ impl BridgeConn {
         use tauri::Manager;
         let st = app.state::<crate::App>();
         let dir = crate::game_dir(&st)?;
-        let exe = dir.join("Elite_DLLs").join("rjbridge.exe");
-        if !exe.is_file() { return None; }
+        // the add-on's copy for Elite, or its vanilla copy (the same file) when only that one is there
+        let exe = [dir.join("Elite_DLLs").join("rjbridge.exe"), dir.join(elite_core::update::VANILLA_DIR).join("rjbridge.exe")].into_iter().find(|p| p.is_file())?;
         let env = game_env()?;
         let loader = env.iter().find(|(k, _)| k == "WINELOADER").map(|(_, v)| std::path::PathBuf::from(v)).filter(|p| p.is_file())
             .or_else(|| {
@@ -127,6 +132,36 @@ fn game_env() -> Option<Vec<(String, String)>> {
         if env.iter().any(|(k, _)| k == "WINEPREFIX") { return Some(env); }
     }
     None
+}
+
+/// Which game a DOW2.exe runs, from its command line: "elite" (-modname: Elite's starter, the public test, old Elite as a mod)
+/// or "vanilla"; None = not known (the command line could not be read).
+pub fn kind_of_cmdline(cmd: &str) -> &'static str {
+    let l = cmd.to_ascii_lowercase();
+    if l.contains("-modname") || l.contains("/modname") { "elite" } else { "vanilla" }
+}
+#[cfg(target_os = "linux")]
+fn game_kind_linux() -> Option<&'static str> {
+    for e in std::fs::read_dir("/proc").ok()?.flatten() {
+        let Ok(pid) = e.file_name().to_string_lossy().parse::<u32>() else { continue };
+        let Ok(cmd) = std::fs::read(format!("/proc/{pid}/cmdline")) else { continue };
+        let c = String::from_utf8_lossy(&cmd).replace('\0', " ");
+        // the game's own process (its command line starts with the exe), not a shell or Proton's script naming it
+        let first = c.split_whitespace().next().unwrap_or("").to_ascii_lowercase();
+        if first.ends_with("dow2.exe") { return Some(kind_of_cmdline(&c)); }
+    }
+    None
+}
+/// The game a connection talks to.
+fn kind(c: &Conn) -> Option<&'static str> {
+    match c {
+        #[cfg(windows)]
+        Conn::Pipe(p) => win::cmdline(p.pid).map(|l| kind_of_cmdline(&l)),
+        #[cfg(target_os = "linux")]
+        Conn::Bridge(_) => game_kind_linux(),
+        #[allow(unreachable_patterns)]
+        _ => None,
+    }
 }
 
 /// A game's connection, whichever way it goes.
@@ -210,16 +245,29 @@ fn pct_decode(s: &str) -> String {
 /// up yet (`room_link_take`).
 pub fn on_link(app: &AppHandle, url: &str) {
     let Some((id, name)) = parse_link(url) else { crate::c_log(&format!("rooms: link not understood: {}", url.chars().take(200).collect::<String>())); return; };
-    crate::c_log(&format!("rooms: link to join room {id} ({name})"));
-    *PENDING.lock().unwrap() = Some((id, name.clone()));
-    let _ = app.emit("room_link", json!({"id": id.to_string(), "name": name}));
+    let game = link_game(url);
+    crate::c_log(&format!("rooms: link to join room {id} ({name}{})", if game.is_empty() { String::new() } else { format!(", {game}") }));
+    *PENDING.lock().unwrap() = Some((id, name.clone(), game));
+    let _ = app.emit("room_link", json!({"id": id.to_string(), "name": name, "game": game}));
+}
+
+/// 1.4.11: `&game=vanilla` / `&game=elite` of a link ("" - not said: the window finds the room's game in the list).
+pub fn link_game(url: &str) -> &'static str {
+    let q = url.split_once('?').map(|(_, q)| q).unwrap_or("");
+    for kv in q.split('&') {
+        if let Some(v) = kv.strip_prefix("game=") {
+            if v.eq_ignore_ascii_case("vanilla") { return "vanilla"; }
+            if v.eq_ignore_ascii_case("elite") { return "elite"; }
+        }
+    }
+    ""
 }
 
 /// The window asks for a link it may have missed (it was still loading); a link is taken once.
 #[tauri::command]
 pub fn room_link_take() -> Value {
     match PENDING.lock().unwrap().take() {
-        Some((id, name)) => json!({"id": id.to_string(), "name": name}),
+        Some((id, name, game)) => json!({"id": id.to_string(), "name": name, "game": game}),
         None => Value::Null,
     }
 }
@@ -250,6 +298,29 @@ mod win {
         fn PeekNamedPipe(h: isize, buf: *mut u8, size: u32, read: *mut u32, avail: *mut u32, left: *mut u32) -> i32;
         fn GetNamedPipeServerProcessId(h: isize, pid: *mut u32) -> i32;
         fn WaitNamedPipeW(name: *const u16, ms: u32) -> i32;
+    }
+    #[link(name = "ntdll")]
+    extern "system" {
+        fn NtQueryInformationProcess(h: isize, class: u32, info: *mut u8, len: u32, ret: *mut u32) -> i32;
+    }
+    /// The command line of a process (ProcessCommandLineInformation, Windows 8.1+; limited query rights are enough, also for
+    /// the elevated game Elite's starter runs). None: can't be read.
+    pub fn cmdline(pid: u32) -> Option<String> {
+        unsafe {
+            let h = OpenProcess(0x1000 /* PROCESS_QUERY_LIMITED_INFORMATION */, 0, pid);
+            if h == 0 { return None; }
+            let mut buf = vec![0u8; 8192];
+            let mut ret = 0u32;
+            let st = NtQueryInformationProcess(h, 60 /* ProcessCommandLineInformation */, buf.as_mut_ptr(), buf.len() as u32, &mut ret);
+            CloseHandle(h);
+            if st < 0 { return None; }
+            // UNICODE_STRING { u16 Length, u16 MaximumLength, PWSTR Buffer } with the text right behind it, in our buffer
+            let len = u16::from_le_bytes([buf[0], buf[1]]) as usize;
+            let ptr = std::ptr::read_unaligned(buf.as_ptr().add(std::mem::size_of::<usize>()) as *const usize) as *const u16;
+            let (lo, hi) = (buf.as_ptr() as usize, buf.as_ptr() as usize + buf.len());
+            if ptr.is_null() || (ptr as usize) < lo || (ptr as usize) + len > hi { return None; }
+            Some(String::from_utf16_lossy(std::slice::from_raw_parts(ptr, len / 2)))
+        }
     }
     #[link(name = "user32")]
     extern "system" {
@@ -381,9 +452,17 @@ fn probe(app: &AppHandle) -> Value {
         || win::game_pids().iter().any(|&p| win::age(p).is_some_and(|a| a < Duration::from_secs(90)));
     #[cfg(not(windows))]
     let young = launched;
+    // 1.4.11: which game each one is (a vanilla lobby is joined only from vanilla); also a running game without the pipe
+    #[cfg(windows)]
+    let running_kind = win::game_pids().first().and_then(|&p| win::cmdline(p)).map(|l| kind_of_cmdline(&l));
+    #[cfg(target_os = "linux")]
+    let running_kind = if running { game_kind_linux() } else { None };
+    #[cfg(not(any(windows, target_os = "linux")))]
+    let running_kind: Option<&str> = None;
     json!({
         "supported": cfg!(any(windows, target_os = "linux")), "running": running || !games.is_empty(), "young": games.is_empty() && young,
-        "games": games.iter().map(|(c, s)| json!({"pid": c.pid(), "status": s})).collect::<Vec<_>>(),
+        "games": games.iter().map(|(c, s)| json!({"pid": c.pid(), "status": s, "kind": kind(c)})).collect::<Vec<_>>(),
+        "running_kind": running_kind,
     })
 }
 
@@ -392,16 +471,18 @@ fn probe(app: &AppHandle) -> Value {
 /// the game says in_lobby / failed, the pipe closes, or 3 minutes pass. Returns at once; the events tell the rest.
 /// `leave` (1.4.10): the player said yes to leaving the lobby he is in for this one (RoomJoin 11 presses Back there first).
 #[tauri::command]
-pub fn room_join(app: AppHandle, id: u64, name: String, wait: Option<u64>, leave: Option<bool>) -> Result<Value, String> {
+/// `game` (1.4.11): "vanilla" for a vanilla lobby - only a vanilla game takes it; anything else - Elite.
+pub fn room_join(app: AppHandle, id: u64, name: String, wait: Option<u64>, leave: Option<bool>, game: Option<String>) -> Result<Value, String> {
     if id == 0 { return Err("no room id".into()); }
     let name: String = name.chars().filter(|c| !c.is_control()).take(64).collect();
     let gen = GEN.fetch_add(1, Ordering::SeqCst) + 1;
     let wait = Duration::from_secs(wait.unwrap_or(0).min(300));
     let leave = leave.unwrap_or(false);
+    let want: &'static str = if game.as_deref() == Some("vanilla") { "vanilla" } else { "elite" };
     ROOM_NOW.store(id, Ordering::SeqCst);
-    crate::c_log(&format!("rooms: join room {id} ({name}){}, waiting up to {} s for the game", if leave { ", leaving the current lobby" } else { "" }, wait.as_secs()));
+    crate::c_log(&format!("rooms: join room {id} ({name}, {want}){}, waiting up to {} s for the game", if leave { ", leaving the current lobby" } else { "" }, wait.as_secs()));
     if !cfg!(any(windows, target_os = "linux")) { return Err("not on this system".into()); }
-    std::thread::spawn(move || session(app, gen, id, name, wait, leave));
+    std::thread::spawn(move || session(app, gen, id, name, wait, leave, want));
     Ok(json!({"started": true}))
 }
 
@@ -411,7 +492,7 @@ static CANCELLED_AT: AtomicU64 = AtomicU64::new(0);
 /// The room of the join that runs now (0: none) - a Cancel names it, so the game cancels only that one (review 05.11 M4).
 static ROOM_NOW: AtomicU64 = AtomicU64::new(0);
 
-fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leave: bool) {
+fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leave: bool, want: &'static str) {
     // a late answer (after a timeout, or a Cancel of this very join) is told too - as long as no other Join started since
     let ours = || { let g = GEN.load(Ordering::SeqCst); g == gen || (g == gen + 1 && CANCELLED_AT.load(Ordering::SeqCst) == g) };
     let tell = |v: Value| { if GEN.load(Ordering::SeqCst) == gen { let _ = app.emit("room_join", v); } };
@@ -425,11 +506,16 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
     let mut conn = loop {
         if GEN.load(Ordering::SeqCst) != gen { return; }
         let mut found = games(&app);
+        // only the game the lobby is for (a game whose command line could not be read is taken as it is)
+        let n_all = found.len();
+        found.retain(|(c, _)| kind(c).map_or(true, |k| k == want));
+        let wrong = n_all > found.len();
         if !found.is_empty() {
             let k = found.iter().position(|(_, s)| s["screen"] == "main").unwrap_or(0);
             break found.swap_remove(k).0;
         }
-        if t0.elapsed() >= wait { fail(if crate::is_game_running() { "no_pipe" } else { "no_game" }); return; }
+        if wrong && wait.is_zero() { fail("wrong_game"); return; }
+        if t0.elapsed() >= wait { fail(if wrong { "wrong_game" } else if crate::is_game_running() { "no_pipe" } else { "no_game" }); return; }
         // 1.4.10 (siritos 05.11: Windows asked, he said No, the game never started - and the game he started himself a minute
         // later got the old Join): the launcher started the game for this Join and 45 s on there is no game - no Join any more
         // (the add-ons' sync before the start is not counted: only from the start itself)
@@ -501,6 +587,35 @@ pub async fn room_join_cancel(app: AppHandle) -> Value {
 
 #[cfg(test)]
 mod tests {
+    /// The stand (Wine): every running DOW2.exe - its command line, which game, RoomJoin's status over its pipe.
+    #[cfg(windows)]
+    #[test]
+    #[ignore]
+    fn stand_probe() {
+        for p in super::win::game_pids() {
+            let cmd = super::win::cmdline(p);
+            let kind = cmd.as_deref().map(super::kind_of_cmdline);
+            let st = super::win::Conn::open(p).map(super::Conn::Pipe).and_then(|mut c| c.status());
+            println!("DOW2.exe {p}: kind {kind:?}, command line {cmd:?}, RoomJoin status {}", st.map(|v| v.to_string()).unwrap_or_else(|| "none (no pipe)".into()));
+            // VT_JOIN=<room id>: a join as the launcher sends it, every event for up to 90 s (a room that does not exist: the
+            // walk through the menus and its "failed")
+            if let Some(room) = std::env::var("VT_JOIN").ok().and_then(|v| v.parse::<u64>().ok()) {
+                let Some(mut c) = super::win::Conn::open(p).map(super::Conn::Pipe) else { continue };
+                let _ = c.status();
+                println!("  join {room}: sent {}", c.send(&serde_json::json!({"cmd": "join", "room": room, "name": "stand test"})));
+                let end = std::time::Instant::now() + std::time::Duration::from_secs(90);
+                while std::time::Instant::now() < end {
+                    match c.line(500) {
+                        Ok(Some(v)) => { println!("  {v}"); if v["ev"] == "failed" || v["ev"] == "in_lobby" { break; } }
+                        Ok(None) => {}
+                        Err(()) => { println!("  pipe closed"); break; }
+                    }
+                }
+                if let Some(st) = c.status() { println!("  status after: {st}"); }
+            }
+        }
+    }
+
     use super::parse_link;
     #[test]
     fn links() {
@@ -516,5 +631,14 @@ mod tests {
         assert_eq!(parse_link("elite://join/1?name=%0Aevil"), Some((1, "evil".into())));
         let long = format!("elite://join/7?name={}", "x".repeat(200));
         assert_eq!(parse_link(&long).unwrap().1.chars().count(), 64);
+        use super::{link_game, kind_of_cmdline};
+        assert_eq!(link_game("elite://join/7?name=a&game=vanilla"), "vanilla");
+        assert_eq!(link_game("elite://join/7?game=Elite"), "elite");
+        assert_eq!(link_game("elite://join/7?name=game=vanilla"), "");
+        assert_eq!(link_game("elite://join/7"), "");
+        assert_eq!(kind_of_cmdline(r#""C:\Games\Dawn of War II - Retribution\DOW2.exe" -modname Elite -nomovies"#), "elite");
+        assert_eq!(kind_of_cmdline("DOW2.exe -modname Elite_Test"), "elite");
+        assert_eq!(kind_of_cmdline(r#""C:\Games\Dawn of War II - Retribution\DOW2.exe""#), "vanilla");
+        assert_eq!(kind_of_cmdline("DOW2.exe -dev -nomovies -init x.lua"), "vanilla");
     }
 }
