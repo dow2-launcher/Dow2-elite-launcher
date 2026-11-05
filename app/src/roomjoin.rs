@@ -28,6 +28,9 @@ static PENDING: Mutex<Option<(u64, String)>> = Mutex::new(None);
 /// When this launcher last started the game: its add-ons come in some seconds later (the window waits instead of warning).
 static LAUNCHED: Mutex<Option<Instant>> = Mutex::new(None);
 pub fn note_launch() { *LAUNCHED.lock().unwrap() = Some(Instant::now()); }
+/// When a start of the game did not happen (the UAC question answered No): a Join waiting for that game stops.
+static LAUNCH_FAILED: Mutex<Option<Instant>> = Mutex::new(None);
+pub fn note_launch_failed() { *LAUNCH_FAILED.lock().unwrap() = Some(Instant::now()); }
 
 /// JSON lines read from a byte stream.
 #[derive(Default)]
@@ -427,6 +430,13 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
             break found.swap_remove(k).0;
         }
         if t0.elapsed() >= wait { fail(if crate::is_game_running() { "no_pipe" } else { "no_game" }); return; }
+        // 1.4.10 (siritos 05.11: Windows asked, he said No, the game never started - and the game he started himself a minute
+        // later got the old Join): the launcher started the game for this Join and 45 s on there is no game - no Join any more
+        // (the add-ons' sync before the start is not counted: only from the start itself)
+        if LAUNCH_FAILED.lock().unwrap().is_some_and(|t| t >= t0) { fail("no_game"); return; }     // No to Windows' question
+        if LAUNCHED.lock().unwrap().is_some_and(|t| t >= t0 && t.elapsed() > Duration::from_secs(45)) && !crate::is_game_running() {
+            fail("no_game"); return;
+        }
         if !told_wait { told_wait = true; tell(json!({"ev": "waiting_game", "room": id})); }
         std::thread::sleep(Duration::from_millis(700));
     };

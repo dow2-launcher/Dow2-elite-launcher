@@ -501,7 +501,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .room .robs{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:5px;padding-top:4px;border-top:1px dashed var(--line2);font-size:12.5px;line-height:21px;min-width:0}
 .room .robs svg{flex:none;color:var(--gold2);opacity:.85}.room .robs .ol{color:var(--muted);margin-right:2px}
 .room .robs .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.room .robs .sep,.room .robs .oc{color:var(--muted)}
-.tag.elite{color:var(--gold2);border-color:var(--gold)}.room .tag.here{flex:none;margin-left:auto;border-color:#5d7a3a;color:#b5d58a}.room .rjoin.here{display:inline-block;width:auto;height:auto;padding:1px 5px;border:1px solid #5d7a3a;background:none;color:#b5d58a;font:700 9px Cinzel,serif;letter-spacing:1px;cursor:pointer}.room .rjoin.here:hover,.room .rjoin.here:focus-visible{border-color:#8fbf68;color:#d3ecb6}.tag.van{color:#9fb8c8;border-color:#4a5a66}.tag.oth{color:#c9a0d8;border-color:#5d4566}
+.tag.elite{color:var(--gold2);border-color:var(--gold)}.room .tag.here{flex:none;margin-left:auto;border-color:#5d7a3a;color:#b5d58a}.tag.van{color:#9fb8c8;border-color:#4a5a66}.tag.oth{color:#c9a0d8;border-color:#5d4566}
 
 /* Settings: how our servers answer from here - a dot, the place, the host, the time; the one in use marked */
 .net-list{max-width:720px;margin-top:4px}

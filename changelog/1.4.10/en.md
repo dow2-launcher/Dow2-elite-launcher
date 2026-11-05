@@ -4,4 +4,4 @@
 - Lobbies: while you are in a lobby, Join on another one offers to leave it and switch (the host is warned the lobby closes for everyone). Needs the add-on "Join a lobby from the launcher" RoomJoin 11.
 - Lobbies: Join during an automatch search no longer stays silent - the line above the list says to stop the search first.
 - Lobbies: Cancel cancels only its own join (a late Cancel no longer stops the next one), and if the lobby lets you in after "could not join" or "cancelled", the launcher shows it.
-- Lobbies: "You are here" can be pressed - if you have left the lobby and the list is not updated yet (it is up to 30 s late), it joins as usual.
+- Lobbies: if the game did not start for a Join (you said No to the Windows question), the Join is cancelled - a game started by hand later no longer gets the old Join.

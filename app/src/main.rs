@@ -1602,7 +1602,14 @@ fn start_game(app: &App) -> Result<Value, String> {
             let mut sh = std::process::Command::new("cmd");
             sh.args(["/C", "start", "", "/D", &game, &program]).args(cmd.args.iter().map(|a| sub(a)));
             sh.creation_flags(0x0800_0000); // CREATE_NO_WINDOW — без мигающей консоли
-            sh.spawn().map(|_| guard).map_err(|e2| format!("cannot start {program} as administrator: {e2}"))
+            // 1.4.10: `start` ends with an error code when the player says No to the UAC question - a Join waiting for this
+            // game hears it (siritos 05.11: it waited on, and the game he started himself later got the old Join)
+            sh.spawn().map(|mut ch| {
+                std::thread::spawn(move || {
+                    if let Ok(st) = ch.wait() { if !st.success() { c_log(&format!("launch: the start as administrator did not happen ({st})")); roomjoin::note_launch_failed(); } }
+                });
+                guard
+            }).map_err(|e2| format!("cannot start {program} as administrator: {e2}"))
         }
         Err(e) => Err(format!("cannot start {program}: {e}")),
     }
