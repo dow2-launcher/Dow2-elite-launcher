@@ -482,7 +482,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .rooms-page{width:100%;display:flex;flex-direction:column;min-height:0}
 .rooms-page .h em{font-style:normal;color:var(--gold2)}
 .rj-status{display:flex;align-items:center;gap:10px;margin:8px 0 0;padding:6px 10px;border:1px solid var(--line2);background:var(--panel2);color:var(--soft);font-size:13px}
-.rj-status span{flex:1;min-width:0}.rj-status.ok{border-color:#4f6b39;color:var(--green)}.rj-status.err{border-color:var(--blood);color:var(--red)}
+.rj-status span{flex:1;min-width:0}.rj-ask{display:flex;flex:none;gap:6px;flex-wrap:wrap}.rj-status.ok{border-color:#4f6b39;color:var(--green)}.rj-status.err{border-color:var(--blood);color:var(--red)}
 /* as many columns as fit the window (420 px each at least); the tracks keep their width with few games */
 .rooms-grid{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:10px;align-content:start;margin:8px -14px 0;padding:0 14px 6px}
 .room{display:grid;grid-template-columns:84px 1fr;gap:10px;background:rgba(0,0,0,.25);border:1px solid var(--line2);padding:9px;min-width:0}
