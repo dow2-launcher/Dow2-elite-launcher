@@ -10,6 +10,7 @@
 
 mod netgame;
 mod reach;
+mod roomjoin;
 
 use elite_core::config::{version_newer, LauncherConfig};
 use elite_core::{elite, game, net::Mirrors, update, LAUNCHER_VERSION};
@@ -23,6 +24,7 @@ use std::time::{Duration, Instant};
 use tauri::menu::{MenuBuilder, MenuItem, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, State, Wry};
+use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_opener::OpenerExt;
 use tauri_plugin_updater::UpdaterExt;
@@ -494,24 +496,6 @@ mod procs {
         pub fn Process32NextW(snap: isize, e: *mut Entry) -> i32;
         pub fn CloseHandle(h: isize) -> i32;
         fn MultiByteToWideChar(cp: u32, flags: u32, s: *const u8, n: i32, w: *mut u16, wn: i32) -> i32;
-    }
-    #[link(name = "user32")]
-    extern "system" {
-        fn FindWindowW(class: *const u16, title: *const u16) -> isize;
-        fn IsIconic(w: isize) -> i32;
-        fn ShowWindow(w: isize, cmd: i32) -> i32;
-        fn SetForegroundWindow(w: isize) -> i32;
-    }
-    /// The game's window to the front, restored if minimized (Lobbies, Join while the game runs: 03.11.2026). Right after the
-    /// player's click in the launcher, Windows lets the launcher hand the foreground on. -> a window was there
-    pub fn game_to_front() -> bool {
-        let title: Vec<u16> = "Dawn of War II".encode_utf16().chain(std::iter::once(0)).collect();
-        unsafe {
-            let w = FindWindowW(std::ptr::null(), title.as_ptr());
-            if w == 0 { return false; }
-            if IsIconic(w) != 0 { ShowWindow(w, 9 /* SW_RESTORE */); }
-            SetForegroundWindow(w); true
-        }
     }
     /// Text a console program wrote (OEM code page: cp866 on a Russian Windows) as a String.
     pub fn oem_text(b: &[u8]) -> String {
@@ -1519,6 +1503,8 @@ fn start_game(app: &App) -> Result<Value, String> {
     }
     let dir = game_dir(&app).ok_or("game folder not found")?;
     let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
+    // 1.4.9: Join goes over RoomJoin's pipe; a request file of launcher 1.4.8 left behind would still be read by RoomJoin 9
+    for f in ["RoomJoin.txt", "RoomJoin_result.txt"] { let _ = std::fs::remove_file(dir.join("Elite_DLLs").join(f)); }
     // old copies of our add-ons (the stand-alone package, the old LobbyStats folder) would load next to the launcher's:
     // put aside without asking (owner 03.11.2026: one copy of every patch, the launcher's latest). The window brings
     // the launcher's versions first (Play syncs the add-ons before it starts), so normally there is nothing left here.
@@ -1535,6 +1521,7 @@ fn start_game(app: &App) -> Result<Value, String> {
         if !off.iter().any(|x| x.to_ascii_lowercase().ends_with(&n.to_ascii_lowercase())) { off.push(n); }
     }
     let guard = json!({"off": off, "loader": dir.join("winmm.dll").is_file() && dir.join("dow2-patches").is_dir()});
+    roomjoin::note_launch();     // 1.4.9: Join waits for the add-on of a game started just now
     elite_core::hotkeys::refresh_if_stale(&app.settings.lock().unwrap().hotkeys);     // a patch brought new defaults
     let mut cmd = match os_name() {
         "windows" => cfg.launch.windows.clone(),
@@ -1963,25 +1950,7 @@ fn stream_loop(app: AppHandle) {
     }
 }
 
-/// Lobbies tab, "Join" (RoomJoin add-on, experiment 03.11.2026): the request for RoomJoin.dll in the game - Elite_DLLs/RoomJoin.txt,
-/// line 1 the room id (Relic's advertisement id), line 2 its name. The DLL takes it in the main menu (a request older than 3 minutes
-/// is dropped there) and writes RoomJoin_result.txt. The window then starts the game the usual way (Play) unless it runs.
-#[tauri::command]
-fn room_join(app: State<'_, App>, id: u64, name: String) -> Result<Value, String> {
-    let dir = game_dir(&app).ok_or("no game folder")?;
-    let d = dir.join("Elite_DLLs");
-    if !d.is_dir() { return Err("no Elite_DLLs folder".into()); }
-    let _ = std::fs::remove_file(d.join("RoomJoin_result.txt"));
-    let name: String = name.chars().filter(|c| !c.is_control()).take(64).collect();
-    std::fs::write(d.join("RoomJoin.txt"), format!("{id}\n{name}\n")).map_err(|e| e.to_string())?;
-    c_log(&format!("rooms: join request for room {id} ({name})"));
-    let running = app.game_running.load(Ordering::Relaxed) || is_game_running();
-    #[cfg(windows)]
-    let front = running && procs::game_to_front();
-    #[cfg(not(windows))]
-    let front = false;
-    Ok(json!({ "running": running, "front": front }))
-}
+// Lobbies tab, "Join": roomjoin.rs (1.4.9: over RoomJoin's pipe; 1.4.8 wrote Elite_DLLs/RoomJoin.txt)
 
 /// 1.3.15 (owner 02.11.2026): the open lobbies - Relic's list of custom games being set up, from our ladder server
 /// (/ladder/api/rooms: map, mode, game Elite / vanilla / other, players with race, hero, flag and rating).
@@ -2186,7 +2155,10 @@ fn main() {
     tauri::Builder::default()
         // one launcher at a time: starting it again (shortcut, Start menu) brings the running one back, also from the
         // tray. Two copies also broke the self-update: the installer could not close the one hidden in the tray.
+        // 1.4.9: an elite://join/<id> link given to a second copy reaches this one through the deep-link plugin (the
+        // single-instance plugin hands it the arguments first), see .setup
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_window(app)))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().pubkey(UPDATER_PUBKEY.trim()).build())
@@ -2204,6 +2176,18 @@ fn main() {
             ),
         })
         .setup(|app| {
+            // 1.4.9: links elite://join/<id>?name=... (the ladder site's Join): registered for this user at every start (the
+            // installer does it too; this covers the portable zip and the AppImage), handled like Join in the Lobbies tab
+            #[cfg(any(windows, target_os = "linux"))]
+            if let Err(e) = app.deep_link().register_all() { c_log(&format!("rooms: elite:// links not registered: {e}")); }
+            let hl = app.handle().clone();
+            app.deep_link().on_open_url(move |ev| {
+                show_window(&hl);
+                for u in ev.urls() { roomjoin::on_link(&hl, u.as_str()); }
+            });
+            if let Ok(Some(urls)) = app.deep_link().get_current() {     // started by a link
+                for u in urls { roomjoin::on_link(app.handle(), u.as_str()); }
+            }
             // Elite for the neighbours on the local network: the files of the installed version and of the version cache,
             // only those still as installed (same size; the neighbour checks the SHA-256 against the signed manifest anyway)
             elite_core::lan::ENABLED.store(app.state::<App>().settings.lock().unwrap().lan_share.unwrap_or(true), Ordering::Relaxed);
@@ -2314,7 +2298,8 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             get_status, refresh, set_channel, switch_to, send_logs, set_comp_option, set_setting, set_component, clean_junk, pick_game_dir, open_url, set_comp_value, open_game_dir, start_update, cancel_update, play,
-            fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live, room_join,
+            fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
+            roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
             relic_probe, game_net_check
