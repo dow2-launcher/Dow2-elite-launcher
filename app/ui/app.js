@@ -184,7 +184,7 @@ const T = {
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "playAfterSync": "Updating the add-ons first — the game starts by itself after that.",
     // 1.4.11: the vanilla game next to Play
-    "rjWrongAsk": "Another game is running", "rjWrongVan": "This lobby is in vanilla Retribution, and the game running now is Elite. Close it (the launcher does not close a game itself) - then the launcher starts vanilla and joins the lobby.", "rjWrongElite": "This lobby is in Elite, and the game running now is vanilla Retribution. Close it (the launcher does not close a game itself) - then the launcher starts Elite and joins the lobby.", "rjWrongGo": "Join after I close it", "rjCloseGame": "Close the game - then the launcher starts {game} and joins {name}.", "rjWhy_wrong_game": "the other game is running (Elite instead of vanilla, or vanilla instead of Elite)", "rjVanAddonOff": "To join vanilla lobbies, turn on the add-on “Join a lobby from the launcher” in Add-ons (it works in vanilla too).", "rjVanNo": "This launcher does not start vanilla Retribution on this computer.", "vanillaH": "Without the mod", "vanillaName": "Vanilla Retribution", "vanillaNote": "The game without Elite, with our add-ons that work there", "vanillaTag": "our add-ons", "vanillaWarn": "You play vanilla Retribution: Elite lobbies and the add-ons for Elite only are not there.", "eliteOnly": "Elite only", "eliteOnlyNote": "Works only in Elite: not loaded in vanilla Retribution.", "readyVanilla": "Vanilla Retribution is ready", "guardVanillaLoader": "The loader of the add-ons is not in place yet: vanilla starts without them.", "toVanilla": "Getting vanilla Retribution ready…", "vanillaCopy": "in vanilla: version {v}",
+    "rjHintRelay": "If it happens again, try once with {list} off in Add-ons.", "rjWrongAsk": "Another game is running", "rjWrongVan": "This lobby is in vanilla Retribution, and the game running now is Elite. Close it (the launcher does not close a game itself) - then the launcher starts vanilla and joins the lobby.", "rjWrongElite": "This lobby is in Elite, and the game running now is vanilla Retribution. Close it (the launcher does not close a game itself) - then the launcher starts Elite and joins the lobby.", "rjWrongGo": "Join after I close it", "rjCloseGame": "Close the game - then the launcher starts {game} and joins {name}.", "rjWhy_wrong_game": "the other game is running (Elite instead of vanilla, or vanilla instead of Elite)", "rjVanAddonOff": "To join vanilla lobbies, turn on the add-on “Join a lobby from the launcher” in Add-ons (it works in vanilla too).", "rjVanNo": "This launcher does not start vanilla Retribution on this computer.", "vanillaH": "Without the mod", "vanillaName": "Vanilla Retribution", "vanillaNote": "The game without Elite, with our add-ons that work there", "vanillaTag": "our add-ons", "vanillaWarn": "You play vanilla Retribution: Elite lobbies and the add-ons for Elite only are not there.", "eliteOnly": "Elite only", "eliteOnlyNote": "Works only in Elite: not loaded in vanilla Retribution.", "readyVanilla": "Vanilla Retribution is ready", "guardVanillaLoader": "The loader of the add-ons is not in place yet: vanilla starts without them.", "toVanilla": "Getting vanilla Retribution ready…", "vanillaCopy": "in vanilla: version {v}",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher", "fwdOffer": "Your connection to Relic's game servers has trouble ({why}). Our forwarding servers can carry your games to Relic.", "fwdOn": "Turn on forwarding", "fwdLater": "Not now", "fwdDone": "Forwarding servers are on - they work from the next game start.",
     "gnTab": "Online play", "gnTitle": "Game servers from this computer", "gnCheck": "Check", "gnChecking": "Checking… (10-20 s)", "gnNote": "Checked by the same rules the add-ons use when they pick a server. Never while the game runs.", "gnGame": "The game is running: the check waits until it closes, so it does not disturb the match.", "gnNever": "Not checked yet.", "gnWhen": "checked at {time}", "gnRelic": "Relic", "gnRelicRelay": "Relic game server", "gnRelicApi": "Relic API (16 requests)", "gnClosed": "port closed", "gnSlowMs": "{n} ms - slow", "gnStreamOk": "{kb} KB in {s} s", "gnStreamCut": "stopped at {kb} KB", "gnRelicOk": "The connection to Relic is fine.", "gnRelicBad": "The connection to Relic has trouble: {why}. Forwarding servers can help.", "gnRelicFwdOn": "The connection to Relic has trouble: {why}. Forwarding is on.", "gnRelicWait": "Relic is checked a few seconds after the launcher starts.", "gnOwn": "Our servers for games", "gnFwd": "Forwarding servers", "gnTickOn": "on", "gnTickOff": "off", "gnTickNone": "no such add-on", "gnUdpMs": "UDP {n} ms", "gnUdpNone": "no answer over UDP", "gnBurst": "stream {got}/{n}", "gnBurstCut": "stream stops: {got}/{n}, {tail} of the last 6", "gnTcpOk": "TCP {kb} KB", "gnTcpCut": "TCP stops at {kb} KB", "gnTcpNone": "TCP: no connection", "gnNearest": "nearest", "gnNotUsed": "not used", "gnOwnPick": "Our automatch would put your game on: {node}.", "gnOwnNone": "None of our servers is usable from here - your games stay on Relic.", "gnOwnOff": "Off: games go to Relic. The tick is on the Add-ons tab.", "gnOwnHow": "Straight through our server: our automatch, when every player reaches it. Other lobbies are Relic games.", "gnFwdVia": "Relic games would go through: {node}.", "gnFwdNone": "No forwarding server is usable from here - games go straight to Relic.", "gnFwdFit": "Usable as forwarding servers: {list}.", "gnFwdOff": "Off: games go to Relic directly. The tick is on the Add-ons tab.", "gnFwdNotNeeded": "Off - not needed while the connection to Relic is fine.", "gnTcpInfo": "The game reaches our servers over UDP only. TCP is for information: a stop at ~33 KB means the line cuts long connections.", "gnListLadder": "Server list of the ladder (signed), UDP port {port}.", "gnListBuiltin": "Built-in server list (the ladder did not answer), UDP port {port}.", "gnPoland": "Poland", "gnMoscow2": "Moscow 2",
@@ -393,7 +393,7 @@ const T = {
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "playAfterSync": "Сначала обновляю дополнения — игра запустится сама.",
     // 1.4.11: the vanilla game next to Play
-    "rjWrongAsk": "Запущена другая игра", "rjWrongVan": "Это лобби ванильного Retribution, а сейчас запущена Elite. Закройте её (сам лаунчер игру не закрывает) — потом лаунчер запустит ваниль и войдёт в лобби.", "rjWrongElite": "Это лобби Elite, а сейчас запущен ванильный Retribution. Закройте его (сам лаунчер игру не закрывает) — потом лаунчер запустит Elite и войдёт в лобби.", "rjWrongGo": "Войти, когда я закрою", "rjCloseGame": "Закройте игру — потом лаунчер запустит {game} и войдёт в {name}.", "rjWhy_wrong_game": "запущена другая игра (Elite вместо ванили или ваниль вместо Elite)", "rjVanAddonOff": "Чтобы входить в ванильные лобби, включите дополнение «Вход в лобби из лаунчера» во вкладке «Дополнения» (оно работает и в ванили).", "rjVanNo": "На этом компьютере лаунчер не запускает ванильный Retribution.", "vanillaH": "Без мода", "vanillaName": "Ваниль Retribution", "vanillaNote": "Игра без Elite, с нашими дополнениями, которые там работают", "vanillaTag": "наши дополнения", "vanillaWarn": "Вы играете в ванильный Retribution: лобби Elite и дополнений только для Elite здесь нет.", "eliteOnly": "Только Elite", "eliteOnlyNote": "Работает только в Elite: в ванильном Retribution не загружается.", "readyVanilla": "Ваниль Retribution готова", "guardVanillaLoader": "Загрузчик дополнений ещё не на месте: ваниль запустится без них.", "toVanilla": "Готовлю ванильный Retribution…", "vanillaCopy": "в ванили: версия {v}",
+    "rjHintRelay": "Если повторится — попробуйте один раз выключить {list} во вкладке «Дополнения».", "rjWrongAsk": "Запущена другая игра", "rjWrongVan": "Это лобби ванильного Retribution, а сейчас запущена Elite. Закройте её (сам лаунчер игру не закрывает) — потом лаунчер запустит ваниль и войдёт в лобби.", "rjWrongElite": "Это лобби Elite, а сейчас запущен ванильный Retribution. Закройте его (сам лаунчер игру не закрывает) — потом лаунчер запустит Elite и войдёт в лобби.", "rjWrongGo": "Войти, когда я закрою", "rjCloseGame": "Закройте игру — потом лаунчер запустит {game} и войдёт в {name}.", "rjWhy_wrong_game": "запущена другая игра (Elite вместо ванили или ваниль вместо Elite)", "rjVanAddonOff": "Чтобы входить в ванильные лобби, включите дополнение «Вход в лобби из лаунчера» во вкладке «Дополнения» (оно работает и в ванили).", "rjVanNo": "На этом компьютере лаунчер не запускает ванильный Retribution.", "vanillaH": "Без мода", "vanillaName": "Ваниль Retribution", "vanillaNote": "Игра без Elite, с нашими дополнениями, которые там работают", "vanillaTag": "наши дополнения", "vanillaWarn": "Вы играете в ванильный Retribution: лобби Elite и дополнений только для Elite здесь нет.", "eliteOnly": "Только Elite", "eliteOnlyNote": "Работает только в Elite: в ванильном Retribution не загружается.", "readyVanilla": "Ваниль Retribution готова", "guardVanillaLoader": "Загрузчик дополнений ещё не на месте: ваниль запустится без них.", "toVanilla": "Готовлю ванильный Retribution…", "vanillaCopy": "в ванили: версия {v}",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер", "fwdOffer": "Связь с игровыми серверами Relic с проблемами ({why}). Наши форвардинг-серверы могут вести ваши игры до Relic.", "fwdOn": "Включить форвардинг", "fwdLater": "Не сейчас", "fwdDone": "Форвардинг-серверы включены — работают со следующего запуска игры.",
     "gnTab": "Сетевая игра", "gnTitle": "Игровые серверы с этого компьютера", "gnCheck": "Проверить", "gnChecking": "Проверяю… (10–20 с)", "gnNote": "По тем же правилам, по которым дополнения выбирают сервер. Пока игра запущена, не проверяется.", "gnGame": "Игра запущена: проверка подождёт, пока она закроется, чтобы не мешать матчу.", "gnNever": "Ещё не проверялось.", "gnWhen": "проверено в {time}", "gnRelic": "Relic", "gnRelicRelay": "Игровой сервер Relic", "gnRelicApi": "API Relic (16 запросов)", "gnClosed": "порт закрыт", "gnSlowMs": "{n} мс — медленно", "gnStreamOk": "{kb} КБ за {s} с", "gnStreamCut": "оборвалось на {kb} КБ", "gnRelicOk": "Связь с Relic в порядке.", "gnRelicBad": "Связь с Relic с проблемами: {why}. Помогут форвардинг-серверы.", "gnRelicFwdOn": "Связь с Relic с проблемами: {why}. Форвардинг включён.", "gnRelicWait": "Relic проверяется через несколько секунд после запуска лаунчера.", "gnOwn": "Свои серверы для игр", "gnFwd": "Форвардинг-серверы", "gnTickOn": "вкл.", "gnTickOff": "выкл.", "gnTickNone": "нет такого дополнения", "gnUdpMs": "UDP {n} мс", "gnUdpNone": "нет ответа по UDP", "gnBurst": "поток {got}/{n}", "gnBurstCut": "поток обрывается: {got}/{n}, {tail} из последних 6", "gnTcpOk": "TCP {kb} КБ", "gnTcpCut": "TCP обрыв на {kb} КБ", "gnTcpNone": "TCP: нет соединения", "gnNearest": "ближайший", "gnNotUsed": "не используется", "gnOwnPick": "Наш автоматч поставил бы вашу игру на: {node}.", "gnOwnNone": "Ни один наш сервер отсюда не годится — игры остаются на Relic.", "gnOwnOff": "Выключено: игры идут через Relic. Галочка — на вкладке «Дополнения».", "gnOwnHow": "Прямо через наш сервер: наш автоматч, если сервер доступен всем игрокам. Остальные лобби — игры Relic.", "gnFwdVia": "Игры Relic пошли бы через: {node}.", "gnFwdNone": "Ни один форвардинг-сервер отсюда не годится — игры идут напрямую к Relic.", "gnFwdFit": "Годятся как форвардинг-серверы: {list}.", "gnFwdOff": "Выключено: игры идут к Relic напрямую. Галочка — на вкладке «Дополнения».", "gnFwdNotNeeded": "Выключено — не нужно, пока связь с Relic в порядке.", "gnTcpInfo": "Игра ходит к нашим серверам только по UDP. TCP — для сведения: обрыв на ~33 КБ значит, что линия режет длинные соединения.", "gnListLadder": "Список серверов с ладдера (подписан), UDP-порт {port}.", "gnListBuiltin": "Встроенный список серверов (ладдер не ответил), UDP-порт {port}.", "gnPoland": "Польша", "gnMoscow2": "Москва 2",
@@ -1772,16 +1772,9 @@ function roomVerOther(v) {
   const ch = (S.config?.channels || []).find(c => verSame(c.version, v));
   const why = !ch ? t('roomsVerNoCh', { v }) : S.game_running ? t('roomsVerGame') : S.busy ? t('roomsVerBusy') : '';
   const up = verNewer(v, mine);
-  const m = document.createElement('div'); m.className = 'modal';
-  m.innerHTML = `<div class="box"><h3>${esc(t('roomsVerAsk'))}</h3><p>${esc(t('roomsVerOther', { v, mine }))}</p>${why ? `<p class="note">${esc(why)}</p>` : ''}<div class="row">`
-    + (ch && !why ? `<button class="btn gold" id="rvSw">${esc(t(up ? 'roomsVerUp' : 'roomsVerSw', { v }))}</button>` : '')
-    + `<button class="btn" id="rvNo">${esc(t('roomsVerClose'))}</button></div></div>`;
-  document.body.appendChild(m);
-  m.querySelector('#rvNo').onclick = () => m.remove();
-  m.onclick = e => { if (e.target === m) m.remove(); };
-  const sw = m.querySelector('#rvSw');
-  if (sw) { sw.onclick = () => { m.remove(); switchTo(ch.id); toast(t('roomsVerAfter', { v })); }; sw.focus(); }
-  else m.querySelector('#rvNo').focus();
+  // 1.4.13 (owner 05.11: no window over the whole launcher): on the status line above the list
+  rjAsk([t('roomsVerOther', { v, mine }), why], (ch && !why ? [{ label: t(up ? 'roomsVerUp' : 'roomsVerSw', { v }), cls: 'gold', val: 1 }] : [])
+    .concat([{ label: t('roomsVerClose'), val: 0 }])).then(ok => { if (ok) { switchTo(ch.id); rjShow(t('roomsVerAfter', { v }), 'ok'); } });
 }
 // the Join buttons follow my search / match at once (the list itself reloads every 15 s). 1.4.10 (siritos 05.11: "I started a
 // search, pressed Join - nothing happened, and no word why"): not disabled any more - dimmed, and a click says why
@@ -1857,6 +1850,7 @@ async function roomsLoad() {
 const RJ = { room: '', name: '', hide: 0, here: null };
 function rjShow(text, kind, cancel) {
   const b = $('rjStatus'); if (!b) return;
+  if (RJ_ASK) { RJ_ASK(null); RJ_ASK = null; }
   clearTimeout(RJ.hide);
   b.classList.remove('hidden', 'ok', 'err'); if (kind) b.classList.add(kind);
   $('rjText').textContent = text; $('rjCancel').classList.toggle('hidden', !cancel);
@@ -1875,6 +1869,25 @@ function askBox(title, lines, buttons) {
     const first = m.querySelector('button[data-i]'); if (first) first.focus();
   });
 }
+// 1.4.13 (owner 05.11.2026: "не надо перекрывать весь экран"): a question about a Join on the status line above the list - the
+// launcher stays usable, nothing covers it; resolves the button's val (null: another status replaced it)
+let RJ_ASK = null;
+function rjAsk(lines, buttons) {
+  if (RJ_ASK) { RJ_ASK(null); RJ_ASK = null; }
+  return new Promise(done => {
+    const b = $('rjStatus'); if (!b) { done(null); return; }
+    clearTimeout(RJ.hide);
+    b.classList.remove('hidden', 'ok', 'err');
+    $('rjText').textContent = lines.filter(Boolean).join(' ');
+    $('rjCancel').classList.add('hidden');
+    const box = document.createElement('div'); box.className = 'rj-ask';
+    box.innerHTML = buttons.map((x, i) => `<button class="btn small ${x.cls || ''}" data-i="${i}">${esc(x.label)}</button>`).join('');
+    b.appendChild(box);
+    const end = v => { box.remove(); if (RJ_ASK === end) RJ_ASK = null; done(v); };
+    RJ_ASK = end;
+    box.querySelectorAll('button').forEach(x => x.onclick = () => { end(buttons[+x.dataset.i].val); if (!b.querySelector('.rj-ask') && !RJ.after) b.classList.add('hidden'); });
+  });
+}
 const roomById = id => (RM.last || []).find(x => String(x.id) === String(id));
 const roomIHost = r => { const me = CH.me && CH.me.signed_in ? String(CH.me.steam || '') : ''; return !!(me && r && (r.players || []).some(p => p.host && String(p.steam || '') === me)); };
 // Join on a room's card: its version first (another one: say so, offer to switch), then the join
@@ -1889,7 +1902,7 @@ async function roomTry(id, name, btn) {
 // 1.4.11: the other game runs (Elite for a vanilla lobby or the other way round): the launcher never closes it - the player
 // closes it, then the right game starts and the join goes on (game_running below)
 async function rjWrongGame(id, name, want) {
-  const ok = await askBox(t('rjWrongAsk'), [t(want === 'vanilla' ? 'rjWrongVan' : 'rjWrongElite')],
+  const ok = await rjAsk([t(want === 'vanilla' ? 'rjWrongVan' : 'rjWrongElite')],
     [{ label: t('rjWrongGo'), cls: 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
   if (!ok) return;
   RJ.after = { id, name, want };
@@ -1921,7 +1934,7 @@ async function roomJoin(id, name, btn, leave, game) {
     if (inRoom && !leave) {                                         // 1.4.10 (siritos 05.11): offer to switch, the host warned
       const cur = roomById(inRoom), a = (cur && cur.name) || t('rjCurLobby');
       if (st.proto != null && st.proto < 2) { rjShow(t('rjSwitchOld', { a }), 'err'); return; }   // RoomJoin 10 and older can't leave
-      const ok = await askBox(t('rjSwitchAsk'), [t('rjSwitchText', { a, b: RJ.name }), roomIHost(cur) ? t('rjSwitchHost') : ''],
+      const ok = await rjAsk([t('rjSwitchText', { a, b: RJ.name }), roomIHost(cur) ? t('rjSwitchHost') : ''],
         [{ label: t('rjSwitchGo'), cls: roomIHost(cur) ? 'red' : 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
       if (!ok) return;
       leave = true;
@@ -1954,7 +1967,10 @@ listen('room_join', e => {
       if (v.reason === 'no_pipe') { rjShow(t('rjNoPipe'), 'err'); break; }
       if (v.reason === 'wrong_game') { rjWrongGame(RJ.room, name, RJ.want || 'elite'); break; }
       const why = T[lang]['rjWhy_' + v.reason] || T.en['rjWhy_' + v.reason] ? t('rjWhy_' + v.reason) : t('rjWhy_error');
-      rjShow(t('rjFailed', { name, why }) + (v.text ? ' (' + v.text + ')' : ''), v.reason === 'cancelled' ? 'ok' : 'err');
+      // 1.4.13: no answer from the room while our game servers carry the games - say which ticks to try without
+      const relays = (S.components || []).filter(c => /^relay(_r\d+|_fwd)?$/.test(String(c.id)) && c.enabled && (!VAN() || c.vanilla_ok));
+      const hint = (v.reason === 'timeout' || v.reason === 'no_answer') && relays.length ? ' ' + t('rjHintRelay', { list: relays.map(c => '«' + (L(c.name) || c.id) + '»').join(', ') }) : '';
+      rjShow(t('rjFailed', { name, why }) + (v.text ? ' (' + v.text + ')' : '') + hint, v.reason === 'cancelled' ? 'ok' : 'err');
       break; }
   }
 });

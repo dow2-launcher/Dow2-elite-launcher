@@ -1,0 +1,3 @@
+- Lobbies: no window over the whole launcher any more when you join - another version, another lobby you are in, the other game running: the question and its buttons are on the line above the list, the launcher stays usable.
+- Lobbies: when a lobby does not answer while our game servers or the forwarding servers carry your games, the launcher names the ticks to try without.
+- With the add-on "Join a lobby from the launcher" RoomJoin 12 there is no dark screen over the game either: the game joins by itself and you see its own menu and then the lobby.
