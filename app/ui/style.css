@@ -487,7 +487,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .room .rn{font-weight:600;flex:1 1 0;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .room .rjoin{flex:none;display:grid;place-items:center;width:24px;height:24px;margin-left:auto;padding:0;border:0;background:none;color:var(--dim);cursor:pointer}
 .room .rjoin svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.room .rjoin:hover,.room .rjoin:focus-visible{color:var(--gold2)}.room .rjoin:disabled{opacity:.4;cursor:default}
+.room .rjoin:hover,.room .rjoin:focus-visible{color:var(--gold2)}.room .rjoin:disabled{opacity:.4;cursor:default}.room .rjoin.wait{opacity:.4}
 .room .rmap{font-size:12px;color:var(--muted);margin:2px 0 5px}
 .room .teams{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px}
 .room .team{min-width:0}.room .team+.team{border-left:1px solid var(--line2);padding-left:8px}
@@ -501,7 +501,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .room .robs{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-top:5px;padding-top:4px;border-top:1px dashed var(--line2);font-size:12.5px;line-height:21px;min-width:0}
 .room .robs svg{flex:none;color:var(--gold2);opacity:.85}.room .robs .ol{color:var(--muted);margin-right:2px}
 .room .robs .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.room .robs .sep,.room .robs .oc{color:var(--muted)}
-.tag.elite{color:var(--gold2);border-color:var(--gold)}.tag.elite.oldv{color:var(--dim);border-color:var(--line,#444)}.tag.van{color:#9fb8c8;border-color:#4a5a66}.tag.oth{color:#c9a0d8;border-color:#5d4566}
+.tag.elite{color:var(--gold2);border-color:var(--gold)}.room .tag.here{flex:none;margin-left:auto;border-color:#5d7a3a;color:#b5d58a}.tag.van{color:#9fb8c8;border-color:#4a5a66}.tag.oth{color:#c9a0d8;border-color:#5d4566}
 
 /* Settings: how our servers answer from here - a dot, the place, the host, the time; the one in use marked */
 .net-list{max-width:720px;margin-top:4px}
@@ -572,6 +572,17 @@ footer:has(#statusText:empty) .foot-links{display:flex}
 /* 1.4.2: the offer of the forwarding servers (Relic check at start) */
 #fwdBanner{max-width:min(720px,60vw);border-color:#5c4a2c;background:#2a2013}
 #fwdBanner .btn{flex:none}
-/* 1.4.8: the launcher's servers under the game servers in the one network tab - a plain (not sticky) heading with a rule above */
-.h.net-sub{margin:22px 0 10px;padding-top:14px;border-top:1px solid var(--sep)}
-.h.net-sub .hk-act{margin-left:auto;display:flex;gap:8px}
+/* 1.4.10: the network tab is two panels one under the other, each as tall as its content; the column scrolls, not the panels.
+   The heading is plain (not sticky): the title, when it was checked, Check at the right end */
+.set-wrap>.set-col{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:14px}
+.set-col>.panel{flex:none}
+.h.net-h1{padding-bottom:10px;border-bottom:1px solid var(--sep)}
+.h.net-h1 .hk-note{color:var(--gold2)}
+.h.net-h1 .hk-act{order:2;margin-left:auto;display:flex;gap:8px}
+/* a check running: a spinner in its button (disabled, but not faded like a plain disabled one), the old results dimmed */
+.btn.busy{display:inline-flex;align-items:center;gap:7px;opacity:1}
+.btn.busy::before{content:"";flex:none;width:11px;height:11px;border:2px solid var(--line2);border-top-color:var(--gold2);border-radius:50%;animation:netspin .8s linear infinite}
+@keyframes netspin{to{transform:rotate(360deg)}}
+.net-list{transition:opacity .2s}
+.net-list.busy{opacity:.4;pointer-events:none}
+@media (prefers-reduced-motion:reduce){.btn.busy::before{animation-duration:2.4s}}

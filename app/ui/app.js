@@ -122,7 +122,7 @@ const T = {
     "usageTitle": "Anonymous usage count",
     "usage": "Count me as a launcher user",
     "usageNote": "Once a day the launcher sends a hash that changes every day, plus its version, OS and the Elite version. No names, Steam or hardware data; days can't be linked to each other.",
-    "onTag": "Mention in the chat", "roomsTab": "Lobbies", "roomsTitle": "Open lobbies", "roomsNote": "Custom games being set up right now - the same list as the game browser. Elite or vanilla is told by the races, the army badges and the map.", "roomsNone": "Nobody is setting up a game right now.", "roomsErr": "The list is not available right now.", "roomsFree": "open", "roomsVan": "vanilla", "roomsOther": "other mod", "roomsObs": "observers", "roomsPw": "password", "roomsJoin": "Join", "roomsJoinStart": "Starting the game and joining {name}...", "roomsJoinRunning": "The game is running: switch to it, the join starts there", "roomsJoinBusy": "You are searching or in a match: Join waits until it ends", "roomsVerOther": "Elite {v}: not your version ({mine}), the game would not let you in", "roomsJoinUnsure": "The exact game of this room is not known yet", "rjCancel": "Cancel", "rjStarting": "Starting the game to join {name}…", "rjWaitGame": "Waiting for the game to start…", "rjAccepted": "The game took the request: {name}", "rjWalking": "The game is going to its main menu…", "rjJoining": "Connecting to {name}…", "rjInLobby": "You are in the lobby {name}", "rjFailed": "Could not join {name}: {why}", "rjCancelled": "Join cancelled", "rjNoPipe": "The game is running without the add-on “Join a lobby from the launcher”. Turn it on in Add-ons and restart the game.", "rjOnlyWin": "Joining from the launcher works on Windows and Linux only.", "rjAddonOff": "To join from a link, turn on the add-on “Join a lobby from the launcher” in Add-ons, then click the link again.", "rjWhy_full": "the lobby is full", "rjWhy_closed": "the lobby is gone or its game is starting", "rjWhy_password": "it needs a password", "rjWhy_version": "another version of the game or the mod", "rjWhy_timeout": "the lobby did not answer", "rjWhy_busy_search": "a search is on in Find a Game - stop it first", "rjWhy_busy_match": "you are in a match", "rjWhy_busy_join": "the game is joining another lobby", "rjWhy_not_menu": "the game is not in its main menu - go there first", "rjWhy_other_lobby": "you are in another lobby - leave it first", "rjWhy_cancelled": "cancelled", "rjWhy_game_closed": "the game closed", "rjWhy_no_answer": "the game did not answer", "rjWhy_no_game": "the game did not start", "rjWhy_no_pipe": "the game has no add-on “Join a lobby from the launcher” - turn it on and restart the game", "rjWhy_error": "the game could not join", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
+    "onTag": "Mention in the chat", "roomsTab": "Lobbies", "roomsTitle": "Open lobbies", "roomsNote": "Custom games being set up right now - the same list as the game browser. Elite or vanilla is told by the races, the army badges and the map.", "roomsNone": "Nobody is setting up a game right now.", "roomsErr": "The list is not available right now.", "roomsFree": "open", "roomsVan": "vanilla", "roomsOther": "other mod", "roomsObs": "observers", "roomsPw": "password", "roomsJoin": "Join", "roomsJoinStart": "Starting the game and joining {name}...", "roomsJoinRunning": "The game is running: switch to it, the join starts there", "roomsJoinBusy": "You are searching for a match or playing one: stop the search (or finish the match), then press Join again", "roomsVerAsk": "Another Elite version", "roomsVerOther": "This game was created on Elite {v}, and you have Elite {mine}. You cannot join it with another version.", "roomsVerUp": "Update to Elite {v}", "roomsVerSw": "Switch to Elite {v}", "roomsVerClose": "Close", "rjSwitchAsk": "Go to another lobby?", "rjSwitchText": "You are in the lobby “{a}” now. Leave it and join “{b}”?", "rjSwitchHost": "You are the host of that lobby: if you leave, it closes for every player in it.", "rjSwitchGo": "Leave and join", "rjSwitchOld": "You are in the lobby “{a}”. Going from one lobby to another needs a newer add-on “Join a lobby from the launcher” - for now leave the lobby yourself.", "rjLeaving": "Leaving the lobby you are in, then joining {name}…", "rjCurLobby": "the current lobby", "roomsHere": "You are here", "roomsInOther": "You are already in the lobby {name} - leave it in the game first.", "roomsVerAfter": "Switching to Elite {v}. When it is done, press Join again.", "roomsVerNoCh": "The launcher has no Elite {v} to switch to.", "roomsVerGame": "Close the game first to switch the version.", "roomsVerBusy": "The launcher is updating the game right now - wait until it is done.", "rjCancel": "Cancel", "rjStarting": "Starting the game to join {name}…", "rjWaitGame": "Waiting for the game to start…", "rjAccepted": "The game took the request: {name}", "rjWalking": "The game is going to its main menu…", "rjJoining": "Connecting to {name}…", "rjInLobby": "You are in the lobby {name}", "rjFailed": "Could not join {name}: {why}", "rjCancelled": "Join cancelled", "rjNoPipe": "The game is running without the add-on “Join a lobby from the launcher”. Turn it on in Add-ons and restart the game.", "rjOnlyWin": "Joining from the launcher works on Windows and Linux only.", "rjAddonOff": "To join from a link, turn on the add-on “Join a lobby from the launcher” in Add-ons, then click the link again.", "rjWhy_full": "the lobby is full", "rjWhy_closed": "the lobby is gone or its game is starting", "rjWhy_password": "it needs a password", "rjWhy_version": "another version of the game or the mod", "rjWhy_timeout": "the lobby did not answer", "rjWhy_busy_search": "a search is on in Find a Game - stop it first", "rjWhy_busy_match": "you are in a match", "rjWhy_busy_join": "the game is joining another lobby", "rjWhy_not_menu": "the game is not in its main menu - go there first", "rjWhy_other_lobby": "you are in another lobby - leave it first", "rjWhy_cancelled": "cancelled", "rjWhy_game_closed": "the game closed", "rjWhy_no_answer": "the game did not answer", "rjWhy_no_game": "the game did not start", "rjWhy_no_pipe": "the game has no add-on “Join a lobby from the launcher” - turn it on and restart the game", "rjWhy_error": "the game could not join", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
     "lanTitle": "Local network",
     "lanShare": "Download Elite from other launchers on the local network and share it with them (faster; every file is checked against the signed version)",
     "trayOpen": "Open Elite Launcher",
@@ -329,7 +329,7 @@ const T = {
     "usageTitle": "Анонимная статистика",
     "usage": "Учитывать меня в числе пользователей лаунчера",
     "usageNote": "Раз в сутки лаунчер отправляет хеш, который каждый день новый, плюс свою версию, ОС и версию Elite. Никаких ников, Steam или данных о компьютере; связать дни между собой нельзя.",
-    "onTag": "Упомянуть в чате", "roomsTab": "Комнаты", "roomsJoin": "Войти", "roomsJoinStart": "Запускаю игру и вхожу в {name}...", "roomsJoinRunning": "Игра уже запущена: переключитесь в неё, вход начнётся там", "roomsJoinBusy": "Вы в поиске или в матче: войти можно, когда он закончится", "roomsVerOther": "Elite {v}: не ваша версия ({mine}), игра не пустит", "roomsJoinUnsure": "Точная версия этой комнаты пока неизвестна", "rjCancel": "Отмена", "rjStarting": "Запускаю игру, чтобы войти в {name}…", "rjWaitGame": "Жду, пока запустится игра…", "rjAccepted": "Игра приняла запрос: {name}", "rjWalking": "Игра переходит в главное меню…", "rjJoining": "Подключаюсь к {name}…", "rjInLobby": "Вы в лобби {name}", "rjFailed": "Не удалось войти в {name}: {why}", "rjCancelled": "Вход отменён", "rjNoPipe": "Игра запущена без дополнения «Вход в лобби из лаунчера». Включите его во вкладке «Дополнения» и перезапустите игру.", "rjOnlyWin": "Вход из лаунчера работает только на Windows и Linux.", "rjAddonOff": "Чтобы входить по ссылке, включите дополнение «Вход в лобби из лаунчера» во вкладке «Дополнения» и нажмите ссылку ещё раз.", "rjWhy_full": "комната заполнена", "rjWhy_closed": "комнаты больше нет или её игра уже стартует", "rjWhy_password": "нужен пароль", "rjWhy_version": "другая версия игры или мода", "rjWhy_timeout": "комната не ответила", "rjWhy_busy_search": "идёт поиск в Find a Game — сначала остановите его", "rjWhy_busy_match": "вы в матче", "rjWhy_busy_join": "игра уже входит в другую комнату", "rjWhy_not_menu": "игра не в главном меню — сначала перейдите туда", "rjWhy_other_lobby": "вы в другом лобби — сначала выйдите из него", "rjWhy_cancelled": "отменено", "rjWhy_game_closed": "игра закрылась", "rjWhy_no_answer": "игра не ответила", "rjWhy_no_game": "игра не запустилась", "rjWhy_no_pipe": "в игре нет дополнения «Вход в лобби из лаунчера» — включите его и перезапустите игру", "rjWhy_error": "игре не удалось войти", "roomsTitle": "Открытые лобби", "roomsNote": "Кастомки, которые сейчас собираются, — тот же список, что в браузере игр. Elite или ваниль — по расам, значкам армий и карте.", "roomsNone": "Сейчас никто не собирает игру.", "roomsErr": "Список сейчас недоступен.", "roomsFree": "свободно", "roomsVan": "ваниль", "roomsOther": "другой мод", "roomsObs": "наблюдатели", "roomsPw": "с паролем", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
+    "onTag": "Упомянуть в чате", "roomsTab": "Комнаты", "roomsJoin": "Войти", "roomsJoinStart": "Запускаю игру и вхожу в {name}...", "roomsJoinRunning": "Игра уже запущена: переключитесь в неё, вход начнётся там", "roomsJoinBusy": "Идёт поиск автоматча или вы в матче: остановите поиск (или доиграйте матч) и нажмите «Войти» ещё раз", "roomsVerAsk": "Другая версия Elite", "roomsVerOther": "Эта игра создана на Elite {v}, а у вас Elite {mine}. С другой версией в неё не войти.", "roomsVerUp": "Обновить до Elite {v}", "roomsVerSw": "Перейти на Elite {v}", "roomsVerClose": "Закрыть", "rjSwitchAsk": "Перейти в другое лобби?", "rjSwitchText": "Вы сейчас в лобби «{a}». Выйти из него и войти в «{b}»?", "rjSwitchHost": "Вы хост этого лобби: если выйти, оно закроется для всех игроков в нём.", "rjSwitchGo": "Выйти и войти", "rjSwitchOld": "Вы в лобби «{a}». Чтобы переходить из лобби в лобби, нужно новое дополнение «Вход в лобби из лаунчера» — пока выйдите из лобби сами.", "rjLeaving": "Выхожу из текущего лобби, потом вхожу в {name}…", "rjCurLobby": "текущее лобби", "roomsHere": "Вы здесь", "roomsInOther": "Вы уже в лобби {name} — сначала выйдите из него в игре.", "roomsVerAfter": "Переключаю на Elite {v}. Когда закончится, нажмите «Войти» ещё раз.", "roomsVerNoCh": "Elite {v} нет в лаунчере — переключиться на неё нельзя.", "roomsVerGame": "Чтобы переключить версию, сначала закройте игру.", "roomsVerBusy": "Лаунчер сейчас обновляет игру — дождитесь, пока закончит.", "rjCancel": "Отмена", "rjStarting": "Запускаю игру, чтобы войти в {name}…", "rjWaitGame": "Жду, пока запустится игра…", "rjAccepted": "Игра приняла запрос: {name}", "rjWalking": "Игра переходит в главное меню…", "rjJoining": "Подключаюсь к {name}…", "rjInLobby": "Вы в лобби {name}", "rjFailed": "Не удалось войти в {name}: {why}", "rjCancelled": "Вход отменён", "rjNoPipe": "Игра запущена без дополнения «Вход в лобби из лаунчера». Включите его во вкладке «Дополнения» и перезапустите игру.", "rjOnlyWin": "Вход из лаунчера работает только на Windows и Linux.", "rjAddonOff": "Чтобы входить по ссылке, включите дополнение «Вход в лобби из лаунчера» во вкладке «Дополнения» и нажмите ссылку ещё раз.", "rjWhy_full": "комната заполнена", "rjWhy_closed": "комнаты больше нет или её игра уже стартует", "rjWhy_password": "нужен пароль", "rjWhy_version": "другая версия игры или мода", "rjWhy_timeout": "комната не ответила", "rjWhy_busy_search": "идёт поиск в Find a Game — сначала остановите его", "rjWhy_busy_match": "вы в матче", "rjWhy_busy_join": "игра уже входит в другую комнату", "rjWhy_not_menu": "игра не в главном меню — сначала перейдите туда", "rjWhy_other_lobby": "вы в другом лобби — сначала выйдите из него", "rjWhy_cancelled": "отменено", "rjWhy_game_closed": "игра закрылась", "rjWhy_no_answer": "игра не ответила", "rjWhy_no_game": "игра не запустилась", "rjWhy_no_pipe": "в игре нет дополнения «Вход в лобби из лаунчера» — включите его и перезапустите игру", "rjWhy_error": "игре не удалось войти", "roomsTitle": "Открытые лобби", "roomsNote": "Кастомки, которые сейчас собираются, — тот же список, что в браузере игр. Elite или ваниль — по расам, значкам армий и карте.", "roomsNone": "Сейчас никто не собирает игру.", "roomsErr": "Список сейчас недоступен.", "roomsFree": "свободно", "roomsVan": "ваниль", "roomsOther": "другой мод", "roomsObs": "наблюдатели", "roomsPw": "с паролем", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
     "lanTitle": "Локальная сеть",
     "lanShare": "Качать Elite с других лаунчеров в локальной сети и раздавать им (быстрее; каждый файл сверяется с подписанной версией)",
     "trayOpen": "Открыть Elite Launcher",
@@ -1710,22 +1710,42 @@ const meBusy = () => {
 // "3.2" = "3.2.0"; an installed build that is not a plain number (a test channel) is not compared
 const verParts = v => String(v || '').split(/[^0-9]+/).filter(Boolean).map(Number);
 const verSame = (a, b) => { const x = verParts(a), y = verParts(b); while (x.length && !x[x.length - 1]) x.pop(); while (y.length && !y[y.length - 1]) y.pop(); return x.join('.') === y.join('.'); };
-// Join on this room: '' = yes, else why not (the button's title). An older ladder without the exact fields (r.exact undefined): as before
+// 1.4.10 (siritos 05.11): the room's version is not shown on the card any more and does not hide Join. It comes with the list
+// (no wait on the click). Another version than mine: no join - a window says so plainly and, when the launcher has that
+// version, offers to switch to it ("Update to" a newer one, "Switch to" an older one). A version not known yet: Join as is,
+// the game itself says "another version" then. '' = join, else the room's version
 function roomJoinWhy(r) {
-  if (r.exact === undefined) return '';
-  if (!r.exact) return t('roomsJoinUnsure');
+  if (!r.exact) return '';   // an older ladder without the exact fields, or the version is not known yet
   const mine = S && S.installed_version;
-  if (r.version && /^\d/.test(mine || '') && !verSame(r.version, mine)) return t('roomsVerOther', { v: r.version, mine });
-  return '';
+  return r.version && /^\d/.test(mine || '') && !verSame(r.version, mine) ? String(r.version) : '';
 }
-function roomsJoinState() {   // the Join buttons follow my search / match at once (the list itself reloads every 15 s)
+const verNewer = (a, b) => { const x = verParts(a), y = verParts(b); for (let i = 0; i < Math.max(x.length, y.length); i++) { if ((x[i] | 0) !== (y[i] | 0)) return (x[i] | 0) > (y[i] | 0); } return false; };
+function roomVerOther(v) {
+  const mine = S.installed_version;
+  const ch = (S.config?.channels || []).find(c => verSame(c.version, v));
+  const why = !ch ? t('roomsVerNoCh', { v }) : S.game_running ? t('roomsVerGame') : S.busy ? t('roomsVerBusy') : '';
+  const up = verNewer(v, mine);
+  const m = document.createElement('div'); m.className = 'modal';
+  m.innerHTML = `<div class="box"><h3>${esc(t('roomsVerAsk'))}</h3><p>${esc(t('roomsVerOther', { v, mine }))}</p>${why ? `<p class="note">${esc(why)}</p>` : ''}<div class="row">`
+    + (ch && !why ? `<button class="btn gold" id="rvSw">${esc(t(up ? 'roomsVerUp' : 'roomsVerSw', { v }))}</button>` : '')
+    + `<button class="btn" id="rvNo">${esc(t('roomsVerClose'))}</button></div></div>`;
+  document.body.appendChild(m);
+  m.querySelector('#rvNo').onclick = () => m.remove();
+  m.onclick = e => { if (e.target === m) m.remove(); };
+  const sw = m.querySelector('#rvSw');
+  if (sw) { sw.onclick = () => { m.remove(); switchTo(ch.id); toast(t('roomsVerAfter', { v })); }; sw.focus(); }
+  else m.querySelector('#rvNo').focus();
+}
+// the Join buttons follow my search / match at once (the list itself reloads every 15 s). 1.4.10 (siritos 05.11: "I started a
+// search, pressed Join - nothing happened, and no word why"): not disabled any more - dimmed, and a click says why
+function roomsJoinState() {
   const busy = meBusy();
-  document.querySelectorAll('#roomsList .rjoin').forEach(b => { b.disabled = busy; b.title = busy ? t('roomsJoinBusy') : t('roomsJoin'); });
+  document.querySelectorAll('#roomsList .rjoin').forEach(b => { b.classList.toggle('wait', busy); b.title = busy ? t('roomsJoinBusy') : t('roomsJoin'); });
 }
 function roomCard(r) {
   const A = (RM.host || 'https://rts.fintebtc.de') + '/elite/assets/';
   const why = r.game === 'elite' ? roomJoinWhy(r) : '';
-  const tag = r.game === 'elite' ? `<span class="tag elite${why && r.exact ? ' oldv' : ''}"${why && r.exact ? ` title="${esc(why)}"` : ''}>Elite${r.version ? ' ' + esc(r.version) : ''}</span>`
+  const tag = r.game === 'elite' ? `<span class="tag elite">Elite</span>`
     : r.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>`
     : r.game === 'other' ? `<span class="tag oth">${esc(t('roomsOther'))}</span>` : '';
   const cap = r.cap || (((r.map || '').match(/^(\d)p_/) || [])[1] | 0) || 0;
@@ -1749,30 +1769,45 @@ function roomCard(r) {
       + (nObs > obsP.length ? ` <span class="oc">+${nObs - obsP.length}</span>` : '') : `<span class="oc">${nObs}</span>`) + '</div>' : '';
   const map = r.map_title || String(r.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
   const full = r.free != null ? r.free <= 0 : false;
-  const join = roomJoinOn() && r.game === 'elite' && !why && !r.password && !full && r.id
-    ? `<button class="rjoin" title="${esc(meBusy() ? t('roomsJoinBusy') : t('roomsJoin'))}"${meBusy() ? ' disabled' : ''} aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '';
+  const here = RM.mine && String(RM.mine.room) === String(r.id);
+  const join = here ? `<span class="tag here">${esc(t('roomsHere'))}</span>`
+    : roomJoinOn() && r.game === 'elite' && !r.password && !full && r.id
+    ? `<button class="rjoin${meBusy() ? ' wait' : ''}" title="${esc(meBusy() ? t('roomsJoinBusy') : t('roomsJoin'))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-why="${esc(why)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '';
   return `<div class="room"><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"></div><div style="min-width:0">`
     + `<div class="rh">${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}${tag}${r.password ? '<span class="tag">🔒</span>' : ''}<span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${join}</div>`
     + `<div class="rmap">${esc(map)}${cap ? ' · ' + (r.players || []).length + '/' + cap : ''}</div><div class="teams">${teams}</div>${obs}`
     + (r.password ? `<div class="rfoot">${esc(t('roomsPw'))}</div>` : '') + '</div></div>';
+}
+// 1.4.10 (siritos 05.11): the lobby I am in - no Join on it ("You are here"), and Join on another one says "leave it first"
+// (the game would refuse it too). From the list: my SteamID among its players (the ladder has them from Relic, the list is up
+// to ~30 s old); right after a Join from here, the game's "in the lobby" until the list shows me in it - or 45 s without
+function roomMine(R) {
+  const me = CH.me && CH.me.signed_in ? String(CH.me.steam || '') : '';
+  const gone = RM.gone && Date.now() < RM.gone.until ? RM.gone.room : '';   // the game said I left it: the late list is not believed
+  const r = me && R.find(x => String(x.id) !== gone && (x.players || []).some(p => String(p.steam || '') === me));
+  if (r) return { room: String(r.id), name: r.name || '', ts: Date.now(), list: true };
+  if (me) return null;   // signed in: the list decides alone (05.11: the plaque stayed on a room I had left, its players right)
+  const j = RJ.here;     // signed out: the game's "in the lobby" after a Join from here, 45 s
+  return j && R.some(x => String(x.id) === j.room) && Date.now() - j.ts < 45000 ? j : null;
 }
 async function roomsLoad() {
   const box = $('roomsList'); if (!box) return;
   try {
     const d = await invoke('rooms_live'); RM.host = d.host || RM.host;
     const R = d.rooms || [];
+    RM.last = R; RM.mine = roomMine(R);
     $('roomsN').textContent = R.length;
     box.innerHTML = R.length ? R.map(roomCard).join('') : `<div class="note">${esc(t('roomsNone'))}</div>`;
     box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
     // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
-    box.querySelectorAll('.rjoin').forEach(b => b.onclick = () => roomJoin(b.dataset.room, b.dataset.name, b));
+    box.querySelectorAll('.rjoin').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));
     box.querySelectorAll('.rp .nm[data-name], .robs .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));   // the stats (by name until the server sends SteamIDs), Steam when there; no "mention"
   } catch (e) { box.innerHTML = `<div class="note">${esc(t('roomsErr'))}</div>`; }
 }
 // 1.4.9: Join talks to RoomJoin.dll (RoomJoin 9) in the game over its pipe (roomjoin.rs) - no request file any more. The game
 // running without the pipe = without the add-on (or an older one): restart it with the add-on on. Not running: Play, then the
 // launcher waits for the game's pipe. What the game says (accepted, walking, joining, in the lobby, why not) shows above the list.
-const RJ = { room: '', name: '', hide: 0 };
+const RJ = { room: '', name: '', hide: 0, here: null };
 function rjShow(text, kind, cancel) {
   const b = $('rjStatus'); if (!b) return;
   clearTimeout(RJ.hide);
@@ -1780,22 +1815,61 @@ function rjShow(text, kind, cancel) {
   $('rjText').textContent = text; $('rjCancel').classList.toggle('hidden', !cancel);
   if (kind) RJ.hide = setTimeout(() => b.classList.add('hidden'), kind === 'ok' ? 10000 : 30000);
 }
-async function roomJoin(id, name, btn) {
-  if (!S || (S.os !== 'windows' && S.os !== 'linux')) { toast(t('rjOnlyWin'), true); return; }
-  if (meBusy()) { toast(t('roomsJoinBusy'), true); roomsJoinState(); return; }
+// a window with a title, lines of text and buttons [{label, cls, val}]; resolves the button's val (null: closed)
+function askBox(title, lines, buttons) {
+  return new Promise(done => {
+    const m = document.createElement('div'); m.className = 'modal';
+    m.innerHTML = `<div class="box"><h3>${esc(title)}</h3>${lines.filter(Boolean).map(l => `<p>${esc(l)}</p>`).join('')}<div class="row">`
+      + buttons.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}">${esc(b.label)}</button>`).join('') + '</div></div>';
+    document.body.appendChild(m);
+    const end = v => { m.remove(); done(v); };
+    m.querySelectorAll('button[data-i]').forEach(b => b.onclick = () => end(buttons[+b.dataset.i].val));
+    m.onclick = e => { if (e.target === m) end(null); };
+    const first = m.querySelector('button[data-i]'); if (first) first.focus();
+  });
+}
+const roomById = id => (RM.last || []).find(x => String(x.id) === String(id));
+const roomIHost = r => { const me = CH.me && CH.me.signed_in ? String(CH.me.steam || '') : ''; return !!(me && r && (r.players || []).some(p => p.host && String(p.steam || '') === me)); };
+// Join on a room's card: its version first (another one: say so, offer to switch), then the join
+async function roomTry(id, name, btn) {
+  if (!S || (S.os !== 'windows' && S.os !== 'linux')) { rjShow(t('rjOnlyWin'), 'err'); return; }
+  if (meBusy()) { rjShow(t('roomsJoinBusy'), 'err'); roomsJoinState(); return; }
+  const r = roomById(id);
+  const v = r && r.game === 'elite' ? roomJoinWhy(r) : '';
+  if (v) { roomVerOther(v); return; }                               // another version: say so, offer to switch
+  return roomJoin(id, (r && r.name) || name || '', btn, false);
+}
+async function roomJoin(id, name, btn, leave) {
+  if (!S || (S.os !== 'windows' && S.os !== 'linux')) { rjShow(t('rjOnlyWin'), 'err'); return; }
+  if (meBusy()) { rjShow(t('roomsJoinBusy'), 'err'); roomsJoinState(); return; }
   const room = Number(id); if (!Number.isSafeInteger(room) || room <= 0) return;
   if (btn) btn.disabled = true;
-  setTimeout(() => { if (btn) btn.disabled = meBusy(); }, 2000);   // a double click only: a second Join for the same room just goes on
+  setTimeout(() => { if (btn) btn.disabled = false; }, 2000);   // a double click only: a second Join for the same room just goes on
   RJ.room = String(room); RJ.name = name || '';
   try {
     const p = await invoke('room_join_probe') || {};
+    // the lobby I am in: the game itself says (its status, RoomJoin 9+), else the list (my SteamID in a room) while the game runs
+    const g0raw = (p.games || [])[0], st = (g0raw && g0raw.status) || {};
+    const g0 = st.screen === 'unknown' ? null : g0raw;   // the game has not seen its menu yet: its room 0 says nothing, the list decides
+    // the game answered: its word decides (0 = in no room, the list may still show me in one for 30 s); no answer: the list
+    const inRoom = g0 ? (st.room ? String(st.room) : '') : p.running && RM.mine ? RM.mine.room : '';
+    if (g0 && RM.mine && RM.mine.room !== inRoom) { RM.gone = { room: RM.mine.room, until: Date.now() + 40000 }; RM.mine = null; RJ.here = null; }   // the list is late: not there any more
+    if (inRoom === String(room)) { RJ.here = { room: RJ.room, name: RJ.name, ts: Date.now() }; rjShow(t('rjInLobby', { name: RJ.name }), 'ok'); roomsLoad(); return; }
+    if (inRoom && !leave) {                                         // 1.4.10 (siritos 05.11): offer to switch, the host warned
+      const cur = roomById(inRoom), a = (cur && cur.name) || t('rjCurLobby');
+      if (st.proto != null && st.proto < 2) { rjShow(t('rjSwitchOld', { a }), 'err'); return; }   // RoomJoin 10 and older can't leave
+      const ok = await askBox(t('rjSwitchAsk'), [t('rjSwitchText', { a, b: RJ.name }), roomIHost(cur) ? t('rjSwitchHost') : ''],
+        [{ label: t('rjSwitchGo'), cls: roomIHost(cur) ? 'red' : 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
+      if (!ok) return;
+      leave = true;
+    }
     let wait = 0;
     if (!(p.games || []).length) {
       if (p.running && !p.young) { rjShow(t('rjNoPipe'), 'err'); return; }      // the heartbeat: a running game without the pipe
       if (p.running) { wait = 90; rjShow(t('rjWaitGame'), '', true); }          // just started: its add-ons are not in yet
       else { wait = 240; rjShow(t('rjStarting', { name: RJ.name }), '', true); doPlay(false); }   // the add-ons synced first, then the game
     }
-    await invoke('room_join', { id: room, name: RJ.name, wait });
+    await invoke('room_join', { id: room, name: RJ.name, wait, leave: !!leave });
   } catch (e) { rjShow(String(e), 'err'); }
 }
 listen('room_join', e => {
@@ -1805,8 +1879,9 @@ listen('room_join', e => {
     case 'waiting_game': rjShow(t('rjWaitGame'), '', true); break;
     case 'accepted': rjShow(t('rjAccepted', { name }), '', true); break;
     case 'walking': rjShow(t('rjWalking'), '', true); break;
+    case 'leaving': rjShow(t('rjLeaving', { name }), '', true); break;
     case 'joining': rjShow(t('rjJoining', { name }), '', true); break;
-    case 'in_lobby': rjShow(t('rjInLobby', { name }), 'ok'); break;
+    case 'in_lobby': rjShow(t('rjInLobby', { name }), 'ok'); RJ.here = { room: RJ.room, name, ts: Date.now() }; roomsLoad(); break;
     case 'failed': {
       if (v.reason === 'no_pipe') { rjShow(t('rjNoPipe'), 'err'); break; }
       const why = T[lang]['rjWhy_' + v.reason] || T.en['rjWhy_' + v.reason] ? t('rjWhy_' + v.reason) : t('rjWhy_error');
@@ -1822,7 +1897,7 @@ async function roomLink() {
   const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click();
   if (S.os !== 'windows' && S.os !== 'linux') { rjShow(t('rjOnlyWin'), 'err'); return; }
   if (!roomJoinOn()) { rjShow(t('rjAddonOff'), 'err'); return; }
-  roomJoin(l.id, l.name, null);
+  roomJoin(l.id, l.name, null, false);
 }
 listen('room_link', roomLink);
 function roomsWatch() {
@@ -1870,10 +1945,13 @@ function renderNet(d) {
 }
 invoke('net_status').then(renderNet).catch(() => {});
 listen('net_rank', e => renderNet(e.payload));
+// 1.4.10 (siritos 05.11): while a check runs - a spinner on its Check button, the results of the last one dimmed under it
+function netBusy(btn, list, on) { btn.classList.toggle('busy', on); btn.setAttribute('aria-busy', on ? 'true' : 'false'); if (list) list.classList.toggle('busy', on); }
 $('netCheck').onclick = async () => {
   const b = $('netCheck'); b.disabled = true; $('netNote').textContent = t('netChecking');
+  netBusy(b, $('netList'), true);
   try { renderNet(await invoke('net_check')); } catch (e) { toast(e, true); }
-  b.disabled = false;
+  b.disabled = false; netBusy(b, $('netList'), false);
 };
 // ---------- Settings -> Online play (1.4.5, owner 03.11.2026): Relic, our game servers and forwarding from this computer ----------
 // judged by the rules of the add-ons (netgame.rs / relay.c Relay 18-19): a node is usable when it answers UDP and a stream of
@@ -1955,6 +2033,7 @@ function renderGameNet() {
   box.innerHTML = h;
   if ($('gnFwdOn')) $('gnFwdOn').onclick = fwdTurnOn;
   $('gnCheck').disabled = GN_BUSY || !!S.game_running;
+  netBusy($('gnCheck'), box, GN_BUSY);
   $('gnNote').textContent = S.game_running ? t('gnGame') : GN_BUSY ? t('gnChecking') : t('gnNote');
   $('gnWhen').textContent = GN && GN.ts ? t('gnWhen', { time: new Date(GN.ts * 1000).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : '';
 }

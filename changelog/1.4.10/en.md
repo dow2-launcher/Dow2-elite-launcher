@@ -1,0 +1,7 @@
+- Settings → "Network and servers": two separate blocks - the game servers and the launcher's servers (with the mirror and the local network); the headings no longer stick to the top, "Check" is on the right in both; while a check runs, a spinner turns on its button and the last results are dimmed.
+- Lobbies: the Elite version is no longer shown on the card, and Join is there for lobbies of another version too. If the lobby's version differs from yours, the launcher says plainly that you cannot join with another version and offers to update (or switch) to the lobby's version; press Join again when it is done.
+- Lobbies: the lobby you are already in shows "You are here" instead of Join; while you are in another lobby, Join (and a link from the site) tells you to leave it first.
+- Lobbies: while you are in a lobby, Join on another one offers to leave it and switch (the host is warned the lobby closes for everyone). Needs the add-on "Join a lobby from the launcher" RoomJoin 11.
+- Lobbies: Join during an automatch search no longer stays silent - the line above the list says to stop the search first.
+- Lobbies: Cancel cancels only its own join (a late Cancel no longer stops the next one), and if the lobby lets you in after "could not join" or "cancelled", the launcher shows it.
+- Lobbies: if the game did not start for a Join (you said No to the Windows question), the Join is cancelled - a game started by hand later no longer gets the old Join.
