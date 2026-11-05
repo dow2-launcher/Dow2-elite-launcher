@@ -387,19 +387,30 @@ fn probe(app: &AppHandle) -> Value {
 /// Join: wait up to `wait` seconds for a game with the pipe (the window has just started it, or it is starting), bring it to
 /// the front, send the join and pass every event on to the window ("room_join" events: {ev, room, reason, text, pid}) until
 /// the game says in_lobby / failed, the pipe closes, or 3 minutes pass. Returns at once; the events tell the rest.
+/// `leave` (1.4.10): the player said yes to leaving the lobby he is in for this one (RoomJoin 11 presses Back there first).
 #[tauri::command]
-pub fn room_join(app: AppHandle, id: u64, name: String, wait: Option<u64>) -> Result<Value, String> {
+pub fn room_join(app: AppHandle, id: u64, name: String, wait: Option<u64>, leave: Option<bool>) -> Result<Value, String> {
     if id == 0 { return Err("no room id".into()); }
     let name: String = name.chars().filter(|c| !c.is_control()).take(64).collect();
     let gen = GEN.fetch_add(1, Ordering::SeqCst) + 1;
     let wait = Duration::from_secs(wait.unwrap_or(0).min(300));
-    crate::c_log(&format!("rooms: join room {id} ({name}), waiting up to {} s for the game", wait.as_secs()));
+    let leave = leave.unwrap_or(false);
+    ROOM_NOW.store(id, Ordering::SeqCst);
+    crate::c_log(&format!("rooms: join room {id} ({name}){}, waiting up to {} s for the game", if leave { ", leaving the current lobby" } else { "" }, wait.as_secs()));
     if !cfg!(any(windows, target_os = "linux")) { return Err("not on this system".into()); }
-    std::thread::spawn(move || session(app, gen, id, name, wait));
+    std::thread::spawn(move || session(app, gen, id, name, wait, leave));
     Ok(json!({"started": true}))
 }
 
-fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration) {
+/// The session's join was cancelled by the window (not replaced by a new Join): GEN's value after that Cancel. The session
+/// then still passes on a late "in_lobby" for its room (review 05.11 L1: the window said "cancelled" while the player was in).
+static CANCELLED_AT: AtomicU64 = AtomicU64::new(0);
+/// The room of the join that runs now (0: none) - a Cancel names it, so the game cancels only that one (review 05.11 M4).
+static ROOM_NOW: AtomicU64 = AtomicU64::new(0);
+
+fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leave: bool) {
+    // a late answer (after a timeout, or a Cancel of this very join) is told too - as long as no other Join started since
+    let ours = || { let g = GEN.load(Ordering::SeqCst); g == gen || (g == gen + 1 && CANCELLED_AT.load(Ordering::SeqCst) == g) };
     let tell = |v: Value| { if GEN.load(Ordering::SeqCst) == gen { let _ = app.emit("room_join", v); } };
     let fail = |reason: &str| {
         crate::c_log(&format!("rooms: join room {id}: {reason}"));
@@ -426,34 +437,54 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration) {
     let front = false;
     crate::c_log(&format!("rooms: join room {id}: {}{}", if pid != 0 { format!("game {pid} over its pipe") } else { "the game over TCP".into() },
                           if front { ", brought to the front" } else { "" }));
-    if !conn.send(&json!({"cmd": "join", "room": id, "name": name})) { fail("game_closed"); return; }
+    // (review 05.11 M4) a Cancel or a new Join while the game was looked for / brought to the front: no join sent at all
+    if GEN.load(Ordering::SeqCst) != gen { crate::c_log(&format!("rooms: join room {id}: cancelled before it was sent")); return; }
+    let mut cmd = json!({"cmd": "join", "room": id, "name": name});
+    if leave { cmd["leave"] = json!(true); }
+    if !conn.send(&cmd) { fail("game_closed"); return; }
     let end = Instant::now() + Duration::from_secs(180);
+    let mut late: Option<Instant> = None;                       // after "failed" (timeout / cancelled): the game watches 15 s more
     loop {
-        if GEN.load(Ordering::SeqCst) != gen { return; }        // a new Join or a Cancel: this one is over for the window
-        if Instant::now() >= end { fail("no_answer"); return; }
+        if !ours() { return; }                                  // a new Join: this one is over for the window
+        if GEN.load(Ordering::SeqCst) != gen && late.is_none() { late = Some(Instant::now() + Duration::from_secs(17)); }   // cancelled: only a late in_lobby now
+        if late.is_some_and(|t| Instant::now() >= t) { return; }
+        if late.is_none() && Instant::now() >= end { fail("no_answer"); return; }
         match conn.line(500) {
-            Err(()) => { fail("game_closed"); return; }
+            Err(()) => { if late.is_none() { fail("game_closed"); } return; }
             Ok(None) => {}
             Ok(Some(mut v)) => {
                 let ev = v["ev"].as_str().unwrap_or("").to_string();
                 if ev == "status" || v["room"].as_u64().is_some_and(|r| r != id) { continue; }   // not about this join
                 v["pid"] = json!(pid);
                 crate::c_log(&format!("rooms: join room {id}: {}", v));
+                if late.is_some() {
+                    if ev == "in_lobby" { let _ = app.emit("room_join", v); return; }   // in after all: the window says so
+                    continue;
+                }
+                let reason = v["reason"].as_str().unwrap_or("").to_string();
                 tell(v);
-                if ev == "in_lobby" || ev == "failed" { return; }
+                if ev == "in_lobby" { return; }
+                if ev == "failed" {
+                    if reason == "timeout" || reason == "cancelled" { late = Some(Instant::now() + Duration::from_secs(17)); continue; }
+                    return;
+                }
             }
         }
     }
 }
 
-/// Cancel: the waiting for the game stops, and every game with the pipe is told (its cover's Cancel; a lobby it is in stays).
+/// Cancel: the waiting for the game stops, and every game with the pipe is told - for the room of this join only (RoomJoin 11;
+/// an older one cancels whatever it does); its cover's Cancel; a lobby it is in stays.
 #[tauri::command]
 pub async fn room_join_cancel(app: AppHandle) -> Value {
-    GEN.fetch_add(1, Ordering::SeqCst);
+    let g = GEN.fetch_add(1, Ordering::SeqCst) + 1;
+    CANCELLED_AT.store(g, Ordering::SeqCst);
+    let room = ROOM_NOW.load(Ordering::SeqCst);
     tauri::async_runtime::spawn_blocking(move || {
         let mut n = 0;
-        for (mut c, _) in games(&app) { if c.send(&json!({"cmd": "cancel"})) { n += 1; } }
-        crate::c_log(&format!("rooms: join cancelled ({n} game(s) told)"));
+        let cmd = if room != 0 { json!({"cmd": "cancel", "room": room}) } else { json!({"cmd": "cancel"}) };
+        for (mut c, _) in games(&app) { if c.send(&cmd) { n += 1; } }
+        crate::c_log(&format!("rooms: join of room {room} cancelled ({n} game(s) told)"));
         json!({"told": n})
     }).await.unwrap_or(Value::Null)
 }
