@@ -1888,10 +1888,13 @@ function renderNet(d) {
 }
 invoke('net_status').then(renderNet).catch(() => {});
 listen('net_rank', e => renderNet(e.payload));
+// 1.4.10 (siritos 05.11): while a check runs - a spinner on its Check button, the results of the last one dimmed under it
+function netBusy(btn, list, on) { btn.classList.toggle('busy', on); btn.setAttribute('aria-busy', on ? 'true' : 'false'); if (list) list.classList.toggle('busy', on); }
 $('netCheck').onclick = async () => {
   const b = $('netCheck'); b.disabled = true; $('netNote').textContent = t('netChecking');
+  netBusy(b, $('netList'), true);
   try { renderNet(await invoke('net_check')); } catch (e) { toast(e, true); }
-  b.disabled = false;
+  b.disabled = false; netBusy(b, $('netList'), false);
 };
 // ---------- Settings -> Online play (1.4.5, owner 03.11.2026): Relic, our game servers and forwarding from this computer ----------
 // judged by the rules of the add-ons (netgame.rs / relay.c Relay 18-19): a node is usable when it answers UDP and a stream of
@@ -1973,6 +1976,7 @@ function renderGameNet() {
   box.innerHTML = h;
   if ($('gnFwdOn')) $('gnFwdOn').onclick = fwdTurnOn;
   $('gnCheck').disabled = GN_BUSY || !!S.game_running;
+  netBusy($('gnCheck'), box, GN_BUSY);
   $('gnNote').textContent = S.game_running ? t('gnGame') : GN_BUSY ? t('gnChecking') : t('gnNote');
   $('gnWhen').textContent = GN && GN.ts ? t('gnWhen', { time: new Date(GN.ts * 1000).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' }) }) : '';
 }

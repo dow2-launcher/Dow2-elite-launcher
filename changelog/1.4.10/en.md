@@ -1,2 +1,2 @@
-- Settings → "Network and servers": two separate blocks - the game servers and the launcher's servers (with the mirror and the local network); the headings no longer stick to the top, "Check" is on the right in both.
+- Settings → "Network and servers": two separate blocks - the game servers and the launcher's servers (with the mirror and the local network); the headings no longer stick to the top, "Check" is on the right in both; while a check runs, a spinner turns on its button and the last results are dimmed.
 - Lobbies: the Elite version is no longer shown on the card, and Join is there for lobbies of another version too. If the lobby's version differs from yours (or is not known yet), a window warns you before joining - cancel, or join anyway.
