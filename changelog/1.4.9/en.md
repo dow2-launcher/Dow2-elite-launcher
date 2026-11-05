@@ -1,0 +1,4 @@
+- Lobbies (test): Join now talks to the game directly. Above the list you see what is going on: the game took the request, it is going to the main menu, connecting, you are in the lobby - or why not (the lobby is full, it needs a password, a search is on, you are in a match...). A Cancel button is there while it runs.
+- Lobbies (test): if the game is already running without the add-on "Join a lobby from the launcher", the launcher says so - turn the add-on on and restart the game.
+- The Join button on the ladder site opens the launcher and joins that lobby (Windows).
+- Joining from the launcher works on Windows only for now.
