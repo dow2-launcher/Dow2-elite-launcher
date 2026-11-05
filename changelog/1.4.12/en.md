@@ -1,0 +1,1 @@
+- Lobbies: which game is running (Elite or vanilla Retribution) is also found where Windows can't tell the game's command line - by the add-ons the game has loaded - so Join never sends an Elite lobby to vanilla or the other way round.
