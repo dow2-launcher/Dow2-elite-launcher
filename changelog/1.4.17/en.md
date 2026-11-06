@@ -1,0 +1,1 @@
+- Lobbies: the questions when you join (another version, leaving the lobby you are in, the other game running) and a failed join are small windows again, as before 1.4.13; the line above the list shows how the join goes. The dark screen over the game stays gone.
