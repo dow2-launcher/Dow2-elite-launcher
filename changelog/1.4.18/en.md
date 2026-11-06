@@ -1,0 +1,3 @@
+- Rooms: the room's race and hero now always reach the game - the launcher (with Automatch v2.0, MMFind 0.48) takes the game into Find a Game afresh, commits the army and checks it against the room before the search. If the search still has another race, the start is called off for everyone with the reason instead of a match with the wrong army.
+- Rooms: a player who spoiled a start (never got to the search, left, another race) is marked "spoiled a start ×N" in the room - the owner can remove him.
+- Rooms: the order to the game lasts only while the start runs - a game started later never walks into an old start. Join a lobby: a game that comes more than a minute after the Join does not join a lobby that is gone.

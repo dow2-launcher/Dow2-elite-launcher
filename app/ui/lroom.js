@@ -98,6 +98,9 @@ async function lrCall(verb, body) {
 }
 function lrSet(v) {
   if (v.now) LR.skew = v.now - Date.now();
+  if (LR.room && LR.room.id === v.id && LR.room.state === 'launching' && v.state === 'lobby' && LR.launched) {
+    invoke('lroom_launch_cancel', { room: v.id }).catch(() => {});      // the start is off: the launcher's order to the game too
+  }
   const mine = lrMine(v);
   if (mine) {
     const first = !LR.room || LR.room.id !== v.id;
@@ -205,7 +208,7 @@ const lrGameTxt = g => g ? (t('g_' + g) !== 'g_' + g ? t('g_' + g) : g) : '';
 function lrNoteTxt(n) {
   if (!n || !n.k) return '';
   const who = (n.who || []).join(', ');
-  const why = n.why ? (t('gf_' + n.why) !== 'gf_' + n.why ? t('gf_' + n.why) : n.why) : '';
+  const why = n.why ? (n.k === 'race' ? t('race_' + n.why) : t('gf_' + n.why) !== 'gf_' + n.why ? t('gf_' + n.why) : n.why) : '';
   const s = t('n_' + n.k, { who, why, secs: n.secs || '', who2: who ? ': ' + who : '' });
   return s === 'n_' + n.k ? '' : s;
 }
@@ -237,7 +240,7 @@ function lrSlot(r, s, i, cat) {
   const st = r.state === 'launching' || r.state === 'playing' ? `<span class="lr-gs g-${esc(s.game || '')}">${esc(lrGameTxt(s.game))}</span>`
     : !s.here ? `<span class="lr-gs away">${esc(t('lrAway'))}</span>` : `<span class="lr-rd${s.ready ? ' on' : ''}">${esc(s.ready ? t('lrIsReady') : t('lrWaiting'))}</span>`;
   return `<div class="lr-slot${mine ? ' me' : ''}${s.ready ? ' ready' : ''}">${avatar(s.avatar)}<div class="lr-who"><span class="lr-line"><span class="nm" data-steam="${esc(s.steam)}" data-name="${esc(s.name)}">${esc(s.name)}</span>`
-    + `${s.owner ? `<span class="lr-crown" title="${esc(t('lrOwner'))}" aria-label="${esc(t('lrOwner'))}">♛</span>` : ''}</span><span class="lr-army" title="${esc(armyTxt)}">${army}<em>${esc(armyTxt)}</em></span></div>`
+    + `${s.owner ? `<span class="lr-crown" title="${esc(t('lrOwner'))}" aria-label="${esc(t('lrOwner'))}">♛</span>` : ''}${s.spoil ? `<span class="lr-spoil">${esc(t('lrSpoil', { n: s.spoil }))}</span>` : ''}</span><span class="lr-army" title="${esc(armyTxt)}">${army}<em>${esc(armyTxt)}</em></span></div>`
     + `${st}${owner && !mine && (r.state === 'lobby' || r.state === 'countdown') ? `<button class="lr-kick" data-kick="${esc(s.steam)}" title="${esc(t('lrKick'))}" aria-label="${esc(t('lrKick'))}">×</button>` : ''}</div>`;
 }
 function lrNet(r) {
@@ -378,3 +381,10 @@ $('lrCreate').onclick = async () => {
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => { if (!$('rooms').classList.contains('hidden')) lrLoad(); }));
 lrLoad();
 setTimeout(lrLoad, 4000);   // signed in by itself a moment after the start (app.js chInit)
+
+// 06.11.2026: a start called off for another race in the game, the mark of who spoiled starts, the start's time limit
+Object.assign(T.en, { n_race: '{who}: the game had another race ({why}) - the start is off. The launcher now sets the room\'s army itself; if it happens again, close Find a Game in the game first.', lrSpoil: 'spoiled a start ×{n}', gf_army: 'the army could not be set', gf_expired: 'the start was over' });
+Object.assign(T.ru, { n_race: '{who}: в игре стояла другая раса ({why}) — запуск отменён. Лаунчер сам выставляет армию комнаты; если повторится — сначала закройте Find a Game в игре.', lrSpoil: 'сорвал запуск ×{n}', gf_army: 'не удалось выставить армию', gf_expired: 'запуск уже закончился' });
+Object.assign(T.es, { n_race: '{who}: el juego tenía otra raza ({why}): el inicio se canceló.', lrSpoil: 'arruinó un inicio ×{n}', gf_army: 'no se pudo poner el ejército', gf_expired: 'el inicio ya terminó' });
+Object.assign(T.fr, { n_race: '{who} : le jeu avait une autre race ({why}) : lancement annulé.', lrSpoil: 'a fait échouer un lancement ×{n}', gf_army: 'l\'armée n\'a pas pu être choisie', gf_expired: 'le lancement était terminé' });
+Object.assign(T.de, { n_race: '{who}: Im Spiel war ein anderes Volk eingestellt ({why}) – der Start wurde abgebrochen.', lrSpoil: 'hat einen Start verhindert ×{n}', gf_army: 'die Armee ließ sich nicht setzen', gf_expired: 'der Start war vorbei' });
