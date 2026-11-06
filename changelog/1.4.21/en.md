@@ -1,0 +1,1 @@
+- Chat and Online: the live connection counts as working only once data really arrives - behind a VPN, proxy or antivirus that holds it back, the launcher now switches to regular updates instead of freezing for a minute; after sleep or a network change it reconnects at once.
