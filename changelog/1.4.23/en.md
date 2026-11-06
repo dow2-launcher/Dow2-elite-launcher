@@ -1,0 +1,1 @@
+- The connection check button in the header is now only a signal icon, right of the settings gear (away from the tabs, so it is not clicked instead of Home). Its colour shows the result of the last check: green - excellent, gold - playable, amber - will lag, red - does not work, grey - not checked yet; it pulses while a check runs. A click opens the check as before.
