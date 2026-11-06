@@ -110,7 +110,9 @@ pub fn lroom_launch(app: AppHandle, ticket: Value, wait: Option<u64>) -> Result<
     let room = ticket["room"].as_str().unwrap_or("").to_string();
     if room.is_empty() || room.len() > 20 || !room.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit()) { return Err("no room".into()); }
     let gen = GEN.fetch_add(1, Ordering::SeqCst) + 1;
-    let wait = Duration::from_secs(wait.unwrap_or(0).min(300));
+    // 1.4.18: never longer than the room's start lasts (the ticket's ttl): a game started later must not walk into an old start
+    let ttl = ticket["ttl"].as_u64().filter(|t| *t > 0).unwrap_or(300).min(300);
+    let wait = Duration::from_secs(wait.unwrap_or(0).min(ttl));
     crate::c_log(&format!("lroom {room}: launch {} (race {} hero {}), waiting up to {} s for the game", ticket["mode"], ticket["race"], ticket["hero"], wait.as_secs()));
     if !cfg!(any(windows, target_os = "linux")) { return Err("not on this system".into()); }
     std::thread::spawn(move || session(app, gen, ticket, wait));
@@ -153,9 +155,11 @@ fn session(app: AppHandle, gen: u64, ticket: Value, wait: Duration) {
     if pid != 0 { roomjoin::bring_to_front(pid); }
     if GEN.load(Ordering::SeqCst) != gen { return; }
     let mode = ticket["mode"].as_str().unwrap_or("1v1");
+    let ttl_left = ticket["ttl"].as_u64().filter(|t| *t > 0).map(|t| t.saturating_sub(t0.elapsed().as_secs()).max(5));
     let mut cmd = json!({"cmd": "room", "room": room, "mode": mode, "race": ticket["race_ui"].as_i64().unwrap_or(-1), "hero": ticket["hero"].as_i64().unwrap_or(-1)});
     // the host's game writes the match options (victory condition, tickets, start positions, resources): only his ticket has them
     for k in ["win", "vptk", "sloc", "rsst"] { if let Some(v) = ticket["opts"][k].as_i64() { cmd[k] = json!(v); } }
+    if let Some(t) = ttl_left { cmd["ttl"] = json!(t); }                // MMFind 0.48: it gives up when the room's start is over
     crate::c_log(&format!("lroom {room}: game {pid}: {cmd}"));
     if !conn.send(&cmd) { fail("game_closed"); return; }
     let end = Instant::now() + Duration::from_secs(240);

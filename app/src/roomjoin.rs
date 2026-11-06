@@ -600,6 +600,12 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
         if !told_wait { told_wait = true; tell(json!({"ev": "waiting_game", "room": id})); }
         std::thread::sleep(Duration::from_millis(700));
     };
+    // 1.4.18 (siritos 06.11: Join pressed, the game not started then; he started it himself later - and it walked into the old lobby):
+    // a game that came more than 60 s after the Join gets it only while the lobby is still in the list (the ladder's copy of Relic's)
+    if t0.elapsed() > Duration::from_secs(60) && room_listed(id) == Some(false) {
+        crate::c_log(&format!("rooms: join room {id}: the game came {} s after the Join and the lobby is gone - not sent", t0.elapsed().as_secs()));
+        fail("closed"); return;
+    }
     let pid = conn.pid();
     #[cfg(windows)]
     let front = pid != 0 && win::to_front(pid);
@@ -641,6 +647,17 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
             }
         }
     }
+}
+
+/// Is the lobby in the open lobbies list now (the ladder's copy of Relic's, /ladder/api/rooms)? None: no answer.
+fn room_listed(id: u64) -> Option<bool> {
+    for h in crate::fb_hosts() {
+        if let Ok(r) = crate::HTTP.get(&format!("{h}/ladder/api/rooms")).timeout(Duration::from_secs(8)).call() {
+            let v: Value = serde_json::from_str(&r.into_string().ok()?).ok()?;
+            return Some(v["rooms"].as_array()?.iter().any(|x| x["id"].as_u64() == Some(id) || x["id"].as_str() == Some(&id.to_string())));
+        }
+    }
+    None
 }
 
 /// Cancel: the waiting for the game stops, and every game with the pipe is told - for the room of this join only (RoomJoin 11;

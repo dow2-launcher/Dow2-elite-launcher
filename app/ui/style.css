@@ -662,3 +662,4 @@ footer:has(#statusText:empty) .foot-links{display:flex}
 .lr-opts{border:1px solid var(--line2);background:rgba(0,0,0,.2);padding:6px 8px;display:grid;grid-template-columns:1fr;gap:4px}
 .lr-opt{display:flex;align-items:center;gap:8px;font-size:13px}.lr-opt span{flex:1;color:var(--soft)}.lr-opt b{font-weight:600;color:var(--bone)}
 .lr-opt select{height:28px;padding:0 28px 0 8px;font:600 13px Spectral,serif;min-width:170px}
+.lr-spoil{flex:none;font-size:11px;color:var(--red);border:1px solid var(--blood);padding:0 4px}
