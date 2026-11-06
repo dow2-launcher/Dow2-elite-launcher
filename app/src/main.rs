@@ -8,6 +8,7 @@
 #![recursion_limit = "256"]   // get_status' json! grew past the default 128
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod conntest;
 mod netgame;
 mod reach;
 mod roomjoin;
@@ -1507,7 +1508,8 @@ fn cancel_update(app: State<'_, App>) {
 /// «Отправить логи»: логи наших DLL (Elite_DLLs) и свежие логи игры из «Документов» уходят на сервер,
 /// оттуда — разработчику. Каждый файл обрезается до последних 3 МБ.
 #[tauri::command]
-async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
+async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Result<String, String> {
+    let nettest = what.as_deref() == Some("nettest");   // 1.4.16: "Send to the developers" of the connection test
     let st = app.state::<App>();
     let dir = game_dir(&st);
     let installed = dir.as_ref().map(|d| update::Game::new(d).load_state()).unwrap_or_default();
@@ -1581,6 +1583,7 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
             take(d.clone(), 0, &["log", "txt", "dmp", "mdmp", "launchconfig"], 7, 20, &mut files);
         }
         take(data_dir(), 0, &["log", "old"], 30, 4, &mut files);   // the launcher's own: community.log (Steam sign-in, chat)
+        for f in conntest::share_files() { if !files.contains(&f) { files.push(f); } }   // 1.4.16: the connection test's runs and log
         // Linux under Proton: the game's Documents are inside its prefix (compatdata/56400/pfx/.../steamuser/Documents)
         let doc = dir.as_ref().and_then(|d| elite_core::proton::prefix_documents(d, 56400)).or_else(elite_core::game::documents_dir);
         if let Some(doc) = doc {
@@ -1688,7 +1691,8 @@ async fn send_logs(app: AppHandle, who: String) -> Result<String, String> {
                 Ok(r) => {
                     let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                     let note = json!({"uid": uid, "name": if fb_name.is_empty() { who.clone() } else { fb_name.clone() },
-                        "text": format!("📋 Отправил логи · sent logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n),
+                        "text": if nettest { format!("📶 Отправил проверку связи и логи · sent the connection test and logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n) }
+                                else { format!("📋 Отправил логи · sent logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n) },
                         "launcher": LAUNCHER_VERSION, "os": os_name(), "elite": elite_v}).to_string();
                     let _ = HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(20))
                         .set("Content-Type", "application/json").send_string(&note);
@@ -2562,7 +2566,8 @@ fn main() {
             lroom::lroom_api, lroom::lroom_list, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
-            relic_probe, game_net_check, set_game_mode
+            relic_probe, game_net_check, set_game_mode,
+            conntest::nettest_run, conntest::nettest_cancel, conntest::nettest_history
         ])
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")

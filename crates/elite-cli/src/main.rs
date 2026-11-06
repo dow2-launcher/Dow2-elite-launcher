@@ -1,4 +1,5 @@
 //! elite-cli [--game DIR] [--mirror URL]... [--channel ID | --version V] [--verify] [status|update|channels]
+//! elite-cli nettest [--mode 1v1|2v2|3v3] [--secs N] [--port P] [--node IP[=name]]... [--json FILE]   (the launcher's connection test)
 use elite_core::{config::LauncherConfig, game, net::Mirrors, update};
 
 /// Default mirrors, set at build time like the launcher (ELITE_MIRRORS, separated by `;`).
@@ -6,6 +7,7 @@ const DEFAULT_MIRRORS: &str = match option_env!("ELITE_MIRRORS") { Some(v) => v,
 
 fn main() {
     let a: Vec<String> = std::env::args().skip(1).collect();
+    if a.first().map(String::as_str) == Some("nettest") { return nettest(&a[1..]); }
     let (mut dir, mut mirrors, mut channel, mut version, mut verify, mut cmd) = (None, Vec::new(), None, None, false, "status".to_string());
     let mut i = 0;
     while i < a.len() {
@@ -58,4 +60,30 @@ fn main() {
         Ok(s) => println!("Done: {} updated, {} removed. Downloaded {:.2} MB, reused {:.1} MB, from cache {:.1} MB", s.updated, s.removed, s.downloaded as f64 / 1e6, s.reused as f64 / 1e6, s.from_cache as f64 / 1e6),
         Err(e) => { eprintln!("Failed: {e}"); std::process::exit(5) }
     }
+}
+
+/// The launcher's connection test from a console (the same code as the launcher's button): our four nodes by default.
+fn nettest(a: &[String]) {
+    use elite_core::nettest;
+    let (mut mode, mut secs, mut port, mut nodes, mut out) = ("1v1".to_string(), nettest::SECS_DEFAULT, nettest::GAME_PORT, Vec::new(), None);
+    let mut i = 0;
+    while i < a.len() {
+        let v = a.get(i + 1).cloned().unwrap_or_default();
+        match a[i].as_str() {
+            "--mode" => mode = v, "--secs" => secs = v.parse().unwrap_or(secs), "--port" => port = v.parse().unwrap_or(port),
+            "--json" => out = Some(v),
+            "--node" => { let (ip, name) = v.split_once('=').unwrap_or((&v, "")); if let Ok(ip) = ip.parse() { nodes.push((ip, name.to_string())); } }
+            x => { eprintln!("unknown {x}"); std::process::exit(2) }
+        }
+        i += 2;
+    }
+    if nodes.is_empty() { nodes = nettest::KNOWN_NODES.iter().map(|(ip, n)| (ip.parse().unwrap(), n.to_string())).collect(); }
+    let cancel = std::sync::atomic::AtomicBool::new(false);
+    let res = nettest::run(&nodes, port, nettest::players_of(&mode), secs, &cancel, &|p| {
+        let s: Vec<String> = p["nodes"].as_array().into_iter().flatten().map(|n| format!("{} {} {}", n["ip"].as_str().unwrap_or(""), n["phase"].as_str().unwrap_or(""), n["rtt"])).collect();
+        eprint!("\r{:>5}s  {}   ", p["elapsed"], s.join(" | "));
+    });
+    eprintln!();
+    for l in nettest::summary_lines(&res) { println!("{l}"); }
+    if let Some(f) = out { let _ = std::fs::write(f, serde_json::to_string_pretty(&res).unwrap_or_default()); }
 }

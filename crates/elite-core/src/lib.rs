@@ -11,6 +11,7 @@ pub mod hotkeys;
 pub mod lan;
 pub mod manifest;
 pub mod net;
+pub mod nettest;
 pub mod proton;
 pub mod sign;
 pub mod update;
