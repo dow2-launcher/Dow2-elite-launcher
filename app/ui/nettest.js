@@ -148,20 +148,23 @@ function ntRunVerdict(r) {
   return ns.map(n => n.verdict).sort((a, b) => (ntVerdictRank[a] ?? 9) - (ntVerdictRank[b] ?? 9))[0] || 'down';
 }
 
-// ---- the header button: a signal icon and the word, a dot with the last verdict
+// ---- the header button (1.4.23, siritos 06.11): only the signal icon, right of the settings gear - away from the tabs, so it is
+// not hit instead of Home; the icon's colour is the verdict of the last check (grey - none yet), it pulses while a check runs;
+// a click opens the window as before. Not a .tab: app.js wires every .tab as a view switch.
 (function ntButton() {
   const nav = document.querySelector('header nav'); if (!nav || $('ntOpen')) return;
   const b = document.createElement('button');
   b.className = 'hdr-net'; b.id = 'ntOpen';
-  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-3M9 20v-7M14 20v-11M19 20V5"/></svg><span id="ntOpenText"></span><i class="nt-dot" id="ntDot"></i>';
-  nav.insertBefore(b, nav.firstChild);
+  b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-3M9 20v-7M14 20v-11M19 20V5"/></svg>';
+  nav.appendChild(b);
   b.onclick = ntOpen;
 })();
 function ntHeader() {
   const b = $('ntOpen'); if (!b) return;
-  $('ntOpenText').textContent = t('ntBtn'); b.title = t('ntBtnTip'); b.setAttribute('aria-label', t('ntBtnTip'));
-  const last = NT.runs[0]; const d = $('ntDot');
-  d.className = 'nt-dot' + (NT.busy ? ' run' : last ? ' v-' + ntRunVerdict(last) : '');
+  const last = NT.runs[0], v = last ? ntRunVerdict(last) : '';
+  const tip = NT.busy ? t('ntTitle') + '…' : v ? t('ntBtn') + ': ' + t('ntV_' + v) + ' · ' + t('ntBtnTip') : t('ntBtnTip');
+  b.title = tip; b.setAttribute('aria-label', tip);
+  b.className = 'hdr-net' + (NT.busy ? ' run' : v ? ' v-' + v : '');
 }
 
 // ---- the window
