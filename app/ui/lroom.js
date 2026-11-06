@@ -247,18 +247,27 @@ function lrNet(r) {
   const net = r.net || {}, rows = net.rows || [], nodes = net.nodes || [];
   if (!rows.length) return '';
   const name = s => { const x = (r.slots || []).find(q => q && q.steam === s); return x ? x.name : 'Player'; };
+  let nqAny = false;
   const cell = (row, ip) => {
     const p = (row.ping || {})[ip], raw = (row.raw || {})[ip] || {}, via = (row.via || {})[ip], pick = ip === net.pick;
-    if (p > 0) return `<td class="${pick ? 'pick' : ''}">${esc(t('lrNetMs', { ms: p }))}</td>`;
-    if (via && row.cost && row.cost[ip] != null) return `<td class="via${pick ? ' pick' : ''}" title="${esc(t('lrNetVia', { node: lrNodeName(net, via) }))}">↪ ${esc(t('lrNetMs', { ms: row.cost[ip] }))}</td>`;
-    if (raw.ms != null && !raw.ok) return `<td class="bad" title="${esc(t('lrNetNoStream'))}">${esc(t('lrNetMs', { ms: raw.ms }))}*</td>`;
-    return `<td class="bad">${p === undefined && row.age == null ? '…' : '—'}</td>`;
+    let cls = pick ? 'pick' : '', title = '', txt;
+    if (p > 0) txt = t('lrNetMs', { ms: p });
+    else if (via && row.cost && row.cost[ip] != null) { cls = 'via' + (pick ? ' pick' : ''); title = t('lrNetVia', { node: lrNodeName(net, via) }); txt = '↪ ' + t('lrNetMs', { ms: row.cost[ip] }); }
+    else if (raw.ms != null && !raw.ok) { cls = 'bad'; title = t('lrNetNoStream'); txt = t('lrNetMs', { ms: raw.ms }) + '*'; }
+    else { cls = 'bad'; txt = p === undefined && row.age == null ? '…' : '—'; }
+    // 1.4.24: this node is not used for this player - his connection to it was bad lately (nodeq.js)
+    const nq = window.nqRoomTitle ? nqRoomTitle((row.nq || {})[ip], name(row.steam)) : null;
+    if (nq) { nqAny = true; cls += ' nq-off'; title = nq + (title ? ' · ' + title : ''); }
+    return `<td class="${cls.trim()}"${title ? ` title="${esc(title)}"` : ''}>${esc(txt)}${nq ? `<small class="nq-tag">${esc(t('nqRoomTag'))}</small>` : ''}</td>`;
   };
   const sum = net.why === 'ok' ? t('lrNetPick', { node: lrNodeName(net, net.pick), ms: net.worst }) : net.why === 'none' ? t('lrNetNone') : t('lrNetMeasuring');
+  const body = rows.map(row => `<tr><th>${esc(name(row.steam))}</th>${nodes.map(n => cell(row, n.ip)).join('')}</tr>`).join('');
   return `<div class="lr-net"><div class="lr-sub">${esc(t('lrNet'))}<button class="btn-line lr-reping"${LR.pinging ? ' disabled' : ''}>${esc(LR.pinging ? t('lrNetMeasuring') : t('lrNetAgain'))}</button></div>`
     + `<table><thead><tr><th></th>${nodes.map(n => `<th class="${n.ip === net.pick ? 'pick' : ''}">${esc(lrNodeName(net, n.ip))}</th>`).join('')}</tr></thead><tbody>`
-    + rows.map(row => `<tr><th>${esc(name(row.steam))}</th>${nodes.map(n => cell(row, n.ip)).join('')}</tr>`).join('')
-    + `</tbody></table><div class="lr-pick ${net.why === 'ok' ? 'ok' : net.why === 'none' ? 'bad' : ''}">${esc(sum)}</div></div>`;
+    + body
+    + `</tbody></table><div class="lr-pick ${net.why === 'ok' ? 'ok' : net.why === 'none' ? 'bad' : ''}">${esc(sum)}</div>`
+    + (net.nq_ignored ? `<div class="lr-pick bad">${esc(t('nqRoomIgnored'))}</div>` : '')
+    + (nqAny ? `<div class="note nq-note">${esc(t('nqRoomNote'))}</div>` : '') + '</div>';
 }
 function lrRoomHtml(r) {
   const cat = LR.cat[r.game === 'vanilla' ? 'vanilla' : 'elite'];

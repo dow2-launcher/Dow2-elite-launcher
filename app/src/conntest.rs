@@ -9,7 +9,7 @@ use serde_json::{json, Value};
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 
 static BUSY: AtomicBool = AtomicBool::new(false);
 static CANCEL: AtomicBool = AtomicBool::new(false);
@@ -50,6 +50,7 @@ pub async fn nettest_run(app: AppHandle, st: State<'_, App>, mode: String, vpn: 
     if BUSY.swap(true, Ordering::SeqCst) { return Ok(json!({"skipped": "busy"})); }
     CANCEL.store(false, Ordering::SeqCst);
     let ini = relay_ini(&st);
+    let tok = st.settings.lock().unwrap().c_token.clone();
     let r = tauri::async_runtime::spawn_blocking(move || {
         let mut ladder: Option<Vec<(std::net::Ipv4Addr, String)>> = None;
         for host in fb_hosts() {
@@ -66,7 +67,12 @@ pub async fn nettest_run(app: AppHandle, st: State<'_, App>, mode: String, vpn: 
         let mut res = nt::run(&nodes, port, players, nt::SECS_DEFAULT, &CANCEL, &move |p| { let _ = appp.emit("nettest", p); });
         res["vpn"] = json!(vpn); res["launcher"] = json!(LAUNCHER_VERSION); res["os"] = json!(os_name());
         res["list"] = json!(if ladder.is_some() { "ladder" } else { "builtin" });
-        if !res["cancelled"].as_bool().unwrap_or(false) { save(&res); }
+        if !res["cancelled"].as_bool().unwrap_or(false) {
+            save(&res);
+            // 1.4.24 (owner 06.11.2026): the run goes to the ladder silently (only the node numbers, no logs) - it keeps per player
+            // how each node does for him and stops using a node that is bad for him; the answer = his marks for the window
+            if !tok.is_empty() { if let Some(a) = nq_call(&tok, "test", &nt::quality_rows(&res)) { if a["ok"] == true { res["nq_marks"] = a["marks"].clone(); } } }
+        }
         c_log(&format!("nettest relic {} {}ms open {} api {}/5", res["relic"]["verdict"].as_str().unwrap_or(""), res["relic"]["ms"], res["relic"]["open"], res["relic"]["api"]["got"]));
         c_log(&format!("nettest {} vpn={} pick {}: {}", res["mode"].as_str().unwrap_or(""), vpn, res["pick"],
             res["nodes"].as_array().into_iter().flatten().map(|n| format!("{} {} {}{}", n["ip"].as_str().unwrap_or(""), n["verdict"].as_str().unwrap_or(""),
@@ -83,3 +89,30 @@ pub fn nettest_cancel() { CANCEL.store(true, Ordering::SeqCst); }
 /// The kept runs, the newest first; "busy" while a test runs (the window may have been reopened meanwhile).
 #[tauri::command]
 pub fn nettest_history() -> Value { json!({"runs": history(), "busy": BUSY.load(Ordering::SeqCst), "nodes": nt::KNOWN_NODES.iter().map(|(ip, _)| *ip).collect::<Vec<_>>(), "lobby_ports": nt::LOBBY_PORTS}) }
+
+/// One call of the ladder's node quality (POST /ladder/api/nq/<verb>, the community session token in the body): None when no
+/// host answered. Quiet: no community.log lines (the run itself is logged above).
+fn nq_call(token: &str, verb: &str, body: &Value) -> Option<Value> {
+    let mut b = if body.is_object() { body.clone() } else { json!({}) };
+    b["token"] = json!(token);
+    let b = b.to_string();
+    for h in fb_hosts() {
+        match HTTP.post(&format!("{h}/ladder/api/nq/{verb}")).timeout(Duration::from_secs(10)).set("Content-Type", "application/json").send_string(&b) {
+            Ok(r) => return serde_json::from_str(&r.into_string().unwrap_or_default()).ok(),
+            Err(e) => api_err(&h, &e),
+        }
+    }
+    None
+}
+
+/// 1.4.24 node quality per player: "marks" - our nodes the matchmaker does not use for this player now and why (losses, a stuck
+/// or cut connection by his recent checks and matches), "force" {ip, on} - "use it anyway" for 24 h / back to the marks.
+#[tauri::command]
+pub async fn nq_api(app: AppHandle, verb: String, body: Option<Value>) -> Result<Value, String> {
+    if verb != "marks" && verb != "force" { return Err("unknown call".into()); }
+    let tok = app.state::<App>().settings.lock().unwrap().c_token.clone();
+    if tok.is_empty() { return Ok(json!({"ok": false, "error": "auth"})); }
+    let body = body.unwrap_or_else(|| json!({}));
+    tauri::async_runtime::spawn_blocking(move || nq_call(&tok, &verb, &body).ok_or_else(|| "the server does not answer".to_string()))
+        .await.map_err(|e| e.to_string())?
+}

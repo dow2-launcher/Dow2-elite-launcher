@@ -909,6 +909,20 @@ pub fn run(nodes: &[(Ipv4Addr, String)], port: u16, players: u8, secs: u32, canc
            "cancelled": cancel.load(Ordering::Relaxed), "pick": pick.map(|i| rows[i]["ip"].clone()), "hints": hints, "nodes": rows})
 }
 
+/// 1.4.24 (owner 06.11.2026, node quality per player): what the ladder keeps of a finished run - per node only the numbers its
+/// mark rule needs (ladder nodeq.py: losses >= 10 %, a stall or pause >= 1 s, a cut stream, a stream stopped on the way). No logs,
+/// no history, no hints; sent silently with the community session token after every run (conntest.rs).
+pub fn quality_rows(res: &Value) -> Value {
+    let rows: Vec<Value> = res["nodes"].as_array().into_iter().flatten().map(|r| {
+        let f = |p: &str| r.pointer(p).and_then(|x| x.as_f64());
+        let gap = f("/ticks/max_gap_ms").unwrap_or(0.0).max(f("/server/max_gap_ms").unwrap_or(0.0));
+        json!({"ip": r["ip"], "transport": r["transport"], "verdict": r["verdict"], "why": r["why"], "med": f("/rtt/p50").or(f("/rtt/avg")),
+               "loss_up": f("/du/up_loss_pct"), "loss_down": f("/du/down_loss_pct"), "stall_ms": f("/stall_ms"), "max_gap_ms": gap,
+               "cut": r.get("cut").map_or(false, |c| !c.is_null()), "secs": f("/secs")})
+    }).collect();
+    json!({"v": 1, "ts": res["ts"], "mode": res["mode"], "vpn": res["vpn"], "launcher": res["launcher"], "os": res["os"], "nodes": rows})
+}
+
 /// One line per node for logs and the console.
 pub fn summary_lines(res: &Value) -> Vec<String> {
     let mut out = vec![format!("connection test {} ({} s){}", res["mode"].as_str().unwrap_or("?"), res["secs"], if res["vpn"] == true { ", VPN on" } else if res["vpn"] == false { ", no VPN" } else { "" })];
@@ -950,6 +964,21 @@ mod tests {
     fn game(rtt: f64, p95: f64, pauses: u64, loss: f64) -> Value {
         json!({"transport": "udp", "secs": 60.0, "ticks": {"n": 600, "expected": 600, "pauses": pauses, "max_gap_ms": 120, "jitter_ms": 4},
                "turn": {"n": 590, "missing": 0}, "rtt": {"avg": rtt, "p95": p95}, "du": {"up_loss_pct": loss, "down_loss_pct": 0.0}, "proxy": {"missing": 0, "wrong": 0}})
+    }
+
+    #[test]
+    fn quality_rows_carry_what_the_mark_rule_needs() {
+        let mut bad = game(150.0, 25000.0, 3, 38.0);
+        bad["ip"] = json!("116.202.106.150"); bad["stall_ms"] = json!(24000.0); bad["cut"] = json!({"at": 12.0, "why": "idle"});
+        bad["why"] = json!(["cut", "stall", "loss_up"]); bad["rtt"]["p50"] = json!(150.0); bad["server"] = json!({"max_gap_ms": 1800});
+        let ok = json!({"ip": "15.220.68.107", "transport": "udp", "verdict": "excellent", "why": [], "rtt": {"p50": 30.0}, "cut": null, "ticks": {"max_gap_ms": 120}});
+        let q = quality_rows(&json!({"ts": 1793980000u64, "mode": "1v1", "vpn": false, "nodes": [bad, ok], "hints": [{"code": "x"}], "relic": {}}));
+        let n = &q["nodes"];
+        assert_eq!(n[0]["loss_up"], json!(38.0)); assert_eq!(n[0]["stall_ms"], json!(24000.0)); assert_eq!(n[0]["cut"], json!(true));
+        assert_eq!(n[0]["max_gap_ms"], json!(1800.0)); assert_eq!(n[0]["med"], json!(150.0)); assert_eq!(n[0]["why"][0], json!("cut"));
+        assert_eq!(n[1]["cut"], json!(false)); assert_eq!(n[1]["stall_ms"], Value::Null); assert_eq!(n[1]["max_gap_ms"], json!(120.0));
+        assert!(q.get("hints").is_none() && q.get("relic").is_none(), "only the node numbers go");
+        assert_eq!(q["ts"], json!(1793980000u64));
     }
 
     #[test]
