@@ -1,0 +1,2 @@
+- Add-ons: the tick "Games through our servers" is gone - Automatch itself now always plays through our servers. Two network ticks are left: Automatch and Forwarding servers (if Relic lags).
+- Settings → Online play: our game servers and the automatch lobby servers are shown with the Automatch tick.

@@ -2851,6 +2851,124 @@ mod vanilla_tests {
         let _ = std::fs::remove_dir_all(&d);
     }
 
+    /// Owner 05.11.2026: the tick relay_r2 ("Games through our servers", Elite_DLLs/Relay.dll) leaves the catalog and Relay.dll
+    /// becomes a file of Automatch (mmfind-0.46: MMFind.dll loads it itself, it is in nobody's InjectedFiles). Whatever the
+    /// player had and in whichever order the launcher gets there (the start checks without the network first, or a sync), he
+    /// ends with exactly one Relay.dll - Automatch's new one -, nothing of relay_r2 is left and nothing removes that file later.
+    #[test]
+    fn relay_moves_into_automatch() {
+        fn files(d: &std::path::Path, dir: &str, pre: &str) -> Vec<String> {
+            let mut v: Vec<String> = std::fs::read_dir(d.join(dir)).map(|rd| rd.flatten().map(|e| e.file_name().to_string_lossy().to_string())
+                .filter(|n| n.to_ascii_lowercase().starts_with(pre)).collect()).unwrap_or_default();
+            v.sort(); v
+        }
+        // (relay_r2 tick, the start checks before the first sync, RelayForward on)
+        for (n, (r2_on, start_first, fwd_on)) in [(true, false, false), (true, true, false), (false, false, false), (true, false, true), (true, true, true)].into_iter().enumerate() {
+            let d = std::env::temp_dir().join(format!("relay_into_am_{}_{n}", std::process::id()));
+            let _ = std::fs::remove_dir_all(&d);
+            std::fs::create_dir_all(d.join("Elite_DLLs")).unwrap();
+            std::fs::write(d.join("DOW2.exe"), b"game").unwrap();
+            let lc0 = "IsRetribution=true\nInjectedFiles=MiscFixes.dll\n";
+            std::fs::write(d.join("Elite.launchconfig"), lc0).unwrap();
+            let mut mans: std::collections::HashMap<String, Manifest> = Default::default();
+            for m in [
+                man(&d, "elite-3.2", &[("Elite_DLLs/MiscFixes.dll", b"elite's own"), ("Elite.launchconfig", lc0.as_bytes())]),
+                man(&d, "mmfind-0.45", &[("Elite_DLLs/MMFind.dll", b"mmfind 0.45"), ("Elite_DLLs/OwnLobby.dll", b"ownlobby"), ("winmm.dll", EARLY)]),
+                man(&d, "mmfind-0.46", &[("Elite_DLLs/MMFind.dll", b"mmfind 0.46"), ("Elite_DLLs/OwnLobby.dll", b"ownlobby"), ("Elite_DLLs/Relay.dll", b"relay 23"), ("winmm.dll", EARLY)]),
+                man(&d, "relay-22", &[("Elite_DLLs/Relay.dll", b"relay 22")]),
+                man(&d, "relayfwd-22", &[("Elite_DLLs/RelayForward.dll", b"fwd 22")]),
+                man(&d, "relayfwd-23", &[("Elite_DLLs/RelayForward.dll", b"fwd 23")]),
+                man(&d, "vloader-1", &[("winmm.dll", LOADER)]),
+            ] { mans.insert(m.version.clone(), m); }
+            let load = |_: &update::Game, v: &str| mans.get(v).cloned().ok_or_else(|| update::Error::Bad(format!("no {v}")));
+            let comp = |id: &str, ver: &str, dll: &str, def: bool, games: &[&str]| elite_core::config::Component {
+                id: id.into(), version: ver.into(), inject: dll.into(), default: def, games: games.iter().map(|g| g.to_string()).collect(), ..Default::default() };
+            let mut old = LauncherConfig::default();
+            let mut am = comp("automatch", "mmfind-0.45", "MMFind.dll", true, &["elite", "vanilla"]);
+            am.conflicts = vec!["dow2-patches/MMFind.dll".into()];
+            old.components = vec![comp("relay_r2", "relay-22", "Relay.dll", true, &["elite"]), comp("relay_fwd", "relayfwd-22", "RelayForward.dll", false, &["elite", "vanilla"]), am.clone()];
+            old.vanilla = Some(elite_core::config::Vanilla { loader: "vloader-1".into(), ..Default::default() });
+            let mut new = old.clone();
+            am.version = "mmfind-0.46".into();
+            am.conflicts.push("dow2-patches/Relay.dll".into());
+            new.components = vec![comp("relay_fwd", "relayfwd-23", "RelayForward.dll", false, &["elite", "vanilla"]), am];
+            let m = Mirrors::new(vec![]);
+            let mut s = Settings::default();
+            s.components.insert("relay_r2".into(), r2_on);
+            s.components.insert("relay_fwd".into(), fwd_on);
+            let mut nop = |_: &update::Progress| {};
+            let opt = update::Options { verify_all: false, cache_limit: 1 << 30, channel: "main".into() };
+            update::apply(&update::Game::new(&d), &m, &mans["elite-3.2"], &opt, &mut nop).unwrap();
+            let read = |f: &str| std::fs::read(d.join(f)).unwrap_or_default();
+            let lc = || std::fs::read_to_string(d.join("Elite.launchconfig")).unwrap();
+            let injected = |dll: &str| lc().lines().filter_map(|l| l.strip_prefix("InjectedFiles=")).any(|r| r.split(',').any(|x| x.trim().eq_ignore_ascii_case(dll)));
+
+            // before: the old catalog as the players have it now
+            sync_components_with(&d, &old, &s, &m, &mut nop, &load).unwrap();
+            prepare_start(&d, &old, &s);
+            assert_eq!(read("Elite_DLLs/Relay.dll"), if r2_on { b"relay 22".to_vec() } else { vec![] }, "case {n}");
+            assert_eq!(injected("Relay.dll"), r2_on, "case {n}: {}", lc());
+
+            // the new catalog
+            if start_first {
+                // Play right away, the start checks run on the new catalog before any sync: relay_r2's DLL goes for now
+                prepare_start(&d, &new, &s);
+                assert!(read("Elite_DLLs/Relay.dll").is_empty(), "case {n}");
+            }
+            sync_components_with(&d, &new, &s, &m, &mut nop, &load).unwrap();
+            for round in 0..2 {
+                prepare_start(&d, &new, &s);
+                assert_eq!(files(&d, "Elite_DLLs", "relay."), vec!["Relay.dll".to_string()], "case {n}/{round}: one Relay.dll, no leftovers");
+                assert_eq!(read("Elite_DLLs/Relay.dll"), b"relay 23", "case {n}/{round}: Automatch's Relay.dll");
+                assert_eq!(read("Elite_DLLs/MMFind.dll"), b"mmfind 0.46");
+                assert_eq!(read("winmm.dll"), EARLY);
+                assert!(injected("MMFind.dll") && !injected("Relay.dll"), "case {n}: not injected by Elite - MMFind loads it: {}", lc());
+                assert_eq!(injected("RelayForward.dll"), fwd_on, "case {n}: {}", lc());
+                assert_eq!(read("Elite_DLLs/RelayForward.dll"), if fwd_on { b"fwd 23".to_vec() } else { vec![] }, "case {n}");
+                assert!(!update::Game::component_ids(&d).contains(&"relay_r2".to_string()), "case {n}: relay_r2 forgotten");
+                assert!(update::Game::component(&d, "automatch").load_state().files.iter().any(|f| f.path == "Elite_DLLs/Relay.dll"), "case {n}: owned by Automatch");
+                if round == 0 { sync_components_with(&d, &new, &s, &m, &mut nop, &load).unwrap(); }   // the next refresh changes nothing
+            }
+
+            if os_name() != "macos" {
+                // vanilla: Automatch's copy brings Relay.dll into dow2-patches; Elite's files stay
+                s.game_mode = "vanilla".into();
+                sync_components_with(&d, &new, &s, &m, &mut nop, &load).unwrap();
+                let off = prepare_start(&d, &new, &s)["off"].clone();
+                assert_eq!(off, json!([]), "case {n}: nothing of ours put aside in vanilla");
+                assert_eq!(read("dow2-patches/Relay.dll"), b"relay 23", "case {n}");
+                assert_eq!(read("dow2-patches/MMFind.dll"), b"mmfind 0.46");
+                assert_eq!(read("winmm.dll"), LOADER);
+                assert_eq!(read("Elite_DLLs/Relay.dll"), b"relay 23");
+                assert_eq!(files(&d, "dow2-patches", "relay"), if fwd_on { vec!["Relay.dll".to_string(), "RelayForward.dll".to_string()] } else { vec!["Relay.dll".to_string()] }, "case {n}");
+                // back to Elite: the vanilla copy waits in dow2-patches (the vanilla loader is not there), Elite's Relay.dll in place
+                s.game_mode = String::new();
+                sync_components_with(&d, &new, &s, &m, &mut nop, &load).unwrap();
+                assert!(prepare_start(&d, &new, &s)["off"].as_array().unwrap().is_empty(), "case {n}: the launcher's vanilla copy is no hand copy");
+                assert_eq!(read("Elite_DLLs/Relay.dll"), b"relay 23");
+                assert_eq!(read("dow2-patches/Relay.dll"), b"relay 23");
+                assert_eq!(read("winmm.dll"), EARLY);
+            }
+
+            // a hand copy of Relay.dll in dow2-patches in Elite (an old stand-alone package): put aside like MMFind's
+            std::fs::remove_dir_all(d.join("dow2-patches")).ok();
+            for id in update::Game::vanilla_ids(&d) { let _ = update::Game::vanilla_component(&d, &id).uninstall(); }
+            std::fs::create_dir_all(d.join("dow2-patches")).unwrap();
+            std::fs::write(d.join("dow2-patches/Relay.dll"), b"relay 9 by hand").unwrap();
+            let off = prepare_start(&d, &new, &s)["off"].clone();
+            assert!(off.as_array().unwrap().iter().any(|x| x == "dow2-patches/Relay.dll"), "case {n}: {off}");
+            assert_eq!(read("Elite_DLLs/Relay.dll"), b"relay 23");
+
+            // Automatch off: its Relay.dll goes with it, nothing listed
+            s.components.insert("automatch".into(), false);
+            sync_components_with(&d, &new, &s, &m, &mut nop, &load).unwrap();
+            prepare_start(&d, &new, &s);
+            assert!(files(&d, "Elite_DLLs", "relay.").is_empty() && !d.join("Elite_DLLs/MMFind.dll").exists() && !d.join("winmm.dll").exists(), "case {n}");
+            assert!(!injected("MMFind.dll") && !injected("Relay.dll"), "case {n}: {}", lc());
+            let _ = std::fs::remove_dir_all(&d);
+        }
+    }
+
     /// On a real game folder with a real (staging) store, as the window does it: the add-ons' sync for the chosen game, then
     /// the checks of the start. For the stand (Wine): VT_GAME=<game folder> VT_MIRROR=<store URL> VT_MODE=vanilla|elite
     /// [VT_TICKS=id=1,id=0] cargo test ... stand_sync -- --ignored --nocapture. The game is started by hand after it.
