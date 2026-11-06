@@ -2,8 +2,8 @@
   "_readme": "The launcher's Events banner (home, above the news). Edit this file and push to main: running launchers read it from GitHub (raw.githubusercontent.com, then cdn.jsdelivr.net where GitHub is blocked) at the start and every 15 minutes - no new launcher needed. Shown: what goes on now and what starts within 14 days, nearest first, one card at a time. start / end: ISO time WITH its zone (2026-11-08T18:00:00+03:00); end is optional; the card shows the day and the start time in the player's own time. title: a string or {\"ru\": \"...\", \"en\": \"...\"} (es / fr / de fall back to en). info: up to 3 short points under the title - a list, or {\"ru\": [...], \"en\": [...]}. url: optional, an icon on the card opens it. id: any unique text.",
   "_example": { "id": "cup-1v1-qual", "title": { "ru": "Elite Cup 1v1 — отборочные", "en": "Elite Cup 1v1 - qualifiers" }, "start": "2026-11-08T18:00:00+03:00", "end": "2026-11-08T22:00:00+03:00", "info": { "ru": ["Формат: 1vs1", "Запись в Discord"], "en": ["Format: 1vs1", "Sign-up in Discord"] }, "url": "https://discord.gg/..." },
   "events": [
-    { "id": "back-to-2009-cup-2", "title": "Back to 2009 Cup #2", "start": "2026-11-07T18:00:00+03:00",
-      "info": { "ru": ["Формат: 1vs1, одна раса на весь турнир", "Призовой: 47 174 ₽"], "en": ["Format: 1vs1, one race for the whole cup", "Prize pool: 47,174 RUB"] },
+    { "id": "back-to-2009-cup-2", "title": "Back to 2009 Cup #2", "start": "2026-11-07T18:00:00+03:00", "end": "2026-11-08T00:00:00+03:00",
+      "info": { "ru": ["Формат: 1vs1, одна раса на весь турнир", "Призовой: 53 374,8 ₽"], "en": ["Format: 1vs1, one race for the whole cup", "Prize pool: 53,374.8 RUB"] },
       "url": "https://goodgame.ru/cups/back-to-2009-cup-2-10388" }
   ]
 }

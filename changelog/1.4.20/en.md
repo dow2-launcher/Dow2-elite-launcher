@@ -1,0 +1,1 @@
+- Events: the Back to 2009 Cup #2 card - the prize pool is 53,374.8 RUB, and the card stays on while the cup runs (until midnight Moscow time) instead of leaving at its start.
