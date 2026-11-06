@@ -80,3 +80,11 @@
 @media (max-width:860px){.nt-lrow{grid-template-columns:1fr 1fr}.nt-grid{grid-template-columns:1fr}}
 .nt-relic{margin:0 0 10px}
 .nt-big em{font-style:normal}
+/* 1.4.24 node quality per player (nodeq.js): a node the matchmaker does not use for this player */
+.nq-mark{margin:2px 0 6px;font-size:12.5px;color:var(--amber);line-height:1.5}
+.nq-mark.forced{color:var(--soft)}
+.nq-mark .link-btn{padding:1px 8px;font-size:12px}
+.nt-node .nq-mark{margin:6px 0 0}
+.lr-net td.nq-off{color:var(--amber)}
+.lr-net .nq-tag{display:block;font-size:10.5px;line-height:1.1;color:var(--amber)}
+.nq-note{margin-top:4px;font-size:12px}

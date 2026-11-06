@@ -248,12 +248,12 @@ function ntChart(tl) {
     + `<span class="nt-cmax">${esc(t('ntMs', { n: Math.round(top) }))}</span></div>`;
 }
 
-function ntNodeHtml(n) {
+function ntNodeHtml(n, pk) {
   const v = n.verdict || 'down', rt = n.rtt || {}, tk = n.ticks || {}, du = n.du || {}, px = n.proxy || {}, tu = n.turn || {};
   const pauses = (tk.pauses | 0) + ((n.server && n.server.gaps) | 0);
   const loss = Math.max(du.up_loss_pct || 0, du.down_loss_pct || 0);
   let h = `<div class="nt-node v-${esc(v)}"><div class="nt-nh"><span class="nt-nn">${esc(gnName(n))}</span><span class="nt-ip">${esc(n.ip)}</span>`
-    + `${n.pick ? `<span class="chip hot">${esc(t('ntPick'))}</span>` : ''}<span class="nt-v">${esc(t('ntV_' + v))}</span></div>`;
+    + `${(pk === undefined ? n.pick : n === pk) ? `<span class="chip hot">${esc(t('ntPick'))}</span>` : ''}<span class="nt-v">${esc(t('ntV_' + v))}</span></div>`;
   if (n.transport && n.transport !== 'none' && rt.n) {
     const ping = rt.p50 != null ? rt.p50 : rt.avg;   // 1.4.22: the median - a stuck stream is shown as such, not as a ping of seconds
     const up = n.stall_ms ? `<em class="nt-bad">${esc(t('ntStuck', { s: Math.round(n.stall_ms / 1000) }))}</em>` : esc(t('ntUpTo', { n: ntNum(rt.p95) }));
@@ -272,6 +272,7 @@ function ntNodeHtml(n) {
   if (n.cut) h += `<div class="nt-d nt-bad">${esc(t('ntCutAt', { s: Math.round(n.cut.at) }))}</div>`;
   const why = (n.why || []).map(w => t('ntW_' + w)).filter(Boolean);
   if (why.length && v !== 'excellent') h += `<div class="nt-why">${esc(why.join('; '))}</div>`;
+  if (window.nqMark) h += nqMark(n.ip);                       // 1.4.24: the matchmaker does not use this node for this player (nodeq.js)
   return h + '</div>';
 }
 
@@ -288,10 +289,11 @@ function ntRelicHtml(R) {
 
 function ntResultHtml(r) {
   const ns = r.nodes || [];
-  const pick = ns.find(n => n.pick);
+  const pick0 = ns.find(n => n.pick);   // 1.4.24: not a node the matchmaker does not use for this player (nodeq.js)
+  const pick = pick0 && window.nqAvoided && nqAvoided(pick0.ip) ? (nqPickTest(ns) || pick0) : pick0;
   let h = `<div class="gn-sum ${pick ? (pick.verdict === 'excellent' || pick.verdict === 'playable' ? 'ok' : 'warn') : 'bad'}"><span>${esc(pick ? t('ntPickIs', { node: gnName(pick) }) : t('ntNoPick'))}`
     + ` <em class="nt-when">${esc(ntModeName(r.mode))} · ${esc(r.vpn ? t('ntVpnRunOn') : t('ntVpnRunOff'))} · ${esc(ntTime(r.ts))}</em></span></div>`;
-  h += `<div class="nt-grid">${ns.map(ntNodeHtml).join('')}</div><div class="nt-legend"><i class="l1"></i>${esc(t('ntChart'))}</div>`;
+  h += `<div class="nt-grid">${ns.map(n => ntNodeHtml(n, pick || null)).join('')}</div><div class="nt-legend"><i class="l1"></i>${esc(t('ntChart'))}</div>`;
   if (r.relic) h += ntRelicHtml(r.relic);
   const hints = r.hints || [];
   if (hints.length) {
@@ -337,7 +339,7 @@ async function ntRun() {
     const r = await invoke('nettest_run', { mode: NT.mode, vpn: NT.vpn });
     if (r && r.skipped) toast(t(r.skipped === 'game' ? 'ntGame' : 'ntBusy'), true);
     else if (r && r.cancelled) toast(t('ntCancelled'));
-    else if (r) { NT.runs.unshift(r); NT.runs = NT.runs.slice(0, 4); NT.cur = r; }
+    else if (r) { NT.runs.unshift(r); NT.runs = NT.runs.slice(0, 4); NT.cur = r; if (r.nq_marks && window.nqTake) nqTake(r.nq_marks); }
   } catch (e) { toast(e, true); }
   NT.busy = false; NT.live = null; ntRender();
 }

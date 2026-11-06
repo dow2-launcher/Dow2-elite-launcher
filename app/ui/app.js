@@ -2096,6 +2096,9 @@ function renderGameNet() {
   const nodes = (GN && GN.nodes) || [];
   const usable = nodes.filter(n => n.udp && n.udp.usable);
   const near = nodes.find(n => GN && n.ip === GN.nearest);
+  // 1.4.24: the matchmaker skips a node not used for this player (nodeq.js) - the next usable one, else the nearest anyway
+  const nqA = ip => !!(window.nqAvoided && nqAvoided(ip));
+  const nearMm = near && !nqA(near.ip) ? near : usable.filter(n => !nqA(n.ip)).sort((a, b) => (a.udp.ms || 0) - (b.udp.ms || 0))[0] || near;
   h += `<div class="net-g"><div class="net-gh">${esc(t('gnOwn'))} ${tick(own)}</div>`;
   if (nodes.length) {
     nodes.forEach(n => {
@@ -2105,9 +2108,9 @@ function renderGameNet() {
       if (u.ms != null) parts.push(u.usable ? t('gnBurst', { got: u.got, n: u.n }) : t('gnBurstCut', { got: u.got, n: u.n, tail: u.tail }));
       parts.push(tc.state === 'ok' ? t('gnTcpOk', { kb: tc.kb }) : tc.state === 'cut' ? t('gnTcpCut', { kb: tc.kb }) : t('gnTcpNone'));
       const chip = n === near ? `<span class="chip">${esc(t('gnNearest'))}</span>` : !u.usable ? `<span class="chip off">${esc(t('gnNotUsed'))}</span>` : '';
-      h += row(cls, gnName(n), n.ip, parts.join(' · '), chip);
+      h += row(cls, gnName(n), n.ip, parts.join(' · '), chip) + (window.nqMark ? nqMark(n.ip) : '');   // 1.4.24: not used for this player (nodeq.js)
     });
-    h += !own ? '' : !own.enabled ? sum('na', t('gnOwnOff')) : near ? sum('ok', t('gnOwnPick', { node: gnName(near) })) : sum('bad', t('gnOwnNone'));
+    h += !own ? '' : !own.enabled ? sum('na', t('gnOwnOff')) : nearMm ? sum('ok', t('gnOwnPick', { node: gnName(nearMm) })) : sum('bad', t('gnOwnNone'));
     h += `<div class="note">${esc(t('gnOwnHow'))} ${esc(t('gnTcpInfo'))}</div>`;
     h += `<div class="note">${esc(t(GN.list === 'ladder' ? 'gnListLadder' : 'gnListBuiltin', { port: GN.port }))}</div>`;
   } else h += wait(GN_BUSY ? 'gnChecking' : 'gnNever');
