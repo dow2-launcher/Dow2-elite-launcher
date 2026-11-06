@@ -198,6 +198,15 @@ const T = {
     "onStateCreating": "Getting ready",
     "onStateLobby": "In the lobby",
     "onStatePlaying": "Playing",
+    "lvTurnOn": "Turn it on and watch", "lvWatch": "Watch", "lvTitle": "Watch this match in the game as a replay (a few minutes behind)", "lvAsk": "Watch the match",
+    "lvAddonOff": "Watching needs the add-on “Watch running matches”: turn it on in Add-ons, then press Watch again.",
+    "lvWrongGame": "The other game is running. Close it first, then press Watch again.", "lvBusy": "You are searching for a match or playing one.",
+    "lvStarting": "Starting the game to watch the match…", "lvSent": "The game opens the match…", "lvWaitGame": "Waiting for the game to start…",
+    "lvFetching": "The game is fetching the match…", "lvLoading": "The match is loading in the game", "lvFailed": "Could not open the match: {why}",
+    "lvWhy_no_match": "the match is over or not on our servers", "lvWhy_server": "our server did not answer", "lvWhy_busy_match": "the game is in a match or a replay - leave it first",
+    "lvWhy_busy_lobby": "the game is in a lobby - leave it first", "lvWhy_start": "the game did not start the replay", "lvWhy_file": "the replay file could not be written",
+    "lvWhy_no_pipe": "the game runs without the add-on “Watch running matches” - turn it on and restart the game", "lvWhy_no_game": "the game did not start",
+    "lvWhy_wrong_game": "the other game is running", "lvWhy_game_closed": "the game closed", "lvWhy_no_answer": "the game did not answer",
     "onNobody": "Nobody is looking for a game. Start the game and press “Find a Game”.",
     "onOffline": "No connection to the ladder server, trying again…",
     "onLoading": "Loading who is online…",
@@ -407,6 +416,15 @@ const T = {
     "onStateCreating": "Собирается",
     "onStateLobby": "В лобби",
     "onStatePlaying": "Идёт",
+    "lvTurnOn": "Включить и смотреть", "lvWatch": "Смотреть", "lvTitle": "Смотреть этот матч в игре как реплей (с отставанием на несколько минут)", "lvAsk": "Просмотр матча",
+    "lvAddonOff": "Для просмотра нужно дополнение «Смотреть идущие матчи»: включите его в Дополнениях и нажмите «Смотреть» ещё раз.",
+    "lvWrongGame": "Запущена другая игра. Закройте её и нажмите «Смотреть» ещё раз.", "lvBusy": "Вы ищете матч или играете.",
+    "lvStarting": "Запускаю игру для просмотра матча…", "lvSent": "Игра открывает матч…", "lvWaitGame": "Жду запуска игры…",
+    "lvFetching": "Игра загружает матч…", "lvLoading": "Матч загружается в игре", "lvFailed": "Не удалось открыть матч: {why}",
+    "lvWhy_no_match": "матч закончился или идёт не на наших серверах", "lvWhy_server": "наш сервер не ответил", "lvWhy_busy_match": "в игре идёт матч или реплей — сначала выйдите из него",
+    "lvWhy_busy_lobby": "игра в лобби — сначала выйдите из него", "lvWhy_start": "игра не запустила реплей", "lvWhy_file": "не удалось записать файл реплея",
+    "lvWhy_no_pipe": "игра запущена без дополнения «Смотреть идущие матчи» — включите его и перезапустите игру", "lvWhy_no_game": "игра не запустилась",
+    "lvWhy_wrong_game": "запущена другая игра", "lvWhy_game_closed": "игра закрылась", "lvWhy_no_answer": "игра не ответила",
     "onNobody": "Никто не ищет игру. Запусти игру и нажми «Find a Game».",
     "onOffline": "Нет связи с сервером ладдера, пробую снова…",
     "onLoading": "Загружаю, кто онлайн…",
@@ -610,7 +628,7 @@ const T = {
     "onSearching": "Buscan partida",
     "onStateCreating": "Preparándose",
     "onStateLobby": "En el lobby",
-    "onStatePlaying": "En curso",
+    "onStatePlaying": "En curso", "lvWatch": "Ver",
     "onNobody": "Nadie busca partida. Inicia el juego y pulsa «Find a Game».",
     "onOffline": "Sin conexión con el servidor de la ladder, reintentando…",
     "onLoading": "Cargando quién está en línea…",
@@ -814,7 +832,7 @@ const T = {
     "onSearching": "Cherchent une partie",
     "onStateCreating": "En préparation",
     "onStateLobby": "Dans le salon",
-    "onStatePlaying": "En cours",
+    "onStatePlaying": "En cours", "lvWatch": "Regarder",
     "onNobody": "Personne ne cherche de partie. Lancez le jeu et appuyez sur « Find a Game ».",
     "onOffline": "Pas de connexion au serveur du ladder, nouvel essai…",
     "onLoading": "Chargement des joueurs en ligne…",
@@ -1018,7 +1036,7 @@ const T = {
     "onSearching": "Suchen ein Spiel",
     "onStateCreating": "Wird vorbereitet",
     "onStateLobby": "In der Lobby",
-    "onStatePlaying": "Läuft",
+    "onStatePlaying": "Läuft", "lvWatch": "Zuschauen",
     "onNobody": "Niemand sucht ein Spiel. Starte das Spiel und drücke „Find a Game“.",
     "onOffline": "Keine Verbindung zum Ladder-Server, neuer Versuch…",
     "onLoading": "Lade, wer online ist…",
@@ -2301,7 +2319,8 @@ function onRender() {
     const map = m => String(m || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
     if (matches.length) html += group('match', t('onInMatchH'), players.length, matches.map(m => `<div class="on-mc"><div class="on-mh">`
       + `<span class="tag ${m.state === 'playing' ? 'playing' : 'creating'}">${esc(m.mode)}</span><span class="map">${esc(map(m.map))}</span>`
-      + `<span class="since">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span></div>`
+      + `<span class="since">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span>`
+      + (m.live ? `<button class="lvw" data-m="${esc(m.id)}" data-g="${esc(m.live)}" title="${esc(t('lvTitle'))}">${esc(t('lvWatch'))}</button>` : '') + '</div>'
       + m.team1.map(pl).join('') + '<div class="vs">vs</div>' + m.team2.map(pl).join('')
       + (m.watchers.length ? `<div class="on-wt">${esc(t('onWatchers'))}: ${m.watchers.map(onWho).join(', ')}</div>` : '') + '</div>').join(''));
   }
@@ -2314,7 +2333,8 @@ function onRender() {
   $('onGroups').querySelectorAll('.nm[data-steam]').forEach(b => nickBind(b, b.dataset.steam, b.dataset.name));
   $('onGroups').querySelectorAll('.on-p').forEach(r => { const n = r.querySelector('.nm[data-steam]');
     if (n) nickBind(r.querySelector('.av'), n.dataset.steam, n.dataset.name); });
-  $('onGroups').querySelectorAll('[data-g]').forEach(b => b.onclick = () => {
+  $('onGroups').querySelectorAll('.lvw[data-m]').forEach(b => b.onclick = () => liveWatch(b.dataset.m, b.dataset.g === 'vanilla' ? 'vanilla' : 'elite'));
+  $('onGroups').querySelectorAll('.on-gh[data-g]').forEach(b => b.onclick = () => {
     ON.shut.has(b.dataset.g) ? ON.shut.delete(b.dataset.g) : ON.shut.add(b.dataset.g);
     try { localStorage.setItem('onShut', JSON.stringify([...ON.shut])); } catch (e) {}
     onRender();
@@ -2323,6 +2343,47 @@ function onRender() {
   $('onLadder').onclick = () => open(LIVE.host + '/ladder/');
 }
 setInterval(() => LIVE.ok && onRender(), 30000);   // the minutes go on without any event
+
+// 1.4.18 (owner 06.11.2026): "Watch" on a running match of our servers - the LiveReplay add-on opens it in the game as a replay
+// that keeps growing, a few minutes behind (livewatch.rs; the game fetches the replay from the ladder itself)
+const lvComp = () => (S && S.components || []).find(c => String(c.id).replace(/_(r\d+|off)$/, '') === 'livereplay');
+async function liveWatch(id, game) {
+  if (!S || (S.os !== 'windows' && S.os !== 'linux')) { toast(t('rjOnlyWin'), true); return; }
+  if (meBusy()) { toast(t('lvBusy'), true); return; }
+  const c = lvComp();
+  if (game === 'vanilla' && !S.vanilla_offered) { rjModal(t('lvAsk'), [t('rjVanNo')]); return; }
+  try {
+    let p = await invoke('live_watch_probe') || {};
+    if (!c || !c.enabled || (game === 'vanilla' && !c.vanilla_ok)) {
+      // the add-on is off: with the game closed the launcher turns it on (it comes with the start), else restart with it
+      if (!c || (game === 'vanilla' && !c.vanilla_ok) || p.running) { rjModal(t('lvAsk'), [t('lvAddonOff')]); return; }
+      const ok = await askBox(t('lvAsk'), [t('lvAddonOff')], [{ label: t('lvTurnOn'), cls: 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
+      if (!ok) return;
+      await invoke('set_component', { id: c.id, on: true }); await reload().catch(() => {});
+      p = { running: false, games: [] };
+    }
+    const mine = (p.games || []).filter(g => !g.kind || g.kind === game);
+    if (p.running && !mine.length && (p.games || []).length) { rjModal(t('lvAsk'), [t('lvWrongGame')]); return; }
+    let wait = 0;
+    if (!mine.length) {
+      if (p.running) wait = 90;                                     // just started (its add-ons come later), or without the add-on
+      else {
+        wait = 240;
+        if ((game === 'vanilla') !== VAN()) { try { S = await invoke('set_game_mode', { mode: game }); render(); } catch (e) { /* the chosen game then */ } }
+        doPlay(false);
+      }
+    }
+    toast(t(mine.length ? 'lvSent' : 'lvStarting'));
+    await invoke('live_watch', { id, game, base: LIVE.host || 'https://rts.fintebtc.de', wait });
+  } catch (e) { toast(String(e), true); }
+}
+listen('live_watch', e => {
+  const v = e.payload || {};
+  if (v.ev === 'waiting_game') toast(t('lvWaitGame'));
+  else if (v.ev === 'accepted' || v.ev === 'fetching') toast(t('lvFetching'));
+  else if (v.ev === 'starting' || v.ev === 'playing') toast(t('lvLoading'));
+  else if (v.ev === 'failed') { const k = 'lvWhy_' + v.reason; rjModal(t('lvAsk'), [t('lvFailed', { why: T[lang][k] || T.en[k] ? t(k) : (v.reason || '?') })]); }
+});
 
 
 // ---------- feedback chat with the developers ----------

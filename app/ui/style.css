@@ -280,6 +280,8 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .on-mh{display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:12px;color:var(--muted)}
 .on-mh .map{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--soft);text-transform:capitalize}
 .on-mh .since{flex:none;font-size:11px;color:var(--dim)}
+.on-mh .lvw{flex:none;height:18px;padding:0 6px;border:1px solid var(--sep);background:none;color:var(--gold2);font:inherit;font-size:11px;cursor:pointer}
+.on-mh .lvw:hover,.on-mh .lvw:focus-visible{border-color:var(--gold2)}
 .on-mc .vs{display:flex;align-items:center;gap:6px;margin:2px 0;color:var(--red)}
 .on-mc .vs::before,.on-mc .vs::after{content:"";flex:1;height:1px;background:var(--sep)}
 .on-m{display:flex;align-items:flex-start;gap:8px;padding:4px 0}
