@@ -76,3 +76,5 @@
 .nt-ht .link-btn{padding:1px 8px;font-size:12px}
 .nt-vpn{color:var(--gold2)}
 @media (max-width:860px){.nt-lrow{grid-template-columns:1fr 1fr}.nt-grid{grid-template-columns:1fr}}
+.nt-relic{margin:0 0 10px}
+.nt-big em{font-style:normal}

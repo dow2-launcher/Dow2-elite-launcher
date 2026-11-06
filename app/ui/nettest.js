@@ -6,9 +6,10 @@
 // Loaded after app.js (its T, t, esc, invoke, listen, toast, gnName, CH, $).
 'use strict';
 Object.assign(T.en, {
+  ntStuck: 'stuck up to {s} s', ntW_stall: 'the connection got stuck: turns waited seconds in the queue (not the ping)', ntW_loss_up: 'your packets to this server get lost', ntW_stream_blocked: 'small packets pass, a stream of them is stopped on the way (DPI) - the game takes another server', ntH_tcp_local: '{nodes}: TCP is answered at once (much faster than the ping) - a VPN client or a proxy on this computer or network takes the connections.', ntRelic: 'Relic directly', ntRelicNote: 'Relic’s own servers straight from this computer (games without our servers): its battle servers and the lobby / automatch API. A few short connections, no load on Relic.', ntRelicRelays: 'battle servers: {o} of {n} answer', ntRelicApi: 'lobby API: {g} of {n} requests, {kb} KB in {s} s', ntRelicApiNone: 'lobby API: no answer', ntW_relic_closed: 'some Relic battle servers do not answer', ntW_relic_api_none: 'Relic’s lobby API does not answer', ntW_relic_api_cut: 'the stream from Relic’s API stops on the way',
   ntBtn: 'Connection', ntBtnTip: 'Check the connection to our game servers', ntTitle: 'Connection check',
   ntIntro: 'Packets go exactly as in a match: our UDP tunnel, turns 10 times a second, messages to the other players. All our servers at once, about a minute. Close the game first.',
-  ntMode: 'Game', ntVpn: 'VPN', ntVpnOff: 'without VPN', ntVpnOn: 'with VPN', ntVpnTip: 'Mark how this run goes - then compare both.',
+  ntMode: 'Game', ntVpn: 'Your VPN', ntVpnOff: 'mine is off', ntVpnOn: 'mine is on', ntVpnTip: 'Mark whether YOUR OWN VPN (or a blocking bypass) is on for this run - run once with it, once without, and compare. The check itself never turns any VPN on.', ntVpnRunOn: 'your VPN on', ntVpnRunOff: 'your VPN off',
   ntStart: 'Start the check', ntStop: 'Stop', ntRunning: 'Checking… {s} of {n} s', ntPrep: 'Preparing: ping and stream checks…',
   ntGame: 'The game is running - the check would disturb the match. Close it first.', ntBusy: 'A check is already running.',
   ntPh_wait: 'waiting', ntPh_ping: 'ping', ntPh_burst: 'stream check', ntPh_tcp: 'TCP check', ntPh_connect: 'connecting', ntPh_game: 'playing', ntPh_done: 'done',
@@ -23,7 +24,7 @@ Object.assign(T.en, {
   ntW_pauses: 'pauses (the game freezes for everyone)', ntW_loss: 'packet loss', ntW_jitter: 'uneven delay', ntW_lost_msgs: 'messages lost',
   ntHints: 'Something on your side answers or reshuffles for our servers', ntH_zero_ping: '{nodes} answers in 0 ms - that is something on this computer or network (VPN, a blocking bypass, an antivirus) answering for the server. Matchmaking counts such a server as not reached.',
   ntH_udp_blocked: '{nodes}: UDP does not pass, TCP does - a VPN, a bypass or a firewall cuts UDP. The game needs UDP.',
-  ntH_reorder: '{nodes}: packets come out of order a lot - typical of a VPN.', ntH_stream_cut: '{nodes}: a burst of packets stops halfway - the line cuts streams (DPI).',
+  ntH_reorder: '{nodes}: packets come out of order a lot - typical of a VPN.', ntH_stream_cut: '{nodes}: small packets pass, a burst of them stops on the way - the line cuts streams to this server (DPI); the game takes another one.',
   ntH_all_down: 'None of our servers answers. A VPN or a firewall may block them.',
   ntExcl: 'For VPN / zapret / a firewall: let these through without the VPN', ntExclCopy: 'Copy', ntExclCopied: 'Copied',
   ntExclPorts: 'UDP and TCP port {g} (the game), TCP {l} (the automatch lobby)',
@@ -31,9 +32,10 @@ Object.assign(T.en, {
   ntShared: 'Sent, thank you! Reference: {id}', ntCancelled: 'Stopped.',
 });
 Object.assign(T.ru, {
+  ntStuck: 'застревала до {s} с', ntW_stall: 'связь застревала: ходы ждали в очереди по нескольку секунд (это не пинг)', ntW_loss_up: 'ваши пакеты к этому серверу теряются', ntW_stream_blocked: 'маленькие пакеты проходят, а поток из них обрывается по дороге (DPI) — игра возьмёт другой сервер', ntH_tcp_local: '{nodes}: на TCP отвечают мгновенно (намного быстрее пинга) — соединения перехватывает VPN-клиент или прокси на компьютере или в сети.', ntRelic: 'Relic напрямую', ntRelicNote: 'Собственные серверы Relic прямо с этого компьютера (игры без наших серверов): боевые серверы и API лобби и автоматча. Несколько коротких соединений, без нагрузки на Relic.', ntRelicRelays: 'боевые серверы: отвечают {o} из {n}', ntRelicApi: 'API лобби: {g} из {n} запросов, {kb} КБ за {s} с', ntRelicApiNone: 'API лобби: нет ответа', ntW_relic_closed: 'часть боевых серверов Relic не отвечает', ntW_relic_api_none: 'API лобби Relic не отвечает', ntW_relic_api_cut: 'поток с API Relic обрывается по дороге',
   ntBtn: 'Связь', ntBtnTip: 'Проверить связь с нашими игровыми серверами', ntTitle: 'Проверка связи',
   ntIntro: 'Пакеты идут точно как в матче: наш UDP-туннель, ходы 10 раз в секунду, сообщения другим игрокам. Все наши серверы сразу, около минуты. Игру лучше закрыть.',
-  ntMode: 'Игра', ntVpn: 'VPN', ntVpnOff: 'без VPN', ntVpnOn: 'с VPN', ntVpnTip: 'Отметьте, как идёт этот прогон, — потом сравните оба.',
+  ntMode: 'Игра', ntVpn: 'Ваш VPN', ntVpnOff: 'у меня выключен', ntVpnOn: 'у меня включён', ntVpnTip: 'Отметьте, включён ли сейчас ВАШ СОБСТВЕННЫЙ VPN (или обход блокировок), — прогоните раз с ним и раз без него и сравните. Сама проверка никакой VPN не включает.', ntVpnRunOn: 'ваш VPN вкл.', ntVpnRunOff: 'ваш VPN выкл.',
   ntStart: 'Начать проверку', ntStop: 'Остановить', ntRunning: 'Проверяю… {s} из {n} с', ntPrep: 'Подготовка: пинг и проверка потока…',
   ntGame: 'Игра запущена — проверка помешала бы матчу. Сначала закройте игру.', ntBusy: 'Проверка уже идёт.',
   ntPh_wait: 'ждёт', ntPh_ping: 'пинг', ntPh_burst: 'проверка потока', ntPh_tcp: 'проверка TCP', ntPh_connect: 'соединение', ntPh_game: 'игра', ntPh_done: 'готово',
@@ -48,7 +50,7 @@ Object.assign(T.ru, {
   ntW_pauses: 'паузы (игра замирает у всех)', ntW_loss: 'потери пакетов', ntW_jitter: 'неровная задержка', ntW_lost_msgs: 'терялись сообщения',
   ntHints: 'Что-то у вас отвечает за наши серверы или перемешивает пакеты', ntH_zero_ping: '{nodes} отвечает за 0 мс — это что-то на компьютере или в сети (VPN, обход блокировок, антивирус) отвечает вместо сервера. Подбор считает такой сервер недоступным.',
   ntH_udp_blocked: '{nodes}: UDP не проходит, а TCP проходит — VPN, обход блокировок или фаервол режет UDP. Игре нужен UDP.',
-  ntH_reorder: '{nodes}: пакеты сильно перемешиваются — так бывает через VPN.', ntH_stream_cut: '{nodes}: пачка пакетов обрывается на середине — линия режет потоки (DPI).',
+  ntH_reorder: '{nodes}: пакеты сильно перемешиваются — так бывает через VPN.', ntH_stream_cut: '{nodes}: маленькие пакеты проходят, а пачка из них обрывается по дороге — линия режет потоки к этому серверу (DPI); игра возьмёт другой.',
   ntH_all_down: 'Ни один наш сервер не отвечает. Возможно, их блокирует VPN или фаервол.',
   ntExcl: 'Для VPN / zapret / фаервола: пустите напрямую, мимо VPN', ntExclCopy: 'Скопировать', ntExclCopied: 'Скопировано',
   ntExclPorts: 'UDP и TCP порт {g} (игра), TCP {l} (лобби автоматча)',
@@ -56,9 +58,10 @@ Object.assign(T.ru, {
   ntShared: 'Отправлено, спасибо! Номер: {id}', ntCancelled: 'Остановлено.',
 });
 Object.assign(T.es, {
+  ntStuck: 'atascada hasta {s} s', ntW_stall: 'la conexión se atascó: los turnos esperaron segundos en la cola (no es el ping)', ntW_loss_up: 'tus paquetes a este servidor se pierden', ntW_stream_blocked: 'los paquetes pequeños pasan, un flujo de ellos se corta por el camino (DPI): el juego usará otro servidor', ntH_tcp_local: '{nodes}: TCP responde al instante (mucho más rápido que el ping): un cliente VPN o un proxy en este equipo o red toma las conexiones.', ntRelic: 'Relic directo', ntRelicNote: 'Los servidores propios de Relic desde este equipo (partidas sin nuestros servidores): sus servidores de batalla y la API de salas y automatch. Unas pocas conexiones cortas, sin carga para Relic.', ntRelicRelays: 'servidores de batalla: responden {o} de {n}', ntRelicApi: 'API de salas: {g} de {n} peticiones, {kb} KB en {s} s', ntRelicApiNone: 'API de salas: sin respuesta', ntW_relic_closed: 'algunos servidores de batalla de Relic no responden', ntW_relic_api_none: 'la API de salas de Relic no responde', ntW_relic_api_cut: 'el flujo de la API de Relic se corta por el camino',
   ntBtn: 'Conexión', ntBtnTip: 'Comprobar la conexión con nuestros servidores de juego', ntTitle: 'Comprobación de conexión',
   ntIntro: 'Los paquetes van exactamente como en una partida: nuestro túnel UDP, turnos 10 veces por segundo, mensajes a los demás jugadores. Todos nuestros servidores a la vez, cerca de un minuto. Mejor cierra el juego.',
-  ntMode: 'Partida', ntVpn: 'VPN', ntVpnOff: 'sin VPN', ntVpnOn: 'con VPN', ntVpnTip: 'Marca cómo va esta prueba y luego compara ambas.',
+  ntMode: 'Partida', ntVpn: 'Tu VPN', ntVpnOff: 'el mío está apagado', ntVpnOn: 'el mío está encendido', ntVpnTip: 'Marca si TU PROPIA VPN (o un bypass de bloqueos) está encendida en esta prueba: hazla una vez con ella y otra sin ella, y compara. La prueba en sí no enciende ninguna VPN.', ntVpnRunOn: 'tu VPN encendida', ntVpnRunOff: 'tu VPN apagada',
   ntStart: 'Empezar', ntStop: 'Detener', ntRunning: 'Comprobando… {s} de {n} s', ntPrep: 'Preparando: ping y prueba de flujo…',
   ntGame: 'El juego está abierto: la prueba molestaría la partida. Ciérralo primero.', ntBusy: 'Ya hay una prueba en marcha.',
   ntPh_wait: 'esperando', ntPh_ping: 'ping', ntPh_burst: 'prueba de flujo', ntPh_tcp: 'prueba TCP', ntPh_connect: 'conectando', ntPh_game: 'jugando', ntPh_done: 'hecho',
@@ -73,7 +76,7 @@ Object.assign(T.es, {
   ntW_pauses: 'pausas (el juego se congela para todos)', ntW_loss: 'pérdida de paquetes', ntW_jitter: 'retraso irregular', ntW_lost_msgs: 'mensajes perdidos',
   ntHints: 'Algo en tu lado responde por nuestros servidores o desordena los paquetes', ntH_zero_ping: '{nodes} responde en 0 ms: es algo en este equipo o red (VPN, un bypass de bloqueos, un antivirus) respondiendo por el servidor. El emparejamiento lo cuenta como no alcanzado.',
   ntH_udp_blocked: '{nodes}: UDP no pasa y TCP sí: una VPN, un bypass o un cortafuegos corta UDP. El juego necesita UDP.',
-  ntH_reorder: '{nodes}: los paquetes llegan muy desordenados, típico de una VPN.', ntH_stream_cut: '{nodes}: una ráfaga de paquetes se corta a mitad: la línea corta flujos (DPI).',
+  ntH_reorder: '{nodes}: los paquetes llegan muy desordenados, típico de una VPN.', ntH_stream_cut: '{nodes}: los paquetes pequeños pasan, una ráfaga de ellos se corta por el camino: la línea corta flujos a este servidor (DPI); el juego usará otro.',
   ntH_all_down: 'Ninguno de nuestros servidores responde. Puede que una VPN o un cortafuegos los bloquee.',
   ntExcl: 'Para VPN / zapret / cortafuegos: deja pasar esto sin VPN', ntExclCopy: 'Copiar', ntExclCopied: 'Copiado',
   ntExclPorts: 'puerto UDP y TCP {g} (el juego), TCP {l} (la sala del automatch)',
@@ -81,9 +84,10 @@ Object.assign(T.es, {
   ntShared: '¡Enviado, gracias! Referencia: {id}', ntCancelled: 'Detenido.',
 });
 Object.assign(T.fr, {
+  ntStuck: 'bloquée jusqu’à {s} s', ntW_stall: 'la connexion s’est bloquée : les tours ont attendu des secondes dans la file (ce n’est pas le ping)', ntW_loss_up: 'vos paquets vers ce serveur se perdent', ntW_stream_blocked: 'les petits paquets passent, un flux est coupé en route (DPI) - le jeu prendra un autre serveur', ntH_tcp_local: '{nodes} : TCP répond aussitôt (bien plus vite que le ping) - un client VPN ou un proxy sur cet ordinateur ou ce réseau prend les connexions.', ntRelic: 'Relic en direct', ntRelicNote: 'Les serveurs de Relic directement depuis cet ordinateur (parties sans nos serveurs) : ses serveurs de combat et l’API des salons et de l’automatch. Quelques connexions courtes, sans charge pour Relic.', ntRelicRelays: 'serveurs de combat : {o} sur {n} répondent', ntRelicApi: 'API des salons : {g} sur {n} requêtes, {kb} Ko en {s} s', ntRelicApiNone: 'API des salons : pas de réponse', ntW_relic_closed: 'certains serveurs de combat de Relic ne répondent pas', ntW_relic_api_none: 'l’API des salons de Relic ne répond pas', ntW_relic_api_cut: 'le flux de l’API de Relic se coupe en route',
   ntBtn: 'Connexion', ntBtnTip: 'Vérifier la connexion à nos serveurs de jeu', ntTitle: 'Vérification de la connexion',
   ntIntro: 'Les paquets passent exactement comme en partie : notre tunnel UDP, des tours 10 fois par seconde, des messages aux autres joueurs. Tous nos serveurs à la fois, environ une minute. Fermez d’abord le jeu.',
-  ntMode: 'Partie', ntVpn: 'VPN', ntVpnOff: 'sans VPN', ntVpnOn: 'avec VPN', ntVpnTip: 'Indiquez comment se fait cet essai, puis comparez les deux.',
+  ntMode: 'Partie', ntVpn: 'Votre VPN', ntVpnOff: 'le mien est coupé', ntVpnOn: 'le mien est actif', ntVpnTip: 'Indiquez si VOTRE PROPRE VPN (ou un contournement de blocage) est actif pour cet essai - faites-en un avec, un sans, et comparez. La vérification elle-même n’active aucun VPN.', ntVpnRunOn: 'votre VPN actif', ntVpnRunOff: 'votre VPN coupé',
   ntStart: 'Lancer la vérification', ntStop: 'Arrêter', ntRunning: 'Vérification… {s} sur {n} s', ntPrep: 'Préparation : ping et test de flux…',
   ntGame: 'Le jeu est lancé : la vérification gênerait la partie. Fermez-le d’abord.', ntBusy: 'Une vérification est déjà en cours.',
   ntPh_wait: 'attente', ntPh_ping: 'ping', ntPh_burst: 'test de flux', ntPh_tcp: 'test TCP', ntPh_connect: 'connexion', ntPh_game: 'en jeu', ntPh_done: 'fini',
@@ -98,7 +102,7 @@ Object.assign(T.fr, {
   ntW_pauses: 'pauses (le jeu se fige pour tous)', ntW_loss: 'perte de paquets', ntW_jitter: 'délai irrégulier', ntW_lost_msgs: 'messages perdus',
   ntHints: 'Quelque chose chez vous répond pour nos serveurs ou mélange les paquets', ntH_zero_ping: '{nodes} répond en 0 ms : c’est quelque chose sur cet ordinateur ou ce réseau (VPN, contournement de blocage, antivirus) qui répond à la place du serveur. Le matchmaking le compte comme injoignable.',
   ntH_udp_blocked: '{nodes} : UDP ne passe pas, TCP oui - un VPN, un contournement ou un pare-feu coupe UDP. Le jeu a besoin d’UDP.',
-  ntH_reorder: '{nodes} : les paquets arrivent très en désordre - typique d’un VPN.', ntH_stream_cut: '{nodes} : une rafale de paquets s’arrête en route - la ligne coupe les flux (DPI).',
+  ntH_reorder: '{nodes} : les paquets arrivent très en désordre - typique d’un VPN.', ntH_stream_cut: '{nodes} : les petits paquets passent, une rafale s’arrête en route - la ligne coupe les flux vers ce serveur (DPI) ; le jeu en prendra un autre.',
   ntH_all_down: 'Aucun de nos serveurs ne répond. Un VPN ou un pare-feu les bloque peut-être.',
   ntExcl: 'Pour VPN / zapret / pare-feu : laissez passer ceci hors VPN', ntExclCopy: 'Copier', ntExclCopied: 'Copié',
   ntExclPorts: 'port UDP et TCP {g} (le jeu), TCP {l} (le salon de l’automatch)',
@@ -106,9 +110,10 @@ Object.assign(T.fr, {
   ntShared: 'Envoyé, merci ! Référence : {id}', ntCancelled: 'Arrêté.',
 });
 Object.assign(T.de, {
+  ntStuck: 'hing bis {s} s', ntW_stall: 'die Verbindung hing: Züge warteten Sekunden in der Warteschlange (das ist nicht der Ping)', ntW_loss_up: 'deine Pakete zu diesem Server gehen verloren', ntW_stream_blocked: 'kleine Pakete kommen durch, ein Strom davon wird unterwegs gestoppt (DPI) - das Spiel nimmt einen anderen Server', ntH_tcp_local: '{nodes}: TCP antwortet sofort (viel schneller als der Ping) - ein VPN-Client oder Proxy auf diesem Computer oder im Netz nimmt die Verbindungen an.', ntRelic: 'Relic direkt', ntRelicNote: 'Relics eigene Server direkt von diesem Computer (Spiele ohne unsere Server): seine Kampfserver und die API für Lobbys und Automatch. Ein paar kurze Verbindungen, keine Last für Relic.', ntRelicRelays: 'Kampfserver: {o} von {n} antworten', ntRelicApi: 'Lobby-API: {g} von {n} Anfragen, {kb} KB in {s} s', ntRelicApiNone: 'Lobby-API: keine Antwort', ntW_relic_closed: 'einige Kampfserver von Relic antworten nicht', ntW_relic_api_none: 'Relics Lobby-API antwortet nicht', ntW_relic_api_cut: 'der Strom von Relics API bricht unterwegs ab',
   ntBtn: 'Verbindung', ntBtnTip: 'Die Verbindung zu unseren Spielservern prüfen', ntTitle: 'Verbindungstest',
   ntIntro: 'Die Pakete laufen genau wie in einem Match: unser UDP-Tunnel, Züge 10-mal pro Sekunde, Nachrichten an die anderen Spieler. Alle unsere Server gleichzeitig, etwa eine Minute. Schließe vorher das Spiel.',
-  ntMode: 'Spiel', ntVpn: 'VPN', ntVpnOff: 'ohne VPN', ntVpnOn: 'mit VPN', ntVpnTip: 'Markiere, wie dieser Lauf geht - dann vergleiche beide.',
+  ntMode: 'Spiel', ntVpn: 'Dein VPN', ntVpnOff: 'meins ist aus', ntVpnOn: 'meins ist an', ntVpnTip: 'Markiere, ob DEIN EIGENES VPN (oder ein Sperren-Umgeher) bei diesem Lauf an ist - einmal mit, einmal ohne, dann vergleichen. Der Test selbst schaltet kein VPN ein.', ntVpnRunOn: 'dein VPN an', ntVpnRunOff: 'dein VPN aus',
   ntStart: 'Test starten', ntStop: 'Stopp', ntRunning: 'Prüfe… {s} von {n} s', ntPrep: 'Vorbereitung: Ping und Stromtest…',
   ntGame: 'Das Spiel läuft - der Test würde das Match stören. Schließe es zuerst.', ntBusy: 'Ein Test läuft bereits.',
   ntPh_wait: 'wartet', ntPh_ping: 'Ping', ntPh_burst: 'Stromtest', ntPh_tcp: 'TCP-Test', ntPh_connect: 'verbinde', ntPh_game: 'spielt', ntPh_done: 'fertig',
@@ -123,7 +128,7 @@ Object.assign(T.de, {
   ntW_pauses: 'Pausen (das Spiel friert für alle ein)', ntW_loss: 'Paketverlust', ntW_jitter: 'ungleichmäßige Verzögerung', ntW_lost_msgs: 'Nachrichten verloren',
   ntHints: 'Etwas bei dir antwortet für unsere Server oder vertauscht Pakete', ntH_zero_ping: '{nodes} antwortet in 0 ms - da antwortet etwas auf diesem Computer oder im Netz (VPN, ein Sperren-Umgeher, ein Virenscanner) statt des Servers. Das Matchmaking zählt ihn als nicht erreicht.',
   ntH_udp_blocked: '{nodes}: UDP kommt nicht durch, TCP schon - ein VPN, ein Umgeher oder eine Firewall blockt UDP. Das Spiel braucht UDP.',
-  ntH_reorder: '{nodes}: Pakete kommen stark vertauscht an - typisch für ein VPN.', ntH_stream_cut: '{nodes}: ein Paketstoß bricht mittendrin ab - die Leitung kappt Ströme (DPI).',
+  ntH_reorder: '{nodes}: Pakete kommen stark vertauscht an - typisch für ein VPN.', ntH_stream_cut: '{nodes}: kleine Pakete kommen durch, ein Stoß davon bricht unterwegs ab - die Leitung kappt Ströme zu diesem Server (DPI); das Spiel nimmt einen anderen.',
   ntH_all_down: 'Keiner unserer Server antwortet. Vielleicht blockiert sie ein VPN oder eine Firewall.',
   ntExcl: 'Für VPN / zapret / Firewall: lass das hier am VPN vorbei', ntExclCopy: 'Kopieren', ntExclCopied: 'Kopiert',
   ntExclPorts: 'UDP- und TCP-Port {g} (das Spiel), TCP {l} (die Automatch-Lobby)',
@@ -247,7 +252,9 @@ function ntNodeHtml(n) {
   let h = `<div class="nt-node v-${esc(v)}"><div class="nt-nh"><span class="nt-nn">${esc(gnName(n))}</span><span class="nt-ip">${esc(n.ip)}</span>`
     + `${n.pick ? `<span class="chip hot">${esc(t('ntPick'))}</span>` : ''}<span class="nt-v">${esc(t('ntV_' + v))}</span></div>`;
   if (n.transport && n.transport !== 'none' && rt.n) {
-    h += `<div class="nt-big"><div><b>${ntNum(rt.avg)}</b><small>${esc(t('ntMs', { n: '' }).trim())}</small><span>${esc(t('ntPing'))} · ${esc(t('ntUpTo', { n: ntNum(rt.p95) }))}</span></div>`
+    const ping = rt.p50 != null ? rt.p50 : rt.avg;   // 1.4.22: the median - a stuck stream is shown as such, not as a ping of seconds
+    const up = n.stall_ms ? `<em class="nt-bad">${esc(t('ntStuck', { s: Math.round(n.stall_ms / 1000) }))}</em>` : esc(t('ntUpTo', { n: ntNum(rt.p95) }));
+    h += `<div class="nt-big"><div><b>${ntNum(ping)}</b><small>${esc(t('ntMs', { n: '' }).trim())}</small><span>${esc(t('ntPing'))} · ${up}</span></div>`
       + `<div class="${pauses ? 'nt-bad' : ''}"><b>${pauses}</b><span>${esc(t('ntPauses'))}${tk.max_gap_ms > 250 ? ' · ' + esc(t('ntUpTo', { n: ntNum(tk.max_gap_ms) })) : ''}</span></div>`
       + `<div class="${loss > 1 ? 'nt-bad' : ''}"><b>${loss < 10 ? loss.toFixed(1).replace(/\.0$/, '') : Math.round(loss)}%</b><span>${esc(t('ntLoss'))}</span></div></div>`;
     h += ntChart(n.tl);
@@ -265,12 +272,24 @@ function ntNodeHtml(n) {
   return h + '</div>';
 }
 
+// 1.4.22 (noofancy 06.11): Relic's own servers straight from here - its battle servers (TCP handshakes) and the lobby API
+function ntRelicHtml(R) {
+  const v = R.verdict || 'down', rl = R.relays || [], api = R.api || {};
+  const why = (R.why || []).map(w => t('ntW_' + w)).filter(Boolean);
+  return `<div class="nt-node nt-relic v-${esc(v)}"><div class="nt-nh"><span class="nt-nn">${esc(t('ntRelic'))}</span><span class="nt-ip">${esc(R.ms != null ? t('ntPing') + ' ' + t('ntMs', { n: ntNum(R.ms) }) : '')}</span><span class="nt-v">${esc(t('ntV_' + v))}</span></div>`
+    + `<div class="nt-d">${esc(t('ntRelicRelays', { o: R.open | 0, n: rl.length }))}: ${esc(rl.map(x => x.addr + ' ' + (x.best != null ? t('ntMs', { n: ntNum(x.best) }) : '—')).join(' · '))}</div>`
+    + `<div class="nt-d">${esc(api.got ? t('ntRelicApi', { g: api.got, n: api.n || 5, kb: api.kb | 0, s: api.secs }) : t('ntRelicApiNone'))}</div>`
+    + (why.length && v !== 'excellent' ? `<div class="nt-why">${esc(why.join('; '))}</div>` : '')
+    + `<div class="nt-d nt-dim">${esc(t('ntRelicNote'))}</div></div>`;
+}
+
 function ntResultHtml(r) {
   const ns = r.nodes || [];
   const pick = ns.find(n => n.pick);
   let h = `<div class="gn-sum ${pick ? (pick.verdict === 'excellent' || pick.verdict === 'playable' ? 'ok' : 'warn') : 'bad'}"><span>${esc(pick ? t('ntPickIs', { node: gnName(pick) }) : t('ntNoPick'))}`
-    + ` <em class="nt-when">${esc(ntModeName(r.mode))} · ${esc(r.vpn ? t('ntVpnOn') : t('ntVpnOff'))} · ${esc(ntTime(r.ts))}</em></span></div>`;
+    + ` <em class="nt-when">${esc(ntModeName(r.mode))} · ${esc(r.vpn ? t('ntVpnRunOn') : t('ntVpnRunOff'))} · ${esc(ntTime(r.ts))}</em></span></div>`;
   h += `<div class="nt-grid">${ns.map(ntNodeHtml).join('')}</div><div class="nt-legend"><i class="l1"></i>${esc(t('ntChart'))}</div>`;
+  if (r.relic) h += ntRelicHtml(r.relic);
   const hints = r.hints || [];
   if (hints.length) {
     h += `<div class="nt-hints"><div class="net-gh">${esc(t('ntHints'))}</div>`;
@@ -284,6 +303,8 @@ function ntResultHtml(r) {
   return h;
 }
 
+// the history is read again when the window opens: the run shown is told by its time, not by the object
+const ntSame = (a, b) => !!(a && b && a.ts === b.ts && a.mode === b.mode);
 function ntTime(ts) { if (!ts) return ''; const d = new Date(ts * 1000); return d.toLocaleString(lang, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }); }
 
 // the last runs side by side: a row per run, a column per node (the dot of the verdict and the ping)
@@ -292,14 +313,16 @@ function ntHistHtml() {
   let h = `<div class="nt-hist"><div class="net-gh">${esc(t('ntHist'))}</div>`;
   if (!runs.length) return h + `<div class="note">${esc(t('ntHistNone'))}</div></div>`;
   const ips = []; runs.forEach(r => (r.nodes || []).forEach(n => { if (!ips.includes(n.ip)) ips.push(n.ip); }));
-  h += `<table class="nt-ht"><thead><tr><th></th><th></th>${ips.map(ip => `<th>${esc(gnName({ ip }))}</th>`).join('')}<th></th></tr></thead><tbody>`;
+  const relic = runs.some(r => r.relic);
+  h += `<table class="nt-ht"><thead><tr><th></th><th></th>${ips.map(ip => `<th>${esc(gnName({ ip }))}</th>`).join('')}${relic ? `<th>${esc(t('ntRelic'))}</th>` : ''}<th></th></tr></thead><tbody>`;
   runs.forEach((r, i) => {
-    h += `<tr class="${r === NT.cur && !NT.busy ? 'cur' : ''}"><td>${esc(ntTime(r.ts))}</td><td>${esc(ntModeName(r.mode))} · <b class="${r.vpn ? 'nt-vpn' : ''}">${esc(r.vpn ? t('ntVpnOn') : t('ntVpnOff'))}</b></td>`;
+    h += `<tr class="${ntSame(r, NT.cur) && !NT.busy ? 'cur' : ''}"><td>${esc(ntTime(r.ts))}</td><td>${esc(ntModeName(r.mode))} · <b class="${r.vpn ? 'nt-vpn' : ''}">${esc(r.vpn ? t('ntVpnRunOn') : t('ntVpnRunOff'))}</b></td>`;
     ips.forEach(ip => {
       const n = (r.nodes || []).find(x => x.ip === ip);
-      h += n ? `<td title="${esc(t('ntV_' + n.verdict))}"><i class="nt-dot v-${esc(n.verdict)}"></i>${n.rtt && n.rtt.n ? esc(t('ntMs', { n: ntNum(n.rtt.avg) })) : '—'}${n.pick ? ' ★' : ''}</td>` : '<td>—</td>';
+      h += n ? `<td title="${esc(t('ntV_' + n.verdict))}"><i class="nt-dot v-${esc(n.verdict)}"></i>${n.rtt && n.rtt.n ? esc(t('ntMs', { n: ntNum(n.rtt.p50 != null ? n.rtt.p50 : n.rtt.avg) })) : '—'}${n.pick ? ' ★' : ''}</td>` : '<td>—</td>';
     });
-    h += `<td>${r === NT.cur && !NT.busy ? `<span class="nt-dim">${esc(t('ntNow'))}</span>` : `<button class="link-btn" data-run="${i}">${esc(t('ntShow'))}</button>`}</td></tr>`;
+    if (relic) h += r.relic ? `<td title="${esc(t('ntV_' + r.relic.verdict))}"><i class="nt-dot v-${esc(r.relic.verdict)}"></i>${r.relic.ms != null ? esc(t('ntMs', { n: ntNum(r.relic.ms) })) : '—'}</td>` : '<td>—</td>';
+    h += `<td>${ntSame(r, NT.cur) && !NT.busy ? `<span class="nt-dim">${esc(t('ntNow'))}</span>` : `<button class="link-btn" data-run="${i}">${esc(t('ntShow'))}</button>`}</td></tr>`;
   });
   return h + '</tbody></table></div>';
 }

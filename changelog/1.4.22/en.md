@@ -1,0 +1,3 @@
+- Connection check: a new line “Relic directly” - Relic’s battle servers and lobby API straight from your computer (a few short connections).
+- Connection check: the ping is the median now; a connection that got stuck shows “stuck up to N s” with the reason (packets to the server lost, a stream cut by the provider) instead of a ping of thousands of ms; a new hint when a VPN or proxy on your side takes the TCP connections.
+- Connection check: the VPN mark says clearly that it is YOUR own VPN, on or off for this run - the check never turns on any VPN.
