@@ -64,10 +64,18 @@
 
   <main id="rooms" class="view hidden">
     <section class="panel rooms-page">
+      <div class="lr-wrap">
+        <div class="h"><span data-t="lrTitle"></span> <em id="lrN"></em><button class="btn small gold lr-create" id="lrCreate" data-t="lrCreate"></button></div>
+        <div class="note lr-note" data-t="lrNote"></div>
+        <div class="lr-list" id="lrList"></div>
+        <div class="lr-room hidden" id="lrRoom" aria-live="polite"></div>
+      </div>
+      <div class="rooms-relic">
       <div class="h"><span data-t="roomsTitle"></span> <em id="roomsN"></em></div>
       <div class="note" data-t="roomsNote"></div>
       <div class="rj-status hidden" id="rjStatus" role="status" aria-live="polite"><span id="rjText"></span><button class="btn small hidden" id="rjCancel" data-t="rjCancel"></button></div>
       <div class="rooms-grid" id="roomsList"></div>
+      </div>
     </section>
   </main>
 
@@ -157,5 +165,6 @@
 <div class="pop hidden" id="pop" role="dialog"></div>
 <div class="toast hidden" id="toast"></div>
 <script src="app.js"></script>
+<script src="lroom.js"></script>
 </body>
 </html>

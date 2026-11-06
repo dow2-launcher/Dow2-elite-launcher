@@ -1,0 +1,3 @@
+- Launcher rooms: set up a match right in the launcher - Rooms → Create a room. Teams and seats, everybody's race and hero (with the game's portraits), one or more maps (then one of the ticked ones at random), victory condition, points, starting locations and resources. Everybody presses Ready - a 10 s countdown, the game starts for everyone by itself and you all land in one match on our servers (not rated).
+- The room shows everybody's delay to each of our servers and the server the match will use.
+- Needs the add-on “Automatch v2.0” (MMFind 0.47+). Elite and vanilla, 1v1, 2v2 and 3v3.

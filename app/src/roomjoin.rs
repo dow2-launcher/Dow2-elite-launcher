@@ -36,6 +36,28 @@ pub fn note_launch() { *LAUNCHED.lock().unwrap() = Some(Instant::now()); }
 /// When a start of the game did not happen (the UAC question answered No): a Join waiting for that game stops.
 static LAUNCH_FAILED: Mutex<Option<Instant>> = Mutex::new(None);
 pub fn note_launch_failed() { *LAUNCH_FAILED.lock().unwrap() = Some(Instant::now()); }
+/// 1.4.15 (the launcher rooms, lroom.rs): a start of the game since `t0` that did not happen (No to Windows' question).
+pub(crate) fn launch_failed_since(t0: Instant) -> bool { LAUNCH_FAILED.lock().unwrap().is_some_and(|t| t >= t0) }
+/// The launcher started the game since `t0`, more than `secs` ago.
+pub(crate) fn launched_long_ago(t0: Instant, secs: u64) -> bool { LAUNCHED.lock().unwrap().is_some_and(|t| t >= t0 && t.elapsed() > Duration::from_secs(secs)) }
+/// The game's window to the front (Windows; elsewhere nothing).
+pub(crate) fn bring_to_front(_pid: u32) -> bool {
+    #[cfg(windows)]
+    { win::to_front(_pid) }
+    #[cfg(not(windows))]
+    { false }
+}
+
+/// Which add-on's pipe: RoomJoin's (Join a lobby) or MMFind's (1.4.15: the launcher rooms, lroom.rs) - its name before "-<pid>"
+/// and its bridge for Linux (the same program, built for that pipe).
+#[allow(dead_code)]   // prefix: the Windows pipe; bridge: the Linux bridge
+pub struct PipeKind { pub prefix: &'static str, pub bridge: &'static str }
+pub const RJ: PipeKind = PipeKind { prefix: "EliteRoomJoin", bridge: "rjbridge.exe" };
+pub const MMF: PipeKind = PipeKind { prefix: "EliteMMFind", bridge: "mmbridge.exe" };
+
+/// Linux: the game folder of the last bridge (the launcher's own game), for the game's kind (game_kind_linux).
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+static GAME_DIR: Mutex<Option<std::path::PathBuf>> = Mutex::new(None);
 
 /// JSON lines read from a byte stream.
 #[derive(Default)]
@@ -60,13 +82,14 @@ impl BridgeConn {
     /// rjbridge.exe exactly as the running game's wine runs: its environment (prefix, ESYNC / FSYNC, DLL paths - a wine
     /// client with other sync settings is refused by the game's wineserver) taken from the game's own process, its loader.
     #[cfg(target_os = "linux")]
-    fn command(app: &AppHandle) -> Option<std::process::Command> {
+    fn command(app: &AppHandle, pk: &PipeKind) -> Option<std::process::Command> {
         use tauri::Manager;
         let st = app.state::<crate::App>();
         let dir = crate::game_dir(&st)?;
         // the add-on's copy for Elite, or its vanilla copy (the same file) when only that one is there
-        let exe = [dir.join("Elite_DLLs").join("rjbridge.exe"), dir.join(elite_core::update::VANILLA_DIR).join("rjbridge.exe")].into_iter().find(|p| p.is_file())?;
-        let env = game_env()?;
+        let exe = [dir.join("Elite_DLLs").join(pk.bridge), dir.join(elite_core::update::VANILLA_DIR).join(pk.bridge)].into_iter().find(|p| p.is_file())?;
+        *GAME_DIR.lock().unwrap() = Some(dir.clone());
+        let env = game_env(Some(&dir))?;
         let loader = env.iter().find(|(k, _)| k == "WINELOADER").map(|(_, v)| std::path::PathBuf::from(v)).filter(|p| p.is_file())
             .or_else(|| {
                 let appid = st.config.lock().unwrap().as_ref().map(|c| c.game.steam_appid).unwrap_or(56400);
@@ -78,10 +101,10 @@ impl BridgeConn {
         Some(c)
     }
     #[cfg(not(target_os = "linux"))]
-    fn command(_app: &AppHandle) -> Option<std::process::Command> { None }
-    pub fn open(app: &AppHandle) -> Option<BridgeConn> {
+    fn command(_app: &AppHandle, _pk: &PipeKind) -> Option<std::process::Command> { None }
+    pub fn open(app: &AppHandle, pk: &PipeKind) -> Option<BridgeConn> {
         use std::process::Stdio;
-        let mut cmd = Self::command(app)?;
+        let mut cmd = Self::command(app, pk)?;
         cmd.stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::null());
         let mut child = cmd.spawn().ok()?;
         let (stdin, mut out) = (child.stdin.take()?, child.stdout.take()?);
@@ -114,12 +137,26 @@ impl Drop for BridgeConn {
 /// The environment of the running game's wine process (Linux: /proc/<pid>/environ of the process whose command line names
 /// DOW2.exe and that has a WINEPREFIX), without what only that process may have (its wineserver socket fd, the preloader's
 /// reservation); path lists keep only the folders that exist here (the game may run inside the Steam runtime's container).
+/// 1.4.15 (stands 06.11.2026: two games under two Wine prefixes on one machine - the bridge went into the other one): the game
+/// of the launcher's own folder first - the DOW2.exe whose working directory is that folder (Steam / Proton start it there),
+/// then any.
 #[cfg(target_os = "linux")]
-fn game_env() -> Option<Vec<(String, String)>> {
-    for e in std::fs::read_dir("/proc").ok()?.flatten() {
+fn game_pids_linux(dir: Option<&std::path::Path>) -> Vec<u32> {
+    let mut v: Vec<(bool, u32)> = Vec::new();
+    let want = dir.and_then(|d| std::fs::canonicalize(d).ok());
+    for e in std::fs::read_dir("/proc").into_iter().flatten().flatten() {
         let Ok(pid) = e.file_name().to_string_lossy().parse::<u32>() else { continue };
         let Ok(cmd) = std::fs::read(format!("/proc/{pid}/cmdline")) else { continue };
         if !String::from_utf8_lossy(&cmd).to_ascii_lowercase().contains("dow2.exe") { continue; }
+        let mine = want.as_ref().is_some_and(|w| std::fs::read_link(format!("/proc/{pid}/cwd")).ok().and_then(|c| std::fs::canonicalize(c).ok()).as_ref() == Some(w));
+        v.push((!mine, pid));
+    }
+    v.sort();
+    v.into_iter().map(|(_, p)| p).collect()
+}
+#[cfg(target_os = "linux")]
+fn game_env(dir: Option<&std::path::Path>) -> Option<Vec<(String, String)>> {
+    for pid in game_pids_linux(dir) {
         let Ok(raw) = std::fs::read(format!("/proc/{pid}/environ")) else { continue };
         let env: Vec<(String, String)> = String::from_utf8_lossy(&raw).split('\0')
             .filter_map(|kv| kv.split_once('=').map(|(k, v)| (k.to_string(), v.to_string())))
@@ -142,8 +179,8 @@ pub fn kind_of_cmdline(cmd: &str) -> &'static str {
 }
 #[cfg(target_os = "linux")]
 fn game_kind_linux() -> Option<&'static str> {
-    for e in std::fs::read_dir("/proc").ok()?.flatten() {
-        let Ok(pid) = e.file_name().to_string_lossy().parse::<u32>() else { continue };
+    let dir = GAME_DIR.lock().unwrap().clone();
+    for pid in game_pids_linux(dir.as_deref()) {                   // 1.4.15: the launcher's own game first
         let Ok(cmd) = std::fs::read(format!("/proc/{pid}/cmdline")) else { continue };
         let c = String::from_utf8_lossy(&cmd).replace('\0', " ");
         // the game's own process (its command line starts with the exe), not a shell or Proton's script naming it
@@ -153,7 +190,7 @@ fn game_kind_linux() -> Option<&'static str> {
     None
 }
 /// The game a connection talks to.
-fn kind(c: &Conn) -> Option<&'static str> {
+pub(crate) fn kind(c: &Conn) -> Option<&'static str> {
     match c {
         #[cfg(windows)]
         Conn::Pipe(p) => win::kind(p.pid),
@@ -168,14 +205,14 @@ fn kind(c: &Conn) -> Option<&'static str> {
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
 pub enum Conn { #[cfg(windows)] Pipe(win::Conn), Bridge(BridgeConn) }
 impl Conn {
-    fn send(&mut self, v: &Value) -> bool {
+    pub(crate) fn send(&mut self, v: &Value) -> bool {
         match self { #[cfg(windows)] Conn::Pipe(c) => c.send(v), Conn::Bridge(c) => c.send(v) }
     }
-    fn line(&mut self, ms: u64) -> Result<Option<Value>, ()> {
+    pub(crate) fn line(&mut self, ms: u64) -> Result<Option<Value>, ()> {
         match self { #[cfg(windows)] Conn::Pipe(c) => c.line(ms), Conn::Bridge(c) => c.line(ms) }
     }
     /// The first line the game sends on a new connection: its status (through the bridge: once it is up).
-    fn status(&mut self) -> Option<Value> {
+    pub(crate) fn status(&mut self) -> Option<Value> {
         let end = Instant::now() + Duration::from_millis(if matches!(self, Conn::Bridge(_)) { 15000 } else { 1500 });
         while Instant::now() < end {
             match self.line(300) {
@@ -187,19 +224,21 @@ impl Conn {
         None
     }
     /// The game process on Windows (its window to the front); 0 through the bridge.
-    fn pid(&self) -> u32 { match self { #[cfg(windows)] Conn::Pipe(c) => c.pid, Conn::Bridge(_) => 0 } }
+    pub(crate) fn pid(&self) -> u32 { match self { #[cfg(windows)] Conn::Pipe(c) => c.pid, Conn::Bridge(_) => 0 } }
 }
 /// Every game this launcher can talk to, with its status: the pipes of all DOW2.exe (Windows); the game through rjbridge (Linux).
-fn games(_app: &AppHandle) -> Vec<(Conn, Value)> {
+fn games(app: &AppHandle) -> Vec<(Conn, Value)> { games_of(app, &RJ) }
+/// The same for either add-on's pipe (1.4.15: MMFind's for the launcher rooms).
+pub(crate) fn games_of(_app: &AppHandle, pk: &PipeKind) -> Vec<(Conn, Value)> {
     #[allow(unused_mut)]
     let mut out: Vec<(Conn, Value)> = Vec::new();
     #[cfg(windows)]
-    for p in win::game_pids() { if let Some(mut c) = win::Conn::open(p).map(Conn::Pipe) { if let Some(s) = c.status() { out.push((c, s)); } } }
+    for p in win::game_pids() { if let Some(mut c) = win::Conn::open(p, pk.prefix).map(Conn::Pipe) { if let Some(s) = c.status() { out.push((c, s)); } } }
     #[cfg(target_os = "linux")]
     if crate::is_game_running() {
         let t0 = Instant::now();
-        if let Some(mut c) = BridgeConn::open(_app).map(Conn::Bridge) {
-            if let Some(s) = c.status() { crate::c_log(&format!("rooms: rjbridge up in {} ms", t0.elapsed().as_millis())); out.push((c, s)); }
+        if let Some(mut c) = BridgeConn::open(_app, pk).map(Conn::Bridge) {
+            if let Some(s) = c.status() { crate::c_log(&format!("rooms: {} up in {} ms", pk.bridge, t0.elapsed().as_millis())); out.push((c, s)); }
         }
     }
     out
@@ -425,8 +464,8 @@ mod win {
     pub struct Conn { f: File, buf: Vec<u8>, pub pid: u32 }
     impl Conn {
         /// Open the pipe of this game process; None = it has no RoomJoin 9 (or it is not up yet).
-        pub fn open(pid: u32) -> Option<Conn> {
-            let name = format!(r"\\.\pipe\EliteRoomJoin-{pid}");
+        pub fn open(pid: u32, prefix: &str) -> Option<Conn> {
+            let name = format!(r"\\.\pipe\{prefix}-{pid}");
             let wide: Vec<u16> = name.encode_utf16().chain(std::iter::once(0)).collect();
             for _ in 0..6 {
                 // SECURITY_IDENTIFICATION: whoever serves the pipe can't act as us
@@ -639,12 +678,12 @@ mod tests {
             let cmd = super::win::cmdline(p);
             let kind = super::win::kind(p);
             if std::env::var_os("VT_DEBUG").is_some() { println!("  modules: {:?}", super::win::modules(p).map(|m| m.into_iter().filter(|x| x.to_ascii_lowercase().contains("dll") && (x.contains("Elite") || x.contains("patches") || x.contains("Profiler"))).collect::<Vec<_>>())); }
-            let st = super::win::Conn::open(p).map(super::Conn::Pipe).and_then(|mut c| c.status());
+            let st = super::win::Conn::open(p, super::RJ.prefix).map(super::Conn::Pipe).and_then(|mut c| c.status());
             println!("DOW2.exe {p}: kind {kind:?}, command line {cmd:?}, RoomJoin status {}", st.map(|v| v.to_string()).unwrap_or_else(|| "none (no pipe)".into()));
             // VT_JOIN=<room id>: a join as the launcher sends it, every event for up to 90 s (a room that does not exist: the
             // walk through the menus and its "failed")
             if let Some(room) = std::env::var("VT_JOIN").ok().and_then(|v| v.parse::<u64>().ok()) {
-                let Some(mut c) = super::win::Conn::open(p).map(super::Conn::Pipe) else { continue };
+                let Some(mut c) = super::win::Conn::open(p, super::RJ.prefix).map(super::Conn::Pipe) else { continue };
                 let _ = c.status();
                 println!("  join {room}: sent {}", c.send(&serde_json::json!({"cmd": "join", "room": room, "name": "stand test"})));
                 let end = std::time::Instant::now() + std::time::Duration::from_secs(90);
