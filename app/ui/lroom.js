@@ -108,12 +108,13 @@ function lrSet(v) {
     if (first) { LR.pingT = 0; lrCatalog(v.game).then(() => lrRender()); }
   } else if (LR.room && LR.room.id === v.id) LR.room = null;   // not in it any more (removed)
   const i = LR.list.findIndex(x => x.id === v.id), sum = { id: v.id, name: v.name, game: v.game, ver: v.ver, mode: v.mode, map: v.map, map_name: v.map_name, state: v.state,
-    players: (v.slots || []).filter(Boolean).length, cap: (v.slots || []).length, names: (v.slots || []).filter(Boolean).map(s => s.name) };
+    players: (v.slots || []).filter(Boolean).length, cap: (v.slots || []).length, names: (v.slots || []).filter(Boolean).map(s => s.name),
+    owner: v.owner, owner_name: ((v.slots || []).find(s => s && s.steam === v.owner) || {}).name };
   if (i >= 0) LR.list[i] = sum; else LR.list.push(sum);
-  lrRender(); lrLaunchCheck();
+  lrRender(); lrLaunchCheck(); lrOnSoon();
 }
 async function lrLoad() {
-  try { const d = await invoke('lroom_list', {}); LR.list = d.rooms || []; if (d.host) LR.host = d.host; } catch (e) { /* the last list */ }
+  try { const d = await invoke('lroom_list', {}); LR.list = d.rooms || []; if (d.host) LR.host = d.host; lrOnSoon(); } catch (e) { /* the last list */ }
   if (lrMe() && !LR.room) {                                         // in a room from before (the launcher restarted): its view
     const r = await invoke('lroom_api', { verb: 'get', body: {} }).catch(() => null);
     if (r && r.ok && r.room) { LR.room = r.room; lrCatalog(r.room.game).then(() => lrRender()); lrLaunchCheck(); }   // a start under way goes on
@@ -126,7 +127,7 @@ listen('c_ev', e => {
   else if (ev === 'lroom_gone') {
     LR.list = LR.list.filter(x => x.id !== d.id);
     if (LR.room && LR.room.id === d.id) LR.room = null;
-    lrRender();
+    lrRender(); lrOnSoon();
   } else if (ev === 'lroom_kicked') { if (LR.room && LR.room.id === d.id) { LR.room = null; toast(t('e_kicked'), true); } lrRender(); }
 });
 listen('lroom_game', e => { LR.gameEv = e.payload || null; lrRender(); });
@@ -397,3 +398,34 @@ Object.assign(T.ru, { n_race: '{who}: в игре стояла другая ра
 Object.assign(T.es, { n_race: '{who}: el juego tenía otra raza ({why}): el inicio se canceló.', lrSpoil: 'arruinó un inicio ×{n}', gf_army: 'no se pudo poner el ejército', gf_expired: 'el inicio ya terminó' });
 Object.assign(T.fr, { n_race: '{who} : le jeu avait une autre race ({why}) : lancement annulé.', lrSpoil: 'a fait échouer un lancement ×{n}', gf_army: 'l\'armée n\'a pas pu être choisie', gf_expired: 'le lancement était terminé' });
 Object.assign(T.de, { n_race: '{who}: Im Spiel war ein anderes Volk eingestellt ({why}) – der Start wurde abgebrochen.', lrSpoil: 'hat einen Start verhindert ×{n}', gf_army: 'die Armee ließ sich nicht setzen', gf_expired: 'der Start war vorbei' });
+
+// 1.4.25 (owner 06.11.2026: "I made a room in the launcher and the Online list on the main page does not show it - nobody in the chat
+// sees that someone made a game"): the open rooms in the Online block (app.js onRender), as the searching list - the host, the mode,
+// seats taken / all, Join (the Rooms tab and into this room). The list is LR.list: "lrooms" of the snapshot (c/live, ladder 06.11),
+// then the lroom / lroom_gone events; an older ladder without it - the list from lroom/list as before.
+Object.assign(T.en, { onRooms: 'In rooms' });
+Object.assign(T.ru, { onRooms: 'В комнатах' });
+Object.assign(T.es, { onRooms: 'En salas' });
+Object.assign(T.fr, { onRooms: 'Dans des salons' });
+Object.assign(T.de, { onRooms: 'In Räumen' });
+function lrOnSoon() { if (typeof onSoon === 'function') onSoon(); }
+function lrFromLive(rooms) { LR.list = rooms; lrRender(); }
+function lrOnRooms() { return LR.list.filter(x => x.state === 'lobby' || x.state === 'countdown'); }
+function lrOnGroup(group, rooms) {
+  return group('lroom', t('onRooms'), rooms.reduce((n, x) => n + (x.players || 0), 0), rooms.map(x => {
+    const known = x.owner && LIVE.users[x.owner], mine = LR.room && LR.room.id === x.id && lrMine(LR.room);
+    const tip = [x.name, x.map_name || x.map, x.game === 'vanilla' ? t('roomsVan') : 'Elite ' + (x.ver || '')].filter(Boolean).join(' · ');
+    return `<div class="on-p" title="${esc(tip)}">${avatar(known ? onUser(x.owner).avatar : '')}`
+      + (known ? onWho(x.owner) : `<span class="nm">${esc(x.owner_name || 'Player')}</span>`)
+      + `<span class="tag lr-m">${esc(x.mode)}</span>${x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : ''}`
+      + `<span class="since">${esc(String(x.players))}/${esc(String(x.cap))}</span>`
+      + (mine || x.players < x.cap ? `<button class="lr-go" data-id="${esc(x.id)}">${esc(t(mine ? 'roomsHere' : 'lrJoin'))}</button>` : `<span class="tag">${esc(t('lrFull'))}</span>`)
+      + '</div>';
+  }).join(''));
+}
+function lrOnBind(box) { box.querySelectorAll('.lr-go[data-id]').forEach(b => b.onclick = () => lrJoinHome(b.dataset.id)); }
+async function lrJoinHome(id) {
+  const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click();   // the Rooms tab; not signed in - it says how
+  if (!lrMe() || (LR.room && LR.room.id === id && lrMine(LR.room))) return;
+  await lrCall('join', { id });
+}

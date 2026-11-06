@@ -2270,6 +2270,7 @@ function onLive(d) {   // a full snapshot
   Object.assign(LIVE, { users: d.users || {}, searching: d.searching || [], ingame: d.ingame || [], launcher: d.launcher || [], ok: true });
   if (d.host) LIVE.host = d.host;
   if (d.now) LIVE.skew = d.now - Date.now() / 1000;
+  if (Array.isArray(d.lrooms) && typeof lrFromLive === 'function') lrFromLive(d.lrooms);   // 1.4.25: the launcher rooms (lroom.js)
   ON.err = false; onSoon();
 }
 function onEvent(ev, d) {
@@ -2301,6 +2302,7 @@ function onRender() {
       + `<i></i>${esc(title)}<span>${esc(String(n))}</span>${body ? '<b class="chev"></b>' : ''}</button>${open ? body : ''}</div>`;
   };
   const look = LIVE.searching, matches = LIVE.ingame, inL = LIVE.launcher;
+  const lrs = typeof lrOnRooms === 'function' ? lrOnRooms() : [];   // 1.4.25: the open launcher rooms (lroom.js)
   const players = matches.flatMap(m => [...m.team1, ...m.team2]);
   let html = '';
   // first load: grey rows in place of the names; no answer: say so
@@ -2308,10 +2310,11 @@ function onRender() {
     : `<div class="on-skel" role="status" aria-label="${esc(t('onLoading'))}">${'<div><i></i><b></b></div>'.repeat(5)}</div>`;
   else {
     if (ON.err) html += `<div class="on-stale">${esc(t('onOffline'))}</div>`;   // the last list stays, marked as old
-    if (!look.length && !matches.length && !inL.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
+    if (!look.length && !matches.length && !inL.length && !lrs.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
     // looking for a game: avatar, name, race, mode (spectators marked); no time (owner 03.11.2026: not needed)
     if (look.length) html += group('look', t('onSearching'), look.length, look.map(p => `<div class="on-p">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${raceImg(p.race)}`
       + `<span class="tag">${esc(p.mode === 'watch' ? t('onWatcher') : p.mode)}</span></div>`).join(''));
+    if (lrs.length) html += lrOnGroup(group, lrs);   // the launcher rooms: as the searching list - the host, the mode, seats, Join
     // the launcher open: avatar, 1v1 rating, a dot for menu / game
     if (inL.length) html += group('launcher', t('chMembers'), inL.length, [...inL].sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''))
       .map(p => `<div class="on-p on-u">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${onRt(onUser(p.steam).rating)}`
@@ -2337,6 +2340,7 @@ function onRender() {
   $('onGroups').querySelectorAll('.on-p').forEach(r => { const n = r.querySelector('.nm[data-steam]');
     if (n) nickBind(r.querySelector('.av'), n.dataset.steam, n.dataset.name); });
   $('onGroups').querySelectorAll('.lvw[data-m]').forEach(b => b.onclick = () => liveWatch(b.dataset.m, b.dataset.g === 'vanilla' ? 'vanilla' : 'elite'));
+  if (lrs.length) lrOnBind($('onGroups'));
   $('onGroups').querySelectorAll('.on-gh[data-g]').forEach(b => b.onclick = () => {
     ON.shut.has(b.dataset.g) ? ON.shut.delete(b.dataset.g) : ON.shut.add(b.dataset.g);
     try { localStorage.setItem('onShut', JSON.stringify([...ON.shut])); } catch (e) {}

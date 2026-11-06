@@ -1,0 +1,1 @@
+- The Online block on the main page shows the open launcher rooms, like the players looking for a game: “In rooms” - the host, the mode (1v1 / 2v2 / 3v3, vanilla marked), seats taken / all and “Join”, which opens the Rooms tab and puts you into that room. The room's name, map and version are in the tooltip.
