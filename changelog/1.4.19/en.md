@@ -1,0 +1,1 @@
+- Online: a "Watch" button on a running match of our servers - the game opens it as a replay that keeps going, a couple of minutes behind the players (the add-on "Watch running matches").

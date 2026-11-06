@@ -54,6 +54,8 @@ pub(crate) fn bring_to_front(_pid: u32) -> bool {
 pub struct PipeKind { pub prefix: &'static str, pub bridge: &'static str }
 pub const RJ: PipeKind = PipeKind { prefix: "EliteRoomJoin", bridge: "rjbridge.exe" };
 pub const MMF: PipeKind = PipeKind { prefix: "EliteMMFind", bridge: "mmbridge.exe" };
+/// 1.4.18: LiveReplay's pipe (watch a running match of our servers, livewatch.rs)
+pub const LR: PipeKind = PipeKind { prefix: "EliteLiveReplay", bridge: "lrbridge.exe" };
 
 /// Linux: the game folder of the last bridge (the launcher's own game), for the game's kind (game_kind_linux).
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
