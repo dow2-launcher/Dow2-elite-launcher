@@ -457,6 +457,11 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .on-u .st-search{background:var(--green)}
 .on-u .st-match{background:var(--red)}
 .on-g.launcher .on-gh i{background:var(--yellow)}
+/* 1.4.25: the open launcher rooms in the Online block (lroom.js lrOnGroup) - the row of the searching list, Join on the right */
+.on-g.lroom .on-gh i{background:var(--amber)}
+.on-p .lr-m{margin-left:auto}
+.on-p .lr-go{flex:none;height:18px;padding:0 6px;border:1px solid var(--sep);background:none;color:var(--gold2);font:inherit;font-size:11px;cursor:pointer}
+.on-p .lr-go:hover,.on-p .lr-go:focus-visible{border-color:var(--gold2)}
 .ch-send{display:flex;gap:8px;margin-top:8px}
 .ch-send textarea{flex:1;resize:none;background:#0e0c09;border:1px solid var(--line);color:var(--bone);padding:6px 8px;font:14px inherit;user-select:text}
 .ch-login{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:13px;color:var(--muted)}
