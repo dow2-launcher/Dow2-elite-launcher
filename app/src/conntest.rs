@@ -67,9 +67,10 @@ pub async fn nettest_run(app: AppHandle, st: State<'_, App>, mode: String, vpn: 
         res["vpn"] = json!(vpn); res["launcher"] = json!(LAUNCHER_VERSION); res["os"] = json!(os_name());
         res["list"] = json!(if ladder.is_some() { "ladder" } else { "builtin" });
         if !res["cancelled"].as_bool().unwrap_or(false) { save(&res); }
+        c_log(&format!("nettest relic {} {}ms open {} api {}/5", res["relic"]["verdict"].as_str().unwrap_or(""), res["relic"]["ms"], res["relic"]["open"], res["relic"]["api"]["got"]));
         c_log(&format!("nettest {} vpn={} pick {}: {}", res["mode"].as_str().unwrap_or(""), vpn, res["pick"],
             res["nodes"].as_array().into_iter().flatten().map(|n| format!("{} {} {}{}", n["ip"].as_str().unwrap_or(""), n["verdict"].as_str().unwrap_or(""),
-                n["transport"].as_str().unwrap_or(""), n["rtt"]["avg"].as_f64().map(|x| format!(" {x}ms")).unwrap_or_default())).collect::<Vec<_>>().join(", ")));
+                n["transport"].as_str().unwrap_or(""), n["rtt"]["p50"].as_f64().map(|x| format!(" {x}ms")).unwrap_or_default())).collect::<Vec<_>>().join(", ")));
         res
     }).await.map_err(|e| e.to_string());
     BUSY.store(false, Ordering::SeqCst);

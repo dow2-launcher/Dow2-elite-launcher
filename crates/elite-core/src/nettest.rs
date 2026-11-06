@@ -702,7 +702,7 @@ fn game(mut r: Value, ip: Ipv4Addr, port: u16, players: u8, secs: u32, cancel: &
             tl.push(json!([sec_mark as u32, if tw.is_empty() { Value::Null } else { json!(r1(pct(&tw, 1.0))) }, if rw.is_empty() { Value::Null } else { json!(r1(avg(&rw))) }, pz]));
             ti0 = g.turn_lat.len(); ri0 = g.rtt.len(); ki0 = g.ticks.len(); sec_mark += 1.0;
             let gaps = g.ticks.windows(2).filter(|w| w[1] - w[0] > GAP).count() as u64;
-            let (rl, tlast) = (g.rtt.last().copied(), if tw.is_empty() { None } else { Some(avg(&tw)) });
+            let (rl, tlast) = (if rw.is_empty() { None } else { Some(pct(&rw, 0.5)) }, if tw.is_empty() { None } else { Some(pct(&tw, 0.5)) });
             set(&|l| { l.secs = t; if rl.is_some() { l.rtt_ms = rl; } if tlast.is_some() { l.turn_ms = tlast; } l.pauses = gaps; });
         }
     }
@@ -724,6 +724,10 @@ fn game(mut r: Value, ip: Ipv4Addr, port: u16, players: u8, secs: u32, cancel: &
     r["secs"] = json!(r1(t_end)); r["players"] = json!(players);
     r["turn"] = stats(&g.turn_lat); r["turn"]["sent"] = json!(g.turn_k); r["turn"]["missing"] = json!(missing_turns);
     r["rtt"] = stats(&g.rtt); r["hello_ms"] = json!(g.hello_ms.map(r1));
+    // a stall: the stream stuck and the turns / pings waited seconds behind it (the packets on the way lost, the window full) -
+    // that is no ping: the card says "stuck up to N s" (Chuzar 06.11: "24 000 ms to Germany" was this, 38 % of his packets lost)
+    let worst = pct(&g.rtt, 1.0).max(pct(&g.turn_lat, 1.0));
+    if worst > 1000.0 { r["stall_ms"] = json!(r1(worst)); }
     r["ticks"] = json!({"n": g.ticks.len(), "expected": expected_ticks, "pauses": gaps.len(), "max_gap_ms": r1(pct(&iv, 1.0)), "jitter_ms": r1(jitter),
         "vturns": g.vturns, "silent": g.silent});
     r["proxy"] = json!({"sent": g.proxy_k, "parts": g.parts_sent, "back": g.parts_ok, "wrong": g.parts_wrong, "missing": missing_parts,
@@ -761,21 +765,34 @@ pub fn verdict(r: &Value) -> (&'static str, Vec<&'static str>) {
     let mut why = vec![];
     if r["transport"] == "tcp" { why.push("tcp_only"); }
     let ticks = f("/ticks/n").unwrap_or(0.0); let exp = f("/ticks/expected").unwrap_or(1.0).max(1.0);
-    if r.get("cut").map_or(false, |c| !c.is_null()) { why.insert(0, "cut"); return ("down", why); }
+    // 1.4.22 (players 06.11): why a node broke / stalled, in words - a stuck stream is not "a ping of 24 000 ms"
+    let stall = f("/stall_ms").unwrap_or(0.0) > 0.0;
+    let ping_ok = r["ping"]["n"].as_u64().unwrap_or(0) > 0;
+    let stream_blocked = ping_ok && !r["burst"]["usable"].as_bool().unwrap_or(true);
+    let up_loss = f("/du/up_loss_pct").unwrap_or(0.0);
+    if r.get("cut").map_or(false, |c| !c.is_null()) {
+        why.insert(0, "cut");
+        if stream_blocked { why.push("stream_blocked"); }
+        if stall { why.push("stall"); }
+        if up_loss > 10.0 { why.push("loss_up"); }
+        return ("down", why);
+    }
     if r.get("cancelled").is_some() { return ("down", vec!["cancelled"]); }
     if ticks < exp * 0.5 || r["turn"]["n"].as_u64().unwrap_or(0) == 0 { why.insert(0, "no_flow"); return ("down", why); }
     let mins = (f("/secs").unwrap_or(60.0) / 60.0).max(0.25);
     let pauses = f("/ticks/pauses").unwrap_or(0.0) + f("/server/gaps").unwrap_or(0.0);
     let max_gap = f("/ticks/max_gap_ms").unwrap_or(0.0).max(f("/server/max_gap_ms").unwrap_or(0.0));
-    let rtt = f("/rtt/avg").unwrap_or(0.0); let rtt95 = f("/rtt/p95").unwrap_or(0.0);
+    let rtt = f("/rtt/p50").or(f("/rtt/avg")).unwrap_or(0.0); let rtt95 = f("/rtt/p95").unwrap_or(0.0);   // the ping = the median: one stall must not make it
+    if stall { why.push("stall"); }
     let loss = f("/du/up_loss_pct").unwrap_or(0.0).max(f("/du/down_loss_pct").unwrap_or(0.0));
     let jitter = f("/ticks/jitter_ms").unwrap_or(0.0);
     let lost_parts = f("/proxy/missing").unwrap_or(0.0) + f("/proxy/wrong").unwrap_or(0.0) + f("/turn/missing").unwrap_or(0.0);
-    let mut bad = false; let mut meh = false;
+    let mut bad = stall; let mut meh = false;
+    if stream_blocked { why.push("stream_blocked"); meh = true; }
     if rtt > 150.0 { why.push("high_ping"); bad = true; } else if rtt > 80.0 { why.push("ping"); meh = true; }
-    if rtt95 > 250.0 { why.push("spikes"); bad = true; } else if rtt95 > rtt.max(1.0) * 1.6 && rtt95 > 60.0 { why.push("spikes"); meh = true; }
+    if stall {} else if rtt95 > 250.0 { why.push("spikes"); bad = true; } else if rtt95 > rtt.max(1.0) * 1.6 && rtt95 > 60.0 { why.push("spikes"); meh = true; }
     if pauses / mins > 2.0 || max_gap > 1000.0 { why.push("pauses"); bad = true; } else if pauses > 0.0 { why.push("pauses"); meh = true; }
-    if loss > 5.0 { why.push("loss"); bad = true; } else if loss > 1.0 { why.push("loss"); meh = true; }
+    if up_loss > 10.0 { why.push("loss_up"); bad = true; } else if loss > 5.0 { why.push("loss"); bad = true; } else if loss > 1.0 { why.push("loss"); meh = true; }
     if jitter > 30.0 { why.push("jitter"); bad = true; } else if jitter > 15.0 { why.push("jitter"); meh = true; }
     if lost_parts > 0.0 { why.push("lost_msgs"); bad = true; }
     (if bad { "laggy" } else if meh || r["transport"] == "tcp" { "playable" } else { "excellent" }, why)
@@ -803,11 +820,58 @@ pub fn hints(rows: &[Value]) -> Vec<Value> {
     if !udp_no.is_empty() { h.push(json!({"code": "udp_blocked", "nodes": udp_no})); }
     let reo: Vec<String> = rows.iter().filter(|r| r["du"]["reorder_pct"].as_f64().map_or(false, |p| p > 2.0)).map(ip).collect();
     if !reo.is_empty() { h.push(json!({"code": "reorder", "nodes": reo})); }
-    let cut: Vec<String> = rows.iter().filter(|r| r["burst"]["got"].as_u64().map_or(false, |g| g > 0) && !r["burst"]["usable"].as_bool().unwrap_or(false)).map(ip).collect();
+    // the burst stops (also: not one answer while the small pings pass - noofancy / zerg0d 06.11, Poland and Germany)
+    let cut: Vec<String> = rows.iter().filter(|r| r["ping"]["n"].as_u64().unwrap_or(0) > 0 && !r["burst"]["usable"].as_bool().unwrap_or(false)).map(ip).collect();
     if !cut.is_empty() { h.push(json!({"code": "stream_cut", "nodes": cut})); }
+    // TCP answered far faster than UDP / in 0 ms: something on this computer or network takes the connection (a VPN client, a proxy)
+    let tcpl: Vec<String> = rows.iter().filter(|r| r["tcp"]["connect_ms"].as_f64().map_or(false, |t| t < 1.0
+        || (t < 10.0 && r["ping"]["best"].as_f64().map_or(false, |p| t * 5.0 < p)))).map(ip).collect();
+    if !tcpl.is_empty() { h.push(json!({"code": "tcp_local", "nodes": tcpl})); }
     let none: Vec<String> = rows.iter().filter(|r| r["transport"] == "none").map(ip).collect();
     if !none.is_empty() && none.len() == rows.len() { h.push(json!({"code": "all_down", "nodes": none})); }
     h
+}
+
+/// Relic's own servers straight from this computer (1.4.22, noofancy 06.11: "see Relic from me directly"): the battle server
+/// relays our nodes pass Relic games to (the addresses in their bridge logs 06.11) and the API the game's lobbies and automatch
+/// talk to. Light on Relic: a TCP handshake 3 times per relay (no game data), then 5 small HTTPS requests on one connection
+/// (~37 KB: past the 16-33 KB where DPI on many Russian lines stops a stream).
+pub const RELIC_RELAYS: [&str; 4] = ["54.87.3.63:27008", "44.203.117.150:27004", "44.203.117.150:27006", "184.198.184.150:27002"];
+pub const RELIC_API: &str = "https://dow-api.reliclink.com/community/leaderboard/getAvailableLeaderboards?title=dow2r";
+
+pub fn relic_direct() -> Value {
+    let relays: Vec<Value> = RELIC_RELAYS.iter().map(|a| {
+        let mut ms: Vec<f64> = vec![];
+        if let Ok(sa) = a.parse::<SocketAddr>() {
+            for _ in 0..3 {
+                let t0 = Instant::now();
+                if TcpStream::connect_timeout(&sa, Duration::from_secs(3)).is_ok() { ms.push(t0.elapsed().as_secs_f64() * 1000.0); }
+                std::thread::sleep(Duration::from_millis(100));
+            }
+        }
+        json!({"addr": a, "n": ms.len(), "best": if ms.is_empty() { Value::Null } else { json!(r1(pct(&ms, 0.0))) }, "med": if ms.is_empty() { Value::Null } else { json!(r1(pct(&ms, 0.5))) }})
+    }).collect();
+    let agent = ureq::AgentBuilder::new().timeout(Duration::from_secs(6)).build();
+    let t0 = Instant::now(); let (mut got, mut bytes, mut err) = (0usize, 0usize, String::new()); let mut first_ms = None;
+    for _ in 0..5 {
+        let t1 = Instant::now();
+        match agent.get(RELIC_API).call() {
+            Ok(r) => { bytes += r.into_string().map(|b| b.len()).unwrap_or(0); got += 1; first_ms.get_or_insert(r1(t1.elapsed().as_secs_f64() * 1000.0)); }
+            Err(e) => { err = e.to_string().chars().take(120).collect(); break; }
+        }
+        if t0.elapsed() > Duration::from_secs(12) { err = "too slow".into(); break; }
+    }
+    let open: Vec<f64> = relays.iter().filter_map(|r| r["best"].as_f64()).collect();
+    let med = if open.is_empty() { None } else { Some(pct(&open, 0.5)) };
+    let api_ok = got == 5;
+    let verdict = if open.is_empty() && got == 0 { "down" } else if open.len() < relays.len() || !api_ok || med.map_or(true, |m| m > 200.0) { "laggy" }
+                  else if med.map_or(false, |m| m > 120.0) { "playable" } else { "excellent" };
+    let mut why: Vec<&str> = vec![];
+    if open.len() < relays.len() { why.push("relic_closed"); }
+    if !api_ok { why.push(if got == 0 { "relic_api_none" } else { "relic_api_cut" }); }
+    if med.map_or(false, |m| m > 120.0) { why.push(if med.unwrap() > 200.0 { "high_ping" } else { "ping" }); }
+    json!({"relays": relays, "ms": med.map(r1), "open": open.len(), "api": {"got": got, "n": 5, "kb": bytes / 1024, "secs": r1(t0.elapsed().as_secs_f64()),
+           "first_ms": first_ms, "err": err}, "verdict": verdict, "why": why})
 }
 
 /// The test of all nodes at once (each in a thread of its own, the UDP bursts one at a time as Relay.dll's).
@@ -816,6 +880,7 @@ pub fn run(nodes: &[(Ipv4Addr, String)], port: u16, players: u8, secs: u32, canc
     let started = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
     let burst = Arc::new(Mutex::new(()));
     let ready = Arc::new(Ready::new(nodes.len()));
+    let relic = std::thread::spawn(relic_direct);
     let lives: Vec<Arc<Mutex<Live>>> = nodes.iter().map(|_| Arc::new(Mutex::new(Live { phase: "wait", ..Default::default() }))).collect();
     let cancel_flag = Arc::new(AtomicBool::new(false));
     let hs: Vec<_> = nodes.iter().zip(&lives).map(|((ip, _), live)| {
@@ -839,7 +904,8 @@ pub fn run(nodes: &[(Ipv4Addr, String)], port: u16, players: u8, secs: u32, canc
     let pick = matchmaker_pick(&rows);
     if let Some(i) = pick { rows[i]["pick"] = json!(true); }
     let hints = hints(&rows);
-    json!({"v": 1, "ts": started, "players": players, "mode": match players { 4 => "2v2", 6 => "3v3", _ => "1v1" }, "secs": secs, "port": port,
+    let relic = relic.join().unwrap_or(json!({"verdict": "down", "why": ["error"]}));
+    json!({"v": 1, "ts": started, "relic": relic, "players": players, "mode": match players { 4 => "2v2", 6 => "3v3", _ => "1v1" }, "secs": secs, "port": port,
            "cancelled": cancel.load(Ordering::Relaxed), "pick": pick.map(|i| rows[i]["ip"].clone()), "hints": hints, "nodes": rows})
 }
 
@@ -848,11 +914,17 @@ pub fn summary_lines(res: &Value) -> Vec<String> {
     let mut out = vec![format!("connection test {} ({} s){}", res["mode"].as_str().unwrap_or("?"), res["secs"], if res["vpn"] == true { ", VPN on" } else if res["vpn"] == false { ", no VPN" } else { "" })];
     for r in res["nodes"].as_array().into_iter().flatten() {
         let f = |p: &str| r.pointer(p).map(|v| v.to_string()).unwrap_or("-".into());
-        out.push(format!("  {:<16} {:<10} {:<9} {} ping {} relay_ms {} burst {}/40 | rtt avg {} p95 {} max {} | turn avg {} p95 {} | pauses {} max {} jitter {} | loss up {}% down {}% reord {}% resent {} | proxy {}/{} wrong {} | {}{}",
+        out.push(format!("  {:<16} {:<10} {:<9} {} ping {} relay_ms {} burst {}/40 | rtt p50 {} p95 {} max {} | turn avg {} p95 {} | pauses {} max {} jitter {} | loss up {}% down {}% reord {}% resent {} | proxy {}/{} wrong {} | {}{}",
             r["ip"].as_str().unwrap_or(""), r["name"].as_str().unwrap_or(""), r["verdict"].as_str().unwrap_or(""), r["transport"].as_str().unwrap_or(""),
-            f("/ping/best"), f("/ping/relay_ms"), f("/burst/got"), f("/rtt/avg"), f("/rtt/p95"), f("/rtt/max"), f("/turn/avg"), f("/turn/p95"),
+            f("/ping/best"), f("/ping/relay_ms"), f("/burst/got"), f("/rtt/p50"), f("/rtt/p95"), f("/rtt/max"), f("/turn/avg"), f("/turn/p95"),
             f("/ticks/pauses"), f("/ticks/max_gap_ms"), f("/ticks/jitter_ms"), f("/du/up_loss_pct"), f("/du/down_loss_pct"), f("/du/reorder_pct"), f("/du/resent"),
             f("/proxy/back"), f("/proxy/parts"), f("/proxy/wrong"), r["why"], if r["pick"] == true { " <- matchmaker" } else { "" }));
+    }
+    let rl = &res["relic"];
+    if rl.is_object() {
+        out.push(format!("  Relic direct     {:<9} relays {}/{} med {} ms ({}) | api {}/5 {} KB in {} s {}", rl["verdict"].as_str().unwrap_or(""), rl["open"], RELIC_RELAYS.len(), rl["ms"],
+            rl["relays"].as_array().into_iter().flatten().map(|x| format!("{} {}", x["addr"].as_str().unwrap_or(""), x["best"])).collect::<Vec<_>>().join(", "),
+            rl["api"]["got"], rl["api"]["kb"], rl["api"]["secs"], rl["api"]["err"].as_str().unwrap_or("")));
     }
     let h: Vec<String> = res["hints"].as_array().into_iter().flatten().map(|x| format!("{} {}", x["code"].as_str().unwrap_or(""), x["nodes"])).collect();
     if !h.is_empty() { out.push(format!("  hints: {}", h.join("; "))); }
@@ -893,7 +965,27 @@ mod tests {
         let mut t = game(30.0, 40.0, 0, 0.0); t["transport"] = json!("tcp");
         assert_eq!(verdict(&t), ("playable", vec!["tcp_only"]));
         assert_eq!(verdict(&json!({"transport": "none"})).0, "down");
+        // Chuzar 06.11: the median ping is the ping; seconds of waiting in a stuck stream are a stall, not "24 000 ms"
+        let mut st = game(8365.0, 24618.0, 2, 0.0); st["rtt"]["p50"] = json!(140.0); st["stall_ms"] = json!(24998.0); st["du"]["up_loss_pct"] = json!(38.2);
+        let (v, w) = verdict(&st);
+        assert_eq!(v, "laggy"); assert!(w.contains(&"stall") && w.contains(&"loss_up") && !w.contains(&"high_ping") && !w.contains(&"spikes"), "{w:?}");
+        st["cut"] = json!({"at": 48.8, "why": "silent"});
+        assert_eq!(verdict(&st), ("down", vec!["cut", "stall", "loss_up"]));
+        // noofancy / zerg0d 06.11: small pings pass, the burst gets no answer, the game stream dies at 5 s
+        let mut nb = game(70.0, 72.0, 0, 0.0); nb["ping"] = json!({"n": 5, "best": 69.0}); nb["burst"] = json!({"got": 0, "usable": false}); nb["cut"] = json!({"at": 5.4, "why": "silent"});
+        assert_eq!(verdict(&nb), ("down", vec!["cut", "stream_blocked"]));
+        let rows = vec![json!({"ip": "a", "ping": {"n": 5, "best": 69.0}, "burst": {"got": 0, "usable": false}, "tcp": {"connect_ms": 3.0}}),
+                        json!({"ip": "b", "ping": {"n": 5, "best": 40.0}, "burst": {"got": 40, "usable": true}, "tcp": {"connect_ms": 0.3}}),
+                        json!({"ip": "c", "ping": {"n": 5, "best": 40.0}, "burst": {"got": 40, "usable": true}, "tcp": {"connect_ms": 41.0}})];
+        let h = hints(&rows);
+        assert!(h.iter().any(|x| x["code"] == "stream_cut" && x["nodes"] == json!(["a"])), "{h:?}");
+        assert!(h.iter().any(|x| x["code"] == "tcp_local" && x["nodes"] == json!(["a", "b"])), "{h:?}");
     }
+
+    /// Relic straight from here (network): cargo test -p elite-core relic_live -- --ignored --nocapture
+    #[test]
+    #[ignore]
+    fn relic_live() { println!("{}", relic_direct()); }
 
     /// Two DU ends over loopback with a lossy "wire" in between: everything arrives in order, the losses are counted.
     #[test]
