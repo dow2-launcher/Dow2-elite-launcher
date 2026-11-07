@@ -1772,30 +1772,62 @@ fn prepare_start(dir: &std::path::Path, cfg: &LauncherConfig, settings: &Setting
     json!({"off": off, "loader": is_patches_loader_file(&dir, "winmm.dll"), "vanilla": vanilla, "vanilla_loader_missing": loader_missing})
 }
 
-/// Start the game Play is for: Elite's command of launch.<os> (the version's own exe/args), or DOW2.exe for vanilla.
-fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, guard: Value) -> Result<Value, String> {
-    let (dir, cfg) = (dir.to_path_buf(), cfg.clone());
-    let mut cmd = match os_name() {
+/// 1.4.26 (owner 07.11.2026): the vanilla game starts without the intro movies, as Elite does (Elite.launchconfig
+/// LaunchParams=-nomovies) - Play, Join, the launcher's rooms and Watch all start it through `launch`.
+const VANILLA_ARGS: &[&str] = &["-nomovies"];
+
+/// Is this `steam -applaunch <appid>` (Steam hands whatever follows the appid to the game)?
+fn is_steam_applaunch(cmd: &elite_core::config::LaunchCmd) -> bool {
+    cmd.program == "steam" && cmd.args.iter().any(|a| a == "-applaunch")
+}
+
+/// The command Play runs on `os` before `{game}` is put in: Elite's launch.<os> (the version's own exe/args on Windows), or
+/// for the vanilla game DOW2.exe itself with VANILLA_ARGS (Windows) / `steam -applaunch 56400 -nomovies` (Linux; normally
+/// the launcher runs DOW2.exe through the game's Proton instead, with the same arguments - see `proton_args`).
+fn launch_cmd(cfg: &LauncherConfig, installed: &update::State, os: &str, vanilla: bool) -> elite_core::config::LaunchCmd {
+    let mut cmd = match os {
         "windows" => cfg.launch.windows.clone(),
         "macos" => cfg.launch.macos.clone(),
         _ => cfg.launch.linux.clone(),
     };
     // у версии может быть свой exe (публичный тест 3.2 — отдельный мод Elite_Test рядом с основным)
-    let installed = update::Game::new(&dir).load_state();
     if let Some(ch) = cfg.channels.iter().find(|c| c.id == installed.channel && c.version == installed.version) {
-        if !ch.exe.is_empty() && os_name() == "windows" {
+        if !ch.exe.is_empty() && os == "windows" {
             cmd.program = format!("{{game}}/{}", ch.exe);
         }
         // старые версии (2.3, 2.9.3) — без своего Elite.exe, запускаются как мод: DOW2.exe -modname Elite
-        if !ch.args.is_empty() && os_name() == "windows" {
+        if !ch.args.is_empty() && os == "windows" {
             cmd.args = ch.args.clone();
         }
     }
-    // 1.4.11: the vanilla game - DOW2.exe itself, no -modname (Elite's starter is what adds it)
-    if vanilla && os_name() == "windows" {
-        cmd.program = "{game}/DOW2.exe".into();
-        cmd.args.clear();
+    if vanilla {
+        match os {
+            // 1.4.11: the vanilla game - DOW2.exe itself, no -modname (Elite's starter is what adds it)
+            "windows" => {
+                cmd.program = "{game}/DOW2.exe".into();
+                cmd.args = VANILLA_ARGS.iter().map(|a| a.to_string()).collect();
+            }
+            _ if is_steam_applaunch(&cmd) => {
+                for a in VANILLA_ARGS { if !cmd.args.iter().any(|x| x.eq_ignore_ascii_case(a)) { cmd.args.push(a.to_string()); } }
+            }
+            _ => {}
+        }
     }
+    cmd
+}
+
+/// The game's arguments when the launcher runs its exe through Proton itself (Linux): Elite.exe takes its own from
+/// Elite.launchconfig, DOW2.exe for the vanilla game gets VANILLA_ARGS.
+#[cfg_attr(not(target_os = "linux"), allow(dead_code))]
+fn proton_args(vanilla: bool) -> Vec<String> {
+    if vanilla { VANILLA_ARGS.iter().map(|a| a.to_string()).collect() } else { Vec::new() }
+}
+
+/// Start the game Play is for: Elite's command of launch.<os> (the version's own exe/args), or DOW2.exe for vanilla.
+fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, guard: Value) -> Result<Value, String> {
+    let (dir, cfg) = (dir.to_path_buf(), cfg.clone());
+    let installed = update::Game::new(&dir).load_state();
+    let cmd = launch_cmd(&cfg, &installed, os_name(), vanilla);
     // путь к игре без «длинного» префикса \\?\ (canonicalize на Windows его добавляет, а с ним Windows не принимает «/»)
     let game = dir.to_string_lossy().to_string();
     let game = game.strip_prefix(r"\\?\").unwrap_or(&game).to_string();
@@ -1806,19 +1838,20 @@ fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, guard: Val
     // Linux: `steam -applaunch 56400` starts plain DOW2.exe under Proton (vanilla, not Elite). Run Elite.exe (or the
     // version's own exe) through the Proton Steam uses for the game instead; anything missing -> the old way + the hint.
     #[cfg(target_os = "linux")]
-    if cmd.program == "steam" && cmd.args.iter().any(|a| a == "-applaunch") {
+    if is_steam_applaunch(&cmd) {
         let exe_name = if vanilla { "DOW2.exe".to_string() } else { cfg.channels.iter().find(|c| c.id == installed.channel && c.version == installed.version)
             .map(|c| c.exe.clone()).filter(|e| !e.is_empty()).unwrap_or_else(|| "Elite.exe".into()) };
         let exe = dir.join(&exe_name);
         match elite_core::proton::plan(&dir, cfg.game.steam_appid) {
             Ok(run) if exe.is_file() => {
                 ensure_steam_running();
-                c_log(&format!("launch: {} run {} (prefix {}, runtime {})", run.proton.display(), exe.display(), run.compat_data.display(),
+                c_log(&format!("launch: {} run {}{} (prefix {}, runtime {})", run.proton.display(), exe.display(),
+                               proton_args(vanilla).iter().map(|a| format!(" {a}")).collect::<String>(), run.compat_data.display(),
                                run.runtime.as_ref().map(|p| p.display().to_string()).unwrap_or_else(|| "none".into())));
                 // 1.4.1: Proton's own output goes to proton.log; how it ended goes to community.log (Send logs carries it) -
                 // 1.4.0 showed only "launch:", never why the game did not come up
                 let plog = data_dir().join("proton.log");
-                let mut c = run.command(&exe, &[], &dir);
+                let mut c = run.command(&exe, &proton_args(vanilla), &dir);
                 if let Ok(f) = std::fs::File::create(&plog) {
                     if let Ok(f2) = f.try_clone() { c.stdout(f).stderr(f2); }
                 }
@@ -1847,6 +1880,7 @@ fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, guard: Val
         }
     }
     let program = sub(&cmd.program);
+    c_log(&format!("launch: {}{}", program, cmd.args.iter().map(|a| format!(" {}", sub(a))).collect::<String>()));
     let mut c = std::process::Command::new(&program);
     c.args(cmd.args.iter().map(|a| sub(a))).current_dir(&game);
     match c.spawn() {
@@ -3350,5 +3384,51 @@ mod vanilla_tests {
             let (e, v) = (update::Game::component(&dir, &c.id).load_state().version, update::Game::vanilla_component(&dir, &c.id).load_state().version);
             println!("  {:<18} on {:<5} games {:?} elite {:<20} vanilla {}", c.id, comp_on(&dir, c, &s), c.games, e, v);
         }
+    }
+}
+
+#[cfg(test)]
+mod launch_cmd_tests {
+    use super::*;
+    use elite_core::config::LaunchCmd;
+
+    fn cfg() -> LauncherConfig {
+        let mut c = LauncherConfig::default();
+        c.launch.windows = LaunchCmd { program: "{game}/Elite.exe".into(), args: vec![], ..Default::default() };
+        c.launch.linux = LaunchCmd { program: "steam".into(), args: vec!["-applaunch".into(), "56400".into()], ..Default::default() };
+        c
+    }
+    fn line(c: &LaunchCmd) -> String { std::iter::once(c.program.clone()).chain(c.args.iter().cloned()).collect::<Vec<_>>().join(" ") }
+
+    #[test]
+    fn vanilla_starts_without_movies() {
+        let (cfg, st) = (cfg(), update::State::default());
+        // Windows: DOW2.exe itself, -nomovies, no -modname
+        assert_eq!(line(&launch_cmd(&cfg, &st, "windows", true)), "{game}/DOW2.exe -nomovies");
+        // Linux through Steam: Steam hands what follows the appid to the game
+        assert_eq!(line(&launch_cmd(&cfg, &st, "linux", true)), "steam -applaunch 56400 -nomovies");
+        // Linux through the game's Proton (the usual way): DOW2.exe gets the same
+        assert_eq!(proton_args(true), vec!["-nomovies".to_string()]);
+        // a catalog that already says -nomovies does not get it twice
+        let mut c2 = cfg.clone(); c2.launch.linux.args.push("-nomovies".into());
+        assert_eq!(line(&launch_cmd(&c2, &st, "linux", true)), "steam -applaunch 56400 -nomovies");
+    }
+
+    #[test]
+    fn elite_stays_as_it_was() {
+        let (cfg, st) = (cfg(), update::State::default());
+        assert_eq!(line(&launch_cmd(&cfg, &st, "windows", false)), "{game}/Elite.exe");
+        assert_eq!(line(&launch_cmd(&cfg, &st, "linux", false)), "steam -applaunch 56400");
+        assert!(proton_args(false).is_empty(), "Elite.exe takes its arguments from Elite.launchconfig");
+        // an old version started as a mod keeps its own args; vanilla never takes them
+        let mut c2 = cfg.clone();
+        let mut ch = elite_core::config::Channel::default();
+        ch.id = "v2.3".into(); ch.version = "2.3".into(); ch.args = vec!["-modname".into(), "Elite".into()];
+        c2.channels.push(ch);
+        let st2 = update::State { channel: "v2.3".into(), version: "2.3".into(), ..Default::default() };
+        assert_eq!(line(&launch_cmd(&c2, &st2, "windows", false)), "{game}/Elite.exe -modname Elite");
+        assert_eq!(line(&launch_cmd(&c2, &st2, "windows", true)), "{game}/DOW2.exe -nomovies");
+        // what RoomJoin reads off the running game still says vanilla
+        assert_eq!(roomjoin::kind_of_cmdline(r#""C:\Games\DOW2.exe" -nomovies"#), "vanilla");
     }
 }
