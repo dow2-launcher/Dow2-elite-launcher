@@ -1,0 +1,1 @@
+- The vanilla game (Retribution without Elite) starts without the intro movies, like Elite: DOW2.exe gets -nomovies on Windows and on Linux (through Proton or Steam). The same for Play, joining a room, the launcher's rooms and Watch.
