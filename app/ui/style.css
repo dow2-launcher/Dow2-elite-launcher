@@ -1029,7 +1029,7 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .lr-team{display:flex;flex-direction:column;gap:4px}
 .lr-sub{font:700 17px var(--fh);color:#e4f3ed;display:flex;align-items:center;gap:8px}
 .lr-vs{text-align:center}
-.lr-slot{display:flex;align-items:center;gap:10px;min-height:58px;padding:4px 8px;border:6px solid transparent;border-image:var(--art-slot) var(--art-slot-slice) / 6px;
+.lr-slot{display:flex;align-items:center;gap:10px;min-height:76px;padding:4px 8px;border:6px solid transparent;border-image:var(--art-slot) var(--art-slot-slice) / 6px;
   background:linear-gradient(rgba(5,10,11,.6),rgba(5,10,11,.6)),var(--art-card) center/cover padding-box;min-width:0}
 .lr-slot.me{filter:brightness(1.15) drop-shadow(0 0 6px rgba(69,224,192,.6))}
 .lr-slot.free{justify-content:center;font:700 17px var(--fh);color:#8fb0a8}
