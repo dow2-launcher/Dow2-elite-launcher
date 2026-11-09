@@ -1134,7 +1134,7 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .ch-send:focus-within{border-color:var(--gd)}
 .ch-head{align-items:center}
 .ch-tab{height:28px;display:inline-flex;align-items:center}
-.logs-btn{height:28px}
+.ch-head .btn.logs-btn{height:28px}
 /* avatars and portraits cut like the game's frames (the corners top-left and bottom-right) */
 .room .rp img,.hbox,.lr-mm,.ldd-l .hbox{clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
 /* avatars in the game's portrait frame (the design's look); no avatar - the winged skull (--av-def, a slot for the game's own) */
