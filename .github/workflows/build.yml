@@ -149,7 +149,7 @@ jobs:
             target/**/release/bundle/deb/*.deb
             target/**/release/bundle/appimage/*.AppImage
             target/**/release/bundle/dmg/*.dmg
-          retention-days: 7
+          retention-days: 30
       - name: Normalize installers for deploy
         shell: bash
         env:
@@ -232,7 +232,7 @@ jobs:
         with:
           name: deploy-${{ matrix.os }}
           path: deploy/*
-          retention-days: 7
+          retention-days: 30
 
   publisher:
     strategy:
@@ -250,7 +250,7 @@ jobs:
           path: |
             target/release/elite-publish*
             target/release/elite-cli*
-          retention-days: 7
+          retention-days: 30
 
   # Everything a real upload to the mirrors does, against a temporary store and a one-off key. The upload itself is
   # skipped until the mirrors and the real signing key are available to CI.
