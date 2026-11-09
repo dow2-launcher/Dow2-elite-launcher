@@ -1237,3 +1237,4 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .on-mh .lvw[data-tip]:hover::after{max-width:200px}
 /* the game of a lobby card: one warm look for every Elite version (a card of another version is dimmed as a whole) */
 .tag.ver{border-color:#8a6a3a;color:#e2b86a}
+.lr-slot.free{align-items:baseline;align-content:center;flex-wrap:wrap}
