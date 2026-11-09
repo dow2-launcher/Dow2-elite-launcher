@@ -1913,14 +1913,14 @@ function roomCard(r) {
     ? `<button class="rjoin go${meBusy() ? ' wait' : ''}" data-tip="${esc(meBusy() ? t('roomsJoinBusy') : t('rJoinTip', { name: r.name || '' }))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-why="${esc(why)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '';
   // 1.5.0: the marks the Rooms tab's filters read (one list with the launcher's rooms, lroom.js rApplyFilter)
   const vok = r.game === 'elite' ? !why : r.game === 'vanilla' ? !!S.vanilla_offered : false;
-  const dat = `data-kind="game" data-mode="${esc(r.mode || '')}" data-vok="${vok ? 1 : 0}" data-van="${r.game === 'vanilla' ? 1 : 0}" data-free="${!full && !r.password && (!cap || (r.players || []).length < cap) ? 1 : 0}"`;
+  const dat = `data-kind="game" data-mode="${esc(r.mode || '')}" data-vok="${vok ? 1 : 0}" data-van="${r.game === 'vanilla' ? 1 : 0}" data-free="${!full && !r.password && (!cap || (r.players || []).filter(p => !isObs(p)).length < cap) ? 1 : 0}"`;
   return `<div class="room${vok ? '' : ' dim'}" ${dat}><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"><span>${esc(map)}</span></div><div class="rb">`
     // 1.5.0 (D): the name, a lock, the mode; the teams; the host, vanilla / another mod, seats and Join at the bottom (a lobby
     // in the game carries no mark - only the launcher's are marked)
     + `<div class="rh"><span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${r.password ? `<span class="mu" title="${esc(t('roomsPw'))}">${ico('lock')}</span>` : ''}${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}</div>`
     + `<div class="teams">${teams}</div>${obs}`
     + `<div class="rfoot2">${r.game === 'elite' ? (r.exact && r.version ? `<span class="tag ver">Elite ${esc(r.version)}</span>` : '<span class="tag ver">Elite</span>') : tag}`
-    + `${cap ? `<span class="tag rcount">${(r.players || []).length}/${cap}</span>` : ''}${join}</div></div></div>`;
+    + `${cap ? `<span class="tag rcount">${(r.players || []).filter(p => !isObs(p)).length}/${cap}</span>` : ''}${join}</div></div></div>`;
 }
 // 1.4.10 (siritos 05.11): the lobby I am in - no Join on it ("You are here"), and Join on another one says "leave it first"
 // (the game would refuse it too). From the list: my SteamID among its players (the ladder has them from Relic, the list is up
