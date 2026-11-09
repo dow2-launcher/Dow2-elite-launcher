@@ -1243,11 +1243,11 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .ch-av .av{width:36px;height:36px}
 .on-p{min-height:32px}
 /* the chat a little bigger from the third step of the window (1440) */
-/* the chat and Online at 16 px on every window (owner 09.11: everything was too small) */
-.ch-m{font-size:16px}
+/* the chat at 15 px, Online's names at 14 px on every window (owner 09.11) */
+.ch-m{font-size:15px}
 .ch-m .w{font-size:12.5px}
 .ch-send textarea{font-size:15px}
-.on-p .nm{font-size:16px}
+.on-p .nm{font-size:14px}
 .on-p .rt,.on-p .tag{font-size:13px}
 .on-gh span{font-size:13px}
 .on-mh,.on-wt{font-size:13px}
@@ -1260,3 +1260,6 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 /* even figures everywhere, the same width in Play (its count and countdown do not shift the label) */
 html{font-variant-numeric:lining-nums}
 .play,.rcount,.on-total,.rt,.me-r{font-variant-numeric:lining-nums tabular-nums}
+/* lobby cards: a name (or an open seat) right by its icon - the left team to the left, the right team to the right */
+.room .team .rp .nm{text-align:left}
+.room .team+.team .rp .nm{text-align:right}
