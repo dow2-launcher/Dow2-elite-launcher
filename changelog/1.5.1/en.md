@@ -1,0 +1,1 @@
+- The launcher's own update now comes from GitHub Releases first; when GitHub does not answer from your network (8 s), or the download breaks off there, the launcher takes it from our servers as before.
