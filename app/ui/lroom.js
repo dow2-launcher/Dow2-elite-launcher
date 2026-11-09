@@ -244,9 +244,9 @@ function lrSlot(r, s, i, cat) {
   const tick = `<span class="flw" data-tip="${esc(tip)}"><button class="rdy${s.ready ? ' on' : ''}${mine && open ? ' mine' : ''}${mine && why && !s.ready ? ' dis' : ''}"`
     + `${mine && open ? ' id="lrReadyTick"' : ' tabindex="-1"'} aria-label="${esc(tip)}" aria-pressed="${!!s.ready}"${!(mine && open) || (why && !s.ready) ? ' disabled' : ''}></button></span>`;
   return `<div class="lr-slot${mine ? ' me' : ''}${s.ready ? ' ready' : ''}">${avatar(s.avatar)}<div class="lr-who"><span class="lr-line"><span class="nm" data-steam="${esc(s.steam)}" data-name="${esc(s.name)}">${esc(s.name)}</span>`
-    + `${s.owner ? `<span class="lr-crown" title="${esc(t('lrOwner'))}" aria-label="${esc(t('lrOwner'))}">${ICO.crown}</span>` : ''}${s.rating ? `<span class="rt">${Number(s.rating) | 0}</span>` : ''}`
+    + `${s.owner ? `<span class="lr-crown" title="${esc(t('lrOwner'))}" aria-label="${esc(t('lrOwner'))}">${ico('crown')}</span>` : ''}${s.rating ? `<span class="rt">${Number(s.rating) | 0}</span>` : ''}`
     + `${s.spoil ? `<span class="tag bad">${esc(t('lrSpoil', { n: s.spoil }))}</span>` : ''}</span><span class="lr-armyrow">${army}</span></div>`
-    + `${gs}${owner && !mine && open ? `<button class="lr-kick" data-kick="${esc(s.steam)}" data-tip="${esc(t('lrKick'))}" aria-label="${esc(t('lrKick'))}">${ICO.x}</button>` : ''}${tick}</div>`;
+    + `${gs}${owner && !mine && open ? `<button class="lr-kick" data-kick="${esc(s.steam)}" data-tip="${esc(t('lrKick'))}" aria-label="${esc(t('lrKick'))}">${ico('x')}</button>` : ''}${tick}</div>`;
 }
 function lrNet(r) {
   const net = r.net || {}, rows = net.rows || [], nodes = net.nodes || [];
@@ -316,7 +316,7 @@ function lrRoomHtml(r) {
   const vt = r.game === 'vanilla' ? `<span class="tag van">${esc(t('lrGameVan'))}</span>` : '';
   return `<div class="lr-head">${edit ? `<input id="lrNameIn" maxlength="48" value="${esc(r.name)}" aria-label="${esc(t('lrName'))}">` : `<span class="lr-title">${esc(r.name)}</span>`}`
     + `${modeSel}${vt}<button class="btn small" id="lrLeaveBtn">${esc(t('lrLeave'))}</button></div>`
-    + (ev ? `<div class="lr-ev ${evc}">${ICO.info}<span>${esc(ev)}</span></div>` : '')
+    + (ev ? `<div class="lr-ev ${evc}">${ico('info')}<span>${esc(ev)}</span></div>` : '')
     + `<div class="lr-body"><div class="lr-teams">${team(0)}<div class="lr-vs">vs</div>${team(1)}</div>`
     + `<div class="lr-side"><div class="lr-blk"><div class="lr-sub">${esc(t('lrMap'))}</div><div class="lr-mapbox"><div class="lr-mm" style="background-image:url('${A}maps/${encodeURIComponent(shownMap)}.png')"></div><div class="lr-mapcol">${mapSel}</div></div></div>`
     + `<div class="lr-blk">${optsHtml}</div><div class="lr-blk">${lrNet(r)}</div></div></div>`;
@@ -332,7 +332,7 @@ function lrCardHtml(x) {
   const act = mine ? `<span class="tag here">${esc(t('roomsHere'))}</span>`
     : !open ? `<span class="tag playing">${esc(t('lrPlaying'))}</span>`
     : free <= 0 ? `<span class="tag">${esc(t('lrFull'))}</span>`
-    : `<button class="rjoin lr-join${vok ? ' go' : ''}" data-id="${esc(x.id)}" data-tip="${esc(t('rJoinTip', { name: x.name }))}" aria-label="${esc(t('rJoinTip', { name: x.name }))}">${ICO.enter}</button>`;
+    : `<button class="rjoin lr-join${vok ? ' go' : ''}" data-id="${esc(x.id)}" data-tip="${esc(t('rJoinTip', { name: x.name }))}" aria-label="${esc(t('rJoinTip', { name: x.name }))}">${ico('enter')}</button>`;
   const vt = x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : !vok ? `<span class="tag beta">Elite ${esc(x.ver)}</span>` : '';
   return `<div class="room lr-card${vok ? '' : ' dim'}" data-kind="lr" data-mode="${esc(x.mode)}" data-vok="${vok ? 1 : 0}" data-van="${x.game === 'vanilla' ? 1 : 0}" data-free="${free > 0 && open ? 1 : 0}">`
     + `<div class="mmap" style="background-image:url('${A}maps/${encodeURIComponent(x.map)}.png')"><span>${esc(x.map_name || x.map)}</span></div><div class="rb">`
@@ -384,7 +384,7 @@ function rLiveRender() {
   const pl = x => `<div class="rp">${raceImg(x.race)}<span class="nm" data-steam="${esc(x.steam)}" data-name="${esc(onUser(x.steam).name || '')}">${esc(onUser(x.steam).name || 'Player')}</span>${onUser(x.steam).rating ? `<span class="rt">${Number(onUser(x.steam).rating) | 0}</span>` : ''}</div>`;
   box.innerHTML = ms.map(({ m, lr }) => {
     const map = String(m.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
-    const act = m.live ? `<button class="rjoin lvw go" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('rWatchTip'))}" aria-label="${esc(t('rWatchTip'))}">${ICO.eye}</button>` : '';
+    const act = m.live ? `<button class="rjoin lvw go" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('rWatchTip'))}" aria-label="${esc(t('rWatchTip'))}">${ico('eye')}</button>` : '';
     return `<div class="room live-card"><div class="mmap" style="background-image:url('${A}maps/${encodeURIComponent(m.map || '')}.png')"><span>${esc(map)}</span></div><div class="rb">`
       + `<div class="rh">${lr ? `<span class="tag lr">${esc(t('rTagLr'))}</span>` : ''}<span class="rn">${esc(lr ? lr.name : map)}</span><span class="tag">${esc(m.mode)}</span></div>`
       + `<div class="teams"><div class="team">${(m.team1 || []).map(pl).join('')}</div><div class="team">${(m.team2 || []).map(pl).join('')}</div></div>`
@@ -397,15 +397,15 @@ function rLiveRender() {
 }
 // the top of the panel: Create a lobby; in a launcher lobby - its card (back to it); signed out - Sign in
 function rTop(r) {
-  if (!lrMe()) return `<button class="btn gold rcreate" id="rSignIn" data-tip="${esc(t('chLogin'))}">${ICO.steam}<span class="lbl">${esc(t('chLogin'))}</span></button><div class="note lbl rtop-note">${esc(t('rSignInNote'))}</div>`;
+  if (!lrMe()) return `<button class="btn gold rcreate" id="rSignIn" data-tip="${esc(t('chLogin'))}">${ico('steam')}<span class="lbl">${esc(t('chLogin'))}</span></button><div class="note lbl rtop-note">${esc(t('rSignInNote'))}</div>`;
   if (r) {
     const filled = (r.slots || []).filter(Boolean), wait = (r.slots || []).filter(s => !s || !s.ready).length;
     const st = r.state === 'countdown' ? t('rStCd') : r.state === 'launching' ? t('lrLaunching') : r.state === 'playing' ? t('lrPlaying') : wait ? t('rStWait', { n: wait }) : t('rStAll');
-    return `<button class="rmine${RV.view === 'mine' ? ' on' : ''}" id="rMine" data-tip="${esc(r.name)}"><span class="mi">${ICO.crown}</span><span class="k">${esc(t(r.owner === lrMe() ? 'rMineHost' : 'rMineIn'))}</span>`
+    return `<button class="rmine${RV.view === 'mine' ? ' on' : ''}" id="rMine" data-tip="${esc(r.name)}"><span class="mi">${ico('crown')}</span><span class="k">${esc(t(r.owner === lrMe() ? 'rMineHost' : 'rMineIn'))}</span>`
       + `<b>${esc(r.name)}</b><small>${esc(r.mode)} · ${filled.length}/${(r.slots || []).length} · ${esc(st)}</small>${RV.view === 'mine' ? '' : `<span class="go">${esc(t('rBack'))}</span>`}</button>`;
   }
-  if (RM.mine) return `<div class="rmine gm" data-tip="${esc(t('rInGame') + ': ' + RM.mine.name)}"><span class="mi">${ICO.door}</span><span class="k">${esc(t('rInGame'))}</span><b>${esc(RM.mine.name)}</b><small>${esc(t('rInGameNote'))}</small></div>`;
-  return `<button class="btn gold rcreate" id="rCreate" data-tip="${esc(t('rCreate'))}">${ICO.plus}<span class="lbl">${esc(t('rCreate'))}</span></button>`;
+  if (RM.mine) return `<div class="rmine gm" data-tip="${esc(t('rInGame') + ': ' + RM.mine.name)}"><span class="mi">${ico('door')}</span><span class="k">${esc(t('rInGame'))}</span><b>${esc(RM.mine.name)}</b><small>${esc(t('rInGameNote'))}</small></div>`;
+  return `<button class="btn gold rcreate" id="rCreate" data-tip="${esc(t('rCreate'))}">${ico('plus')}<span class="lbl">${esc(t('rCreate'))}</span></button>`;
 }
 function rShow(view) { RV.view = view; lrRender(); }
 function lrRender() {
@@ -506,7 +506,7 @@ function lrPlay() {
   // which lobby I am in, with Back, while I am not on its screen
   const onIt = !$('rooms').classList.contains('hidden') && RV.view === 'mine';
   if (!onIt && !S.last_error && !$('statusText').textContent.trim()) {
-    $('statusText').innerHTML = `${ICO.crown}<span>${esc(t('inLobby', { name: r.name }))}</span> <button class="lnk" id="lrBackLnk">${esc(t('rBackShort'))}</button>`;
+    $('statusText').innerHTML = `${ico('crown')}<span>${esc(t('inLobby', { name: r.name }))}</span> <button class="lnk" id="lrBackLnk">${esc(t('rBackShort'))}</button>`;
     $('lrBackLnk').onclick = () => { const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click(); rShow('mine'); };
   }
 }

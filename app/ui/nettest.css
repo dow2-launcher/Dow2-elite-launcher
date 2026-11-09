@@ -98,7 +98,7 @@
 .nq-note{margin-top:4px;font-size:12px}
 
 /* ================= 1.5.0: the D look ================= */
-.hdr-net{width:40px;height:40px;margin-left:8px;border:0;padding:0;display:grid;place-items:center;background:url(img/d/frame-portrait.png) center/100% 100%;cursor:pointer;transition:filter .15s}
+.hdr-net{width:40px;height:40px;margin-left:8px;border:0;padding:0;display:grid;place-items:center;background:var(--art-portrait) center/100% 100%;cursor:pointer;transition:filter .15s}
 .hdr-net:hover,.hdr-net:focus-visible{filter:brightness(1.2) drop-shadow(0 0 5px rgba(69,224,192,.45))}
 .modal .box.nt-box{border-radius:0}
 .nt-head{border-bottom:1px solid var(--ln)}
@@ -112,7 +112,7 @@
 .nt-seg button:hover:not(:disabled):not(.on){color:#fff;background:linear-gradient(#2c4547,#192b2d)}
 .nt-prog{height:9px;background:#020607;border:1px solid var(--ln);border-radius:0}
 .nt-prog i{background:linear-gradient(#5cf0cf,#1d8f78);box-shadow:0 0 10px rgba(69,224,192,.8)}
-.nt-node{border:6px solid transparent;border-image:url(img/d/plate.png) 14 / 6px;border-radius:0;background:linear-gradient(rgba(5,10,11,.6),rgba(5,10,11,.6)),url(img/d/card-fill.jpg) center/cover padding-box}
+.nt-node{border:6px solid transparent;border-image:var(--art-plate) var(--art-plate-slice) / 6px;border-radius:0;background:linear-gradient(rgba(5,10,11,.6),rgba(5,10,11,.6)),var(--art-card) center/cover padding-box}
 .nt-nn{font:700 17px var(--fh);color:#eef7f2}
 .nt-big b{font:600 20px var(--fb);color:#fff}
 .nt-ct{stroke:var(--ok)}
@@ -126,6 +126,6 @@
 .hdr-net.v-playable svg{stroke:var(--gd)}
 .hdr-net.v-laggy svg{stroke:var(--wa)}
 .hdr-net.v-down svg{stroke:var(--bd)}
-.modal .box.nt-box{border:13px solid transparent;border-image:url(img/d/frame-panel.jpg) 34 / 13px;background:linear-gradient(rgba(5,10,11,.88),rgba(5,10,11,.88)),url(img/d/panel-fill.jpg) center/cover padding-box}
+.modal .box.nt-box{border:13px solid transparent;border-image:var(--art-frame) var(--art-frame-slice) / 13px;background:linear-gradient(rgba(5,10,11,.88),rgba(5,10,11,.88)),var(--art-panel) center/cover padding-box}
 .nt-box .h{font:700 17px var(--fh);letter-spacing:0;text-transform:none;color:#d8f6ea}
 .nt-box .h::after{display:none}

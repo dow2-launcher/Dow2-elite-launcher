@@ -1175,6 +1175,9 @@ const ICO = {
   lock: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
   x: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
 };
+// 1.5.0: an icon by name - the game's own (img/ui/icons/<name>.png, listed in img/ui/art.js by scripts/game-art) when it was
+// extracted, else the line icon above
+const ico = name => (window.ART_ICONS || []).includes(name) ? `<img class="ico art" src="img/ui/icons/${name}.png" alt="" aria-hidden="true">` : ICO[name] || '';
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const open = url => url && invoke('open_url', { url }).catch(e => toast(e, true));
 // Windows long-path prefix from canonicalize() is noise for the player: \\?\G:\Steam → G:\Steam
@@ -1909,7 +1912,7 @@ function roomCard(r) {
   return `<div class="room${vok ? '' : ' dim'}" ${dat}><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"><span>${esc(map)}</span></div><div class="rb">`
     // 1.5.0 (D): the name, a lock, the mode; the teams; the host, vanilla / another mod, seats and Join at the bottom (a lobby
     // in the game carries no mark - only the launcher's are marked)
-    + `<div class="rh"><span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${r.password ? `<span class="mu" title="${esc(t('roomsPw'))}">${ICO.lock}</span>` : ''}${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}</div>`
+    + `<div class="rh"><span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${r.password ? `<span class="mu" title="${esc(t('roomsPw'))}">${ico('lock')}</span>` : ''}${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}</div>`
     + `<div class="teams">${teams}</div>${obs}`
     + `<div class="rfoot2"><span class="rhost">${esc(((r.players || []).find(p => p.host) || {}).name ? t('rHost', { name: (r.players || []).find(p => p.host).name }) : map)}</span>${r.game === 'elite' ? '' : tag}`
     + `${cap ? `<span class="tag rcount">${(r.players || []).length}/${cap}</span>` : ''}${join}</div></div></div>`;
@@ -2554,10 +2557,10 @@ function chMe() {
     plate.innerHTML = `<button class="me-chip" id="meChip" aria-haspopup="menu" aria-expanded="${!box.classList.contains('hidden')}"><i class="me-dot"></i>`
       + `<span class="me-n">${esc(me.name || me.steam)}</span>${rating ? `<span class="me-r">${Number(rating) | 0}</span>` : ''}<b class="chev"></b></button>`;
     box.innerHTML = `<div class="me-head">${avatar(me.avatar, 'me-av')}<div class="me-info"><div class="me-top"><span class="me-name">${esc(me.name || me.steam)}</span>`
-      + `<button class="me-out" id="chOut" data-tip="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}">${ICO.out}</button></div>`
+      + `<button class="me-out" id="chOut" data-tip="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}">${ico('out')}</button></div>`
       + (rating ? `<div class="me-rt">${esc(t('meRating', { r: Number(rating) | 0 }))}</div>` : '') + '</div></div>' + games
-      + `<button class="me-item" id="meStats" role="menuitem">${ICO.bars}<span>${esc(t('myStats'))}</span></button>`
-      + `<button class="me-item" id="meSteam" role="menuitem">${ICO.steam}<span>${esc(t('nickSteam'))}</span></button>`;
+      + `<button class="me-item" id="meStats" role="menuitem">${ico('bars')}<span>${esc(t('myStats'))}</span></button>`
+      + `<button class="me-item" id="meSteam" role="menuitem">${ico('steam')}<span>${esc(t('nickSteam'))}</span></button>`;
     $('meChip').onclick = e => { e.stopPropagation(); box.classList.toggle('hidden'); $('meChip').setAttribute('aria-expanded', String(!box.classList.contains('hidden'))); };
     $('chOut').onclick = () => { box.classList.add('hidden'); chLogout(); };
     $('meStats').onclick = () => { box.classList.add('hidden'); open((LIVE.host || 'https://dow2.fintebtc.de') + '/stats/?q=' + encodeURIComponent(me.steam) + '&lang=' + encodeURIComponent(lang)); };
@@ -2566,7 +2569,7 @@ function chMe() {
     box.classList.add('hidden'); box.innerHTML = '';
     // waiting for the browser: a line and Cancel (a new click on the chat's button opens Steam again)
     plate.innerHTML = CH.waiting ? `<span class="me-wait">${esc(t('chWaitingShort'))}</span><button class="btn small ghost" id="chCancel">${esc(t('chCancel'))}</button>`
-      : `<button class="btn gold small" id="chIn">${ICO.steam}${esc(CH.me && CH.me.local_name ? t('chLoginAs', { name: CH.me.local_name }) : t('chLogin'))}</button>`;
+      : `<button class="btn gold small" id="chIn">${ico('steam')}${esc(CH.me && CH.me.local_name ? t('chLoginAs', { name: CH.me.local_name }) : t('chLogin'))}</button>`;
     if ($('chIn')) $('chIn').onclick = chLogin;
     if ($('chCancel')) $('chCancel').onclick = () => { invoke('c_login_cancel').catch(() => {}); CH.waiting = false; chMe(); };
   }
