@@ -1,0 +1,2 @@
+- Add-ons: a new group "Performance (experimental)" for the add-ons that speed the game up.
+- Add-ons: when two ticked add-ons do not work together, or one does nothing without another, the add-on gets a "!" mark and a line saying which one. Nothing is unticked for you.

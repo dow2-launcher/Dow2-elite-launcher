@@ -92,7 +92,7 @@ pub struct Component {
     pub default: bool,
     /// Also on the home screen, not only on the Add-ons tab: the ones players switch most (automatch, relay).
     pub home: bool,
-    /// The group on the Add-ons tab: "network", "interface", "gameplay", "fixes", "experiment" (02.11.2026; no "other"
+    /// The group on the Add-ons tab: "network", "interface", "gameplay", "fixes", "performance" (09.11.2026), "experiment" (02.11.2026; no "other"
     /// since 1.4.8: the translation is interface, an unknown group is experiment); empty - the window picks one by the id.
     pub category: String,
     /// The place inside that group, smaller = higher (04.11.2026); none - the window picks one by the id.
@@ -110,6 +110,11 @@ pub struct Component {
     /// 1.4.11: the games it works in: "elite", "vanilla". Empty = Elite only (every entry before 1.4.11). An add-on without
     /// "vanilla" is never copied for the vanilla game, whatever its tick says.
     pub games: Vec<String>,
+    /// 09.11.2026: ids (without the _r2/_r3 ends) of add-ons it does not work together with; either side may list the
+    /// other. The window only warns while both are on, it never unticks one.
+    pub excludes: Vec<String>,
+    /// 09.11.2026: ids of add-ons it does nothing without (any one of them on is enough); the window warns while none is on.
+    pub requires: Vec<String>,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]

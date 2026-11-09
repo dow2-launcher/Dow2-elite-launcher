@@ -705,7 +705,7 @@ fn get_status(app: State<'_, App>) -> Value {
         "vanilla": cfgd.vanilla.as_ref().map(|v| json!({"name": v.name, "description": v.description})),
         "mode_sync": dir.as_ref().map(|d| mode_sync_needed(d, &cfgd, &s)).unwrap_or(false),
         "components": cfgd.components.iter().map(|c| json!({
-            "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category, "order": c.order,
+            "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category, "order": c.order, "excludes": c.excludes, "requires": c.requires,
             "vanilla_ok": c.for_game("vanilla"), "elite_ok": c.for_game("elite"),
             "vanilla_installed": dir.as_ref().map(|d| update::Game::vanilla_component(d, &c.id).load_state().version).unwrap_or_default(),
             "enabled": s.components.get(&c.id).copied().unwrap_or(c.default),
