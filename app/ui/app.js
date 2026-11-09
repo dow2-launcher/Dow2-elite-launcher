@@ -1926,7 +1926,12 @@ function roomCard(r) {
 // (the game would refuse it too). From the list: my SteamID among its players (the ladder has them from Relic, the list is up
 // to ~30 s old); right after a Join from here, the game's "in the lobby" until the list shows me in it - or 45 s without
 // a name cut by its column: its whole text in the tip (data-tip), only then
-function tipCut(box) { requestAnimationFrame(() => box.querySelectorAll('.nm').forEach(n => { if (n.scrollWidth > n.clientWidth + 1) n.dataset.tip = n.textContent; else n.removeAttribute('data-tip'); })); }
+function tipCut(box) {
+  requestAnimationFrame(() => box.querySelectorAll('.nm').forEach(n => {
+    const row = n.closest('.rp,.on-p') || n;          // the tip on the row: the name's own overflow would clip it
+    if (n.scrollWidth > n.clientWidth + 1) row.dataset.tip = n.textContent; else if (row.dataset.tip === n.textContent) row.removeAttribute('data-tip');
+  }));
+}
 function roomMine(R) {
   const me = CH.me && CH.me.signed_in ? String(CH.me.steam || '') : '';
   const gone = RM.gone && Date.now() < RM.gone.until ? RM.gone.room : '';   // the game said I left it: the late list is not believed
@@ -2409,7 +2414,7 @@ function onRender() {
     if (matches.length) html += group('match', t('onInMatchH'), players.length, matches.map(m => `<div class="on-mc"><div class="on-mh">`
       + `<span class="tag ${m.state === 'playing' ? 'playing' : 'creating'}">${esc(m.mode)}</span><span class="map">${esc(map(m.map))}</span>`
       + `<span class="since">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span>`
-      + (m.live ? `<button class="lvw" data-m="${esc(m.id)}" data-g="${esc(m.live)}" title="${esc(t('lvTitle'))}">${esc(t('lvWatch'))}</button>` : '') + '</div>'
+      + (m.live ? `<button class="lvw" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('lvTitle'))}" aria-label="${esc(t('lvTitle'))}">${ico('eye')}</button>` : '') + '</div>'
       + m.team1.map(pl).join('') + '<div class="vs">vs</div>' + m.team2.map(pl).join('')
       + (m.watchers.length ? `<div class="on-wt">${esc(t('onWatchers'))}: ${m.watchers.map(onWho).join(', ')}</div>` : '') + '</div>').join(''));
   }
@@ -2429,6 +2434,7 @@ function onRender() {
     onRender();
   });
   if (typeof rLiveRender === 'function') rLiveRender();   // the Rooms tab's running matches
+  tipCut($('onGroups'));
   $('onLadder').classList.toggle('hidden', !LIVE.host);
   $('onLadder').onclick = () => open(LIVE.host + '/ladder/');
 }

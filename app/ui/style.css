@@ -466,7 +466,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .room .rjoin:disabled{opacity:.4;cursor:default}
 .room .rjoin.wait{opacity:.4}
 .room .team{min-width:0}
-.room .rp{white-space:nowrap;overflow:hidden}
+.room .rp{white-space:nowrap}
 .room .rp img{width:17px;height:17px;object-fit:contain;flex:none}
 .room .rp .race-rnd{width:17px;height:17px;font-size:13px;box-sizing:border-box}
 .room .rp.host .nm{color:var(--gold2)}
@@ -786,7 +786,7 @@ footer .status{order:0}
 .news-link{color:var(--mu)}
 .news-link:hover{color:#c9f7ea}
 /* the event: a plate with the date */
-.ev-box{padding:6px 6px 8px;border:6px solid transparent;border-image:var(--art-plate) var(--art-plate-slice) / 6px;background:linear-gradient(rgba(5,10,11,.6),rgba(5,10,11,.6)),var(--art-card) center/cover padding-box}
+.ev-box{padding:4px 4px 6px;border:10px solid transparent;border-image:var(--art-frame) var(--art-frame-slice) / 10px;background:linear-gradient(rgba(5,10,11,.74),rgba(5,10,11,.74)),var(--art-panel) center/cover padding-box}
 .ev-h{font:700 16px var(--fh);letter-spacing:0;text-transform:none;color:#d8f6ea}
 .ev-date{border-color:var(--ln2);background:rgba(0,0,0,.35)}
 .ev-date b{font:700 22px var(--fh);color:#eafff8}
@@ -1229,3 +1229,10 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .race-rnd,.hbox.q,.lr-hq{font:700 13px/1 var(--fb);color:var(--gd);text-shadow:0 0 6px rgba(69,224,192,.45)}
 .ldd-l .hbox.q,.ldd-l .rbox .race-rnd{font-size:20px}
 .rbox .race-rnd{font-size:13px}
+/* a cut name: the whole name in the tip of its row (the name itself clips its own tip) */
+.room .rp[data-tip]:hover::after,.on-p[data-tip]:hover::after{right:auto;left:0;max-width:240px}
+/* Online: Watch as the eye icon, its name in the tip */
+.on-mh .lvw{display:grid;place-items:center;width:26px;height:26px;padding:0;margin-left:auto;border:0;background:none;color:var(--gd)}
+.on-mh .lvw .ico{width:17px;height:17px}
+.on-mh .lvw:hover,.on-mh .lvw:focus-visible{color:#eafff8;box-shadow:none;filter:drop-shadow(0 0 5px rgba(69,224,192,.7))}
+.on-mh .lvw[data-tip]:hover::after{max-width:200px}
