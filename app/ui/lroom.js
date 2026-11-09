@@ -373,6 +373,7 @@ function rApplyFilter() {
 }
 // a running match of our servers that a launcher room started: the room playing with these players
 function lrMatchOf(m) {
+  if (m.lroom) return LR.list.find(x => x.id === m.lroom) || { id: m.lroom, name: '' };   // the ladder says it (09.11.2026)
   const names = new Set([...(m.team1 || []), ...(m.team2 || [])].map(p => (LIVE.users[p.steam] || {}).name).filter(Boolean));
   return LR.list.find(x => x.state === 'playing' && (x.names || []).some(n => names.has(n)));
 }
@@ -386,7 +387,7 @@ function rLiveRender() {
     const map = String(m.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
     const act = m.live ? `<button class="rjoin lvw go" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('rWatchTip'))}" aria-label="${esc(t('rWatchTip'))}">${ico('eye')}</button>` : '';
     return `<div class="room live-card"><div class="mmap" style="background-image:url('${A}maps/${encodeURIComponent(m.map || '')}.png')"><span>${esc(map)}</span></div><div class="rb">`
-      + `<div class="rh">${lr ? `<span class="tag lr">${esc(t('rTagLr'))}</span>` : ''}<span class="rn">${esc(lr ? lr.name : map)}</span><span class="tag">${esc(m.mode)}</span></div>`
+      + `<div class="rh">${lr ? `<span class="tag lr">${esc(t('rTagLr'))}</span>` : ''}<span class="rn">${esc(lr && lr.name ? lr.name : map)}</span><span class="tag">${esc(m.mode)}</span></div>`
       + `<div class="teams"><div class="team">${(m.team1 || []).map(pl).join('')}</div><div class="team">${(m.team2 || []).map(pl).join('')}</div></div>`
       + `<div class="rfoot2"><span class="rhost">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span>${act}</div></div></div>`;
   }).join('') || `<div class="note">${esc(t('rLiveNone'))}</div>`;
