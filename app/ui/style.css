@@ -413,7 +413,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 /* a mention of me */
 /* sent, not yet published by the server */
 .av{flex:none;display:block;width:28px;height:28px}
-.on-p .av{width:24px;height:24px}
+.on-p .av{width:30px;height:30px}
 .on-p .nm{flex:0 1 auto}
 .on-p .race{margin-right:auto}
 .on-u .rt{margin-left:auto}
@@ -614,10 +614,10 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 /* ================= 1.5.0: the D look ================= */
 /* ================= 1.5.0: the D look — the frames and plates of Dawn of War II's menus (Find a Game, Game Setup) over the
    style.css layout. Frames and plates are crops of the game's menus (img/d), everything else is drawn here. Teal on dark slate;
-   headings and plates in Cormorant Garamond, the text in Roboto Condensed. ================= */
+   headings and plates in Spectral (sized down), the text in Roboto Condensed. ================= */
 :root{--bg:#0a1112; --p:#0f1a1c; --p2:#152326; --ln:#1e5a52; --ln2:#2b8273; --tx:#e4f3ed; --sf:#bdd1cb; --mu:#86a19b;
   --gd:#45e0c0; --gd2:#c8fff0; --gdbg:#10302b; --ok:#62e39a; --wa:#e8a14a; --bd:#e5503f; --bl:#5ab8f0;
-  --fb:"Roboto Condensed","Arial Narrow",Arial,sans-serif; --fh:"Cormorant Garamond",Georgia,serif; --fm:Consolas,"DejaVu Sans Mono",monospace;
+  --fb:"Roboto Condensed","Arial Narrow",Arial,sans-serif; --fh:"D Head",Spectral,Georgia,serif; --fm:Consolas,"DejaVu Sans Mono",monospace;
   /* the old names, re-pointed, so style.css and nettest.css follow */
   --ink:var(--bg); --panel:var(--p); --panel2:var(--p2); --line:var(--ln); --line2:var(--ln2); --sep:rgba(30,90,82,.55);
   --gold:var(--gd); --gold2:var(--gd2); --brass:var(--ln2); --bone:var(--tx); --soft:var(--sf); --muted:var(--mu); --dim:#6f8c86;
@@ -1032,13 +1032,13 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
   background:linear-gradient(rgba(5,10,11,.6),rgba(5,10,11,.6)),var(--art-card) center/cover padding-box;min-width:0}
 .lr-slot.me{filter:brightness(1.15) drop-shadow(0 0 6px rgba(69,224,192,.6))}
 .lr-slot.free{justify-content:center;font:700 17px var(--fh);color:#8fb0a8}
-.lr-slot .av{width:28px;height:28px;flex:none}
+.lr-slot .av{width:44px;height:44px;flex:none}
 .lr-who{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .lr-line{display:flex;align-items:center;gap:6px;min-width:0}
 .lr-line .nm{font:700 17px var(--fh);color:#f2f8f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lr-crown{display:inline-flex;color:var(--gd2)}
 .lr-crown .ico{width:13px;height:13px}
-.lr-armyrow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0;font-size:12px}
+.lr-armyrow{display:flex;align-items:center;flex-wrap:nowrap;gap:6px;min-width:0;font-size:12px}
 .lr-army{display:flex;align-items:center;gap:5px;white-space:nowrap;color:var(--bl)}
 .lr-army em{font-style:normal}
 .lr-army .lr-hn{color:var(--ok)}
@@ -1096,7 +1096,7 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .play.gl{filter:brightness(1.25) drop-shadow(0 0 10px rgba(69,224,192,.7))}
 #statusText .ico{color:var(--gd);margin-right:6px}
 #statusText .lnk{margin-left:8px}
-@media (max-width:1180px){
+@media (max-width:1599px){
   .lr-teams{grid-template-columns:minmax(0,1fr)}
   .lr-vs{padding:6px 0;font-size:22px}
 }
@@ -1182,7 +1182,7 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .hbox.q{font:700 14px var(--fh);color:#c8fff0}
 .ldd-l .rbox,.ldd-l .hbox{width:34px;height:34px}
 .ldd-l .rbox .race{width:28px;height:28px}
-.lr-vs{align-self:center;padding:0 clamp(18px,4vw,64px);font:700 clamp(26px,3vw,44px)/1 Cinzel,serif;color:#cfe9e2;letter-spacing:6px;text-shadow:0 0 18px rgba(69,224,192,.55),0 2px 3px #000}
+.lr-vs{align-self:center;padding:0 clamp(16px,2.5vw,48px);font:700 clamp(26px,3vw,44px)/1 Cinzel,serif;color:#cfe9e2;letter-spacing:6px;text-shadow:0 0 18px rgba(69,224,192,.55),0 2px 3px #000}
 .rdy{width:26px;height:26px;margin-right:2px;border-color:#2b8273;background:linear-gradient(#0e2021,#060d0e)}
 .rdy.on::after{width:6px;height:12px}
 .spin{display:inline-block;width:12px;height:12px;margin-right:6px;border:2px solid rgba(69,224,192,.3);border-top-color:var(--gd);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px}
@@ -1238,3 +1238,18 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 /* the game of a lobby card: one warm look for every Elite version (a card of another version is dimmed as a whole) */
 .tag.ver{border-color:#8a6a3a;color:#e2b86a}
 .lr-slot.free{align-items:baseline;align-content:center;flex-wrap:wrap}
+/* bigger avatars (the portrait frame took their room): chat 36, Online 30 (its names a little bigger), lobby 44 */
+.ch-av .av{width:36px;height:36px}
+.on-p{min-height:32px}
+.on-p .nm{font-size:14.5px}
+/* the chat a little bigger from the third step of the window (1440) */
+@media (min-width:1440px){.ch-m{font-size:16px}.ch-m .w{font-size:12.5px}}
+/* my race and hero never go to a second line: a narrow slot cuts their names */
+.lr-armyrow .ldd{min-width:0;flex:0 1 auto}
+.lr-armyrow .ldd-b{max-width:100%;min-width:0}
+.lr-armyrow .ldd-b>span:not(.rbox):not(.hbox){min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lr-army{min-width:0}
+.lr-army em{overflow:hidden;text-overflow:ellipsis}
+/* even figures everywhere, the same width in Play (its count and countdown do not shift the label) */
+html{font-variant-numeric:lining-nums}
+.play,.rcount,.on-total,.rt,.me-r{font-variant-numeric:lining-nums tabular-nums}

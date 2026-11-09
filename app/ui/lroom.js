@@ -501,10 +501,12 @@ function lrPlay() {
   const r = LR.room && lrMine(LR.room) ? LR.room : null;
   wrap.removeAttribute('data-tip'); cf.classList.add('hidden'); play.classList.remove('lb', 'gl');
   if ($('lrBackLnk')) $('statusText').innerHTML = '';                       // my own line from the last time
+  // out of the lobby (left it, removed, gone): Play back as the usual one - render sets it (and comes back here with no room)
+  if (!r && play.dataset.lb) { delete play.dataset.lb; render(); return; }
   if (!r || S.busy || r.state === 'playing') return;                        // the usual Play (render)
   const me = lrMe(), owner = r.owner === me, slots = r.slots || [], cap = slots.length;
   const nReady = slots.filter(s => s && s.ready).length;
-  play.classList.add('lb'); play.onclick = null;
+  play.classList.add('lb'); play.dataset.lb = '1'; play.onclick = null;
   if (r.state === 'launching') { play.textContent = t('playLaunching'); play.disabled = true; cf.classList.remove('hidden'); cf.onclick = () => { lrCall('cancel'); invoke('lroom_launch_cancel', { room: r.id }).catch(() => {}); }; }
   else if (r.state === 'countdown') {
     const n = Math.max(0, Math.ceil((r.cd_end - (Date.now() + LR.skew)) / 1000));
