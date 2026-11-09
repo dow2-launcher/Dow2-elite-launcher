@@ -13,7 +13,7 @@
   --art-field:url(img/ui/field-fill.jpg);
   --art-portrait:url(img/ui/frame-portrait.png);}
 :root{--yellow:#ecd04a}
-:root{--av-def:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='9' r='4.2' fill='%238a6d2b'/%3E%3Cpath d='M3.5 23c0-5 3.8-8 8.5-8s8.5 3 8.5 8z' fill='%238a6d2b'/%3E%3C/svg%3E")}
+:root{--av-def:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cg fill=%22%237fb3a8%22%3E%3Cpath d=%22M23 29C17 24 9 21 2 22C7 24 9 26 10 28C5 28 2 30 0 33C5 32 9 33 11 34C7 35 4 38 3 41C8 39 12 38 16 39C13 41 12 44 12 47C16 43 20 41 24 40Z%22/%3E%3Cpath d=%22M41 29C47 24 55 21 62 22C57 24 55 26 54 28C59 28 62 30 64 33C59 32 55 33 53 34C57 35 60 38 61 41C56 39 52 38 48 39C51 41 52 44 52 47C48 43 44 41 40 40Z%22/%3E%3Cpath d=%22M32 13C23.5 13 18 19 18 27C18 32 20 35.5 23 37.5V43.5C23 45.5 24.5 47 26.5 47H37.5C39.5 47 41 45.5 41 43.5V37.5C44 35.5 46 32 46 27C46 19 40.5 13 32 13Z%22/%3E%3C/g%3E%3Cg fill=%22%23061011%22%3E%3Cellipse cx=%2226.3%22 cy=%2228.5%22 rx=%224.2%22 ry=%224.6%22/%3E%3Cellipse cx=%2237.7%22 cy=%2228.5%22 rx=%224.2%22 ry=%224.6%22/%3E%3Cpath d=%22M32 33.5L29.6 38H34.4Z%22/%3E%3Crect x=%2226.4%22 y=%2241%22 width=%222%22 height=%226%22/%3E%3Crect x=%2231%22 y=%2241%22 width=%222%22 height=%226%22/%3E%3Crect x=%2235.6%22 y=%2241%22 width=%222%22 height=%226%22/%3E%3C/g%3E%3C/svg%3E")}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;user-select:none;overflow:hidden}
 button,select,input,textarea{font:inherit;color:inherit}
@@ -413,8 +413,8 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .ch-at.me{border-radius:3px;padding:0 3px}
 /* a mention of me */
 /* sent, not yet published by the server */
-.av{flex:none;display:block;width:28px;height:28px;background:var(--av,none) center/cover no-repeat,var(--av-def) center bottom/86% no-repeat,#1c1813}
-.on-p .av{width:22px;height:22px}
+.av{flex:none;display:block;width:28px;height:28px}
+.on-p .av{width:24px;height:24px}
 .on-p .nm{flex:0 1 auto}
 .on-p .race{margin-right:auto}
 .on-u .rt{margin-left:auto}
@@ -838,7 +838,7 @@ footer .status{order:0}
 .on-mh .lvw{border:1px solid var(--ln2);background:rgba(0,0,0,.35);color:var(--gd)}
 .on-mh .lvw:hover{color:#fff;box-shadow:0 0 6px rgba(69,224,192,.3)}
 .on-box .more{border-top:1px solid var(--ln);font:600 13px var(--fb)}
-.av{border-radius:0;border:1px solid var(--ln2)}
+.av{border-radius:0}
 /* ---------- the player menu, toasts, small windows ---------- */
 .pop{border:13px solid transparent;border-image:var(--art-frame) var(--art-frame-slice) / 13px;background:linear-gradient(rgba(5,10,11,.88),rgba(5,10,11,.88)),var(--art-panel) center/cover padding-box;box-shadow:0 20px 50px rgba(0,0,0,.6);color:var(--tx)}
 .pop b{font:700 17px var(--fh);color:#eafff8}
@@ -1133,8 +1133,10 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .ch-tab{height:28px;display:inline-flex;align-items:center}
 .logs-btn{height:28px}
 /* avatars and portraits cut like the game's frames (the corners top-left and bottom-right) */
-.av,.room .rp img,.hbox,.lr-mm,.ldd-l .hbox{clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
-.me-box .av.me-av{clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.room .rp img,.hbox,.lr-mm,.ldd-l .hbox{clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
+/* avatars in the game's portrait frame (the design's look); no avatar - the winged skull (--av-def, a slot for the game's own) */
+.av{border:4px solid transparent;border-image:var(--art-portrait) 12 / 4px;background:var(--av,none) center/cover no-repeat padding-box,var(--av-def) center/86% no-repeat padding-box,#0b1718 padding-box}
+.me-box .av.me-av{border-width:6px;border-image:var(--art-portrait) 12 / 6px}
 /* Read all / Collapse: plain text, a soft light on hover */
 .news-fold{font:400 12px var(--fb)}
 .news-fold:hover,.news-fold:focus-visible{color:#c9f7ea;text-shadow:none}
