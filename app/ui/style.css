@@ -1022,8 +1022,9 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .lr-ev.bad .ico{color:#ff8f7d}
 .lr-ev.wa{background:rgba(58,36,12,.6);color:#f3dcc0}
 .lr-ev.wa .ico{color:var(--wa)}
-.lr-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,800px) 336px;justify-content:space-between;gap:12px;padding:10px 12px;overflow:hidden}
-.lr-teams{display:flex;flex-direction:column;gap:6px;min-width:0;overflow:auto}
+.lr-body{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:16px;padding:10px 12px;overflow:hidden}
+/* the teams left and right, a big VS between them with room around it, the slots taking all the width they have (owner 09.11) */
+.lr-teams{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:start;align-content:start;gap:0;min-width:0;overflow:auto}
 .lr-team{display:flex;flex-direction:column;gap:4px}
 .lr-sub{font:700 17px var(--fh);color:#e4f3ed;display:flex;align-items:center;gap:8px}
 .lr-vs{text-align:center}
@@ -1037,7 +1038,7 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .lr-line .nm{font:700 17px var(--fh);color:#f2f8f4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .lr-crown{display:inline-flex;color:var(--gd2)}
 .lr-crown .ico{width:13px;height:13px}
-.lr-armyrow{display:flex;align-items:center;gap:6px;min-width:0;font-size:12px}
+.lr-armyrow{display:flex;align-items:center;flex-wrap:wrap;gap:6px;min-width:0;font-size:12px}
 .lr-army{display:flex;align-items:center;gap:5px;white-space:nowrap;color:var(--bl)}
 .lr-army em{font-style:normal}
 .lr-army .lr-hn{color:var(--ok)}
@@ -1095,6 +1096,10 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .play.gl{filter:brightness(1.25) drop-shadow(0 0 10px rgba(69,224,192,.7))}
 #statusText .ico{color:var(--gd);margin-right:6px}
 #statusText .lnk{margin-left:8px}
+@media (max-width:1180px){
+  .lr-teams{grid-template-columns:minmax(0,1fr)}
+  .lr-vs{padding:6px 0;font-size:22px}
+}
 @media (max-width:1000px){
   .rnav{width:52px}
   .rnav .lbl,.rleg,.rnb .n,.rmine small,.rmine .go,.rmine .k,.rmine b,.rtop-note{display:none}
@@ -1107,9 +1112,7 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
   .lr-opt select{width:150px}
 }
 @media (min-width:1700px){
-  .lr-body{grid-template-columns:minmax(0,800px) 420px}
-  .lr-teams{display:grid;grid-template-columns:minmax(0,1fr) 34px minmax(0,1fr);align-items:start}
-  .lr-vs{padding-top:34px}
+  .lr-body{grid-template-columns:minmax(0,1fr) 420px}
 }
 .lr-room .lr-team,.lr-room .lr-opts,.lr-room .lr-net{border:0;background:none;padding:0;margin:0}
 .lr-room .lr-sub{font:700 17px var(--fh);letter-spacing:0;text-transform:none;color:#e4f3ed;margin:0 0 4px}
@@ -1179,7 +1182,7 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .hbox.q{font:700 14px var(--fh);color:#c8fff0}
 .ldd-l .rbox,.ldd-l .hbox{width:34px;height:34px}
 .ldd-l .rbox .race{width:28px;height:28px}
-.lr-vs{font:700 15px Cinzel,serif;color:#a9cbc3;letter-spacing:4px;text-shadow:0 0 8px rgba(69,224,192,.35);padding:2px 0}
+.lr-vs{align-self:center;padding:0 clamp(18px,4vw,64px);font:700 clamp(26px,3vw,44px)/1 Cinzel,serif;color:#cfe9e2;letter-spacing:6px;text-shadow:0 0 18px rgba(69,224,192,.55),0 2px 3px #000}
 .rdy{width:26px;height:26px;margin-right:2px;border-color:#2b8273;background:linear-gradient(#0e2021,#060d0e)}
 .rdy.on::after{width:6px;height:12px}
 .spin{display:inline-block;width:12px;height:12px;margin-right:6px;border:2px solid rgba(69,224,192,.3);border-top-color:var(--gd);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px}

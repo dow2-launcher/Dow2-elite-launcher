@@ -641,3 +641,5 @@ Object.assign(T.de, { lrSaving: 'Speichern…', rOpen: 'Offene Lobbys', rLive: '
   tipHost: 'Alle bereit – der Host startet das Match', tipWait: 'Warten auf: {who}', whoYou: 'dich', whoFree: 'freie Plätze', inLobby: 'Du bist in der Lobby „{name}“',
   verAskT: 'Version der Lobby ändern?', verAskText: 'Die Lobby wechselt auf {v}.', verAskWho: '{who} haben eine andere Version: ihr „bereit“ fällt weg, sie wechseln oder verlassen die Lobby.', verAskGo: 'Auf {v} wechseln',
   lrLeave: 'Lobby verlassen', lrKick: 'Aus der Lobby entfernen', lrSit: 'Hier setzen' });
+// the strings of this file (the Rooms tab's panel) came after app.js: a render that ran before it is done again in them
+if (typeof S !== 'undefined' && S) render();
