@@ -259,8 +259,9 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 @media (prefers-reduced-motion:reduce){
   .on-g.look .on-gh i{animation:none}
 }
-.race{flex:none;display:inline-block;width:18px;height:18px}
-.race-rnd{display:inline-grid;place-items:center;border:1px solid var(--line2);border-radius:3px;background:var(--panel2);color:var(--gold2);font:700 14px/1 var(--fh)}
+/* a race's icon on a dark square with a thin frame everywhere (the icons are dark, the panels too) */
+.race{flex:none;display:inline-block;width:20px;height:20px;padding:2px;background:#0b1718;border:1px solid #2b6f64;object-fit:contain}
+.race-rnd{display:inline-grid;place-items:center;border:1px solid #2b6f64;border-radius:0;background:#0b1718;color:#c8fff0;font:700 14px/1 var(--fh)}
 .nm{min-width:0;padding:0;border:0;background:none;color:var(--bone);font:600 13px var(--fb);text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nm:hover{text-decoration:underline}
 .on-p{display:flex;align-items:center;gap:6px;min-height:23px}
@@ -995,7 +996,7 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .room .teams{display:grid}
 .room .rp{display:flex;align-items:center;font-size:12.5px;min-width:0}
 .room .rp .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;color:#e4f3ed}
-.room .rp img,.room .rp .race{width:18px;height:18px;flex:none}
+.room .rp img,.room .rp .race{width:20px;height:20px;flex:none}
 .room .lr-names{font-size:12px;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rfoot2{display:flex;align-items:center;gap:8px;margin-top:auto;padding-top:5px;border-top:1px solid var(--ln);font-size:12px}
 .rhost{color:var(--mu);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1042,7 +1043,7 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .lr-army{display:flex;align-items:center;gap:5px;white-space:nowrap;color:var(--bl)}
 .lr-army em{font-style:normal}
 .lr-army .lr-hn{color:var(--ok)}
-.lr-army .race{width:16px;height:16px}
+.lr-army .race{width:22px;height:22px}
 .lr-sel{display:inline-flex;align-items:center;gap:4px;min-width:0}
 .lr-sel .race,.lr-sel .lr-hp,.lr-sel .lr-hq{width:20px;height:20px;flex:none}
 .lr-sel .lr-hp{border:1px solid var(--ln2)}
@@ -1175,7 +1176,7 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .ldd-i:hover{background:rgba(69,224,192,.08)}
 .ldd-i.on{background:rgba(69,224,192,.14);color:#fff}
 .rbox{display:inline-grid;place-items:center;flex:none;width:22px;height:22px;background:#0b1718;border:1px solid #2b6f64}
-.rbox .race{width:18px;height:18px}
+.rbox .race{width:18px;height:18px;padding:0;border:0;background:none}
 .rbox .race-rnd{width:18px;height:18px;border:0;background:none;font-size:13px}
 .hbox{display:inline-grid;place-items:center;flex:none;width:22px;height:22px;background:#0b1718;border:1px solid #2b8273;overflow:hidden}
 .hbox img{width:100%;height:100%;object-fit:cover;display:block}
@@ -1221,3 +1222,4 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .tab.on,.set-tab.on,.rnb.on{background:none}
 @media (prefers-reduced-motion:reduce){.tab,.set-tab,.rnb,.tab::before,.set-tab::before,.rnb::before{transition:none}}
 .settings label:not(.chk){font:700 16px var(--fh);letter-spacing:0;text-transform:none;color:#d8f6ea;margin:12px 0 6px}
+.room .rp img.race{clip-path:none}

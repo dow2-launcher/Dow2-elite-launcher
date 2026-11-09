@@ -1886,7 +1886,7 @@ function roomCard(r) {
   const per = cap ? Math.max(1, Math.round(cap / 2)) : 0;
   // no race in the slot (Relic's slot info has 255 there: Random, or not picked yet): the "?" of the searching list (03.11.2026)
   const pl = p => `<div class="rp${p.host ? ' host' : ''}">`
-    + (p.race ? `<img src="${A}${p.hero != null ? 'heroes/' + p.race + '_' + p.hero : 'races/' + p.race}.png" alt="" data-fb="${A}races/${p.race}.png">`
+    + (p.race ? `<img${p.hero != null ? '' : ' class="race"'} src="${A}${p.hero != null ? 'heroes/' + p.race + '_' + p.hero : 'races/' + p.race}.png" alt="" data-fb="${A}races/${p.race}.png">`
        : raceImg('random'))
     + `${roomFlag(p.country) ? `<span class="fl">${roomFlag(p.country)}</span>` : ''}<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
   // observers (03.11.2026, siritos: a slot of their own with its own icon, under the teams): the players the server marks as
