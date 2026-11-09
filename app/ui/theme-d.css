@@ -1,0 +1,257 @@
+/* ================= 1.5.0: the D look — the frames and plates of Dawn of War II's menus (Find a Game, Game Setup) over the
+   style.css layout. Frames and plates are crops of the game's menus (img/d), everything else is drawn here. Teal on dark slate;
+   headings and plates in Cormorant Garamond, the text in Roboto Condensed. ================= */
+:root{
+  --bg:#0a1112; --p:#0f1a1c; --p2:#152326; --ln:#1e5a52; --ln2:#2b8273; --tx:#e4f3ed; --sf:#bdd1cb; --mu:#86a19b;
+  --gd:#45e0c0; --gd2:#c8fff0; --gdbg:#10302b; --ok:#62e39a; --wa:#e8a14a; --bd:#e5503f; --bl:#5ab8f0;
+  --fb:"Roboto Condensed","Arial Narrow",Arial,sans-serif; --fh:"Cormorant Garamond",Georgia,serif; --fm:Consolas,"DejaVu Sans Mono",monospace;
+  /* the old names, re-pointed, so style.css and nettest.css follow */
+  --ink:var(--bg); --panel:var(--p); --panel2:var(--p2); --line:var(--ln); --line2:var(--ln2); --sep:rgba(30,90,82,.55);
+  --gold:var(--gd); --gold2:var(--gd2); --brass:var(--ln2); --bone:var(--tx); --soft:var(--sf); --muted:var(--mu); --dim:#6f8c86;
+  --green:var(--ok); --amber:var(--wa); --red:#ff8f7d; --blood:#a8302a; --blood2:#c8382f;
+  color-scheme:dark;
+}
+html,body{background:var(--bg);color:var(--tx);font:14px/1.45 var(--fb)}
+.app{background:linear-gradient(rgba(5,10,11,.74),rgba(5,10,11,.74)),radial-gradient(ellipse at 50% 40%,transparent 40%,rgba(0,0,0,.7)),url(img/d/bg.jpg) center/cover}
+.ico{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+
+/* ---------- header: ELITE, the tabs with a glow from below (no line), the connection icon, the profile plate ---------- */
+header{height:56px;gap:12px;padding:0 20px;border-bottom:2px solid var(--ln);background:linear-gradient(rgba(4,9,10,.85),rgba(4,9,10,.6));box-shadow:0 1px 0 #000,0 0 14px rgba(69,224,192,.18)}
+.brand{align-items:baseline;gap:12px}
+.logo{font:700 26px Cinzel,serif;letter-spacing:4px;background:none;-webkit-background-clip:border-box;background-clip:border-box;color:#e8fff8;text-shadow:0 0 14px rgba(69,224,192,.35)}
+.hdr-ver{margin:0;font:400 12px var(--fb);color:var(--mu)}
+header nav{align-self:stretch;align-items:center;gap:4px}
+.tab{height:100%;border:0;padding:0 14px;background:none;font:700 19px var(--fh);letter-spacing:0;text-transform:none;color:#8fb0a8;text-shadow:0 1px 2px #000;transition:color .15s}
+.tab:hover{color:#d6eee7}
+.tab.on{border:0;color:#eafff8;background:linear-gradient(transparent 35%,rgba(69,224,192,.2));text-shadow:0 0 12px rgba(69,224,192,.8),0 1px 2px #000}
+.tab-ico{width:44px}
+.tab-ico svg{width:19px;height:19px}
+/* the profile plate: the game's slate name plate with the green online dot */
+.hdr-me{position:relative;display:flex;align-items:center;gap:8px;margin-left:6px}
+.hdr-me #mePlate{display:flex;align-items:center;gap:8px}
+.me-chip{display:inline-flex;align-items:center;gap:9px;height:40px;padding:2px 16px 2px 8px;border:5px solid transparent;border-image:url(img/d/plate-name.png) 6 26 6 6 / 4px 18px 4px 4px;
+  background:url(img/d/plate-name-fill.jpg) center/cover padding-box;color:#eef7f2;font:700 18px var(--fh);cursor:pointer;transition:filter .15s}
+.me-chip:hover,.me-chip[aria-expanded="true"]{filter:brightness(1.2) drop-shadow(0 0 5px rgba(69,224,192,.45))}
+.me-dot{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#c8ffc0,#2bbf52 60%,#0d5a22);box-shadow:0 0 6px #3ee06a}
+.me-r{font:400 12px var(--fb);color:var(--mu)}
+.me-chip .chev{width:7px;height:7px;border:solid var(--gd);border-width:0 1.5px 1.5px 0;transform:translateY(-2px) rotate(45deg);margin-left:2px}
+.me-wait{font-size:12.5px;color:var(--mu);white-space:nowrap}
+.hdr-me .btn .ico{width:15px;height:15px}
+/* its menu */
+.me-box{position:absolute;top:calc(100% + 8px);right:0;z-index:40;width:290px;padding:6px 0;margin:0;display:flex;flex-direction:column;
+  border:13px solid transparent;border-image:url(img/d/frame-panel.jpg) 34 / 13px;background:linear-gradient(rgba(5,10,11,.86),rgba(5,10,11,.86)),url(img/d/panel-fill.jpg) center/cover padding-box;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.me-head{display:flex;gap:12px;align-items:center;padding:4px 12px 10px;border-bottom:1px solid var(--ln)}
+.me-box .av.me-av{width:46px;height:46px;flex:none}
+.me-info{flex:1;min-width:0}
+.me-top{display:flex;align-items:center;gap:8px}
+.me-name{flex:1;min-width:0;font:700 22px var(--fh);color:#eafff8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me-rt{font:400 12px var(--fb);color:var(--mu)}
+.me-st{padding:8px 12px 2px;font-size:13px;color:var(--sf)}
+.me-out{flex:none;display:grid;place-items:center;width:28px;height:28px;padding:0;border:1px solid transparent;background:none;color:#7fb3a8;transition:color .15s,border-color .15s,box-shadow .15s}
+.me-out .ico{width:17px;height:17px}
+.me-out:hover,.me-out:focus-visible{color:#eafff8;border-color:var(--ln2);box-shadow:0 0 6px rgba(69,224,192,.3)}
+.me-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border:0;background:none;text-align:left;color:#e4f3ed;font:500 14px var(--fb)}
+.me-item .ico{color:var(--gd)}
+.me-item:hover,.me-item:focus-visible{background:rgba(69,224,192,.1)}
+
+/* ---------- banners under the header: the whole width, one line ---------- */
+.bn{flex:none;display:flex;align-items:center;gap:12px;padding:7px 20px;background:linear-gradient(90deg,rgba(16,48,43,.95),rgba(10,26,26,.9));border-bottom:1px solid var(--ln2);
+  font-size:13.5px;color:#d8f5ea;box-shadow:inset 0 -8px 16px rgba(69,224,192,.07)}
+.bn>span:first-child{flex:1;min-width:0}
+.bn b{color:#fff;font-weight:600}
+.bn.warn{background:linear-gradient(90deg,rgba(58,36,12,.95),rgba(26,18,10,.9));border-color:#8a5a22;color:#f3dcc0}
+.bn-act{display:flex;gap:8px;flex:none}
+
+/* ---------- panels: the riveted frame of "Looking for Ideal Match", its grimy teal inside ---------- */
+.panel{border:10px solid transparent;border-image:url(img/d/frame-panel.jpg) 34 / 10px;background:linear-gradient(rgba(5,10,11,.74),rgba(5,10,11,.74)),url(img/d/panel-fill.jpg) center/cover padding-box;padding:6px 10px}
+.h{font:700 20px var(--fh);letter-spacing:.2px;text-transform:none;color:#d8f6ea;text-shadow:0 2px 2px #000;margin-bottom:6px;gap:8px}
+.h::after{display:none}
+.note{color:var(--mu)}
+
+/* ---------- buttons: the main one is the game's plate (teal), refusal the same plate repainted red, ordinary a metal
+   frame without glow, quiet ones text only, actions in cards icons with a tip ---------- */
+.btn,.btn-line{display:inline-flex;align-items:center;justify-content:center;gap:7px;height:32px;padding:0 13px;border:2px solid transparent;border-radius:0;
+  background:linear-gradient(#1b2c2e,#0c1516) padding-box,linear-gradient(#5f7c78,#24393a 45%,#121c1d) border-box;
+  box-shadow:0 0 0 1px #000,inset 0 1px 0 rgba(255,255,255,.07),inset 0 0 0 1px rgba(69,224,192,.12);
+  font:700 15px/1 var(--fh);letter-spacing:.2px;color:#dcefe9;text-shadow:0 1px 2px #000;text-transform:none;white-space:nowrap;transition:box-shadow .12s,color .12s,filter .12s}
+.btn:hover:not(:disabled),.btn-line:hover:not(:disabled){color:#fff;border-color:transparent;background:linear-gradient(#1b2c2e,#0c1516) padding-box,linear-gradient(#5f7c78,#24393a 45%,#121c1d) border-box;
+  box-shadow:0 0 0 1px #000,inset 0 0 0 1px rgba(69,224,192,.75),inset 0 0 10px rgba(69,224,192,.22),0 0 7px rgba(69,224,192,.28)}
+.btn:active:not(:disabled){filter:brightness(.85)}
+.btn:disabled,.btn-line:disabled{opacity:.42;filter:grayscale(.6)}
+.btn.small,.btn-line{height:26px;padding:0 10px;font-size:14px}
+.btn.gold,.btn.red,.btn-gold{height:34px;padding:0 14px;border:6px solid transparent;border-image:url(img/d/plate.png) 14 / 6px;background:url(img/d/plate-fill.jpg) center/100% 100% padding-box;
+  font:700 16px/1 var(--fh);color:#fff;text-shadow:0 1px 2px #000,0 0 8px rgba(0,0,0,.6);box-shadow:none;filter:brightness(1.1) drop-shadow(0 0 3px rgba(69,224,192,.3))}
+.btn.gold.small,.btn.red.small{height:30px;font-size:15px}
+.btn.gold:hover:not(:disabled),.btn-gold:hover:not(:disabled){border-color:transparent;background:url(img/d/plate-fill.jpg) center/100% 100% padding-box;box-shadow:none;filter:brightness(1.22) drop-shadow(0 0 6px rgba(69,224,192,.5))}
+.btn.red{filter:hue-rotate(188deg) saturate(1.3) brightness(.92)}
+.btn.red:hover:not(:disabled){border-color:transparent;background:url(img/d/plate-fill.jpg) center/100% 100% padding-box;box-shadow:none;filter:hue-rotate(188deg) saturate(1.3) brightness(1.15) drop-shadow(0 0 6px rgba(229,80,63,.5))}
+.btn.ghost,.link-btn,.me-cancel{height:auto;padding:0 4px;border:0;background:none;box-shadow:none;color:var(--gd);font:600 13px var(--fb);text-shadow:none;filter:none}
+.btn.ghost:hover:not(:disabled),.link-btn:hover,.me-cancel:hover{color:#c9f7ea;background:none;box-shadow:none;text-decoration:none;text-shadow:0 0 6px rgba(69,224,192,.35)}
+.btn .ico{width:15px;height:15px}
+/* "Send logs" in the chat's heading: an ordinary button with the upload icon */
+.logs-btn{height:28px;padding:0 10px;font-size:14px}
+.logs-btn::before{content:"";display:block;width:15px;height:15px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4'/%3E%3C/svg%3E") center/contain no-repeat}
+/* links light up softly */
+.h-link,.more,.news-fold,.lnk{color:var(--gd);background:none;border:0;cursor:pointer;transition:color .15s,text-shadow .15s}
+.h-link:hover,.more:hover,.news-fold:hover,.lnk:hover,.h-link:focus-visible,.more:focus-visible,.news-fold:focus-visible{color:#c9f7ea;text-shadow:0 0 6px rgba(69,224,192,.35)}
+
+/* ---------- tooltips: data-tip, on hover (an icon's name, a disabled Play's reason) ---------- */
+[data-tip]{position:relative}
+[data-tip]:hover::after,[data-tip].tipon::after{content:attr(data-tip);position:absolute;right:-4px;bottom:calc(100% + 9px);z-index:60;width:max-content;max-width:260px;white-space:normal;text-align:left;
+  padding:6px 10px;background:rgba(4,10,11,.97);border:1px solid var(--ln2);box-shadow:0 8px 20px rgba(0,0,0,.65);font:500 12.5px/1.35 var(--fb);color:#e4f3ed;text-shadow:none;letter-spacing:0;text-transform:none;pointer-events:none}
+header [data-tip]:hover::after,.news-links [data-tip]:hover::after,.tipdown[data-tip]:hover::after{bottom:auto;top:calc(100% + 9px)}
+
+/* ---------- fields: a dark field in a thin frame; a drop-down has a chevron; checkboxes tick; no toggles ---------- */
+select,input:not([type]),input[type=text],input[type=search],textarea{border:1px solid #2b6f64;border-radius:0;background:#061011;color:#e8fff6;font:500 13.5px var(--fb)}
+select{appearance:none;-webkit-appearance:none;height:30px;padding:0 30px 0 10px;background:linear-gradient(#112324,#081314);
+  background-image:linear-gradient(45deg,transparent 50%,var(--gd) 50%),linear-gradient(135deg,var(--gd) 50%,transparent 50%),linear-gradient(#112324,#081314);
+  background-position:calc(100% - 15px) 13px,calc(100% - 10px) 13px,0 0;background-size:5px 5px,5px 5px,100% 100%;background-repeat:no-repeat;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 1px 2px rgba(0,0,0,.6);cursor:pointer}
+select:hover,select:focus{border-color:var(--gd);box-shadow:0 0 5px rgba(69,224,192,.25);outline:none}
+select option{background:#0b1718;color:#e8fff6}
+input:focus,textarea:focus{outline:none;border-color:var(--gd)}
+input::placeholder,textarea::placeholder{color:#6f8c86}
+input[type=checkbox]:not([role=switch]){border-color:var(--ln2);background:#020607;border-radius:0}
+input[type=checkbox]:not([role=switch]):checked{background:#0f3d36;border-color:var(--gd);box-shadow:0 0 5px rgba(69,224,192,.35)}
+input[type=checkbox]:not([role=switch]):checked::before{border-color:#d8fff4}
+/* the add-on switch is a checkbox in the D look */
+.switch i{width:18px;height:18px;border-radius:0;border:1px solid var(--ln2);background:#020607}
+.switch i::after{display:none}
+.switch input:checked+i{background:#0f3d36;border-color:var(--gd);box-shadow:0 0 5px rgba(69,224,192,.35)}
+.switch input:checked+i::before{content:"";position:absolute;left:5px;top:1px;width:4px;height:9px;border:solid #d8fff4;border-width:0 2px 2px 0;transform:rotate(45deg)}
+
+/* ---------- footer: the version on the left, the status in the middle, Play on the right ---------- */
+footer{height:76px;gap:14px;padding:0 20px;background:linear-gradient(rgba(4,9,10,.6),rgba(4,9,10,.9));border-top:2px solid var(--ln);box-shadow:0 -1px 0 #000}
+footer .status{order:0}
+.ver-pick{order:-1}
+.ver-btn{height:46px;min-width:220px;padding:0 38px 0 14px;border:1px solid var(--ln2);border-radius:0;background:url(img/d/field-fill.jpg) center/cover;color:#eef7f2;
+  font:700 18px var(--fh);box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 1px 3px rgba(0,0,0,.7);transition:border-color .15s,box-shadow .15s}
+.ver-btn b{font:700 18px var(--fh);color:#eef7f2}
+.ver-btn small{font:400 12.5px var(--fb);color:var(--mu)} .ver-btn small.ok{color:var(--ok)}
+.ver-btn::after{border-color:var(--gd)}
+.ver-btn:hover:not(:disabled),.ver-btn.on{border-color:var(--gd);box-shadow:0 0 6px rgba(69,224,192,.3)}
+.ver-btn:disabled{filter:grayscale(.8) brightness(.6)}
+.ver-list{left:0;right:auto;border:13px solid transparent;border-image:url(img/d/frame-panel.jpg) 34 / 13px;background:linear-gradient(rgba(5,10,11,.88),rgba(5,10,11,.88)),url(img/d/panel-fill.jpg) center/cover padding-box;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+.ver-list .lh{font:600 11px var(--fb);letter-spacing:1px;text-transform:uppercase;color:var(--mu);border-color:var(--ln)}
+.vi .nm b{font:700 17px var(--fh);color:#eef7f2}
+.vi .nm small{color:var(--mu)}
+.vi.act{background:rgba(69,224,192,.12)}
+.vi:hover:not(:disabled){background:rgba(69,224,192,.08)}
+.vi .cost{color:var(--mu)} .vi .cost.ok{color:var(--ok)}
+.tag{border-radius:0;font:600 11px var(--fb);padding:1px 7px;border:1px solid var(--ln2);color:#cfe3dc;background:rgba(0,0,0,.35)}
+.tag.main,.tag.elite{border-color:var(--gd);color:var(--gd2);background:rgba(0,0,0,.35)}
+.tag.beta{border-color:#8a5a22;color:var(--wa);background:rgba(0,0,0,.35)}
+.tag.van{border-color:#8a7a52;color:#e7d9b4}
+#statusText{color:var(--tx);font-size:13.5px}
+#statusText b{color:#fff}
+#statusText.err{color:#ffb1a3}
+.bar{height:9px;background:#020607;border:1px solid var(--ln);border-radius:0}
+.bar i{background:linear-gradient(#5cf0cf,#1d8f78);box-shadow:0 0 10px rgba(69,224,192,.8)}
+.meta{color:var(--mu);font-size:11.5px}
+.ver-warn{font-size:12px;color:var(--wa)}
+.upd-box{flex:none;display:flex;align-items:center;gap:10px;padding:5px 6px 5px 12px;border:1px solid var(--ln2);background:rgba(16,48,43,.7);font-size:13px;color:#d8f5ea;white-space:nowrap}
+.upd-text{display:flex;flex-direction:column;line-height:1.25}
+.upd-text b{font-weight:600;color:#fff} .upd-text small{color:var(--mu)}
+.plw{position:relative;display:inline-flex;flex:none}
+.play{width:240px;height:58px;border:10px solid transparent;border-image:url(img/d/plate.png) 14 / 10px;background:url(img/d/plate-fill.jpg) center/100% 100% padding-box;border-radius:0;
+  font:700 30px/1 var(--fh);letter-spacing:.5px;color:#fff;text-transform:none;text-shadow:0 2px 3px #000,0 0 12px rgba(0,0,0,.6);box-shadow:none;
+  filter:brightness(1.15) drop-shadow(0 0 8px rgba(69,224,192,.55));transition:filter .15s}
+.play:hover:not(:disabled){background:url(img/d/plate-fill.jpg) center/100% 100% padding-box;filter:brightness(1.3) drop-shadow(0 0 12px rgba(69,224,192,.75))}
+.play.install{font-size:22px;letter-spacing:.3px}
+.play:disabled{filter:grayscale(.9) brightness(.5);background:url(img/d/plate-fill.jpg) center/100% 100% padding-box;color:#fff;cursor:not-allowed}
+.plw[data-tip]:hover::after,.plw[data-tip].tipon::after{right:0;max-width:320px}
+
+/* ---------- home: news + events, the chat, online ---------- */
+.home{gap:12px}
+.news-panel{padding:0 12px}
+.news-panel .h{padding:6px 0 2px}
+.news-links{margin-left:auto;display:flex;gap:2px}
+.foot-link{display:grid;place-items:center;width:28px;height:28px;padding:0;border:1px solid var(--ln);background:none;color:var(--mu);cursor:pointer;transition:color .15s,border-color .15s,box-shadow .15s}
+.foot-link span{display:none}
+.foot-link svg{width:15px;height:15px}
+.foot-link:hover,.foot-link:focus-visible{color:#c9f7ea;border-color:var(--ln2);box-shadow:0 0 5px rgba(69,224,192,.25)}
+.news-item{border-color:var(--ln)}
+.news-item .t{font:700 18px var(--fh);color:#e4f3ed}
+.news-item .d{color:var(--mu)}
+.news-item .x,.news-item ul{color:var(--sf);font-size:12.5px}
+.news-link{color:var(--mu)} .news-link:hover{color:#c9f7ea}
+.news-fold{font:600 12px var(--fb)}
+/* the event: a plate with the date */
+.ev-box{padding:6px 6px 8px;border:6px solid transparent;border-image:url(img/d/plate.png) 14 / 6px;background:linear-gradient(rgba(5,10,11,.6),rgba(5,10,11,.6)),url(img/d/card-fill.jpg) center/cover padding-box}
+.ev-h{font:700 16px var(--fh);letter-spacing:0;text-transform:none;color:#d8f6ea}
+.ev-date{border-color:var(--ln2);background:rgba(0,0,0,.35)}
+.ev-date b{font:700 22px var(--fh);color:#eafff8}
+.ev-t span{font:600 14px var(--fb);color:#fff}
+.ev-info li{color:var(--sf)} .ev-info li::before{background:var(--gd)}
+.ev-tag{border-radius:0;background:rgba(69,224,192,.15);color:var(--gd2)} .ev-tag.now{background:rgba(98,227,154,.2);color:var(--ok)}
+.ev-side{color:var(--mu)} .ev-side:hover{color:#c9f7ea;border-color:var(--ln2);background:rgba(69,224,192,.08)}
+/* announcements: a strip with the plate's edge */
+.ann,.ann.accent,.ann.warning{border:6px solid transparent;border-image:url(img/d/plate.png) 14 / 6px;background:linear-gradient(rgba(5,10,11,.74),rgba(5,10,11,.74)),url(img/d/card-fill.jpg) center/cover padding-box;color:#d8ece5;font-size:13px;padding:6px 10px}
+.ann.warning{filter:hue-rotate(-140deg) saturate(.9)}
+.ann .cl{color:var(--mu)} .ann .cl:hover{color:#fff}
+/* no game: a panel with Hide */
+.setup{border:10px solid transparent;border-image:url(img/d/frame-panel.jpg) 34 / 10px;background:linear-gradient(rgba(5,10,11,.74),rgba(5,10,11,.74)),url(img/d/panel-fill.jpg) center/cover padding-box;padding:8px 12px 10px}
+.setup-h{display:flex;align-items:flex-start;gap:10px}
+.setup h2{flex:1;font:700 24px var(--fh);color:#eafff8;text-shadow:0 2px 3px #000;margin:0 0 4px}
+.setup p{color:var(--sf);font-size:15px}
+/* the chat */
+.ch-head{margin-bottom:0;padding:2px 0 6px;border-bottom:1px solid var(--ln)}
+.ch-head::after{display:none}
+.ch-tabs{gap:2px}
+.ch-tab{border:0;border-top:2px solid var(--ln2);border-radius:0;padding:4px 14px;background:linear-gradient(#24383b,#152325);font:500 13px var(--fb);letter-spacing:0;text-transform:none;color:#cfe3dc}
+.ch-tab:hover{color:#fff}
+.ch-tab.on{background:linear-gradient(#35565a,#1f3436);color:#fff;border-color:var(--gd)}
+.ch-m .w{color:var(--mu)} .ch-m .w b{color:var(--bl);font-weight:600} .ch-m.mine .w b{color:var(--ok)}
+.ch-m .tx{color:#e4f3ed}
+.ch-at{color:var(--gd2)} .ch-at.me{color:#04110f;background:var(--gd)}
+.ch-day{color:var(--mu)} .ch-day::before,.ch-day::after{background:var(--ln)}
+.ch-send{border-top:1px solid var(--ln)}
+.ch-send textarea,.fb-send textarea{border-color:#2b6f64;background:#061011}
+.ch-login{color:var(--sf)}
+/* online */
+.on-box .h{padding-top:2px}
+.on-total{color:var(--tx);font:600 14px var(--fb)}
+.on-gh{font:700 17px var(--fh);letter-spacing:0;text-transform:none;color:#e4f3ed}
+.on-gh span{font:500 12px var(--fb);color:var(--mu)}
+.on-gh i{display:none}
+.on-p{border-radius:0;transition:background .15s}
+.on-p:hover{background:rgba(69,224,192,.08)}
+.on-p .nm,.nm{color:#e4f3ed;font-weight:600}
+.nm:hover{color:#fff}
+.rt,.on-p .rt{font:500 12px var(--fm);color:var(--mu)}
+.on-mc{border:6px solid transparent;border-image:url(img/d/plate.png) 14 / 6px;background:linear-gradient(rgba(5,10,11,.6),rgba(5,10,11,.6)),url(img/d/card-fill.jpg) center/cover padding-box}
+.on-mh .lvw{border:1px solid var(--ln2);background:rgba(0,0,0,.35);color:var(--gd)} .on-mh .lvw:hover{color:#fff;box-shadow:0 0 6px rgba(69,224,192,.3)}
+.on-box .more{border-top:1px solid var(--ln);font:600 13px var(--fb)}
+.av{border-radius:0;border:1px solid var(--ln2)}
+
+/* ---------- the player menu, toasts, small windows ---------- */
+.pop{border:13px solid transparent;border-image:url(img/d/frame-panel.jpg) 34 / 13px;background:linear-gradient(rgba(5,10,11,.88),rgba(5,10,11,.88)),url(img/d/panel-fill.jpg) center/cover padding-box;box-shadow:0 20px 50px rgba(0,0,0,.6);color:var(--tx)}
+.pop b{font:700 17px var(--fh);color:#eafff8}
+.nick-menu button{color:#e4f3ed;font:500 14px var(--fb)}
+.nick-menu button:hover,.nick-menu button:focus-visible{background:rgba(69,224,192,.1);color:#fff}
+.toast{border:1px solid var(--ln2);border-radius:0;background:rgba(6,14,15,.96);color:#e4f3ed;box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 12px rgba(69,224,192,.2);font:500 13px var(--fb)}
+.toast.err{border-color:#a8302a;color:#ffcabf;box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 12px rgba(229,80,63,.25)}
+.modal{background:rgba(0,0,0,.6)}
+.modal .box{border:13px solid transparent;border-image:url(img/d/frame-panel.jpg) 34 / 13px;background:linear-gradient(rgba(5,10,11,.86),rgba(5,10,11,.86)),url(img/d/panel-fill.jpg) center/cover padding-box;box-shadow:0 20px 50px rgba(0,0,0,.6);border-radius:0}
+.modal h3{font:700 22px var(--fh);color:#eafff8;text-shadow:0 2px 2px #000;letter-spacing:0;text-transform:none}
+.modal p{color:var(--sf);font-size:14px}
+/* the primary first in the code: shown on the right, the others as quiet text on its left */
+.modal .row{flex-direction:row-reverse;justify-content:flex-start}
+.modal .row .btn:not(.gold):not(.red){height:auto;padding:0 6px;border:0;background:none;box-shadow:none;color:var(--gd);font:600 13px var(--fb);text-shadow:none}
+.modal .row .btn:not(.gold):not(.red):hover{color:#c9f7ea;text-shadow:0 0 6px rgba(69,224,192,.35)}
+
+/* scrollbars: thin, teal */
+*{scrollbar-width:thin;scrollbar-color:var(--ln2) rgba(0,0,0,.35)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--ln2)}
+::-webkit-scrollbar-track{background:rgba(0,0,0,.35)}
+
+/* footer: the status keeps its place even when empty (Play stays on the right) */
+footer:has(#statusText:empty) .status{display:flex;visibility:hidden}
+footer .status{flex:1;min-width:0}
+/* online: the dots - menu green, game amber, searching blue, match red */
+.on-u .st{width:7px;height:7px;background:var(--ok)}
+.on-u .st-game{background:var(--wa)} .on-u .st-search{background:var(--bl)} .on-u .st-match{background:var(--bd)}
+/* the connection icon in the game's empty portrait frame, lit on hover */
+.hdr-net{width:40px;height:40px;margin-left:8px;border:0;padding:0;display:grid;place-items:center;background:url(img/d/frame-portrait.png) center/100% 100%;cursor:pointer;transition:filter .15s}
+.hdr-net:hover,.hdr-net:focus-visible{filter:brightness(1.2) drop-shadow(0 0 5px rgba(69,224,192,.45))}

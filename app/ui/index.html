@@ -6,22 +6,27 @@
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="nettest.css">
+<link rel="stylesheet" href="theme-d.css">
 <script src="nettest.js" defer></script>
 <script src="nodeq.js" defer></script>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="brand"><span class="logo">ELITE Launcher</span><span class="hdr-ver" id="hdrVer"></span></div>
-    <div class="launcher-banner hidden" id="launcherBanner"><span id="launcherText"></span><button class="btn gold small hidden" id="launcherBtn"></button></div><div class="launcher-banner hidden" id="fwdBanner"><span id="fwdText"></span><button class="btn gold small" id="fwdBtn"></button><button class="btn small" id="fwdLater"></button></div>
+    <div class="brand"><span class="logo">ELITE</span><span class="hdr-ver" id="hdrVer"></span></div>
     <nav><button class="tab on" data-view="home" data-t="home"></button><button class="tab" data-view="addons" data-t="components"></button><button class="tab" data-view="rooms" data-t="roomsTab"></button><button class="tab tab-ico" data-view="settings" data-ta="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></nav>
+    <div class="hdr-me" id="hdrMe"><span id="mePlate"></span><section class="me-box hidden" id="meBox" role="menu"></section></div>
   </header>
+  <!-- 1.5.0: the banners under the header, the whole width: the launcher in the game folder, the forwarding offer, no game (folded) -->
+  <div class="bn warn hidden" id="launcherBanner"><span id="launcherText"></span></div>
+  <div class="bn warn hidden" id="fwdBanner"><span id="fwdText"></span><span class="bn-act"><button class="btn small ghost" id="fwdLater"></button><button class="btn gold small" id="fwdBtn"></button></span></div>
+  <div class="bn hidden" id="gameBanner"><span id="gameBannerText"></span><span class="bn-act"><button class="btn small ghost" id="gameBannerMore"></button><button class="btn gold small" id="gameBannerBuy"></button></span></div>
 
   <main id="home" class="view home">
     <aside class="col">
       <section class="panel ev-box hidden" id="evBox"></section>
       <section class="panel news-panel">
-        <div class="h" data-t="news"></div>
+        <div class="h"><span data-t="news"></span><nav class="news-links" id="footLinks"></nav></div>
         <div id="news" class="news-list"></div>
       </section>
     </aside>
@@ -30,7 +35,7 @@
       <div id="announcements"></div>
       <div id="setup" class="setup hidden"></div>
       <div id="newsBox" class="panel fb">
-        <div class="h ch-head"><div class="ch-tabs" id="chTabs"><button class="ch-tab on" data-room="all" data-t="chAll"></button><button class="ch-tab" data-room="ru">RU</button><button class="ch-tab" data-room="en">EN</button><button class="ch-tab" data-room="dev" data-t="chDev"></button></div><button class="btn gold logs-btn" id="sendLogsHome" data-t="sendLogs"></button></div>
+        <div class="h ch-head"><div class="ch-tabs" id="chTabs"><button class="ch-tab on" data-room="all" data-t="chAll"></button><button class="ch-tab" data-room="ru">RU</button><button class="ch-tab" data-room="en">EN</button><button class="ch-tab" data-room="dev" data-t="chDev"></button></div><button class="btn small logs-btn" id="sendLogsHome" data-t="sendLogs"></button></div>
         <div class="ch-pane" id="chatPane">
           <div class="ch-msgs" id="chMsgs"></div>
           <div class="ch-login hidden" id="chLoginRow"><span data-t="chSignInToWrite"></span><button class="btn gold small" id="chIn2" data-t="chLogin"></button></div>
@@ -50,7 +55,6 @@
     </section>
 
     <aside class="col">
-      <section class="panel me-box hidden" id="meBox"></section>
       <section class="panel on-box" id="onBox">
         <div class="h"><span data-t="online"></span><span class="on-total" id="onTotal"></span></div>
         <div class="on-groups" id="onGroups"></div>
@@ -60,8 +64,6 @@
         <div class="h"><span data-t="components"></span><button class="h-link" id="allComps" data-t="allAddons"></button></div>
         <div id="components" class="addon-list"></div>
       </section>
-      <div class="upd-box hidden" id="updBox"><div class="upd-text" id="updText"></div><button class="btn gold small" id="updateBtn"></button></div>
-      <div class="ver-warn hidden" id="verWarn"></div>
     </aside>
   </main>
 
@@ -150,19 +152,22 @@
     </div>
   </main>
 
+  <!-- 1.5.0: the version on the left, the status (progress, warnings, offers) in the middle, Play on the right -->
   <footer>
-    <div class="status">
-      <div class="status-line"><span id="statusText"></span></div>
-      <div class="bar hidden" id="bar"><i id="barFill"></i></div>
-      <div class="meta" id="statusMeta"></div>
-    </div>
-    <nav class="foot-links" id="footLinks"></nav>
-    <button class="btn small hidden" id="cancel" data-t="cancel"></button>
     <div class="ver-pick">
       <div class="ver-list hidden" id="verList"></div>
       <button class="ver-btn" id="verBtn"></button>
     </div>
-    <button class="play" id="play"></button>
+    <div class="status">
+      <div class="status-line"><span id="statusText"></span></div>
+      <div class="bar hidden" id="bar"><i id="barFill"></i></div>
+      <div class="meta" id="statusMeta"></div>
+      <div class="ver-warn hidden" id="verWarn"></div>
+    </div>
+    <div class="upd-box hidden" id="luBox"><div class="upd-text" id="luText"></div><button class="btn gold small" id="luBtn"></button></div>
+    <div class="upd-box hidden" id="updBox"><div class="upd-text" id="updText"></div><button class="btn gold small" id="updateBtn"></button></div>
+    <button class="btn small hidden" id="cancel" data-t="cancel"></button>
+    <span class="plw" id="playWrap"><button class="play" id="play"></button></span>
   </footer>
 </div>
 <div class="pop hidden" id="pop" role="dialog"></div>

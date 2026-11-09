@@ -1056,6 +1056,22 @@ const T = {
   },
 };
 
+// 1.5.0: the D look's strings
+Object.assign(T.en, { setupHide: 'Hide', setupMore: 'More', launcherRestarts: 'restarts by itself', launcherGet: 'Download', launcherUpdatingTo: 'Updating the launcher to {v}…',
+  launcherAfter: 'then the signature check and a restart', chWaitingShort: 'signing in in the browser…', meRating: '1v1 rating · {r}',
+  lvAddonAsk: 'Watching needs the add-on “Watch running matches”. The launcher turns it on, starts the game and opens this match.' });
+Object.assign(T.ru, { setupHide: 'Скрыть', setupMore: 'Подробнее', launcherRestarts: 'перезапустится сам', launcherGet: 'Скачать', launcherUpdatingTo: 'Обновляю лаунчер до {v}…',
+  launcherAfter: 'затем проверка подписи и перезапуск', chWaitingShort: 'вход в браузере…', meRating: 'рейтинг 1v1 · {r}',
+  lvAddonAsk: 'Для просмотра нужно дополнение «Смотреть идущие матчи». Лаунчер включит его, запустит игру и сразу откроет этот матч.' });
+Object.assign(T.es, { setupHide: 'Ocultar', setupMore: 'Más', launcherRestarts: 'se reinicia solo', launcherGet: 'Descargar', launcherUpdatingTo: 'Actualizando el launcher a {v}…',
+  launcherAfter: 'luego la comprobación de la firma y el reinicio', chWaitingShort: 'iniciando sesión en el navegador…', meRating: 'rating 1v1 · {r}',
+  lvAddonAsk: 'Para ver hace falta el complemento «Watch running matches». El launcher lo activa, inicia el juego y abre esta partida.' });
+Object.assign(T.fr, { setupHide: 'Masquer', setupMore: 'Plus', launcherRestarts: 'redémarre tout seul', launcherGet: 'Télécharger', launcherUpdatingTo: 'Mise à jour du launcher vers {v}…',
+  launcherAfter: 'puis la vérification de la signature et le redémarrage', chWaitingShort: 'connexion dans le navigateur…', meRating: 'classement 1v1 · {r}',
+  lvAddonAsk: 'Pour regarder, il faut le module « Watch running matches ». Le launcher l’active, lance le jeu et ouvre cette partie.' });
+Object.assign(T.de, { setupHide: 'Ausblenden', setupMore: 'Mehr', launcherRestarts: 'startet von selbst neu', launcherGet: 'Herunterladen', launcherUpdatingTo: 'Launcher wird auf {v} aktualisiert…',
+  launcherAfter: 'danach Signaturprüfung und Neustart', chWaitingShort: 'Anmeldung im Browser…', meRating: '1v1-Wertung · {r}',
+  lvAddonAsk: 'Zum Zuschauen braucht es das Add-on „Watch running matches“. Der Launcher aktiviert es, startet das Spiel und öffnet dieses Match.' });
 let S = null;          // last status from Rust
 let lang = 'en';
 // the system's language (WebView2 takes the Windows display language): the first of ours among the preferred ones, else en
@@ -1144,6 +1160,21 @@ function renderEvents() {
 }
 setInterval(renderEvents, 60000);   // "in 25 min" goes on counting
 const avatar = (url, cls = '') => `<i class="av ${cls}"${url ? ` style="--av:url('${String(url).replace(/['"()\\\s<>&]/g, encodeURIComponent)}')"` : ''}></i>`;
+// 1.5.0: the D look's line icons (stroke = currentColor, sized by .ico)
+const ICO = {
+  steam: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="15" cy="9" r="3"/><circle cx="8" cy="16" r="2"/><path d="M3 13l5 3M12.5 10.5L9.5 14.5"/></svg>',
+  bars: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>',
+  out: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
+  upload: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/></svg>',
+  info: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+  enter: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5M10 17l5-5-5-5M15 12H3"/></svg>',
+  eye: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  door: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21h16M6 21V4h9v17M15 6h3v15M12 12h.01"/></svg>',
+  plus: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  crown: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/></svg>',
+  lock: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  x: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+};
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const open = url => url && invoke('open_url', { url }).catch(e => toast(e, true));
 // Windows long-path prefix from canonicalize() is noise for the player: \\?\G:\Steam → G:\Steam
@@ -1329,28 +1360,21 @@ function nickBind(el, steam, name, mention, noTag) {
 // without it the launcher_update of launcher.json links to the download page, as before.
 let LU = null;
 function renderLauncherBanner() {
-  const lu = S.launcher_update, v = LU ? LU.version : lu?.version, b = $('launcherBanner');
-  if (S.in_game_dir) {                      // the launcher sits in the game folder: say so first, it breaks the game
-    b.classList.remove('hidden'); b.classList.remove('link'); $('launcherBtn').classList.add('hidden');
-    $('launcherText').textContent = t('inGameDir'); b.onclick = null; return;
-  }
-  b.classList.toggle('hidden', !v);
-  if (!v) return;
-  // launcher.json already names a newer launcher and the updater has not found it yet (the mirrors copy a release a
-  // little later): ask again every minute, not every 15, so Update comes without a restart (owner 03.11.2026)
+  const lu = S.launcher_update, v = LU ? LU.version : lu?.version;
+  // the launcher sits in the game folder: a banner under the header, it breaks the game
+  $('launcherBanner').classList.toggle('hidden', !S.in_game_dir);
+  if (S.in_game_dir) $('launcherText').textContent = t('inGameDir');
+  // 1.5.0: a newer launcher is offered in the footer next to Play, as a newer Elite is; its download runs in the footer's bar
+  // (launcher_progress). launcher.json already names a newer launcher and the updater has not found it yet (the mirrors copy a
+  // release a little later): ask again every minute, not every 15, so Update comes without a restart (owner 03.11.2026)
   if (lu && (!LU || versionNewer(lu.version, LU.version))) launcherRetrySoon();
-  b.classList.toggle('link', !LU);
-  $('launcherBtn').classList.toggle('hidden', !LU || !!LU.installing);
-  if (LU) {
-    $('launcherText').textContent = LU.installing ? t('launcherUpdating', { p: LU.pct || '' }) : t('launcherNew', { v });
-    $('launcherBtn').textContent = t('launcherUpdateBtn');
-    $('launcherBtn').disabled = !!S.busy || !!S.game_running;
-    $('launcherBtn').onclick = launcherInstall;
-    b.onclick = null;
-  } else {
-    $('launcherText').textContent = L(lu.text) || t('launcherUpdate', { v });
-    b.onclick = () => open(lu.url);
-  }
+  const offer = !!v && !S.in_game_dir && !(LU && LU.installing);
+  $('luBox').classList.toggle('hidden', !offer);
+  if (!offer) return;
+  $('luText').innerHTML = `<b>${esc(t('launcherNew', { v }))}</b>` + (LU ? `<small>${esc(t('launcherRestarts'))}</small>` : '');
+  $('luBtn').textContent = t(LU ? 'launcherUpdateBtn' : 'launcherGet');
+  $('luBtn').disabled = !!LU && (!!S.busy || !!S.game_running);
+  $('luBtn').onclick = LU ? launcherInstall : () => open(lu.url);
 }
 // 1.4.2 (owner 03.11.2026): Relic's game servers checked at start (relic_probe); players with a bad way to them are OFFERED our
 // forwarding servers (add-on relay_fwd, off by default) - never turned on for them. "Not now" hides the offer for this month.
@@ -1479,21 +1503,33 @@ function render() {
   // links (siritos 02.11): no block of their own and no "All news on ModDB" under the news - icons in the footer, where
   // "Elite 3.2 is ready" and the game folder used to stand (the version is on the version button anyway)
   const links = cfg.links || [];
-  $('footLinks').innerHTML = links.map((l, i) => `<button class="foot-link" data-i="${i}" title="${esc(l.url || '')}">${linkIcon(l.url)}<span>${esc(L(l.title))}</span></button>`).join('');
+  // 1.5.0: icons in the news heading, the name in the tip
+  $('footLinks').innerHTML = links.map((l, i) => `<button class="foot-link" data-i="${i}" data-tip="${esc(L(l.title))}" aria-label="${esc(L(l.title))}">${linkIcon(l.url)}</button>`).join('');
   $('footLinks').querySelectorAll('button').forEach(b => b.onclick = () => open(links[+b.dataset.i].url));
 
   // game / steam missing → guide the player
   const setup = $('setup');
-  if (!S.game_found) {
+  let setupHidden = false; try { setupHidden = localStorage.getItem('setupHidden') === '1'; } catch (e) {}
+  // 1.5.0: "Hide" folds the block into a one-line banner under the header, Buy on Steam at its end; "More" opens it again
+  $('gameBanner').classList.toggle('hidden', S.game_found || !setupHidden);
+  if (!S.game_found && setupHidden) {
     const g = cfg.game || {};
-    setup.innerHTML = `<h2>${esc(t('noGame'))}</h2><p>${esc(L(g.requirements) || t('noGameText'))}</p><div class="row">
+    $('gameBannerText').innerHTML = `<b>${esc(t('noGame'))}</b> — ${esc(L(g.requirements) || t('noGameText'))}`;
+    $('gameBannerMore').textContent = t('setupMore'); $('gameBannerBuy').textContent = t('getGame');
+    $('gameBannerMore').onclick = () => { try { localStorage.removeItem('setupHidden'); } catch (e) {} render(); };
+    $('gameBannerBuy').onclick = () => open(g.store_url || 'steam://store/56400');
+    setup.classList.add('hidden');
+  } else if (!S.game_found) {
+    const g = cfg.game || {};
+    setup.innerHTML = `<div class="setup-h"><h2>${esc(t('noGame'))}</h2><button class="btn small ghost" id="setupHide">${esc(t('setupHide'))}</button></div><p>${esc(L(g.requirements) || t('noGameText'))}</p><div class="row">
       ${S.steam_found ? '' : `<button class="btn red" id="getSteam">${esc(t('getSteam'))}</button>`}
       <button class="btn gold" id="getGame">${esc(t('getGame'))}</button>
-      <button class="btn" id="pick">${esc(t('browse'))}</button><button class="btn" id="rescan">${esc(t('rescan'))}</button></div>`;
+      <button class="btn" id="pick">${esc(t('browse'))}</button><button class="btn ghost" id="rescan">${esc(t('rescan'))}</button></div>`;
     setup.classList.remove('hidden');
     $('getGame').onclick = () => open(g.store_url || 'steam://store/56400');
     if ($('getSteam')) $('getSteam').onclick = () => open('https://store.steampowered.com/about/');
     $('pick').onclick = pickDir; $('rescan').onclick = reload;
+    $('setupHide').onclick = () => { try { localStorage.setItem('setupHidden', '1'); } catch (e) {} render(); };
   } else setup.classList.add('hidden');
 
   // versions: a picker next to Play at the bottom; the main one marked, the installed one ticked, any other one switches in one click
@@ -1721,8 +1757,8 @@ listen('launcher_progress', e => {
   $('bar').classList.remove('hidden');
   $('barFill').style.width = pct + '%';
   $('statusText').classList.remove('err');
-  $('statusText').innerHTML = esc(t('launcherUpdating', { p: '' })) + ` <b>${esc(LU.pct)}</b>`;
-  $('statusMeta').textContent = total ? `${mb(done)} / ${mb(total)}` : mb(done);
+  $('statusText').innerHTML = esc(t('launcherUpdatingTo', { v: LU.version || '' })) + ` <b>${esc(LU.pct)}</b>`;
+  $('statusMeta').textContent = (total ? `${mb(done)} / ${mb(total)}` : mb(done)) + ' · ' + t('launcherAfter');
 });
 listen('news', () => { if (S) reload(); });
 listen('game_running', e => { if (!S) return; S.game_running = e.payload; render(); if (!e.payload) refresh();
@@ -2310,11 +2346,11 @@ function onRender() {
     : `<div class="on-skel" role="status" aria-label="${esc(t('onLoading'))}">${'<div><i></i><b></b></div>'.repeat(5)}</div>`;
   else {
     if (ON.err) html += `<div class="on-stale">${esc(t('onOffline'))}</div>`;   // the last list stays, marked as old
-    if (!look.length && !matches.length && !inL.length && !lrs.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
+    if (!look.length && !matches.length && !inL.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
     // looking for a game: avatar, name, race, mode (spectators marked); no time (owner 03.11.2026: not needed)
     if (look.length) html += group('look', t('onSearching'), look.length, look.map(p => `<div class="on-p">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${raceImg(p.race)}`
       + `<span class="tag">${esc(p.mode === 'watch' ? t('onWatcher') : p.mode)}</span></div>`).join(''));
-    if (lrs.length) html += lrOnGroup(group, lrs);   // the launcher rooms: as the searching list - the host, the mode, seats, Join
+    // 1.5.0: no rooms group here - who is in the rooms is on the Rooms tab (owner 08.11.2026)
     // the launcher open: avatar, 1v1 rating, a dot for menu / game
     if (inL.length) html += group('launcher', t('chMembers'), inL.length, [...inL].sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''))
       .map(p => `<div class="on-p on-u">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${onRt(onUser(p.steam).rating)}`
@@ -2340,7 +2376,6 @@ function onRender() {
   $('onGroups').querySelectorAll('.on-p').forEach(r => { const n = r.querySelector('.nm[data-steam]');
     if (n) nickBind(r.querySelector('.av'), n.dataset.steam, n.dataset.name); });
   $('onGroups').querySelectorAll('.lvw[data-m]').forEach(b => b.onclick = () => liveWatch(b.dataset.m, b.dataset.g === 'vanilla' ? 'vanilla' : 'elite'));
-  if (lrs.length) lrOnBind($('onGroups'));
   $('onGroups').querySelectorAll('.on-gh[data-g]').forEach(b => b.onclick = () => {
     ON.shut.has(b.dataset.g) ? ON.shut.delete(b.dataset.g) : ON.shut.add(b.dataset.g);
     try { localStorage.setItem('onShut', JSON.stringify([...ON.shut])); } catch (e) {}
@@ -2364,7 +2399,7 @@ async function liveWatch(id, game) {
     if (!c || !c.enabled || (game === 'vanilla' && !c.vanilla_ok)) {
       // the add-on is off: with the game closed the launcher turns it on (it comes with the start), else restart with it
       if (!c || (game === 'vanilla' && !c.vanilla_ok) || p.running) { rjModal(t('lvAsk'), [t('lvAddonOff')]); return; }
-      const ok = await askBox(t('lvAsk'), [t('lvAddonOff')], [{ label: t('lvTurnOn'), cls: 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
+      const ok = await askBox(t('lvAsk'), [t('lvAddonAsk')], [{ label: t('lvTurnOn'), cls: 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
       if (!ok) return;
       await invoke('set_component', { id: c.id, on: true }); await reload().catch(() => {});
       p = { running: false, games: [] };
@@ -2467,41 +2502,42 @@ function chShowRoom() {
   if (CH.room !== 'dev') { CH.chatRoom = CH.room; CH.unread[chKey(CH.room)] = 0; chRender(true); if (!CH.msgs[chKey(CH.room)]) chLoad(chKey(CH.room)); }
   chUnread(); FB.open = CH.room === 'dev'; fbWatch();
 }
-// the card above the news: avatar, name, 1v1 rating and games of the season (the stream's me); signed out - the Steam button
+// 1.5.0: the profile is a plate in the header (the online dot, the name, the 1v1 rating); a click opens its menu - the avatar,
+// the name with the sign-out icon on its line, the rating and the season's games, my stats, my Steam profile. Signed out - the
+// Steam button in the header; waiting for the browser - a line and Cancel.
 function chMe() {
   diagNameFromProfile();
-  const me = CH.me && CH.me.signed_in ? CH.me : null, box = $('meBox');
-  box.classList.toggle('hidden', !CH.me || CH.me.configured === false);
-  box.classList.toggle('out', !me);
+  const me = CH.me && CH.me.signed_in ? CH.me : null, plate = $('mePlate'), box = $('meBox');
+  $('hdrMe').classList.toggle('hidden', !CH.me || CH.me.configured === false);
   if (me) {
     const p = CH.prof || {}, st = p.stats;
     const rating = p.rating || (LIVE.users[me.steam] || {}).rating;
-    // no ladder place (#N): the server would build the whole season board for one player (plan, decision 4)
-    const line = rating ? `<b>${Number(rating) | 0}</b> 1v1` : '';
     const games = !st ? '' : st.games ? `<div class="me-st" title="${esc(st.wins + ' – ' + st.losses)}">${esc(t('prGames', { n: st.games, pct: Math.round(100 * st.wins / st.games) }))}</div>`
       : `<div class="me-st">${esc(t('prNoGames'))}</div>`;
-    // the name and the sign-out icon on one line, everything under the name on the same left edge
-    box.innerHTML = avatar(me.avatar, 'me-av')
-      + `<div class="me-info"><div class="me-top"><button class="nm" id="meName" title="${esc(t('chSignedIn', { name: me.name }))}">${esc(me.name || me.steam)}</button>`
-      // my stats (my dossier on our stats page) next to the sign-out (siritos 02.11: where the stats link went)
-      + `<button class="me-out me-stats" id="meStats" title="${esc(t('myStats'))}" aria-label="${esc(t('myStats'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>`
-      + `<button class="me-out" id="chOut" title="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}"><svg viewBox="0 0 24 24" aria-hidden="true">`
-      + '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button></div>'
-      + (line ? `<div class="me-rt">${line}</div>` : '') + games + '</div>';
-    // my own name and avatar: the menu (no "mention": that is me)
-    nickBind($('meName'), me.steam, ''); nickBind(box.querySelector('.me-av'), me.steam, '');
-    $('chOut').onclick = chLogout;
-    $('meStats').onclick = () => open((LIVE.host || 'https://dow2.fintebtc.de') + '/stats/?q=' + encodeURIComponent(me.steam) + '&lang=' + encodeURIComponent(lang));
+    plate.innerHTML = `<button class="me-chip" id="meChip" aria-haspopup="menu" aria-expanded="${!box.classList.contains('hidden')}"><i class="me-dot"></i>`
+      + `<span class="me-n">${esc(me.name || me.steam)}</span>${rating ? `<span class="me-r">${Number(rating) | 0}</span>` : ''}<b class="chev"></b></button>`;
+    box.innerHTML = `<div class="me-head">${avatar(me.avatar, 'me-av')}<div class="me-info"><div class="me-top"><span class="me-name">${esc(me.name || me.steam)}</span>`
+      + `<button class="me-out" id="chOut" data-tip="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}">${ICO.out}</button></div>`
+      + (rating ? `<div class="me-rt">${esc(t('meRating', { r: Number(rating) | 0 }))}</div>` : '') + '</div></div>' + games
+      + `<button class="me-item" id="meStats" role="menuitem">${ICO.bars}<span>${esc(t('myStats'))}</span></button>`
+      + `<button class="me-item" id="meSteam" role="menuitem">${ICO.steam}<span>${esc(t('nickSteam'))}</span></button>`;
+    $('meChip').onclick = e => { e.stopPropagation(); box.classList.toggle('hidden'); $('meChip').setAttribute('aria-expanded', String(!box.classList.contains('hidden'))); };
+    $('chOut').onclick = () => { box.classList.add('hidden'); chLogout(); };
+    $('meStats').onclick = () => { box.classList.add('hidden'); open((LIVE.host || 'https://dow2.fintebtc.de') + '/stats/?q=' + encodeURIComponent(me.steam) + '&lang=' + encodeURIComponent(lang)); };
+    $('meSteam').onclick = () => { box.classList.add('hidden'); open('https://steamcommunity.com/profiles/' + me.steam); };
   } else {
-    // waiting for the browser: the button stays live (a new click opens Steam again), Cancel stops the wait
-    box.innerHTML = `<div class="me-note">${esc(t(CH.waiting ? 'chWaiting' : 'prNote'))}</div><div class="me-act"><button class="btn gold small" id="chIn">${esc(CH.me && CH.me.local_name ? t('chLoginAs', { name: CH.me.local_name }) : t('chLogin'))}</button>`
-      + (CH.waiting ? `<button class="me-cancel" id="chCancel">${esc(t('chCancel'))}</button>` : '') + '</div>';
-    $('chIn').onclick = chLogin;
+    box.classList.add('hidden'); box.innerHTML = '';
+    // waiting for the browser: a line and Cancel (a new click on the chat's button opens Steam again)
+    plate.innerHTML = CH.waiting ? `<span class="me-wait">${esc(t('chWaitingShort'))}</span><button class="btn small ghost" id="chCancel">${esc(t('chCancel'))}</button>`
+      : `<button class="btn gold small" id="chIn">${ICO.steam}${esc(CH.me && CH.me.local_name ? t('chLoginAs', { name: CH.me.local_name }) : t('chLogin'))}</button>`;
+    if ($('chIn')) $('chIn').onclick = chLogin;
     if ($('chCancel')) $('chCancel').onclick = () => { invoke('c_login_cancel').catch(() => {}); CH.waiting = false; chMe(); };
   }
   $('chLoginRow').classList.toggle('hidden', !!me);
   $('chSendRow').classList.toggle('hidden', !me);
 }
+// a click anywhere else closes the profile menu
+document.addEventListener('click', e => { const b = $('meBox'); if (b && !b.classList.contains('hidden') && !e.target.closest('#hdrMe')) { b.classList.add('hidden'); const c = $('meChip'); if (c) c.setAttribute('aria-expanded', 'false'); } });
 async function chLogin() {
   // the Steam account of this computer first: no browser (the Steam page does not open everywhere)
   let r = null;
