@@ -40,7 +40,7 @@ const BUILTIN_MIRRORS: &str = match option_env!("ELITE_MIRRORS") { Some(v) => v,
 /// Public key of the launcher self-update (tauri-plugin-updater): only updates signed with its private half
 /// (the TAURI_SIGNING_PRIVATE_KEY secret, CI only) are installed. A new key pair means a new `keys/updater.pub`.
 const UPDATER_PUBKEY: &str = include_str!("../../keys/updater.pub");
-/// The last resort of the self-update (1.3.16: GitHub Releases are the release, the mirrors copy them).
+/// The self-update's first source (1.5.1; the last one 1.3.16 - 1.5.0): GitHub Releases are the release, the mirrors copy them.
 const GITHUB_UPDATER: &str = "https://github.com/dow2-launcher/Dow2-elite-launcher/releases/latest/download/updater.json";
 const DEFAULT_CACHE_MB: u64 = 6144;
 
@@ -564,15 +564,52 @@ async fn launcher_check(app: AppHandle) -> Option<Value> {
     if !self_update_supported() {
         return None;
     }
-    // where to ask (02.11): our hosts in the order that answers best from here (each one's updater.json links its own
-    // files), GitHub Releases last; a build without our hosts keeps the endpoints of tauri.conf.json
-    let mut urls: Vec<tauri::Url> = fb_hosts().iter().filter_map(|h| tauri::Url::parse(&format!("{h}/elite/dl/updater.json")).ok()).collect();
-    urls.extend(tauri::Url::parse(GITHUB_UPDATER).ok());
-    let updater = if urls.len() > 1 { app.updater_builder().endpoints(urls).ok()?.build().ok()? } else { app.updater().ok()? };
-    let upd = updater.check().await.ok()??;
+    // 1.5.1 (owner 09.11.2026): the launcher comes from GitHub Releases first - its download counters are the launcher's
+    // statistics; our hosts after it. GitHub not answering from here in 8 s (blocked in places): our hosts only, as before.
+    let gh = tauri::async_runtime::spawn_blocking(github_reachable).await.unwrap_or(false);
+    let upd = launcher_updater(&app, gh)?.check().await.ok()??;
     let info = json!({"version": upd.version, "notes": upd.body});
     *app.state::<App>().launcher_update.lock().unwrap() = Some(upd);
     Some(info)
+}
+
+/// Does GitHub Releases answer from here: the latest updater.json in 8 s (a redirect to githubusercontent, followed)?
+fn github_reachable() -> bool {
+    HTTP.get(GITHUB_UPDATER).timeout(Duration::from_secs(8)).call().map(|r| r.status() == 200).unwrap_or(false)
+}
+/// The self-update's endpoints: GitHub Releases first when it answers, then our hosts in the order that answers best from
+/// here (each one's updater.json links its own copies of the files). A build without our hosts keeps tauri.conf.json's.
+fn launcher_updater(app: &AppHandle, github: bool) -> Option<tauri_plugin_updater::Updater> {
+    let mut urls: Vec<tauri::Url> = Vec::new();
+    if github { urls.extend(tauri::Url::parse(GITHUB_UPDATER).ok()); }
+    urls.extend(fb_hosts().iter().filter_map(|h| tauri::Url::parse(&format!("{h}/elite/dl/updater.json")).ok()));
+    if urls.is_empty() { return app.updater().ok(); }
+    app.updater_builder().endpoints(urls).ok()?.build().ok()
+}
+/// The launcher's download progress for the window (the footer's bar), counted from 0.
+fn launcher_progress(app: &AppHandle) -> impl FnMut(usize, Option<u64>) + Send + 'static {
+    let h = app.clone();
+    let mut done = 0u64;
+    move |n: usize, total: Option<u64>| {
+        done += n as u64;
+        let _ = h.emit("launcher_progress", json!({"done": done, "total": total}));
+    }
+}
+/// The new launcher's file from where its updater.json points; from GitHub and failing there (blocked, cut half-way):
+/// again from our hosts, whose updater.json links their own copy. The signature is checked by the plugin either way.
+async fn launcher_download(app: &AppHandle, upd: tauri_plugin_updater::Update) -> Result<(tauri_plugin_updater::Update, Vec<u8>), String> {
+    let from_gh = upd.download_url.host_str().is_some_and(|h| h.ends_with("github.com") || h.ends_with("githubusercontent.com"));
+    match upd.download(launcher_progress(app), || {}).await {
+        Ok(bytes) => Ok((upd, bytes)),
+        Err(e) if from_gh => {
+            c_log(&format!("launcher update: GitHub failed ({e}), from our hosts"));
+            let alt = launcher_updater(app, false).ok_or_else(|| e.to_string())?.check().await.map_err(|e| e.to_string())?
+                .ok_or("no launcher update on our hosts")?;
+            let bytes = alt.download(launcher_progress(app), || {}).await.map_err(|e| e.to_string())?;
+            Ok((alt, bytes))
+        }
+        Err(e) => Err(e.to_string()),
+    }
 }
 
 /// Download the new launcher, check its signature, install it and start it. On Windows the installer
@@ -581,19 +618,13 @@ async fn launcher_check(app: AppHandle) -> Option<Value> {
 async fn launcher_install(app: AppHandle) -> Result<(), String> {
     ensure_game_closed(&app.state::<App>())?;   // the installer closes the launcher; never in the middle of a game
     let upd = app.state::<App>().launcher_update.lock().unwrap().clone().ok_or("no launcher update found")?;
-    let h = app.clone();
-    let mut done = 0u64;
-    let progress = move |n: usize, total: Option<u64>| {
-        done += n as u64;
-        let _ = h.emit("launcher_progress", json!({"done": done, "total": total}));
-    };
+    let (upd, bytes) = launcher_download(&app, upd).await?;
     #[cfg(windows)]
     {
         // The NSIS installer checks first thing that the launcher is closed, and gives up with "Failed to close Elite
         // Launcher" when it catches it half-way through closing (siritos 29.10: the plugin starts the installer and only
         // then exits). So: download (the signature is checked there), then the installer is started 3 s after this
         // process is gone, with the plugin's own arguments (passive, update, restart). The plugin's way if that fails.
-        let bytes = upd.download(progress, || {}).await.map_err(|e| e.to_string())?;
         let path = std::env::temp_dir().join(format!("EliteLauncher-{}-setup.exe", upd.version));
         if std::fs::write(&path, &bytes).is_ok() {
             use std::os::windows::process::CommandExt;
@@ -609,7 +640,7 @@ async fn launcher_install(app: AppHandle) -> Result<(), String> {
     }
     #[cfg(not(windows))]
     {
-        upd.download_and_install(progress, || {}).await.map_err(|e| e.to_string())?;
+        upd.install(bytes).map_err(|e| e.to_string())?;
         app.restart()
     }
 }
