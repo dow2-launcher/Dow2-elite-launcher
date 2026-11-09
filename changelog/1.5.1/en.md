@@ -1,3 +1,3 @@
 - The launcher's own update now comes from GitHub Releases first; when GitHub does not answer from your network (8 s), or the download breaks off there, the launcher takes it from our servers as before. Elite and the add-ons still come from our servers.
 - The Rooms tab is now right after Home, before Add-ons.
-- Rooms: the cards no narrower than needed for the players' names: 1 column in a narrow window, 2 in a middle one, 3 from about 1680 px wide, 4 on 2560, 5 on an ultrawide one.
+- Rooms: the cards no narrower than needed for the players' names: 1 column in a small window (up to about 1280 px wide), 2 in a middle one, 3 on 1920, 4 on 2560, 5 on an ultrawide one.
