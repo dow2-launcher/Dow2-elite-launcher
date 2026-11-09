@@ -1,0 +1,2 @@
+- The Rooms tab is now right after Home, before Add-ons.
+- Rooms: at most 3 cards in a row, so the players' names are not cut on a big window: 1 column in a narrow window, 2 in a middle one, 3 from about 1680 px wide.
