@@ -1,7 +1,6 @@
 /* ---------- connection test (nettest.js, 1.4.16): the header button and its window ---------- */
 /* 1.4.23: the bare signal icon right of the gear, the size of the gear button; its colour = the last check, grey - none yet */
 .hdr-net{align-items:center;justify-content:center}
-.hdr-net:hover,.hdr-net:focus-visible{border-color:var(--line2);background:var(--panel2)}
 .hdr-net svg{width:19px;height:19px;fill:none;stroke-width:2.4;stroke-linecap:round}
 .hdr-net.run svg{stroke:var(--gold2);animation:ntpulse 1s ease-in-out infinite}
 .nt-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--line2);flex:none}

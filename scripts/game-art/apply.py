@@ -19,6 +19,7 @@ CSS_ICON = {
     'check': 'input[type=checkbox]:not([role=switch])::before{width:12px;height:12px;clip-path:none;background:url(icons/check.png) center/contain no-repeat}',
     'chevron': 'select{background-image:url(icons/chevron.png),linear-gradient(#112324,#081314);background-position:calc(100% - 10px) 50%,0 0;background-size:12px 12px,100% 100%}'
                '\n.ver-btn::after,.me-chip .chev{content:"";width:12px;height:12px;border:0;transform:none;background:url(icons/chevron.png) center/contain no-repeat}',
+    'avatar': ':root{--av-def:url(icons/avatar.png)}',
     'signal': '.hdr-net svg{display:none}\n.hdr-net::before{content:"";width:20px;height:20px;background:url(icons/signal.png) center/contain no-repeat}',
     'door': '.rnb[data-r="open"] svg{display:none}\n.rnb[data-r="open"]::before{content:"";width:16px;height:16px;background:url(icons/door.png) center/contain no-repeat}',
     'eye': '.rnb[data-r="live"] svg{display:none}\n.rnb[data-r="live"]::before{content:"";width:16px;height:16px;background:url(icons/eye.png) center/contain no-repeat}',

@@ -31,3 +31,4 @@ Every picture of the D look, from `scripts/game-art/slots.json`. The stand-ins a
 | `upload` | icon | `icons/upload.png` | 32x32 |  | line icon | Send logs | any "send" / "upload" |
 | `door` | icon | `icons/door.png` | 32x32 |  | line icon | Open lobbies (the Rooms panel) | Custom Games |
 | `signal` | icon | `icons/signal.png` | 32x32 |  | signal bars drawn in SVG | the connection check button | the connection quality bars |
+| `avatar` | icon | `icons/avatar.png` | 64x64 |  | a winged skull drawn in SVG | a player without a Steam avatar (chat, Online, lobbies) | a winged skull of the menus / loading screens |

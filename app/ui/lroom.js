@@ -210,20 +210,25 @@ function lrNoteTxt(n) {
   const s = t('n_' + n.k, { who, why, secs: n.secs || '', who2: who ? ': ' + who : '' });
   return s === 'n_' + n.k ? '' : s;
 }
-// 1.5.0 (D): race and hero as two drop-downs under my name in my slot (no army block under the teams); the hero's portrait
-// in front of its list
+// 1.5.0 (D): race and hero as two drop-downs under my name (no army block under the teams), with their pictures: a button
+// with the current one, the list under it (the race's icon on a dark square, the hero's portrait). The room is not redrawn
+// while one is open (LR.drop), a click outside closes it.
+function lrDrop(id, cur, items) {
+  const c = items.find(x => String(x.v) === String(cur)) || items[0], open = LR.drop === id;
+  return `<span class="ldd${open ? ' open' : ''}"><button class="ldd-b" id="${id}" aria-haspopup="listbox" aria-expanded="${open}" aria-label="${esc(t(id === 'lrRace' ? 'lrRace' : 'lrHero'))}">${c.pic}<span>${esc(c.label)}</span><i class="chev"></i></button>`
+    + (open ? `<div class="ldd-l" role="listbox">${items.map(x => `<button class="ldd-i${String(x.v) === String(c.v) ? ' on' : ''}" role="option" aria-selected="${String(x.v) === String(c.v)}" data-dd="${id}" data-v="${esc(String(x.v))}">${x.pic}<span>${esc(x.label)}</span></button>`).join('')}</div>` : '')
+    + '</span>';
+}
+const lrRaceBox = k => `<span class="rbox">${raceImg(k)}</span>`;
 function lrRaceSel(r, me, cat) {
   const order = (cat && cat.race_order) || [];
-  const cur = me.race || 'random';
-  const opts = ['random', ...order].map(k => `<option value="${k}"${k === cur ? ' selected' : ''}>${esc(t('race_' + k))}</option>`).join('');
-  return `<span class="lr-sel">${raceImg(cur)}<select id="lrRace" aria-label="${esc(t('lrRace'))}">${opts}</select></span>`;
+  return lrDrop('lrRace', me.race || 'random', ['random', ...order].map(k => ({ v: k, pic: lrRaceBox(k), label: t('race_' + k) })));
 }
 function lrHeroSel(r, me, cat) {
   if (!me.race || me.race === 'random') return '';
-  const names = ((cat && cat.heroes) || {})[me.race] || [], A = lrAssets(), cur = me.hero >= 0 && names[me.hero] ? me.hero : -1;
-  const pic = cur >= 0 ? `<img class="lr-hp" src="${A}heroes/${me.race}_${cur}.png" alt="" data-fb="${A}races/${me.race}.png">` : '<i class="race-rnd lr-hq">?</i>';
-  return `<span class="lr-sel">${pic}<select id="lrHero" aria-label="${esc(t('lrHero'))}">${names.map((n, i) => `<option value="${i}"${i === cur ? ' selected' : ''}>${esc(lrHeroName(n))}</option>`).join('')}`
-    + `<option value="-1"${cur < 0 ? ' selected' : ''}>${esc(t('lrRandomHero'))}</option></select></span>`;
+  const names = ((cat && cat.heroes) || {})[me.race] || [], A = lrAssets();
+  const pic = i => i >= 0 ? `<span class="hbox"><img src="${A}heroes/${me.race}_${i}.png" alt="" data-fb="${A}races/${me.race}.png"></span>` : '<span class="hbox q">?</span>';
+  return lrDrop('lrHero', me.hero >= 0 && names[me.hero] ? me.hero : -1, [...names.map((n, i) => ({ v: i, pic: pic(i), label: lrHeroName(n) })), { v: -1, pic: pic(-1), label: t('lrRandomHero') }]);
 }
 function lrSlot(r, s, i, cat) {
   const me = lrMe(), owner = r.owner === me, A = lrAssets(), open = r.state === 'lobby' || r.state === 'countdown';
@@ -286,7 +291,7 @@ function lrRoomHtml(r) {
   const shownMap = la.map || r.map;
   let mapSel = `<div class="lr-mapname">${esc(la.map ? t('lrMatchMap', { name: la.map_name || la.map }) : ticked.map(m => m.name).join(', '))}</div>`;
   if (edit && maps.length) {
-    mapSel += `<button class="btn small lr-maps-btn" id="lrMapsBtn" aria-expanded="${!!LR.mapsOpen}">${esc(t('lrMapsPick'))} · ${ticked.length}</button>`;
+    mapSel += `<button class="btn small lr-maps-btn" id="lrMapsBtn" aria-expanded="${!!LR.mapsOpen}"${LR.mapsSaving ? ' disabled' : ''}>${LR.mapsSaving ? `<span class="spin"></span>${esc(t('lrSaving'))}` : `${esc(t('lrMapsPick'))} · ${ticked.length}`}</button>`;
     if (LR.mapsOpen) {
       const on = new Set(LR.mapsEdit || ticked.map(m => m.key));
       mapSel += `<div class="lr-maps"><input id="lrMapsFind" placeholder="${esc(t('lrMapsFilter'))}" value="${esc(LR.mapsFind || '')}">`
@@ -333,12 +338,13 @@ function lrCardHtml(x) {
     : !open ? `<span class="tag playing">${esc(t('lrPlaying'))}</span>`
     : free <= 0 ? `<span class="tag">${esc(t('lrFull'))}</span>`
     : `<button class="rjoin lr-join${vok ? ' go' : ''}" data-id="${esc(x.id)}" data-tip="${esc(t('rJoinTip', { name: x.name }))}" aria-label="${esc(t('rJoinTip', { name: x.name }))}">${ico('enter')}</button>`;
-  const vt = x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : !vok ? `<span class="tag beta">Elite ${esc(x.ver)}</span>` : '';
+  // the room's game on every card: vanilla, or its Elite version (one look; a card of another version is dimmed)
+  const vt = x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : `<span class="tag ver">Elite ${esc(x.ver || '')}</span>`;
   return `<div class="room lr-card${vok ? '' : ' dim'}" data-kind="lr" data-mode="${esc(x.mode)}" data-vok="${vok ? 1 : 0}" data-van="${x.game === 'vanilla' ? 1 : 0}" data-free="${free > 0 && open ? 1 : 0}">`
     + `<div class="mmap" style="background-image:url('${A}maps/${encodeURIComponent(x.map)}.png')"><span>${esc(x.map_name || x.map)}</span></div><div class="rb">`
     + `<div class="rh"><span class="tag lr">${esc(t('rTagLr'))}</span><span class="rn" title="${esc(x.name)}">${esc(x.name)}</span><span class="tag">${esc(x.mode)}</span></div>`
     + `<div class="lr-names">${(x.names || []).map(esc).join(', ')}</div>`
-    + `<div class="rfoot2"><span class="rhost">${esc(t('rHost', { name: x.owner_name || '' }))}</span>${vt}<span class="tag rcount">${x.players}/${x.cap}</span>${act}</div></div></div>`;
+    + `<div class="rfoot2">${vt}<span class="tag rcount">${x.players}/${x.cap}</span>${act}</div></div></div>`;
 }
 function lrListHtml() { return LR.list.map(lrCardHtml).join(''); }
 const segf = (key, items, cur) => `<div class="seg" role="radiogroup">${items.map(([v, l]) => `<button role="radio" aria-checked="${v === cur}" class="${v === cur ? 'on' : ''}" data-f="${key}" data-v="${esc(v)}">${esc(l)}</button>`).join('')}</div>`;
@@ -393,6 +399,7 @@ function rLiveRender() {
   }).join('') || `<div class="note">${esc(t('rLiveNone'))}</div>`;
   box.querySelectorAll('.lvw[data-m]').forEach(b => b.onclick = () => liveWatch(b.dataset.m, b.dataset.g === 'vanilla' ? 'vanilla' : 'elite'));
   box.querySelectorAll('.rp .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name));
+  tipCut(box);
   $('rLiveN').textContent = (LIVE.ingame || []).length ? String((LIVE.ingame || []).length) : '';
   $('rLiveN2').textContent = $('rLiveN').textContent;
 }
@@ -425,8 +432,9 @@ function lrRender() {
   if (!$('rFlt').innerHTML) rFilters();
   list.innerHTML = lrListHtml();
   list.querySelectorAll('.lr-join').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id }));
+  tipCut(list);
   rApplyFilter(); rLiveRender(); lrPlay();
-  if (((LR.pop && LR.mapsOpen) || Date.now() < (LR.holdUntil || 0)) && !LR.popForce) return;   // a drop-down / the map list in use
+  if (((LR.pop && LR.mapsOpen) || LR.drop || Date.now() < (LR.holdUntil || 0)) && !LR.popForce) return;   // a drop-down / the map list in use
   LR.popForce = 0;
   if (r && RV.view === 'mine') {
     const focus = document.activeElement && document.activeElement.id;
@@ -450,15 +458,25 @@ function lrBind(r) {
   $('lrLeaveBtn').onclick = async () => { const id = r.id; LR.room = null; await lrCall('leave'); invoke('lroom_launch_cancel', { room: id }).catch(() => {}); lrLoad(); };
   if ($('lrReadyTick')) $('lrReadyTick').onclick = () => { const me = r.slots.find(s => s && s.steam === lrMe()); lrCall('ready', { on: !(me && me.ready) }); };
   const hold = el => { if (!el) return; el.onmousedown = el.onkeydown = () => lrHold(true); };
-  if ($('lrRace')) { hold($('lrRace')); $('lrRace').onchange = e => { lrHold(false); lrCall('army', { race: e.target.value, hero: -1 }); }; }
-  if ($('lrHero')) { hold($('lrHero')); $('lrHero').onchange = e => { lrHold(false); const me = r.slots.find(s => s && s.steam === lrMe()); lrCall('army', { race: me.race, hero: +e.target.value }); }; }
+  box.querySelectorAll('.ldd-b').forEach(b => b.onclick = e => { e.stopPropagation(); LR.drop = LR.drop === b.id ? null : b.id; LR.popForce = 1; lrRender(); });
+  box.querySelectorAll('.ldd-i').forEach(b => b.onclick = e => {
+    e.stopPropagation(); LR.drop = null; LR.popForce = 1;
+    const me = r.slots.find(s => s && s.steam === lrMe());
+    if (b.dataset.dd === 'lrRace') lrCall('army', { race: b.dataset.v, hero: -1 }); else lrCall('army', { race: me.race, hero: +b.dataset.v });
+    lrRender();
+  });
   box.querySelectorAll('.lr-sit').forEach(b => b.onclick = () => lrCall('seat', { slot: +b.dataset.slot }));
   box.querySelectorAll('.lr-kick').forEach(b => b.onclick = () => lrCall('kick', { steam: b.dataset.kick }));
   if ($('lrMapsBtn')) $('lrMapsBtn').onclick = () => { LR.mapsOpen = !LR.mapsOpen; LR.mapsEdit = null; LR.mapsFind = ''; LR.pop = LR.mapsOpen ? 1 : null; LR.popForce = 1; lrRender(); };
   if ($('lrMapsFind')) { $('lrMapsFind').oninput = e => { LR.mapsFind = e.target.value; LR.popForce = 1; lrRender(); const f = $('lrMapsFind'); if (f) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); } }; }
   box.querySelectorAll('.lr-maps input[data-map]').forEach(c => c.onchange = () => {
     const cur = new Set(LR.mapsEdit || (r.maps || []).map(m => m.key)); c.checked ? cur.add(c.dataset.map) : cur.delete(c.dataset.map); LR.mapsEdit = [...cur]; });
-  if ($('lrMapsDone')) $('lrMapsDone').onclick = () => { const ms = LR.mapsEdit; LR.mapsOpen = false; LR.pop = null; LR.mapsEdit = null; if (ms && ms.length) lrCall('conf', { maps: ms }); else lrRender(); };
+  // Done closes the list at once; the change goes to the server - the button says so until the room comes back
+  if ($('lrMapsDone')) $('lrMapsDone').onclick = () => {
+    const ms = LR.mapsEdit; LR.mapsOpen = false; LR.pop = null; LR.mapsEdit = null; LR.popForce = 1;
+    if (ms && ms.length) { LR.mapsSaving = true; lrCall('conf', { maps: ms }).finally(() => { LR.mapsSaving = false; LR.popForce = 1; lrRender(); }); }
+    lrRender();
+  };
   box.querySelectorAll('select[data-opt]').forEach(sel => { hold(sel);
     sel.onchange = () => { lrHold(false); const v = sel.dataset.opt === 'vp' ? +sel.value : sel.value; lrCall('conf', { opts: { [sel.dataset.opt]: v } }); }; });
   if ($('lrModeSel')) { hold($('lrModeSel')); $('lrModeSel').onchange = e => { lrHold(false); lrCall('conf', { mode: e.target.value }); }; }
@@ -483,10 +501,12 @@ function lrPlay() {
   const r = LR.room && lrMine(LR.room) ? LR.room : null;
   wrap.removeAttribute('data-tip'); cf.classList.add('hidden'); play.classList.remove('lb', 'gl');
   if ($('lrBackLnk')) $('statusText').innerHTML = '';                       // my own line from the last time
+  // out of the lobby (left it, removed, gone): Play back as the usual one - render sets it (and comes back here with no room)
+  if (!r && play.dataset.lb) { delete play.dataset.lb; render(); return; }
   if (!r || S.busy || r.state === 'playing') return;                        // the usual Play (render)
   const me = lrMe(), owner = r.owner === me, slots = r.slots || [], cap = slots.length;
   const nReady = slots.filter(s => s && s.ready).length;
-  play.classList.add('lb'); play.onclick = null;
+  play.classList.add('lb'); play.dataset.lb = '1'; play.onclick = null;
   if (r.state === 'launching') { play.textContent = t('playLaunching'); play.disabled = true; cf.classList.remove('hidden'); cf.onclick = () => { lrCall('cancel'); invoke('lroom_launch_cancel', { room: r.id }).catch(() => {}); }; }
   else if (r.state === 'countdown') {
     const n = Math.max(0, Math.ceil((r.cd_end - (Date.now() + LR.skew)) / 1000));
@@ -520,6 +540,7 @@ async function lrVerAsk(name) {
   const ok = await askBox(t('verAskT'), [t('verAskText', { v: name }), t('verAskWho', { who: others.join(', ') })], [{ label: t('verAskGo', { v: name }), cls: 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
   return !!ok;
 }
+document.addEventListener('click', e => { if (LR.drop && !e.target.closest('.ldd')) { LR.drop = null; LR.popForce = 1; lrRender(); } });
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => { if (!$('rooms').classList.contains('hidden')) lrLoad(); }));
 lrLoad();
 setTimeout(lrLoad, 4000);   // signed in by itself a moment after the start (app.js chInit)
@@ -563,7 +584,7 @@ async function lrJoinHome(id) {
 }
 
 // 1.5.0 (D): the Rooms tab's panel, the one list, the running matches, Play as the lobby's button
-Object.assign(T.en, { rOpen: 'Open lobbies', rLive: 'Running matches', rTagLr: 'launcher', rLegLr: 'a lobby in the launcher: the match on our servers, the start for everyone at once.',
+Object.assign(T.en, { lrSaving: 'Saving…', rOpen: 'Open lobbies', rLive: 'Running matches', rTagLr: 'launcher', rLegLr: 'a lobby in the launcher: the match on our servers, the start for everyone at once.',
   rLegGame: 'Unmarked - a lobby in the game: the launcher starts the game and joins it by itself.', rLiveNote: 'Only the matches on our servers: from the launcher\'s lobbies and from Find a Game. Watch - the game opens the match as a replay, a few minutes behind.',
   rFltWhere: 'Where', rFltAll: 'All', rFltLr: 'In the launcher', rFltGame: 'In the game', rFltVer: 'Version', rFltMine: 'Mine', rFltFree: 'free seats', rFltFrom: 'From', rFltFromLr: 'Launcher lobbies',
   rNone: 'Nobody is setting up a game right now - create your lobby and everybody sees it here.', rNoneFilter: 'Nothing under these filters.', rLiveNone: 'No matches on our servers right now.',
@@ -575,7 +596,7 @@ Object.assign(T.en, { rOpen: 'Open lobbies', rLive: 'Running matches', rTagLr: '
   tipHost: 'All ready - the host starts the match', tipWait: 'Waiting for: {who}', whoYou: 'you', whoFree: 'free seats', inLobby: 'You are in the lobby “{name}”',
   verAskT: 'Change the lobby\'s version?', verAskText: 'The lobby moves to {v}.', verAskWho: '{who} have another version: their "ready" goes, they switch to it or leave the lobby.', verAskGo: 'Change to {v}',
   lrLeave: 'Leave the lobby', lrKick: 'Remove from the lobby', lrSit: 'Sit here' });
-Object.assign(T.ru, { rOpen: 'Открытые лобби', rLive: 'Идущие матчи', rTagLr: 'лаунчер', rLegLr: 'лобби в лаунчере: матч на наших серверах, старт у всех сразу.',
+Object.assign(T.ru, { lrSaving: 'Сохраняю…', rOpen: 'Открытые лобби', rLive: 'Идущие матчи', rTagLr: 'лаунчер', rLegLr: 'лобби в лаунчере: матч на наших серверах, старт у всех сразу.',
   rLegGame: 'Без пометки — лобби в игре: лаунчер сам запустит игру и зайдёт в него.', rLiveNote: 'Только матчи на наших серверах: из лобби лаунчера и из Find a Game. Смотреть — игра откроет матч как реплей, с отставанием на несколько минут.',
   rFltWhere: 'Где', rFltAll: 'Все', rFltLr: 'В лаунчере', rFltGame: 'В игре', rFltVer: 'Версия', rFltMine: 'Моя', rFltFree: 'есть места', rFltFrom: 'Откуда', rFltFromLr: 'Лобби лаунчера',
   rNone: 'Сейчас никто не собирает игру — создайте своё лобби, и оно появится здесь у всех.', rNoneFilter: 'По этим фильтрам ничего нет.', rLiveNone: 'Сейчас на наших серверах матчей нет.',
@@ -587,7 +608,7 @@ Object.assign(T.ru, { rOpen: 'Открытые лобби', rLive: 'Идущие
   tipHost: 'Все готовы — матч запускает хозяин лобби', tipWait: 'Ждём: {who}', whoYou: 'вас', whoFree: 'свободные места', inLobby: 'Вы в лобби «{name}»',
   verAskT: 'Сменить версию лобби?', verAskText: 'Лобби перейдёт на {v}.', verAskWho: 'У {who} другая версия: их готовность снимется, им нужно будет переключиться или выйти из лобби.', verAskGo: 'Сменить на {v}',
   lrLeave: 'Выйти из лобби', lrKick: 'Убрать из лобби', lrSit: 'Сесть сюда' });
-Object.assign(T.es, { rOpen: 'Salas abiertas', rLive: 'Partidas en curso', rTagLr: 'launcher', rLegLr: 'sala del launcher: la partida en nuestros servidores, el inicio para todos a la vez.',
+Object.assign(T.es, { lrSaving: 'Guardando…', rOpen: 'Salas abiertas', rLive: 'Partidas en curso', rTagLr: 'launcher', rLegLr: 'sala del launcher: la partida en nuestros servidores, el inicio para todos a la vez.',
   rLegGame: 'Sin marca: sala del juego; el launcher inicia el juego y entra solo.', rLiveNote: 'Solo partidas en nuestros servidores: de las salas del launcher y de Find a Game. Ver: el juego abre la partida como repetición, unos minutos por detrás.',
   rFltWhere: 'Dónde', rFltAll: 'Todas', rFltLr: 'En el launcher', rFltGame: 'En el juego', rFltVer: 'Versión', rFltMine: 'La mía', rFltFree: 'con plazas', rFltFrom: 'Origen', rFltFromLr: 'Salas del launcher',
   rNone: 'Nadie está preparando una partida: crea tu sala y todos la verán aquí.', rNoneFilter: 'Nada con estos filtros.', rLiveNone: 'Ahora no hay partidas en nuestros servidores.',
@@ -599,7 +620,7 @@ Object.assign(T.es, { rOpen: 'Salas abiertas', rLive: 'Partidas en curso', rTagL
   tipHost: 'Todos listos: el anfitrión inicia la partida', tipWait: 'Esperando a: {who}', whoYou: 'ti', whoFree: 'plazas libres', inLobby: 'Estás en la sala «{name}»',
   verAskT: '¿Cambiar la versión de la sala?', verAskText: 'La sala pasa a {v}.', verAskWho: '{who} tienen otra versión: pierden el «listo» y deben cambiarla o salir.', verAskGo: 'Cambiar a {v}',
   lrLeave: 'Salir de la sala', lrKick: 'Quitar de la sala', lrSit: 'Sentarse aquí' });
-Object.assign(T.fr, { rOpen: 'Salons ouverts', rLive: 'Parties en cours', rTagLr: 'launcher', rLegLr: 'salon du launcher : la partie sur nos serveurs, le départ pour tous en même temps.',
+Object.assign(T.fr, { lrSaving: 'Enregistrement…', rOpen: 'Salons ouverts', rLive: 'Parties en cours', rTagLr: 'launcher', rLegLr: 'salon du launcher : la partie sur nos serveurs, le départ pour tous en même temps.',
   rLegGame: 'Sans marque : salon du jeu ; le launcher lance le jeu et y entre tout seul.', rLiveNote: 'Seulement les parties sur nos serveurs : des salons du launcher et de Find a Game. Regarder : le jeu ouvre la partie en replay, quelques minutes de retard.',
   rFltWhere: 'Où', rFltAll: 'Tous', rFltLr: 'Dans le launcher', rFltGame: 'Dans le jeu', rFltVer: 'Version', rFltMine: 'La mienne', rFltFree: 'places libres', rFltFrom: 'Origine', rFltFromLr: 'Salons du launcher',
   rNone: 'Personne ne prépare de partie : créez votre salon et tout le monde le verra ici.', rNoneFilter: 'Rien avec ces filtres.', rLiveNone: 'Aucune partie sur nos serveurs en ce moment.',
@@ -611,7 +632,7 @@ Object.assign(T.fr, { rOpen: 'Salons ouverts', rLive: 'Parties en cours', rTagLr
   tipHost: 'Tous prêts : l\'hôte lance la partie', tipWait: 'En attente de : {who}', whoYou: 'vous', whoFree: 'places libres', inLobby: 'Vous êtes dans le salon « {name} »',
   verAskT: 'Changer la version du salon ?', verAskText: 'Le salon passe à {v}.', verAskWho: '{who} ont une autre version : leur « prêt » est retiré, ils doivent changer ou quitter.', verAskGo: 'Passer à {v}',
   lrLeave: 'Quitter le salon', lrKick: 'Retirer du salon', lrSit: 'S\'asseoir ici' });
-Object.assign(T.de, { rOpen: 'Offene Lobbys', rLive: 'Laufende Matches', rTagLr: 'Launcher', rLegLr: 'Lobby im Launcher: das Match auf unseren Servern, Start für alle gleichzeitig.',
+Object.assign(T.de, { lrSaving: 'Speichern…', rOpen: 'Offene Lobbys', rLive: 'Laufende Matches', rTagLr: 'Launcher', rLegLr: 'Lobby im Launcher: das Match auf unseren Servern, Start für alle gleichzeitig.',
   rLegGame: 'Ohne Markierung – Lobby im Spiel: der Launcher startet das Spiel und tritt selbst bei.', rLiveNote: 'Nur Matches auf unseren Servern: aus Launcher-Lobbys und Find a Game. Zuschauen – das Spiel öffnet das Match als Replay, ein paar Minuten zurück.',
   rFltWhere: 'Wo', rFltAll: 'Alle', rFltLr: 'Im Launcher', rFltGame: 'Im Spiel', rFltVer: 'Version', rFltMine: 'Meine', rFltFree: 'freie Plätze', rFltFrom: 'Quelle', rFltFromLr: 'Launcher-Lobbys',
   rNone: 'Gerade bereitet niemand ein Spiel vor – erstelle deine Lobby, alle sehen sie hier.', rNoneFilter: 'Nichts mit diesen Filtern.', rLiveNone: 'Gerade keine Matches auf unseren Servern.',
@@ -623,3 +644,5 @@ Object.assign(T.de, { rOpen: 'Offene Lobbys', rLive: 'Laufende Matches', rTagLr:
   tipHost: 'Alle bereit – der Host startet das Match', tipWait: 'Warten auf: {who}', whoYou: 'dich', whoFree: 'freie Plätze', inLobby: 'Du bist in der Lobby „{name}“',
   verAskT: 'Version der Lobby ändern?', verAskText: 'Die Lobby wechselt auf {v}.', verAskWho: '{who} haben eine andere Version: ihr „bereit“ fällt weg, sie wechseln oder verlassen die Lobby.', verAskGo: 'Auf {v} wechseln',
   lrLeave: 'Lobby verlassen', lrKick: 'Aus der Lobby entfernen', lrSit: 'Hier setzen' });
+// the strings of this file (the Rooms tab's panel) came after app.js: a render that ran before it is done again in them
+if (typeof S !== 'undefined' && S) render();

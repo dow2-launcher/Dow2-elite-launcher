@@ -16,7 +16,7 @@
 <div class="app">
   <header>
     <div class="brand"><span class="logo">ELITE</span><span class="hdr-ver" id="hdrVer"></span></div>
-    <nav><button class="tab on" data-view="home" data-t="home"></button><button class="tab" data-view="addons" data-t="components"></button><button class="tab" data-view="rooms" data-t="roomsTab"></button><button class="tab tab-ico" data-view="settings" data-ta="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></nav>
+    <nav><button class="tab on" data-view="home" data-t="home"></button><button class="tab" data-view="rooms" data-t="roomsTab"></button><button class="tab" data-view="addons" data-t="components"></button><button class="tab tab-ico" data-view="settings" data-ta="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></nav>
     <div class="hdr-me" id="hdrMe"><span id="mePlate"></span><section class="me-box hidden" id="meBox" role="menu"></section></div>
   </header>
   <!-- 1.5.0: the banners under the header, the whole width: the launcher in the game folder, the forwarding offer, no game (folded) -->
@@ -153,19 +153,23 @@
       <div class="row"><label class="chk"><input type="checkbox" id="lanShare"><span data-t="lanShare"></span></label></div>
     </section>
     </div>
-    <section class="panel hk hidden" id="hotkeys">
-      <div class="h hk-head"><span data-t="hotkeys"></span><span class="hk-note" id="hkState"></span><div class="hk-act"><button class="btn small" id="hkReset" data-t="hkReset"></button><button class="btn gold small hidden" id="hkSave" data-t="save"></button></div></div>
+    <!-- 1.5.0 (D): the hotkeys in two panels - the main one (the grid of keys), then the commands and every key with the search -->
+    <div class="set-col hidden" id="hotkeys">
+    <section class="panel hk sec">
+      <div class="h hk-head"><span data-t="hotkeys"></span><span class="hk-note" id="hkState"></span><div class="hk-act"><button class="btn small ghost" id="hkReset" data-t="hkReset"></button><button class="btn gold small hidden" id="hkSave" data-t="save"></button></div></div>
       <div class="hk-top">
         <label class="chk"><input type="checkbox" id="hkGrid"><span data-t="hkGrid"></span></label>
         <span class="note" data-t="hkGridNote"></span>
       </div>
       <div class="hk-grid" id="hkGridBox"></div>
-      <div class="h small" data-t="hkMain"></div>
+    </section>
+    <section class="panel hk sec">
+      <h3 data-t="hkMain"></h3>
       <div class="hk-list" id="hkMain"></div>
-      <details class="hk-all"><summary data-t="hkAll"></summary>
-        <input id="hkSearch" data-tp="hkSearch"><div class="hk-groups" id="hkAllList"></div></details>
+      <div class="hk-all"><div class="hk-allh"><span data-t="hkAll"></span><input id="hkSearch" data-tp="hkSearch"></div><div class="hk-groups" id="hkAllList"></div></div>
       <div class="note hk-how" data-t="hkHow"></div>
     </section>
+    </div>
     </div>
   </main>
 

@@ -1057,19 +1057,19 @@ const T = {
 };
 
 // 1.5.0: the D look's strings
-Object.assign(T.en, { secGame: 'Game', secLauncher: 'Launcher', secService: 'Maintenance', aboutTitle: 'About', aboutAuto: 'updates itself', aboutNews: 'What\'s new', aboutInstalled: 'Installed', aboutCode: 'Open source', aboutLicense: 'MIT license', addonsOnOf: '{n} of {m} on', setupHide: 'Hide', setupMore: 'More', launcherRestarts: 'restarts by itself', launcherGet: 'Download', launcherUpdatingTo: 'Updating the launcher to {v}…',
+Object.assign(T.en, { rTeamShort: 'Team {n}', rAvg: 'avg {r}', secGame: 'Game', secLauncher: 'Launcher', secService: 'Maintenance', aboutTitle: 'About', aboutAuto: 'updates itself', aboutNews: 'What\'s new', aboutInstalled: 'Installed', aboutCode: 'Open source', aboutLicense: 'MIT license', addonsOnOf: '{n} of {m} on', setupHide: 'Hide', setupMore: 'More', launcherRestarts: 'restarts by itself', launcherGet: 'Download', launcherUpdatingTo: 'Updating the launcher to {v}…',
   launcherAfter: 'then the signature check and a restart', chWaitingShort: 'signing in in the browser…', meRating: '1v1 rating · {r}',
   lvAddonAsk: 'Watching needs the add-on “Watch running matches”. The launcher turns it on, starts the game and opens this match.' });
-Object.assign(T.ru, { secGame: 'Игра', secLauncher: 'Лаунчер', secService: 'Обслуживание', aboutTitle: 'О приложении', aboutAuto: 'обновляется сам', aboutNews: 'Что нового', aboutInstalled: 'Установлено', aboutCode: 'Открытый код', aboutLicense: 'лицензия MIT', addonsOnOf: 'включено {n} из {m}', setupHide: 'Скрыть', setupMore: 'Подробнее', launcherRestarts: 'перезапустится сам', launcherGet: 'Скачать', launcherUpdatingTo: 'Обновляю лаунчер до {v}…',
+Object.assign(T.ru, { rTeamShort: 'Ком. {n}', rAvg: 'ср. {r}', secGame: 'Игра', secLauncher: 'Лаунчер', secService: 'Обслуживание', aboutTitle: 'О приложении', aboutAuto: 'обновляется сам', aboutNews: 'Что нового', aboutInstalled: 'Установлено', aboutCode: 'Открытый код', aboutLicense: 'лицензия MIT', addonsOnOf: 'включено {n} из {m}', setupHide: 'Скрыть', setupMore: 'Подробнее', launcherRestarts: 'перезапустится сам', launcherGet: 'Скачать', launcherUpdatingTo: 'Обновляю лаунчер до {v}…',
   launcherAfter: 'затем проверка подписи и перезапуск', chWaitingShort: 'вход в браузере…', meRating: 'рейтинг 1v1 · {r}',
   lvAddonAsk: 'Для просмотра нужно дополнение «Смотреть идущие матчи». Лаунчер включит его, запустит игру и сразу откроет этот матч.' });
-Object.assign(T.es, { secGame: 'Juego', secLauncher: 'Launcher', secService: 'Mantenimiento', aboutTitle: 'Acerca de', aboutAuto: 'se actualiza solo', aboutNews: 'Novedades', aboutInstalled: 'Instalado', aboutCode: 'Código abierto', aboutLicense: 'licencia MIT', addonsOnOf: '{n} de {m} activados', setupHide: 'Ocultar', setupMore: 'Más', launcherRestarts: 'se reinicia solo', launcherGet: 'Descargar', launcherUpdatingTo: 'Actualizando el launcher a {v}…',
+Object.assign(T.es, { rTeamShort: 'Eq. {n}', rAvg: 'media {r}', secGame: 'Juego', secLauncher: 'Launcher', secService: 'Mantenimiento', aboutTitle: 'Acerca de', aboutAuto: 'se actualiza solo', aboutNews: 'Novedades', aboutInstalled: 'Instalado', aboutCode: 'Código abierto', aboutLicense: 'licencia MIT', addonsOnOf: '{n} de {m} activados', setupHide: 'Ocultar', setupMore: 'Más', launcherRestarts: 'se reinicia solo', launcherGet: 'Descargar', launcherUpdatingTo: 'Actualizando el launcher a {v}…',
   launcherAfter: 'luego la comprobación de la firma y el reinicio', chWaitingShort: 'iniciando sesión en el navegador…', meRating: 'rating 1v1 · {r}',
   lvAddonAsk: 'Para ver hace falta el complemento «Watch running matches». El launcher lo activa, inicia el juego y abre esta partida.' });
-Object.assign(T.fr, { secGame: 'Jeu', secLauncher: 'Launcher', secService: 'Maintenance', aboutTitle: 'À propos', aboutAuto: 'se met à jour tout seul', aboutNews: 'Nouveautés', aboutInstalled: 'Installé', aboutCode: 'Code source ouvert', aboutLicense: 'licence MIT', addonsOnOf: '{n} sur {m} activés', setupHide: 'Masquer', setupMore: 'Plus', launcherRestarts: 'redémarre tout seul', launcherGet: 'Télécharger', launcherUpdatingTo: 'Mise à jour du launcher vers {v}…',
+Object.assign(T.fr, { rTeamShort: 'Éq. {n}', rAvg: 'moy. {r}', secGame: 'Jeu', secLauncher: 'Launcher', secService: 'Maintenance', aboutTitle: 'À propos', aboutAuto: 'se met à jour tout seul', aboutNews: 'Nouveautés', aboutInstalled: 'Installé', aboutCode: 'Code source ouvert', aboutLicense: 'licence MIT', addonsOnOf: '{n} sur {m} activés', setupHide: 'Masquer', setupMore: 'Plus', launcherRestarts: 'redémarre tout seul', launcherGet: 'Télécharger', launcherUpdatingTo: 'Mise à jour du launcher vers {v}…',
   launcherAfter: 'puis la vérification de la signature et le redémarrage', chWaitingShort: 'connexion dans le navigateur…', meRating: 'classement 1v1 · {r}',
   lvAddonAsk: 'Pour regarder, il faut le module « Watch running matches ». Le launcher l’active, lance le jeu et ouvre cette partie.' });
-Object.assign(T.de, { secGame: 'Spiel', secLauncher: 'Launcher', secService: 'Wartung', aboutTitle: 'Über', aboutAuto: 'aktualisiert sich selbst', aboutNews: 'Neuigkeiten', aboutInstalled: 'Installiert', aboutCode: 'Open Source', aboutLicense: 'MIT-Lizenz', addonsOnOf: '{n} von {m} an', setupHide: 'Ausblenden', setupMore: 'Mehr', launcherRestarts: 'startet von selbst neu', launcherGet: 'Herunterladen', launcherUpdatingTo: 'Launcher wird auf {v} aktualisiert…',
+Object.assign(T.de, { rTeamShort: 'Team {n}', rAvg: 'Ø {r}', secGame: 'Spiel', secLauncher: 'Launcher', secService: 'Wartung', aboutTitle: 'Über', aboutAuto: 'aktualisiert sich selbst', aboutNews: 'Neuigkeiten', aboutInstalled: 'Installiert', aboutCode: 'Open Source', aboutLicense: 'MIT-Lizenz', addonsOnOf: '{n} von {m} an', setupHide: 'Ausblenden', setupMore: 'Mehr', launcherRestarts: 'startet von selbst neu', launcherGet: 'Herunterladen', launcherUpdatingTo: 'Launcher wird auf {v} aktualisiert…',
   launcherAfter: 'danach Signaturprüfung und Neustart', chWaitingShort: 'Anmeldung im Browser…', meRating: '1v1-Wertung · {r}',
   lvAddonAsk: 'Zum Zuschauen braucht es das Add-on „Watch running matches“. Der Launcher aktiviert es, startet das Spiel und öffnet dieses Match.' });
 let S = null;          // last status from Rust
@@ -1295,7 +1295,8 @@ function compList(box, list, full) {
   let cols = '';
   if (full) {
     const n = window.innerWidth < 1000 ? 1 : window.innerWidth < 1600 ? 2 : 3, col = Array.from({ length: n }, () => ({ h: 0, g: [] }));
-    groups.forEach(g => { const c = col.reduce((x, y) => y.h < x.h ? y : x); c.g.push(g); c.h += (COMP_SHUT.has(g.k) ? 0 : g.list.length * 2) + 1; });
+    // by the group's place in COMP_CATS, not by its height: a group never jumps to another column when the list changes
+    groups.forEach(g => col[COMP_CATS.indexOf(g.k) % n].g.push(g));
     compList.cols = n;
     // a group folds on a click on its heading (kept for the next start); the heading says how many are on
     cols = `<div class="ag-cols">${col.map(c => `<div class="ag-col">${c.g.map(g => { const shut = COMP_SHUT.has(g.k), on = g.list.filter(x => x.enabled && !naHere(x)).length;
@@ -1819,7 +1820,8 @@ $('allComps').onclick = () => document.querySelector('.tab[data-view="addons"]')
 
 // 1.3.15 (owner 02.11.2026): the Lobbies tab - open custom games from Relic's list through our ladder server, every 15 s while shown
 const RM = { timer: 0, host: '' };
-const roomFlag = c => /^[a-z]{2}$/i.test(c || '') ? String.fromCodePoint(...[...c.toUpperCase()].map(x => 0x1F1A5 + x.charCodeAt(0))) : '';
+// 1.5.0: the player's country as its two letters in a small badge (a flag emoji is letters anyway in WebView2 on Windows)
+const roomFlag = c => /^[a-z]{2}$/i.test(c || '') ? `<span class="fl" title="${esc(c.toUpperCase())}">${esc(c.toUpperCase())}</span>` : '';
 // RoomJoin (experiment 03.11.2026): "Join" on an Elite room without a password while the add-on is on - the game starts (or is
 // already running) and RoomJoin.dll walks into the room from the main menu; if it can't, the game shows the public games list
 // 1.4.11 (owner 05.11.2026): vanilla lobbies too - from the launcher's vanilla game, with RoomJoin's copy for vanilla
@@ -1885,20 +1887,23 @@ function roomCard(r) {
   const per = cap ? Math.max(1, Math.round(cap / 2)) : 0;
   // no race in the slot (Relic's slot info has 255 there: Random, or not picked yet): the "?" of the searching list (03.11.2026)
   const pl = p => `<div class="rp${p.host ? ' host' : ''}">`
-    + (p.race ? `<img src="${A}${p.hero != null ? 'heroes/' + p.race + '_' + p.hero : 'races/' + p.race}.png" alt="" data-fb="${A}races/${p.race}.png">`
+    + (p.race ? `<img${p.hero != null ? '' : ' class="race"'} src="${A}${p.hero != null ? 'heroes/' + p.race + '_' + p.hero : 'races/' + p.race}.png" alt="" data-fb="${A}races/${p.race}.png">`
        : raceImg('random'))
-    + `<span>${roomFlag(p.country)}</span><span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
+    + `${roomFlag(p.country)}<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
   // observers (03.11.2026, siritos: a slot of their own with its own icon, under the teams): the players the server marks as
   // observers or puts in no team, else only Relic's count of them
   const isObs = p => p.observer || !(p.team === 0 || p.team === 1 || p.team == null);
   const obsP = (r.players || []).filter(isObs), nObs = Math.max(r.observers | 0, obsP.length);
   const teams = [0, 1].map(tm => {
     const ps = (r.players || []).filter(p => !isObs(p) && (p.team | 0) === tm);
-    return `<div class="team">${ps.map(pl).join('')}${Array(per ? Math.max(0, per - ps.length) : 0).fill(`<div class="rp free">${esc(t('roomsFree'))}</div>`).join('')}</div>`;
+    // 1.5.0 (D): the team's heading with its average 1v1 rating; an open seat as a row (an empty race square)
+    const rts = ps.map(p => p.rating).filter(Boolean), avg = rts.length ? Math.round(rts.reduce((x, y) => x + y, 0) / rts.length) : 0;
+    return `<div class="team"><div class="th"><span>${esc(t('rTeamShort', { n: tm + 1 }))}</span>${avg ? `<span>${esc(t('rAvg', { r: avg }))}</span>` : ''}</div>${ps.map(pl).join('')}`
+      + `${Array(per ? Math.max(0, per - ps.length) : 0).fill(`<div class="rp free"><span class="race empty"></span><span class="nm">${esc(t('roomsFree'))}</span></div>`).join('')}</div>`;
   }).join('');
   const EYE = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.7 9.2 1.5 12c1.2 2.8 5 7 10.5 7s9.3-4.2 10.5-7C21.3 9.2 17.5 5 12 5zm0 11.5A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9zm0-7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>';
   const obs = nObs ? `<div class="robs" title="${esc(t('roomsObs'))}">${EYE}`
-    + (obsP.length ? obsP.map(p => `<span>${roomFlag(p.country)}</span><span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`).join('<span class="sep">·</span>')
+    + (obsP.length ? obsP.map(p => `${roomFlag(p.country)}<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`).join('<span class="sep">·</span>')
       + (nObs > obsP.length ? ` <span class="oc">+${nObs - obsP.length}</span>` : '') : `<span class="oc">${nObs}</span>`) + '</div>' : '';
   const map = r.map_title || String(r.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
   const full = r.free != null ? r.free <= 0 : false;
@@ -1908,18 +1913,25 @@ function roomCard(r) {
     ? `<button class="rjoin go${meBusy() ? ' wait' : ''}" data-tip="${esc(meBusy() ? t('roomsJoinBusy') : t('rJoinTip', { name: r.name || '' }))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-why="${esc(why)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '';
   // 1.5.0: the marks the Rooms tab's filters read (one list with the launcher's rooms, lroom.js rApplyFilter)
   const vok = r.game === 'elite' ? !why : r.game === 'vanilla' ? !!S.vanilla_offered : false;
-  const dat = `data-kind="game" data-mode="${esc(r.mode || '')}" data-vok="${vok ? 1 : 0}" data-van="${r.game === 'vanilla' ? 1 : 0}" data-free="${!full && !r.password && (!cap || (r.players || []).length < cap) ? 1 : 0}"`;
+  const dat = `data-kind="game" data-mode="${esc(r.mode || '')}" data-vok="${vok ? 1 : 0}" data-van="${r.game === 'vanilla' ? 1 : 0}" data-free="${!full && !r.password && (!cap || (r.players || []).filter(p => !isObs(p)).length < cap) ? 1 : 0}"`;
   return `<div class="room${vok ? '' : ' dim'}" ${dat}><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"><span>${esc(map)}</span></div><div class="rb">`
     // 1.5.0 (D): the name, a lock, the mode; the teams; the host, vanilla / another mod, seats and Join at the bottom (a lobby
     // in the game carries no mark - only the launcher's are marked)
     + `<div class="rh"><span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${r.password ? `<span class="mu" title="${esc(t('roomsPw'))}">${ico('lock')}</span>` : ''}${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}</div>`
     + `<div class="teams">${teams}</div>${obs}`
-    + `<div class="rfoot2"><span class="rhost">${esc(((r.players || []).find(p => p.host) || {}).name ? t('rHost', { name: (r.players || []).find(p => p.host).name }) : map)}</span>${r.game === 'elite' ? '' : tag}`
-    + `${cap ? `<span class="tag rcount">${(r.players || []).length}/${cap}</span>` : ''}${join}</div></div></div>`;
+    + `<div class="rfoot2">${r.game === 'elite' ? (r.exact && r.version ? `<span class="tag ver">Elite ${esc(r.version)}</span>` : '<span class="tag ver">Elite</span>') : tag}`
+    + `${cap ? `<span class="tag rcount">${(r.players || []).filter(p => !isObs(p)).length}/${cap}</span>` : ''}${join}</div></div></div>`;
 }
 // 1.4.10 (siritos 05.11): the lobby I am in - no Join on it ("You are here"), and Join on another one says "leave it first"
 // (the game would refuse it too). From the list: my SteamID among its players (the ladder has them from Relic, the list is up
 // to ~30 s old); right after a Join from here, the game's "in the lobby" until the list shows me in it - or 45 s without
+// a name cut by its column: its whole text in the tip (data-tip), only then
+function tipCut(box) {
+  requestAnimationFrame(() => box.querySelectorAll('.nm').forEach(n => {
+    const row = n.closest('.rp,.on-p') || n;          // the tip on the row: the name's own overflow would clip it
+    if (n.scrollWidth > n.clientWidth + 1) row.dataset.tip = n.textContent; else if (row.dataset.tip === n.textContent) row.removeAttribute('data-tip');
+  }));
+}
 function roomMine(R) {
   const me = CH.me && CH.me.signed_in ? String(CH.me.steam || '') : '';
   const gone = RM.gone && Date.now() < RM.gone.until ? RM.gone.room : '';   // the game said I left it: the late list is not believed
@@ -1939,7 +1951,8 @@ async function roomsLoad() {
     box.innerHTML = R.map(roomCard).join('');
     box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
     // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
-    box.querySelectorAll('.rjoin').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));   // the room's game from the list
+    box.querySelectorAll('.rjoin').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));
+    tipCut(box);   // the room's game from the list
     box.querySelectorAll('.rp .nm[data-name], .robs .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));   // the stats (by name until the server sends SteamIDs), Steam when there; no "mention"
   } catch (e) { RM.err = true; box.innerHTML = ''; }
   if (typeof rApplyFilter === 'function') rApplyFilter();
@@ -2401,7 +2414,7 @@ function onRender() {
     if (matches.length) html += group('match', t('onInMatchH'), players.length, matches.map(m => `<div class="on-mc"><div class="on-mh">`
       + `<span class="tag ${m.state === 'playing' ? 'playing' : 'creating'}">${esc(m.mode)}</span><span class="map">${esc(map(m.map))}</span>`
       + `<span class="since">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span>`
-      + (m.live ? `<button class="lvw" data-m="${esc(m.id)}" data-g="${esc(m.live)}" title="${esc(t('lvTitle'))}">${esc(t('lvWatch'))}</button>` : '') + '</div>'
+      + (m.live ? `<button class="lvw" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('lvTitle'))}" aria-label="${esc(t('lvTitle'))}">${ico('eye')}</button>` : '') + '</div>'
       + m.team1.map(pl).join('') + '<div class="vs">vs</div>' + m.team2.map(pl).join('')
       + (m.watchers.length ? `<div class="on-wt">${esc(t('onWatchers'))}: ${m.watchers.map(onWho).join(', ')}</div>` : '') + '</div>').join(''));
   }
@@ -2421,6 +2434,7 @@ function onRender() {
     onRender();
   });
   if (typeof rLiveRender === 'function') rLiveRender();   // the Rooms tab's running matches
+  tipCut($('onGroups'));
   $('onLadder').classList.toggle('hidden', !LIVE.host);
   $('onLadder').onclick = () => open(LIVE.host + '/ladder/');
 }
@@ -2555,7 +2569,7 @@ function chMe() {
     const games = !st ? '' : st.games ? `<div class="me-st" title="${esc(st.wins + ' – ' + st.losses)}">${esc(t('prGames', { n: st.games, pct: Math.round(100 * st.wins / st.games) }))}</div>`
       : `<div class="me-st">${esc(t('prNoGames'))}</div>`;
     plate.innerHTML = `<button class="me-chip" id="meChip" aria-haspopup="menu" aria-expanded="${!box.classList.contains('hidden')}"><i class="me-dot"></i>`
-      + `<span class="me-n">${esc(me.name || me.steam)}</span>${rating ? `<span class="me-r">${Number(rating) | 0}</span>` : ''}<b class="chev"></b></button>`;
+      + `<span class="me-nr"><span class="me-n">${esc(me.name || me.steam)}</span>${rating ? `<span class="me-r">${Number(rating) | 0}</span>` : ''}</span><b class="chev"></b></button>`;
     box.innerHTML = `<div class="me-head">${avatar(me.avatar, 'me-av')}<div class="me-info"><div class="me-top"><span class="me-name">${esc(me.name || me.steam)}</span>`
       + `<button class="me-out" id="chOut" data-tip="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}">${ico('out')}</button></div>`
       + (rating ? `<div class="me-rt">${esc(t('meRating', { r: Number(rating) | 0 }))}</div>` : '') + '</div></div>' + games
