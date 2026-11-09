@@ -1057,19 +1057,19 @@ const T = {
 };
 
 // 1.5.0: the D look's strings
-Object.assign(T.en, { addonsOnOf: '{n} of {m} on', setupHide: 'Hide', setupMore: 'More', launcherRestarts: 'restarts by itself', launcherGet: 'Download', launcherUpdatingTo: 'Updating the launcher to {v}…',
+Object.assign(T.en, { secGame: 'Game', secLauncher: 'Launcher', secService: 'Maintenance', aboutTitle: 'About', aboutAuto: 'updates itself', aboutNews: 'What\'s new', aboutInstalled: 'Installed', aboutCode: 'Open source', aboutLicense: 'MIT license', addonsOnOf: '{n} of {m} on', setupHide: 'Hide', setupMore: 'More', launcherRestarts: 'restarts by itself', launcherGet: 'Download', launcherUpdatingTo: 'Updating the launcher to {v}…',
   launcherAfter: 'then the signature check and a restart', chWaitingShort: 'signing in in the browser…', meRating: '1v1 rating · {r}',
   lvAddonAsk: 'Watching needs the add-on “Watch running matches”. The launcher turns it on, starts the game and opens this match.' });
-Object.assign(T.ru, { addonsOnOf: 'включено {n} из {m}', setupHide: 'Скрыть', setupMore: 'Подробнее', launcherRestarts: 'перезапустится сам', launcherGet: 'Скачать', launcherUpdatingTo: 'Обновляю лаунчер до {v}…',
+Object.assign(T.ru, { secGame: 'Игра', secLauncher: 'Лаунчер', secService: 'Обслуживание', aboutTitle: 'О приложении', aboutAuto: 'обновляется сам', aboutNews: 'Что нового', aboutInstalled: 'Установлено', aboutCode: 'Открытый код', aboutLicense: 'лицензия MIT', addonsOnOf: 'включено {n} из {m}', setupHide: 'Скрыть', setupMore: 'Подробнее', launcherRestarts: 'перезапустится сам', launcherGet: 'Скачать', launcherUpdatingTo: 'Обновляю лаунчер до {v}…',
   launcherAfter: 'затем проверка подписи и перезапуск', chWaitingShort: 'вход в браузере…', meRating: 'рейтинг 1v1 · {r}',
   lvAddonAsk: 'Для просмотра нужно дополнение «Смотреть идущие матчи». Лаунчер включит его, запустит игру и сразу откроет этот матч.' });
-Object.assign(T.es, { addonsOnOf: '{n} de {m} activados', setupHide: 'Ocultar', setupMore: 'Más', launcherRestarts: 'se reinicia solo', launcherGet: 'Descargar', launcherUpdatingTo: 'Actualizando el launcher a {v}…',
+Object.assign(T.es, { secGame: 'Juego', secLauncher: 'Launcher', secService: 'Mantenimiento', aboutTitle: 'Acerca de', aboutAuto: 'se actualiza solo', aboutNews: 'Novedades', aboutInstalled: 'Instalado', aboutCode: 'Código abierto', aboutLicense: 'licencia MIT', addonsOnOf: '{n} de {m} activados', setupHide: 'Ocultar', setupMore: 'Más', launcherRestarts: 'se reinicia solo', launcherGet: 'Descargar', launcherUpdatingTo: 'Actualizando el launcher a {v}…',
   launcherAfter: 'luego la comprobación de la firma y el reinicio', chWaitingShort: 'iniciando sesión en el navegador…', meRating: 'rating 1v1 · {r}',
   lvAddonAsk: 'Para ver hace falta el complemento «Watch running matches». El launcher lo activa, inicia el juego y abre esta partida.' });
-Object.assign(T.fr, { addonsOnOf: '{n} sur {m} activés', setupHide: 'Masquer', setupMore: 'Plus', launcherRestarts: 'redémarre tout seul', launcherGet: 'Télécharger', launcherUpdatingTo: 'Mise à jour du launcher vers {v}…',
+Object.assign(T.fr, { secGame: 'Jeu', secLauncher: 'Launcher', secService: 'Maintenance', aboutTitle: 'À propos', aboutAuto: 'se met à jour tout seul', aboutNews: 'Nouveautés', aboutInstalled: 'Installé', aboutCode: 'Code source ouvert', aboutLicense: 'licence MIT', addonsOnOf: '{n} sur {m} activés', setupHide: 'Masquer', setupMore: 'Plus', launcherRestarts: 'redémarre tout seul', launcherGet: 'Télécharger', launcherUpdatingTo: 'Mise à jour du launcher vers {v}…',
   launcherAfter: 'puis la vérification de la signature et le redémarrage', chWaitingShort: 'connexion dans le navigateur…', meRating: 'classement 1v1 · {r}',
   lvAddonAsk: 'Pour regarder, il faut le module « Watch running matches ». Le launcher l’active, lance le jeu et ouvre cette partie.' });
-Object.assign(T.de, { addonsOnOf: '{n} von {m} an', setupHide: 'Ausblenden', setupMore: 'Mehr', launcherRestarts: 'startet von selbst neu', launcherGet: 'Herunterladen', launcherUpdatingTo: 'Launcher wird auf {v} aktualisiert…',
+Object.assign(T.de, { secGame: 'Spiel', secLauncher: 'Launcher', secService: 'Wartung', aboutTitle: 'Über', aboutAuto: 'aktualisiert sich selbst', aboutNews: 'Neuigkeiten', aboutInstalled: 'Installiert', aboutCode: 'Open Source', aboutLicense: 'MIT-Lizenz', addonsOnOf: '{n} von {m} an', setupHide: 'Ausblenden', setupMore: 'Mehr', launcherRestarts: 'startet von selbst neu', launcherGet: 'Herunterladen', launcherUpdatingTo: 'Launcher wird auf {v} aktualisiert…',
   launcherAfter: 'danach Signaturprüfung und Neustart', chWaitingShort: 'Anmeldung im Browser…', meRating: '1v1-Wertung · {r}',
   lvAddonAsk: 'Zum Zuschauen braucht es das Add-on „Watch running matches“. Der Launcher aktiviert es, startet das Spiel und öffnet dieses Match.' });
 let S = null;          // last status from Rust
@@ -1650,7 +1650,15 @@ function render() {
   renderGameNet();
   $('repair').disabled = S.busy || S.game_running || !S.installed_version;
   $('junk').disabled = S.busy || S.game_running || !S.installed_version;
-  $('about').textContent = `Elite Launcher ${S.launcher_version} · ${S.os}`;
+  // 1.5.0: About - the launcher and the OS, what is installed, What's new (the releases), the open code and the community links
+  $('about').textContent = `Elite Launcher ${S.launcher_version} · ${({ windows: 'Windows', linux: 'Linux', macos: 'macOS' })[S.os] || S.os}`;
+  $('aboutVer').textContent = [S.installed_version ? (/^\d/.test(S.installed_version) ? 'Elite ' + S.installed_version : S.installed_version) : '',
+    ((S.release_news || []).find(n => n.kind === 'patches') || {}).version ? t('newsRelPatches', { v: (S.release_news || []).find(n => n.kind === 'patches').version }) : ''].filter(Boolean).join(' · ') || '—';
+  const REPO = 'https://github.com/dow2-launcher/Dow2-elite-launcher';
+  $('aboutNews').onclick = () => open(REPO + '/releases');
+  $('aboutLinks').innerHTML = [['GitHub', REPO], ...(cfg.links || []).map(l => [L(l.title), l.url])].map(([n, u], i) => `<button class="lnk" data-i="${i}">${esc(n)}</button>`).join('');
+  const aboutUrls = [REPO, ...(cfg.links || []).map(l => l.url)];
+  $('aboutLinks').querySelectorAll('.lnk').forEach(b => b.onclick = () => open(aboutUrls[+b.dataset.i]));
   $('hdrVer').textContent = S.launcher_version ? 'v' + S.launcher_version : '';
   if (CH.me) chMe();   // the header's profile plate in the player's language
   onRender();

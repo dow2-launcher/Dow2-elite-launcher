@@ -93,30 +93,34 @@
   <main id="settings" class="view hidden">
     <div class="set-wrap">
     <nav class="set-tabs"><button class="set-tab on" data-set="setMain"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span data-t="setGeneral"></span></button><button class="set-tab" data-set="setNet"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span data-t="netTab"></span></button><button class="set-tab" data-set="hotkeys"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="hotkeys"></span></button></nav>
-    <section class="panel settings" id="setMain">
-      <label data-t="gameFolder"></label>
-      <div class="row"><div class="path" id="gameDir"></div><button class="btn" id="browse" data-t="browse"></button><button class="btn" id="openDir" data-t="open"></button></div>
-      <label data-t="language"></label>
-      <div class="row"><select id="lang"><option value="">По умолчанию (Русский)</option><option value="en">English</option><option value="ru">Русский</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div>
-      <label data-t="cache"></label>
-      <div class="row"><select id="cache"><option value="0">0</option><option value="2048">2 GB</option><option value="6144">6 GB</option><option value="12288">12 GB</option></select><span class="note" data-t="cacheNote"></span></div>
-      <label data-t="usageTitle"></label>
-      <div class="row"><label class="chk"><input type="checkbox" id="usage"><span data-t="usage"></span></label></div>
-      <div class="note" data-t="usageNote"></div>
-      <label data-t="behTitle"></label>
-      <div class="row"><label class="chk"><input type="checkbox" id="muteMention"><span data-t="muteMention"></span></label></div>
-      <div class="row"><label class="chk"><input type="checkbox" id="closeQuits"><span data-t="closeQuits"></span></label></div>
-      <label data-t="repairTitle"></label>
-      <div class="row"><button class="btn" id="repair" data-t="repair"></button><span class="note" data-t="repairNote"></span></div>
-      <label data-t="junkTitle"></label>
-      <div class="row"><button class="btn red" id="junk" data-t="junk"></button><span class="note" data-t="junkNote"></span></div>
-      <label data-t="diagTitle"></label>
-      <div class="row"><input id="diagName" data-tp="diagName"><button class="btn gold" id="sendLogs" data-t="sendLogs"></button></div>
-      <div class="note" data-t="sendLogsNote"></div>
-      <label data-t="unTitle"></label>
-      <div class="row"><button class="btn red" id="uninstall" data-t="unBtn"></button><span class="note" data-t="unNote"></span></div>
-      <div class="about" id="about"></div>
+    <!-- 1.5.0 (D): General in sections - Game and Launcher on the left, Maintenance and About on the right; a row is the name
+         (with its note under it) on the left and the controls on the right -->
+    <div class="set-col set-grid" id="setMain">
+    <div class="set-stack">
+    <section class="panel settings sec"><h3 data-t="secGame"></h3>
+      <div class="fr wide"><div><span data-t="gameFolder"></span></div><div class="row"><div class="path" id="gameDir"></div><button class="btn small" id="browse" data-t="browse"></button><button class="btn small ghost" id="openDir" data-t="open"></button></div></div>
+      <div class="fr"><div><span data-t="cache"></span><small data-t="cacheNote"></small></div><div class="row"><select id="cache"><option value="0">0</option><option value="2048">2 GB</option><option value="6144">6 GB</option><option value="12288">12 GB</option></select></div></div>
     </section>
+    <section class="panel settings sec"><h3 data-t="secLauncher"></h3>
+      <div class="fr"><div><span data-t="language"></span></div><div class="row"><select id="lang"><option value="">По умолчанию (Русский)</option><option value="en">English</option><option value="ru">Русский</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div></div>
+      <div class="fr"><div><span data-t="usageTitle"></span><small data-t="usageNote"></small></div><div class="row"><label class="chk"><input type="checkbox" id="usage"><span data-t="usage"></span></label></div></div>
+      <div class="fr"><div><span data-t="behTitle"></span></div><div class="col"><label class="chk"><input type="checkbox" id="muteMention"><span data-t="muteMention"></span></label><label class="chk"><input type="checkbox" id="closeQuits"><span data-t="closeQuits"></span></label></div></div>
+    </section>
+    </div>
+    <div class="set-stack">
+    <section class="panel settings sec"><h3 data-t="secService"></h3>
+      <div class="fr"><div><span data-t="repairTitle"></span><small data-t="repairNote"></small></div><div class="row"><button class="btn small" id="repair" data-t="repair"></button></div></div>
+      <div class="fr"><div><span data-t="junkTitle"></span><small data-t="junkNote"></small></div><div class="row"><button class="btn small red" id="junk" data-t="junk"></button></div></div>
+      <div class="fr"><div><span data-t="diagTitle"></span><small data-t="sendLogsNote"></small></div><div class="row"><input id="diagName" data-tp="diagName"><button class="btn small" id="sendLogs" data-t="sendLogs"></button></div></div>
+      <div class="fr"><div><span data-t="unTitle"></span><small data-t="unNote"></small></div><div class="row"><button class="btn small red" id="uninstall" data-t="unBtn"></button></div></div>
+    </section>
+    <section class="panel settings sec"><h3 data-t="aboutTitle"></h3>
+      <div class="fr"><div><span id="about"></span><small data-t="aboutAuto"></small></div><div class="row"><button class="btn small ghost" id="aboutNews" data-t="aboutNews"></button></div></div>
+      <div class="fr"><div><span data-t="aboutInstalled"></span></div><div class="row"><span class="about-v" id="aboutVer"></span></div></div>
+      <div class="fr"><div><span data-t="aboutCode"></span><small data-t="aboutLicense"></small></div><div class="row about-links" id="aboutLinks"></div></div>
+    </section>
+    </div>
+    </div>
     <!-- 1.4.8 (siritos 04.11): one tab "Network and servers"; 1.4.10 (05.11): two blocks in it - the game servers, then the
          launcher's servers with the mirror and the local network - each a panel of its own, the headings not sticky, Check on the right -->
     <div class="set-col hidden" id="setNet">

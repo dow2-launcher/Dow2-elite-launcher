@@ -303,3 +303,29 @@ footer .status{flex:1;min-width:0}
 .hk-head .hk-act{margin-left:auto}
 .hk-head::after{display:none}
 select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) calc(50% + 1px),0 0}
+
+/* ---------- Settings: the menu as words with a teal bar; General in sections of rows ---------- */
+.set-wrap{max-width:none;grid-template-columns:200px minmax(0,1fr)}
+.set-tabs{padding:0;border:0;background:none;gap:2px}
+.set-tab{height:auto;padding:8px 12px;border:0;font:700 17px var(--fh);letter-spacing:0;text-transform:none;color:#8fb0a8;text-shadow:0 1px 2px #000}
+.set-tab:hover{color:#d6eee7}
+.set-tab.on{color:#eafff8;background:linear-gradient(90deg,rgba(69,224,192,.16),transparent);box-shadow:inset 3px 0 0 var(--gd);text-shadow:0 0 10px rgba(69,224,192,.6)}
+.set-grid{display:grid!important;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:12px;align-content:start;overflow:auto}
+.set-grid.hidden{display:none!important}
+.set-stack{display:flex;flex-direction:column;gap:12px;min-width:0}
+.sec{padding:0 0 4px}
+.sec>h3{margin:0;padding:6px 10px;font:700 20px var(--fh);color:#d8f6ea;text-shadow:0 2px 2px #000;background:rgba(0,0,0,.35);border-bottom:1px solid var(--ln)}
+.settings .fr{display:grid;grid-template-columns:180px minmax(0,1fr);gap:12px;align-items:center;padding:7px 10px;border-bottom:1px solid rgba(30,90,82,.45);font-size:13.5px}
+.settings .fr:last-child{border-bottom:0}
+.settings .fr>div:first-child{font-weight:500;color:#e4f3ed}
+.settings .fr small{display:block;margin-top:2px;font-size:11.5px;font-weight:400;color:var(--mu);line-height:1.35}
+.settings .fr .row{flex-wrap:wrap;min-width:0}
+.settings .fr .col{display:flex;flex-direction:column;gap:5px}
+.settings label.chk{font:400 13px var(--fb);color:var(--sf);gap:8px;align-items:center}
+.settings .path{flex:1;min-width:0;padding:4px 10px;border:1px solid #2b6f64;background:#061011;color:#e8fff6;font:500 12.5px var(--fb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.settings #diagName{flex:1;min-width:120px;height:28px;padding:0 10px}
+.about-v{font-size:13px;color:var(--sf)}
+.about-links{gap:14px}
+.lnk{padding:0;font:600 13px var(--fb)}
+@media (max-width:1040px){.set-grid{grid-template-columns:minmax(0,1fr)}}
+.settings .fr.wide{grid-template-columns:minmax(0,1fr);gap:6px}
