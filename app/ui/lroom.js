@@ -338,8 +338,8 @@ function lrCardHtml(x) {
     : !open ? `<span class="tag playing">${esc(t('lrPlaying'))}</span>`
     : free <= 0 ? `<span class="tag">${esc(t('lrFull'))}</span>`
     : `<button class="rjoin lr-join${vok ? ' go' : ''}" data-id="${esc(x.id)}" data-tip="${esc(t('rJoinTip', { name: x.name }))}" aria-label="${esc(t('rJoinTip', { name: x.name }))}">${ico('enter')}</button>`;
-  // the room's game on every card: vanilla, or its Elite version (teal - mine, amber - another)
-  const vt = x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : `<span class="tag ${vok ? 'elite' : 'beta'}">Elite ${esc(x.ver || '')}</span>`;
+  // the room's game on every card: vanilla, or its Elite version (one look; a card of another version is dimmed)
+  const vt = x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : `<span class="tag ver">Elite ${esc(x.ver || '')}</span>`;
   return `<div class="room lr-card${vok ? '' : ' dim'}" data-kind="lr" data-mode="${esc(x.mode)}" data-vok="${vok ? 1 : 0}" data-van="${x.game === 'vanilla' ? 1 : 0}" data-free="${free > 0 && open ? 1 : 0}">`
     + `<div class="mmap" style="background-image:url('${A}maps/${encodeURIComponent(x.map)}.png')"><span>${esc(x.map_name || x.map)}</span></div><div class="rb">`
     + `<div class="rh"><span class="tag lr">${esc(t('rTagLr'))}</span><span class="rn" title="${esc(x.name)}">${esc(x.name)}</span><span class="tag">${esc(x.mode)}</span></div>`

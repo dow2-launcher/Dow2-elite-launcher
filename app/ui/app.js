@@ -1919,7 +1919,7 @@ function roomCard(r) {
     // in the game carries no mark - only the launcher's are marked)
     + `<div class="rh"><span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${r.password ? `<span class="mu" title="${esc(t('roomsPw'))}">${ico('lock')}</span>` : ''}${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}</div>`
     + `<div class="teams">${teams}</div>${obs}`
-    + `<div class="rfoot2">${r.game === 'elite' ? (r.exact && r.version ? `<span class="tag ${why ? 'beta' : 'elite'}">Elite ${esc(r.version)}</span>` : tag) : tag}`
+    + `<div class="rfoot2">${r.game === 'elite' ? (r.exact && r.version ? `<span class="tag ver">Elite ${esc(r.version)}</span>` : '<span class="tag ver">Elite</span>') : tag}`
     + `${cap ? `<span class="tag rcount">${(r.players || []).length}/${cap}</span>` : ''}${join}</div></div></div>`;
 }
 // 1.4.10 (siritos 05.11): the lobby I am in - no Join on it ("You are here"), and Join on another one says "leave it first"
