@@ -180,7 +180,7 @@ const T = {
     "addonChangedN": "Add-ons changed: {n} - marked below",
     "chipNew": "new", "chipUpdated": "updated", "chipOpts": "settings changed",
     "newsAll": "Read all", "newsLess": "Collapse", "newsLink": "Open the link",
-    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Network and servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_fixes": "Fixes", "cat_experiment": "Experiments", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Add-ons {v}", "netTab": "Network and servers", "langDefault": "Default ({name})", "myStats": "My stats", "addonSettings": "Settings", "cat_network": "Network and automatch", "cat_interface": "Interface", "cat_gameplay": "Gameplay", "cat_fixes": "Fixes", "cat_performance": "Performance (experimental)", "cat_experiment": "Experiments", "addonExcl": "Does not work together with {names}", "addonReq": "Works only with {names} on", "evNow": "on now", "evInM": "in {n} min", "evInH": "in {n} h", "evInD": "in {n} d",
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "playAfterSync": "Updating the add-ons first — the game starts by itself after that.",
     // 1.4.11: the vanilla game next to Play
@@ -398,7 +398,7 @@ const T = {
     "addonChangedN": "Изменилось дополнений: {n} — отмечены в списке",
     "chipNew": "новое", "chipUpdated": "обновлено", "chipOpts": "изменились настройки",
     "newsAll": "Читать полностью", "newsLess": "Свернуть", "newsLink": "Открыть ссылку",
-    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Сеть и серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_fixes": "Исправления", "cat_experiment": "Эксперименты", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
+    "evTitle": "События", "newsRelLauncher": "Лаунчер {v}", "newsRelPatches": "Дополнения {v}", "netTab": "Сеть и серверы", "langDefault": "По умолчанию ({name})", "myStats": "Моя статистика", "addonSettings": "Настройки", "cat_network": "Сеть и автоматч", "cat_interface": "Интерфейс", "cat_gameplay": "Игра", "cat_fixes": "Исправления", "cat_performance": "Производительность (эксперимент)", "cat_experiment": "Эксперименты", "addonExcl": "Не работает вместе с {names}", "addonReq": "Работает только вместе с {names}", "evNow": "идёт сейчас", "evInM": "через {n} мин", "evInH": "через {n} ч", "evInD": "через {n} дн.",
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "playAfterSync": "Сначала обновляю дополнения — игра запустится сама.",
     // 1.4.11: the vanilla game next to Play
@@ -611,7 +611,7 @@ const T = {
     "addonChangedN": "Complementos cambiados: {n} — marcados abajo",
     "chipNew": "nuevo", "chipUpdated": "actualizado", "chipOpts": "ajustes cambiados",
     "newsAll": "Leer todo", "newsLess": "Contraer", "newsLink": "Abrir el enlace",
-    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Red y servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_fixes": "Correcciones", "cat_experiment": "Experimentos", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
+    "evTitle": "Eventos", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Complementos {v}", "netTab": "Red y servidores", "langDefault": "Predeterminado ({name})", "myStats": "Mis estadísticas", "addonSettings": "Ajustes", "cat_network": "Red y automatch", "cat_interface": "Interfaz", "cat_gameplay": "Juego", "cat_fixes": "Correcciones", "cat_performance": "Rendimiento (experimental)", "cat_experiment": "Experimentos", "addonExcl": "No funciona junto con {names}", "addonReq": "Solo funciona con {names} activado", "evNow": "ahora", "evInM": "en {n} min", "evInH": "en {n} h", "evInD": "en {n} d",
     "guardOff": "Desactivado antes de iniciar (complementos apagados en el launcher, copias instaladas a mano): {list}.", "guardLoader": "Queda un cargador independiente de dow2-patches (winmm.dll) en la carpeta del juego: Ajustes → Limpiar.",
     "playAfterSync": "Primero se actualizan los complementos; luego el juego se inicia solo.",
     // 1.4.11: the vanilla game next to Play
@@ -815,7 +815,7 @@ const T = {
     "addonChangedN": "Modules modifiés : {n} — marqués ci-dessous",
     "chipNew": "nouveau", "chipUpdated": "mis à jour", "chipOpts": "réglages modifiés",
     "newsAll": "Tout lire", "newsLess": "Réduire", "newsLink": "Ouvrir le lien",
-    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Réseau et serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_fixes": "Correctifs", "cat_experiment": "Expériences", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
+    "evTitle": "Événements", "newsRelLauncher": "Lanceur {v}", "newsRelPatches": "Modules {v}", "netTab": "Réseau et serveurs", "langDefault": "Par défaut ({name})", "myStats": "Mes statistiques", "addonSettings": "Réglages", "cat_network": "Réseau et automatch", "cat_interface": "Interface", "cat_gameplay": "Jeu", "cat_fixes": "Correctifs", "cat_performance": "Performances (expérimental)", "cat_experiment": "Expériences", "addonExcl": "Ne fonctionne pas avec {names}", "addonReq": "Fonctionne seulement avec {names} activé", "evNow": "en cours", "evInM": "dans {n} min", "evInH": "dans {n} h", "evInD": "dans {n} j",
     "guardOff": "Désactivé avant le lancement (modules éteints dans le lanceur, copies installées à la main) : {list}.", "guardLoader": "Un chargeur autonome dow2-patches (winmm.dll) reste dans le dossier du jeu : Paramètres → Nettoyer.",
     "playAfterSync": "Mise à jour des modules d'abord — le jeu démarrera ensuite tout seul.",
     // 1.4.11: the vanilla game next to Play
@@ -1019,7 +1019,7 @@ const T = {
     "addonChangedN": "Geänderte Erweiterungen: {n} — unten markiert",
     "chipNew": "neu", "chipUpdated": "aktualisiert", "chipOpts": "Einstellungen geändert",
     "newsAll": "Alles lesen", "newsLess": "Einklappen", "newsLink": "Link öffnen",
-    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Netz und Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_fixes": "Fehlerbehebungen", "cat_experiment": "Experimente", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
+    "evTitle": "Events", "newsRelLauncher": "Launcher {v}", "newsRelPatches": "Erweiterungen {v}", "netTab": "Netz und Server", "langDefault": "Standard ({name})", "myStats": "Meine Statistik", "addonSettings": "Einstellungen", "cat_network": "Netz und Automatch", "cat_interface": "Oberfläche", "cat_gameplay": "Spiel", "cat_fixes": "Fehlerbehebungen", "cat_performance": "Leistung (experimentell)", "cat_experiment": "Experimente", "addonExcl": "Funktioniert nicht zusammen mit {names}", "addonReq": "Funktioniert nur mit {names}", "evNow": "läuft jetzt", "evInM": "in {n} Min.", "evInH": "in {n} Std.", "evInD": "in {n} T.",
     "guardOff": "Vor dem Start deaktiviert (im Launcher ausgeschaltete Erweiterungen, von Hand installierte Kopien): {list}.", "guardLoader": "Ein eigenständiger dow2-patches-Lader (winmm.dll) liegt noch im Spielordner: Einstellungen → Aufräumen.",
     "playAfterSync": "Zuerst werden die Add-ons aktualisiert – das Spiel startet danach von selbst.",
     // 1.4.11: the vanilla game next to Play
@@ -1236,12 +1236,14 @@ function optsHtml(c, lock) {
 // its own launcher.json entry - "category" and "order" (a number, smaller = higher; Dow2-patches addons.json / store-texts.json).
 // COMP_GROUPS is only the fallback for an entry without them (the store before those fields: the forwarding servers jumped
 // between groups there); ids without the "_r2"/"_r3" ends
-const COMP_CATS = ['network', 'interface', 'gameplay', 'fixes', 'experiment'];
+// 09.11.2026 (owner): "performance" - every speed-up add-on in its own group, marked as an experiment
+const COMP_CATS = ['network', 'interface', 'gameplay', 'fixes', 'performance', 'experiment'];
 const COMP_GROUPS = {
   network: ['relay', 'relay_fwd', 'automatch', 'steamkeep', 'ownlobby'],
   interface: ['matchtimer', 'apm', 'cooldowns', 'lobbystats', 'loadingratings', 'joinsound', 'rusifikator'],
   gameplay: ['reverse', 'jumpretry', 'reinforcefix'],
   fixes: ['elitefix_wmic', 'obsfix', 'crashlog'],
+  performance: [],
   experiment: ['roomjoin', 'netprobe'],
 };
 const compBase = c => String(c.id).replace(/_(r\d+|off)$/, '');
@@ -1260,6 +1262,19 @@ const COMP_SHUT = new Set();
 try { JSON.parse(localStorage.getItem('compShut') || '[]').forEach(k => COMP_SHUT.add(k)); } catch (e) {}
 // an add-on taken away from everyone (its version "...-off": the old AI, the developers' diagnostics) is not shown at all
 const compShown = c => !/(^|-)off$/i.test(String(c.latest || ''));
+// 09.11.2026: the add-ons a ticked one does not work with (either side lists the other) and the ones it needs; a warning
+// only - the player decides, nothing is unticked
+function compWarns(c) {
+  if (!c.enabled) return [];
+  const all = (S && S.components || []).filter(compShown), b = compBase(c), nm = x => L(x.name) || x.id, out = [];
+  const ex = all.filter(x => x !== c && x.enabled && ((c.excludes || []).includes(compBase(x)) || (x.excludes || []).includes(b)));
+  if (ex.length) out.push(t('addonExcl', { names: ex.map(nm).join(', ') }));
+  const rq = (c.requires || []).map(id => all.find(x => compBase(x) === id)).filter(Boolean);
+  if (rq.length && !rq.some(x => x.enabled)) out.push(t('addonReq', { names: rq.map(nm).join(' / ') }));
+  return out;
+}
+const compWarnHtml = (c, cls) => compWarns(c).map(w => `<div class="${cls}">${esc(w)}</div>`).join('');
+const compWarnMark = c => compWarns(c).length ? `<span class="addon-warn" title="${esc(compWarns(c).join('; '))}">!</span>` : '';
 // 1.4.11 (owner 05.11.2026): Play starts vanilla Retribution - the add-ons for Elite only are grey there, their switch locked
 const VAN = () => !!(S && S.game_mode === 'vanilla');
 const naHere = c => VAN() && !c.vanilla_ok;
@@ -1270,12 +1285,12 @@ function compList(box, list, full) {
   const nameHtml = c => { const n = L(c.name) || c.id, m = n.match(/^(.+?)\s*\(([^()]+)\)$/); return m ? `${esc(m[1])}<small>${esc(m[2])}</small>` : esc(n); };
   const card = c => `<div class="addon ${c.enabled && !naHere(c) ? '' : 'off'} ${naHere(c) ? 'na' : ''}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
       + (full ? compChips(c) : '') + (naHere(c) ? `<span class="chip na" title="${esc(t('eliteOnlyNote'))}">${esc(t('eliteOnly'))}</span>` : '')
-      + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '')
+      + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '') + compWarnMark(c)
       + (full ? '' : `<button class="qm ${$('pop').dataset.id === c.id ? 'on' : ''}" data-info="${esc(c.id)}" aria-label="${esc(t('addonInfo', { name: L(c.name) || c.id }))}">?</button>`)
       + `<label class="switch"><input type="checkbox" role="switch" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled ? 'checked' : ''} ${lock || naHere(c) ? 'disabled' : ''}><i></i></label></div>`
       + (full ? (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
           + `<div class="addon-ver">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
-          + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') : '')
+          + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') + compWarnHtml(c, 'addon-note') : '')
       // the Add-ons tab: no box around the options (siritos 02.11) - "Settings" and the list under it
       + (c.enabled && !naHere(c) && (c.options || []).length ? '<div class="addon-opts">' + (full ? `<div class="addon-opts-h">${esc(t('addonSettings'))}</div>` : '') + optsHtml(c, lock) + '</div>' : '')
       + '</div>';
@@ -1287,9 +1302,9 @@ function compList(box, list, full) {
   const row = c => `<div class="arow ${c.enabled && !naHere(c) ? '' : 'off'} ${naHere(c) ? 'na' : ''} ${lock || naHere(c) ? 'lock' : ''}">`
       + `<input type="checkbox" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled ? 'checked' : ''} ${lock || naHere(c) ? 'disabled' : ''}>`
       + `<div class="arow-b"><div class="arow-n"><b>${nameHtml(c)}</b>${naHere(c) ? `<span class="chip na" title="${esc(t('eliteOnlyNote'))}">${esc(t('eliteOnly'))}</span>` : ''}${compChips(c)}`
-      + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '') + '</div>'
+      + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '') + compWarnMark(c) + '</div>'
       + (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
-      + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '')
+      + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') + compWarnHtml(c, 'addon-note')
       + (c.enabled && !naHere(c) && (c.options || []).length ? '<div class="addon-opts">' + optsHtml(c, lock) + '</div>' : '')
       + `</div><div class="arow-v">${esc(compVer(c))}</div></div>`;
   let cols = '';
@@ -1329,7 +1344,7 @@ function popAddon(btn, c) {
   if (!c || (pop.dataset.id === c.id && !pop.classList.contains('hidden'))) return popClose();
   pop.innerHTML = `<b>${esc(L(c.name) || c.id)}</b>` + (L(c.description) ? `<p>${esc(L(c.description))}</p>` : '')
     + `<div class="v">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
-    + (c.enabled && (c.conflicts || []).length ? `<div class="w">${esc(t('conflictActive'))}</div>` : '');
+    + (c.enabled && (c.conflicts || []).length ? `<div class="w">${esc(t('conflictActive'))}</div>` : '') + compWarnHtml(c, 'w');
   pop.dataset.id = c.id;
   pop.classList.remove('nick');
   pop.classList.remove('hidden');
