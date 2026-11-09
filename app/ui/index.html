@@ -6,22 +6,29 @@
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="nettest.css">
+<!-- the game's art extracted by scripts/game-art: overrides of the art slots (style.css :root) and the icons -->
+<link rel="stylesheet" href="img/ui/art.css">
+<script src="img/ui/art.js"></script>
 <script src="nettest.js" defer></script>
 <script src="nodeq.js" defer></script>
 </head>
 <body>
 <div class="app">
   <header>
-    <div class="brand"><span class="logo">ELITE Launcher</span><span class="hdr-ver" id="hdrVer"></span></div>
-    <div class="launcher-banner hidden" id="launcherBanner"><span id="launcherText"></span><button class="btn gold small hidden" id="launcherBtn"></button></div><div class="launcher-banner hidden" id="fwdBanner"><span id="fwdText"></span><button class="btn gold small" id="fwdBtn"></button><button class="btn small" id="fwdLater"></button></div>
+    <div class="brand"><span class="logo">ELITE</span><span class="hdr-ver" id="hdrVer"></span></div>
     <nav><button class="tab on" data-view="home" data-t="home"></button><button class="tab" data-view="addons" data-t="components"></button><button class="tab" data-view="rooms" data-t="roomsTab"></button><button class="tab tab-ico" data-view="settings" data-ta="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></nav>
+    <div class="hdr-me" id="hdrMe"><span id="mePlate"></span><section class="me-box hidden" id="meBox" role="menu"></section></div>
   </header>
+  <!-- 1.5.0: the banners under the header, the whole width: the launcher in the game folder, the forwarding offer, no game (folded) -->
+  <div class="bn warn hidden" id="launcherBanner"><span id="launcherText"></span></div>
+  <div class="bn warn hidden" id="fwdBanner"><span id="fwdText"></span><span class="bn-act"><button class="btn small ghost" id="fwdLater"></button><button class="btn gold small" id="fwdBtn"></button></span></div>
+  <div class="bn hidden" id="gameBanner"><span id="gameBannerText"></span><span class="bn-act"><button class="btn small ghost" id="gameBannerMore"></button><button class="btn gold small" id="gameBannerBuy"></button></span></div>
 
   <main id="home" class="view home">
     <aside class="col">
       <section class="panel ev-box hidden" id="evBox"></section>
       <section class="panel news-panel">
-        <div class="h" data-t="news"></div>
+        <div class="h"><span data-t="news"></span><nav class="news-links" id="footLinks"></nav></div>
         <div id="news" class="news-list"></div>
       </section>
     </aside>
@@ -30,7 +37,7 @@
       <div id="announcements"></div>
       <div id="setup" class="setup hidden"></div>
       <div id="newsBox" class="panel fb">
-        <div class="h ch-head"><div class="ch-tabs" id="chTabs"><button class="ch-tab on" data-room="all" data-t="chAll"></button><button class="ch-tab" data-room="ru">RU</button><button class="ch-tab" data-room="en">EN</button><button class="ch-tab" data-room="dev" data-t="chDev"></button></div><button class="btn gold logs-btn" id="sendLogsHome" data-t="sendLogs"></button></div>
+        <div class="h ch-head"><div class="ch-tabs" id="chTabs"><button class="ch-tab on" data-room="all" data-t="chAll"></button><button class="ch-tab" data-room="ru">RU</button><button class="ch-tab" data-room="en">EN</button><button class="ch-tab" data-room="dev" data-t="chDev"></button></div><button class="btn small logs-btn" id="sendLogsHome" data-t="sendLogs"></button></div>
         <div class="ch-pane" id="chatPane">
           <div class="ch-msgs" id="chMsgs"></div>
           <div class="ch-login hidden" id="chLoginRow"><span data-t="chSignInToWrite"></span><button class="btn gold small" id="chIn2" data-t="chLogin"></button></div>
@@ -50,7 +57,6 @@
     </section>
 
     <aside class="col">
-      <section class="panel me-box hidden" id="meBox"></section>
       <section class="panel on-box" id="onBox">
         <div class="h"><span data-t="online"></span><span class="on-total" id="onTotal"></span></div>
         <div class="on-groups" id="onGroups"></div>
@@ -60,26 +66,35 @@
         <div class="h"><span data-t="components"></span><button class="h-link" id="allComps" data-t="allAddons"></button></div>
         <div id="components" class="addon-list"></div>
       </section>
-      <div class="upd-box hidden" id="updBox"><div class="upd-text" id="updText"></div><button class="btn gold small" id="updateBtn"></button></div>
-      <div class="ver-warn hidden" id="verWarn"></div>
     </aside>
   </main>
 
+  <!-- 1.5.0 (D): a panel on the left - your lobby (create / back to it), the open lobbies, the running matches; on the right the
+       list or your lobby. The open lobbies are one list: the launcher's rooms (marked) and the game's lobbies, with filters. -->
   <main id="rooms" class="view hidden">
-    <section class="panel rooms-page">
-      <div class="lr-wrap">
-        <div class="h"><span data-t="lrTitle"></span> <em id="lrN"></em><button class="btn small gold lr-create" id="lrCreate" data-t="lrCreate"></button></div>
-        <div class="note lr-note" data-t="lrNote"></div>
-        <div class="lr-list" id="lrList"></div>
+    <div class="rwrap">
+      <nav class="rnav" id="rNav">
+        <div class="rtop" id="rTop"></div>
+        <button class="rnb on" data-r="open" id="rOpenBtn"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21h16M6 21V4h9v17M15 6h3v15M12 12h.01"/></svg><span class="lbl" data-t="rOpen"></span><span class="n" id="rOpenN"></span></button>
+        <button class="rnb" data-r="live" id="rLiveBtn"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl" data-t="rLive"></span><span class="n" id="rLiveN"></span></button>
+        <div class="rleg"><span><span class="tag lr" data-t="rTagLr"></span> <span data-t="rLegLr"></span></span><span data-t="rLegGame"></span></div>
+      </nav>
+      <div class="rmain">
+        <section class="panel rpage" id="rOpen">
+          <div class="h"><span data-t="rOpen"></span><em id="roomsN"></em></div>
+          <div class="rflt" id="rFlt"></div>
+          <div class="rj-status hidden" id="rjStatus" role="status" aria-live="polite"><span id="rjText"></span><button class="btn small hidden" id="rjCancel" data-t="rjCancel"></button></div>
+          <div class="rlist"><div class="rooms-grid" id="rCards"><div class="rc-part" id="lrList"></div><div class="rc-part" id="roomsList"></div></div><div class="note r-empty hidden" id="rEmpty"></div></div>
+        </section>
+        <section class="panel rpage hidden" id="rLive">
+          <div class="h"><span data-t="rLive"></span><em id="rLiveN2"></em></div>
+          <div class="rflt" id="rLiveFlt"></div>
+          <div class="note r-livenote" data-t="rLiveNote"></div>
+          <div class="rlist"><div class="rooms-grid" id="rLiveCards"></div></div>
+        </section>
         <div class="lr-room hidden" id="lrRoom" aria-live="polite"></div>
       </div>
-      <div class="rooms-relic">
-      <div class="h"><span data-t="roomsTitle"></span> <em id="roomsN"></em></div>
-      <div class="note" data-t="roomsNote"></div>
-      <div class="rj-status hidden" id="rjStatus" role="status" aria-live="polite"><span id="rjText"></span><button class="btn small hidden" id="rjCancel" data-t="rjCancel"></button></div>
-      <div class="rooms-grid" id="roomsList"></div>
-      </div>
-    </section>
+    </div>
   </main>
 
   <main id="addons" class="view hidden">
@@ -91,30 +106,34 @@
   <main id="settings" class="view hidden">
     <div class="set-wrap">
     <nav class="set-tabs"><button class="set-tab on" data-set="setMain"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span data-t="setGeneral"></span></button><button class="set-tab" data-set="setNet"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span data-t="netTab"></span></button><button class="set-tab" data-set="hotkeys"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="hotkeys"></span></button></nav>
-    <section class="panel settings" id="setMain">
-      <label data-t="gameFolder"></label>
-      <div class="row"><div class="path" id="gameDir"></div><button class="btn" id="browse" data-t="browse"></button><button class="btn" id="openDir" data-t="open"></button></div>
-      <label data-t="language"></label>
-      <div class="row"><select id="lang"><option value="">По умолчанию (Русский)</option><option value="en">English</option><option value="ru">Русский</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div>
-      <label data-t="cache"></label>
-      <div class="row"><select id="cache"><option value="0">0</option><option value="2048">2 GB</option><option value="6144">6 GB</option><option value="12288">12 GB</option></select><span class="note" data-t="cacheNote"></span></div>
-      <label data-t="usageTitle"></label>
-      <div class="row"><label class="chk"><input type="checkbox" id="usage"><span data-t="usage"></span></label></div>
-      <div class="note" data-t="usageNote"></div>
-      <label data-t="behTitle"></label>
-      <div class="row"><label class="chk"><input type="checkbox" id="muteMention"><span data-t="muteMention"></span></label></div>
-      <div class="row"><label class="chk"><input type="checkbox" id="closeQuits"><span data-t="closeQuits"></span></label></div>
-      <label data-t="repairTitle"></label>
-      <div class="row"><button class="btn" id="repair" data-t="repair"></button><span class="note" data-t="repairNote"></span></div>
-      <label data-t="junkTitle"></label>
-      <div class="row"><button class="btn red" id="junk" data-t="junk"></button><span class="note" data-t="junkNote"></span></div>
-      <label data-t="diagTitle"></label>
-      <div class="row"><input id="diagName" data-tp="diagName"><button class="btn gold" id="sendLogs" data-t="sendLogs"></button></div>
-      <div class="note" data-t="sendLogsNote"></div>
-      <label data-t="unTitle"></label>
-      <div class="row"><button class="btn red" id="uninstall" data-t="unBtn"></button><span class="note" data-t="unNote"></span></div>
-      <div class="about" id="about"></div>
+    <!-- 1.5.0 (D): General in sections - Game and Launcher on the left, Maintenance and About on the right; a row is the name
+         (with its note under it) on the left and the controls on the right -->
+    <div class="set-col set-grid" id="setMain">
+    <div class="set-stack">
+    <section class="panel settings sec"><h3 data-t="secGame"></h3>
+      <div class="fr wide"><div><span data-t="gameFolder"></span></div><div class="row"><div class="path" id="gameDir"></div><button class="btn small" id="browse" data-t="browse"></button><button class="btn small ghost" id="openDir" data-t="open"></button></div></div>
+      <div class="fr"><div><span data-t="cache"></span><small data-t="cacheNote"></small></div><div class="row"><select id="cache"><option value="0">0</option><option value="2048">2 GB</option><option value="6144">6 GB</option><option value="12288">12 GB</option></select></div></div>
     </section>
+    <section class="panel settings sec"><h3 data-t="secLauncher"></h3>
+      <div class="fr"><div><span data-t="language"></span></div><div class="row"><select id="lang"><option value="">По умолчанию (Русский)</option><option value="en">English</option><option value="ru">Русский</option><option value="es">Español</option><option value="fr">Français</option><option value="de">Deutsch</option></select></div></div>
+      <div class="fr"><div><span data-t="usageTitle"></span><small data-t="usageNote"></small></div><div class="row"><label class="chk"><input type="checkbox" id="usage"><span data-t="usage"></span></label></div></div>
+      <div class="fr"><div><span data-t="behTitle"></span></div><div class="col"><label class="chk"><input type="checkbox" id="muteMention"><span data-t="muteMention"></span></label><label class="chk"><input type="checkbox" id="closeQuits"><span data-t="closeQuits"></span></label></div></div>
+    </section>
+    </div>
+    <div class="set-stack">
+    <section class="panel settings sec"><h3 data-t="secService"></h3>
+      <div class="fr"><div><span data-t="repairTitle"></span><small data-t="repairNote"></small></div><div class="row"><button class="btn small" id="repair" data-t="repair"></button></div></div>
+      <div class="fr"><div><span data-t="junkTitle"></span><small data-t="junkNote"></small></div><div class="row"><button class="btn small red" id="junk" data-t="junk"></button></div></div>
+      <div class="fr"><div><span data-t="diagTitle"></span><small data-t="sendLogsNote"></small></div><div class="row"><input id="diagName" data-tp="diagName"><button class="btn small" id="sendLogs" data-t="sendLogs"></button></div></div>
+      <div class="fr"><div><span data-t="unTitle"></span><small data-t="unNote"></small></div><div class="row"><button class="btn small red" id="uninstall" data-t="unBtn"></button></div></div>
+    </section>
+    <section class="panel settings sec"><h3 data-t="aboutTitle"></h3>
+      <div class="fr"><div><span id="about"></span><small data-t="aboutAuto"></small></div><div class="row"><button class="btn small ghost" id="aboutNews" data-t="aboutNews"></button></div></div>
+      <div class="fr"><div><span data-t="aboutInstalled"></span></div><div class="row"><span class="about-v" id="aboutVer"></span></div></div>
+      <div class="fr"><div><span data-t="aboutCode"></span><small data-t="aboutLicense"></small></div><div class="row about-links" id="aboutLinks"></div></div>
+    </section>
+    </div>
+    </div>
     <!-- 1.4.8 (siritos 04.11): one tab "Network and servers"; 1.4.10 (05.11): two blocks in it - the game servers, then the
          launcher's servers with the mirror and the local network - each a panel of its own, the headings not sticky, Check on the right -->
     <div class="set-col hidden" id="setNet">
@@ -134,35 +153,43 @@
       <div class="row"><label class="chk"><input type="checkbox" id="lanShare"><span data-t="lanShare"></span></label></div>
     </section>
     </div>
-    <section class="panel hk hidden" id="hotkeys">
-      <div class="h hk-head"><span data-t="hotkeys"></span><span class="hk-note" id="hkState"></span><div class="hk-act"><button class="btn small" id="hkReset" data-t="hkReset"></button><button class="btn gold small hidden" id="hkSave" data-t="save"></button></div></div>
+    <!-- 1.5.0 (D): the hotkeys in two panels - the main one (the grid of keys), then the commands and every key with the search -->
+    <div class="set-col hidden" id="hotkeys">
+    <section class="panel hk sec">
+      <div class="h hk-head"><span data-t="hotkeys"></span><span class="hk-note" id="hkState"></span><div class="hk-act"><button class="btn small ghost" id="hkReset" data-t="hkReset"></button><button class="btn gold small hidden" id="hkSave" data-t="save"></button></div></div>
       <div class="hk-top">
         <label class="chk"><input type="checkbox" id="hkGrid"><span data-t="hkGrid"></span></label>
         <span class="note" data-t="hkGridNote"></span>
       </div>
       <div class="hk-grid" id="hkGridBox"></div>
-      <div class="h small" data-t="hkMain"></div>
+    </section>
+    <section class="panel hk sec">
+      <h3 data-t="hkMain"></h3>
       <div class="hk-list" id="hkMain"></div>
-      <details class="hk-all"><summary data-t="hkAll"></summary>
-        <input id="hkSearch" data-tp="hkSearch"><div class="hk-groups" id="hkAllList"></div></details>
+      <div class="hk-all"><div class="hk-allh"><span data-t="hkAll"></span><input id="hkSearch" data-tp="hkSearch"></div><div class="hk-groups" id="hkAllList"></div></div>
       <div class="note hk-how" data-t="hkHow"></div>
     </section>
     </div>
+    </div>
   </main>
 
+  <!-- 1.5.0: the version on the left, the status (progress, warnings, offers) in the middle, Play on the right -->
   <footer>
-    <div class="status">
-      <div class="status-line"><span id="statusText"></span></div>
-      <div class="bar hidden" id="bar"><i id="barFill"></i></div>
-      <div class="meta" id="statusMeta"></div>
-    </div>
-    <nav class="foot-links" id="footLinks"></nav>
-    <button class="btn small hidden" id="cancel" data-t="cancel"></button>
     <div class="ver-pick">
       <div class="ver-list hidden" id="verList"></div>
       <button class="ver-btn" id="verBtn"></button>
     </div>
-    <button class="play" id="play"></button>
+    <div class="status">
+      <div class="status-line"><span id="statusText"></span></div>
+      <div class="bar hidden" id="bar"><i id="barFill"></i></div>
+      <div class="meta" id="statusMeta"></div>
+      <div class="ver-warn hidden" id="verWarn"></div>
+    </div>
+    <div class="upd-box hidden" id="luBox"><div class="upd-text" id="luText"></div><button class="btn gold small" id="luBtn"></button></div>
+    <div class="upd-box hidden" id="updBox"><div class="upd-text" id="updText"></div><button class="btn gold small" id="updateBtn"></button></div>
+    <button class="btn small hidden" id="cancel" data-t="cancel"></button>
+    <button class="btn small red hidden" id="lrCancelFoot" data-t="lrCancel"></button>
+    <span class="plw" id="playWrap"><button class="play" id="play"></button></span>
   </footer>
 </div>
 <div class="pop hidden" id="pop" role="dialog"></div>

@@ -20,7 +20,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager};
 
-const VERBS: [&str; 14] = ["create", "join", "leave", "seat", "army", "ready", "conf", "kick", "pings", "here", "get", "ticket", "game", "cancel"];
+const VERBS: [&str; 16] = ["create", "join", "leave", "seat", "army", "ready", "conf", "kick", "pings", "here", "get", "ticket", "game", "cancel", "start", "stop"];
 
 /// One room call: Ok(the server's answer) whatever it says, Err only when no host answered.
 fn call(token: &str, verb: &str, body: &Value) -> Result<Value, String> {

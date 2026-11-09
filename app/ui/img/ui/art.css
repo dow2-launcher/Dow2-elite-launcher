@@ -1,0 +1,2 @@
+/* The game's art over the stand-ins (scripts/game-art/apply.py writes this file; empty = the crops of the menus are used).
+   A slot: :root{--art-<slot>:url(<file>); --art-<slot>-slice:<n>} and, for the icons drawn in CSS, their rules. */

@@ -1,0 +1,6 @@
+{
+  "_": "Copy to art-map.json, put the paths find.py shows (relative to the extracted dir); crop [x, y, w, h] when the picture is part of a bigger sheet; slice = the frame's border in px. Slots in slots.json.",
+  "plate": { "src": "ui/textures/fe/<the button>.dds", "slice": 14 },
+  "frame": { "src": "ui/textures/fe/<the panel frame>.dds", "slice": 34 },
+  "tick":  { "src": "ui/textures/fe/<the ready mark>.dds" }
+}

@@ -1,0 +1,10 @@
+- A new look in the style of Dawn of War II's menus: the game's frames, plates and buttons, teal on dark slate. A new icon in the same colours.
+- Header: the tabs glow from below, the connection icon sits in a portrait frame, the profile is a plate with the name and rating; its menu has the stats, the Steam profile and the sign-out icon on the name's line.
+- Footer: the version on the left, the download and warnings in the middle, Play on the right. A newer launcher is offered there, next to Play, and downloads in the same bar - no banner. When all is well the footer is empty.
+- Home: the Discord, ModDB and stats links are icons in the news heading; Send logs is in the chat's heading; no rooms in Online any more (they are on the Rooms tab).
+- No game found: the block can be hidden - a line under the header stays, with Buy on Steam.
+- Add-ons: the groups as panels in columns, a checkbox for each add-on (no switches), the version on the right.
+- Settings: General in sections, and an About section.
+- Rooms: a panel on the left - your lobby (create one or go back to it), open lobbies, running matches. The launcher's lobbies and the game's lobbies in one list, the launcher's marked; filters by where, mode, version and free seats. Running matches on our servers, with Watch.
+- Your lobby: race and hero right under your name, ready as a tick in the row (yours is the button), no Ready / Not ready at the bottom. While you are in a lobby Play on any tab is the lobby's button: 'Ready 2 of 4' → 'Start the match' for the host → the countdown 'Start in 7' in the button itself. The host changes the lobby's version with the version switch; with people in the lobby the launcher asks first.
+- Watch without the add-on: 'Turn it on and watch' turns it on, starts the game and opens the match - no second press.
