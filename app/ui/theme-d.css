@@ -488,3 +488,28 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .lr-room .lr-sub{font:700 17px var(--fh);letter-spacing:0;text-transform:none;color:#e4f3ed;margin:0 0 4px}
 .lr-room .lr-sub::after{display:none}
 .tag{text-transform:none}
+
+/* ---------- the connection check window in D ---------- */
+.modal .box.nt-box{border-radius:0}
+.nt-head{border-bottom:1px solid var(--ln)}
+.nt-head h3{font:700 22px var(--fh);letter-spacing:0;text-transform:none;color:#eafff8}
+.nt-x{color:var(--mu)} .nt-x:hover{color:#fff}
+.nt-lbl{color:var(--mu);font:500 12px var(--fb);letter-spacing:0;text-transform:none}
+.nt-seg{border:0;background:none;gap:2px}
+.nt-seg button{border:0;border-top:2px solid var(--ln2);border-radius:0;padding:4px 14px;background:linear-gradient(#24383b,#152325);color:#cfe3dc;font:500 13px var(--fb)}
+.nt-seg button.on{background:linear-gradient(#35565a,#1f3436);color:#fff;border-color:var(--gd)}
+.nt-seg button:hover:not(:disabled):not(.on){color:#fff;background:linear-gradient(#2c4547,#192b2d)}
+.nt-prog{height:9px;background:#020607;border:1px solid var(--ln);border-radius:0}
+.nt-prog i{background:linear-gradient(#5cf0cf,#1d8f78);box-shadow:0 0 10px rgba(69,224,192,.8)}
+.nt-node{border:6px solid transparent;border-image:url(img/d/plate.png) 14 / 6px;border-radius:0;background:linear-gradient(rgba(5,10,11,.6),rgba(5,10,11,.6)),url(img/d/card-fill.jpg) center/cover padding-box}
+.nt-nn{font:700 17px var(--fh);color:#eef7f2}
+.nt-big b{font:600 20px var(--fb);color:#fff}
+.nt-ct{stroke:var(--ok)} .nt-cg{stroke:var(--ln2)}
+.nt-hint{border:1px solid #8a5a22;background:rgba(58,36,12,.55);color:#f3dcc0;border-radius:0}
+.nt-ht th{color:var(--mu);font:500 12px var(--fb)} .nt-ht td{border-color:var(--ln)}
+.nt-ht tr.cur td{background:rgba(69,224,192,.1)}
+.hdr-net svg{stroke:var(--mu)}
+.hdr-net.v-excellent svg{stroke:var(--ok)} .hdr-net.v-playable svg{stroke:var(--gd)} .hdr-net.v-laggy svg{stroke:var(--wa)} .hdr-net.v-down svg{stroke:var(--bd)}
+.modal .box.nt-box{border:13px solid transparent;border-image:url(img/d/frame-panel.jpg) 34 / 13px;background:linear-gradient(rgba(5,10,11,.88),rgba(5,10,11,.88)),url(img/d/panel-fill.jpg) center/cover padding-box}
+.nt-box .h{font:700 17px var(--fh);letter-spacing:0;text-transform:none;color:#d8f6ea}
+.nt-box .h::after{display:none}
