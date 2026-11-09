@@ -1152,12 +1152,14 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .foot-link:hover,.foot-link:focus-visible{border-color:transparent;box-shadow:none;filter:drop-shadow(0 0 5px rgba(69,224,192,.7))}
 .news-link:hover,.ann .cl:hover,.lr-kick:hover{filter:drop-shadow(0 0 5px rgba(69,224,192,.6))}
 /* the lobby cards: wider, the teams to both edges with their headings, an open seat as a row, no line between the teams */
-/* the cards by the list's width: 1 column, 2 from 730 px, 3 from 1340 px and never more -
-   4-6 narrow columns on a big window cut the players' names (owner 09.11) */
+/* the cards by the list's width: 1 column, 2 from 730 px, 3 from 1340 px, 4 from 2100 px (2560 window), 5 from 2700 px
+   and never more - a card stays 440-520 px at least; auto-fill gave 4-6 narrow ones that cut the players' names (owner 09.11) */
 .rlist{container-type:inline-size}
 .rooms-grid{grid-template-columns:minmax(0,1fr)}
 @container (min-width:730px){.rooms-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @container (min-width:1340px){.rooms-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container (min-width:2100px){.rooms-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@container (min-width:2700px){.rooms-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .room .teams{grid-template-columns:1fr 1fr;gap:14px}
 .room .team+.team{border-left:0;padding-left:0}
 .room .team .th{display:flex;justify-content:space-between;gap:6px;white-space:nowrap;font:600 10.5px var(--fb);color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
