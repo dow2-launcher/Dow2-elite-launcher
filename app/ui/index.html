@@ -67,21 +67,32 @@
     </aside>
   </main>
 
+  <!-- 1.5.0 (D): a panel on the left - your lobby (create / back to it), the open lobbies, the running matches; on the right the
+       list or your lobby. The open lobbies are one list: the launcher's rooms (marked) and the game's lobbies, with filters. -->
   <main id="rooms" class="view hidden">
-    <section class="panel rooms-page">
-      <div class="lr-wrap">
-        <div class="h"><span data-t="lrTitle"></span> <em id="lrN"></em><button class="btn small gold lr-create" id="lrCreate" data-t="lrCreate"></button></div>
-        <div class="note lr-note" data-t="lrNote"></div>
-        <div class="lr-list" id="lrList"></div>
+    <div class="rwrap">
+      <nav class="rnav" id="rNav">
+        <div class="rtop" id="rTop"></div>
+        <button class="rnb on" data-r="open" id="rOpenBtn"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21h16M6 21V4h9v17M15 6h3v15M12 12h.01"/></svg><span class="lbl" data-t="rOpen"></span><span class="n" id="rOpenN"></span></button>
+        <button class="rnb" data-r="live" id="rLiveBtn"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl" data-t="rLive"></span><span class="n" id="rLiveN"></span></button>
+        <div class="rleg"><span><span class="tag lr" data-t="rTagLr"></span> <span data-t="rLegLr"></span></span><span data-t="rLegGame"></span></div>
+      </nav>
+      <div class="rmain">
+        <section class="panel rpage" id="rOpen">
+          <div class="h"><span data-t="rOpen"></span><em id="roomsN"></em></div>
+          <div class="rflt" id="rFlt"></div>
+          <div class="rj-status hidden" id="rjStatus" role="status" aria-live="polite"><span id="rjText"></span><button class="btn small hidden" id="rjCancel" data-t="rjCancel"></button></div>
+          <div class="rlist"><div class="rooms-grid" id="rCards"><div class="rc-part" id="lrList"></div><div class="rc-part" id="roomsList"></div></div><div class="note r-empty hidden" id="rEmpty"></div></div>
+        </section>
+        <section class="panel rpage hidden" id="rLive">
+          <div class="h"><span data-t="rLive"></span><em id="rLiveN2"></em></div>
+          <div class="rflt" id="rLiveFlt"></div>
+          <div class="note r-livenote" data-t="rLiveNote"></div>
+          <div class="rlist"><div class="rooms-grid" id="rLiveCards"></div></div>
+        </section>
         <div class="lr-room hidden" id="lrRoom" aria-live="polite"></div>
       </div>
-      <div class="rooms-relic">
-      <div class="h"><span data-t="roomsTitle"></span> <em id="roomsN"></em></div>
-      <div class="note" data-t="roomsNote"></div>
-      <div class="rj-status hidden" id="rjStatus" role="status" aria-live="polite"><span id="rjText"></span><button class="btn small hidden" id="rjCancel" data-t="rjCancel"></button></div>
-      <div class="rooms-grid" id="roomsList"></div>
-      </div>
-    </section>
+    </div>
   </main>
 
   <main id="addons" class="view hidden">
@@ -171,6 +182,7 @@
     <div class="upd-box hidden" id="luBox"><div class="upd-text" id="luText"></div><button class="btn gold small" id="luBtn"></button></div>
     <div class="upd-box hidden" id="updBox"><div class="upd-text" id="updText"></div><button class="btn gold small" id="updateBtn"></button></div>
     <button class="btn small hidden" id="cancel" data-t="cancel"></button>
+    <button class="btn small red hidden" id="lrCancelFoot" data-t="lrCancel"></button>
     <span class="plw" id="playWrap"><button class="play" id="play"></button></span>
   </footer>
 </div>

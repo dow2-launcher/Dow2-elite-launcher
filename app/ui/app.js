@@ -1571,8 +1571,9 @@ function render() {
     + `<span class="nm"><b>${esc(vanName)}</b><small>${esc(L(S.vanilla?.description) || t('vanillaNote'))}</small></span><span class="cost ok">${VAN() ? '✓' : ''}</span></button>` : '';
   $('verList').innerHTML = `<div class="lh">${esc(t('versions'))}</div>` + live.map(item).join('')
     + (arch.length ? `<div class="lh">${esc(t('archiveH'))}</div>` + arch.map(item).join('') : '') + vanItem;
-  $('verList').querySelectorAll('.vi:not(:disabled)').forEach(b => b.onclick = () => {
+  $('verList').querySelectorAll('.vi:not(:disabled)').forEach(b => b.onclick = async () => {
     verOpen(false);
+    if (b.dataset.id && typeof lrVerAsk === 'function' && !(await lrVerAsk(b.querySelector('.nm b') ? b.querySelector('.nm b').textContent : b.dataset.id))) return;
     if (b.dataset.game === 'vanilla') return setGame('vanilla');
     if (VAN() && activeCh && b.dataset.id === activeCh.id) return setGame('elite');   // back to the installed Elite
     switchTo(b.dataset.id);
@@ -1662,6 +1663,7 @@ function render() {
   $('hdrVer').textContent = S.launcher_version ? 'v' + S.launcher_version : '';
   if (CH.me) chMe();   // the header's profile plate in the player's language
   onRender();
+  if (typeof lrPlay === 'function') lrPlay();   // 1.5.0: in a launcher lobby Play is the lobby's (lroom.js)
 }
 
 function renderProgress(p) {
@@ -1900,11 +1902,17 @@ function roomCard(r) {
   const here = RM.mine && String(RM.mine.room) === String(r.id);
   const join = here ? `<span class="tag here">${esc(t('roomsHere'))}</span>`
     : (r.game === 'elite' || r.game === 'vanilla') && roomJoinOn(r.game) && !r.password && !full && r.id
-    ? `<button class="rjoin${meBusy() ? ' wait' : ''}" title="${esc(meBusy() ? t('roomsJoinBusy') : t('roomsJoin'))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-why="${esc(why)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '';
-  return `<div class="room"><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"></div><div style="min-width:0">`
-    + `<div class="rh">${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}${tag}${r.password ? '<span class="tag">🔒</span>' : ''}<span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${join}</div>`
-    + `<div class="rmap">${esc(map)}${cap ? ' · ' + (r.players || []).length + '/' + cap : ''}</div><div class="teams">${teams}</div>${obs}`
-    + (r.password ? `<div class="rfoot">${esc(t('roomsPw'))}</div>` : '') + '</div></div>';
+    ? `<button class="rjoin go${meBusy() ? ' wait' : ''}" data-tip="${esc(meBusy() ? t('roomsJoinBusy') : t('rJoinTip', { name: r.name || '' }))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-why="${esc(why)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '';
+  // 1.5.0: the marks the Rooms tab's filters read (one list with the launcher's rooms, lroom.js rApplyFilter)
+  const vok = r.game === 'elite' ? !why : r.game === 'vanilla' ? !!S.vanilla_offered : false;
+  const dat = `data-kind="game" data-mode="${esc(r.mode || '')}" data-vok="${vok ? 1 : 0}" data-van="${r.game === 'vanilla' ? 1 : 0}" data-free="${!full && !r.password && (!cap || (r.players || []).length < cap) ? 1 : 0}"`;
+  return `<div class="room${vok ? '' : ' dim'}" ${dat}><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"><span>${esc(map)}</span></div><div class="rb">`
+    // 1.5.0 (D): the name, a lock, the mode; the teams; the host, vanilla / another mod, seats and Join at the bottom (a lobby
+    // in the game carries no mark - only the launcher's are marked)
+    + `<div class="rh"><span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${r.password ? `<span class="mu" title="${esc(t('roomsPw'))}">${ICO.lock}</span>` : ''}${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}</div>`
+    + `<div class="teams">${teams}</div>${obs}`
+    + `<div class="rfoot2"><span class="rhost">${esc(((r.players || []).find(p => p.host) || {}).name ? t('rHost', { name: (r.players || []).find(p => p.host).name }) : map)}</span>${r.game === 'elite' ? '' : tag}`
+    + `${cap ? `<span class="tag rcount">${(r.players || []).length}/${cap}</span>` : ''}${join}</div></div></div>`;
 }
 // 1.4.10 (siritos 05.11): the lobby I am in - no Join on it ("You are here"), and Join on another one says "leave it first"
 // (the game would refuse it too). From the list: my SteamID among its players (the ladder has them from Relic, the list is up
@@ -1924,13 +1932,14 @@ async function roomsLoad() {
     const d = await invoke('rooms_live'); RM.host = d.host || RM.host;
     const R = d.rooms || [];
     RM.last = R; RM.mine = roomMine(R);
-    $('roomsN').textContent = R.length;
-    box.innerHTML = R.length ? R.map(roomCard).join('') : `<div class="note">${esc(t('roomsNone'))}</div>`;
+    RM.err = false;
+    box.innerHTML = R.map(roomCard).join('');
     box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
     // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
     box.querySelectorAll('.rjoin').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));   // the room's game from the list
     box.querySelectorAll('.rp .nm[data-name], .robs .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));   // the stats (by name until the server sends SteamIDs), Steam when there; no "mention"
-  } catch (e) { box.innerHTML = `<div class="note">${esc(t('roomsErr'))}</div>`; }
+  } catch (e) { RM.err = true; box.innerHTML = ''; }
+  if (typeof rApplyFilter === 'function') rApplyFilter();
 }
 // 1.4.9: Join talks to RoomJoin.dll (RoomJoin 9) in the game over its pipe (roomjoin.rs) - no request file any more. The game
 // running without the pipe = without the add-on (or an older one): restart it with the add-on on. Not running: Play, then the
@@ -2408,6 +2417,7 @@ function onRender() {
     try { localStorage.setItem('onShut', JSON.stringify([...ON.shut])); } catch (e) {}
     onRender();
   });
+  if (typeof rLiveRender === 'function') rLiveRender();   // the Rooms tab's running matches
   $('onLadder').classList.toggle('hidden', !LIVE.host);
   $('onLadder').onclick = () => open(LIVE.host + '/ladder/');
 }
