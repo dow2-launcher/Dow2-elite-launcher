@@ -513,3 +513,4 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .modal .box.nt-box{border:13px solid transparent;border-image:url(img/d/frame-panel.jpg) 34 / 13px;background:linear-gradient(rgba(5,10,11,.88),rgba(5,10,11,.88)),url(img/d/panel-fill.jpg) center/cover padding-box}
 .nt-box .h{font:700 17px var(--fh);letter-spacing:0;text-transform:none;color:#d8f6ea}
 .nt-box .h::after{display:none}
+@media (max-width:1000px){.ver-btn{min-width:180px}.ver-btn small{display:none}.play{width:200px}}
