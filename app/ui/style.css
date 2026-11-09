@@ -1223,3 +1223,9 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 @media (prefers-reduced-motion:reduce){.tab,.set-tab,.rnb,.tab::before,.set-tab::before,.rnb::before{transition:none}}
 .settings label:not(.chk){font:700 16px var(--fh);letter-spacing:0;text-transform:none;color:#d8f6ea;margin:12px 0 6px}
 .room .rp img.race{clip-path:none}
+.fl{flex:none;display:inline-block;padding:0 3px;border:1px solid #2b6f64;font:600 9.5px/14px var(--fm);color:var(--mu);letter-spacing:.3px}
+.robs .fl{margin:0 3px 0 6px}
+/* the random race / hero "?": the UI's bold square letter in its teal, not a white serif */
+.race-rnd,.hbox.q,.lr-hq{font:700 13px/1 var(--fb);color:var(--gd);text-shadow:0 0 6px rgba(69,224,192,.45)}
+.ldd-l .hbox.q,.ldd-l .rbox .race-rnd{font-size:20px}
+.rbox .race-rnd{font-size:13px}

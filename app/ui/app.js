@@ -1820,7 +1820,8 @@ $('allComps').onclick = () => document.querySelector('.tab[data-view="addons"]')
 
 // 1.3.15 (owner 02.11.2026): the Lobbies tab - open custom games from Relic's list through our ladder server, every 15 s while shown
 const RM = { timer: 0, host: '' };
-const roomFlag = c => /^[a-z]{2}$/i.test(c || '') ? String.fromCodePoint(...[...c.toUpperCase()].map(x => 0x1F1A5 + x.charCodeAt(0))) : '';
+// 1.5.0: the player's country as its two letters in a small badge (a flag emoji is letters anyway in WebView2 on Windows)
+const roomFlag = c => /^[a-z]{2}$/i.test(c || '') ? `<span class="fl" title="${esc(c.toUpperCase())}">${esc(c.toUpperCase())}</span>` : '';
 // RoomJoin (experiment 03.11.2026): "Join" on an Elite room without a password while the add-on is on - the game starts (or is
 // already running) and RoomJoin.dll walks into the room from the main menu; if it can't, the game shows the public games list
 // 1.4.11 (owner 05.11.2026): vanilla lobbies too - from the launcher's vanilla game, with RoomJoin's copy for vanilla
@@ -1888,7 +1889,7 @@ function roomCard(r) {
   const pl = p => `<div class="rp${p.host ? ' host' : ''}">`
     + (p.race ? `<img${p.hero != null ? '' : ' class="race"'} src="${A}${p.hero != null ? 'heroes/' + p.race + '_' + p.hero : 'races/' + p.race}.png" alt="" data-fb="${A}races/${p.race}.png">`
        : raceImg('random'))
-    + `${roomFlag(p.country) ? `<span class="fl">${roomFlag(p.country)}</span>` : ''}<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
+    + `${roomFlag(p.country)}<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
   // observers (03.11.2026, siritos: a slot of their own with its own icon, under the teams): the players the server marks as
   // observers or puts in no team, else only Relic's count of them
   const isObs = p => p.observer || !(p.team === 0 || p.team === 1 || p.team == null);
@@ -1902,7 +1903,7 @@ function roomCard(r) {
   }).join('');
   const EYE = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.7 9.2 1.5 12c1.2 2.8 5 7 10.5 7s9.3-4.2 10.5-7C21.3 9.2 17.5 5 12 5zm0 11.5A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9zm0-7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>';
   const obs = nObs ? `<div class="robs" title="${esc(t('roomsObs'))}">${EYE}`
-    + (obsP.length ? obsP.map(p => `<span>${roomFlag(p.country)}</span><span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`).join('<span class="sep">·</span>')
+    + (obsP.length ? obsP.map(p => `${roomFlag(p.country)}<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`).join('<span class="sep">·</span>')
       + (nObs > obsP.length ? ` <span class="oc">+${nObs - obsP.length}</span>` : '') : `<span class="oc">${nObs}</span>`) + '</div>' : '';
   const map = r.map_title || String(r.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
   const full = r.free != null ? r.free <= 0 : false;
@@ -1918,7 +1919,7 @@ function roomCard(r) {
     // in the game carries no mark - only the launcher's are marked)
     + `<div class="rh"><span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${r.password ? `<span class="mu" title="${esc(t('roomsPw'))}">${ico('lock')}</span>` : ''}${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}</div>`
     + `<div class="teams">${teams}</div>${obs}`
-    + `<div class="rfoot2">${r.game === 'elite' ? '' : tag}`
+    + `<div class="rfoot2">${r.game === 'elite' ? (r.exact && r.version ? `<span class="tag ${why ? 'beta' : 'elite'}">Elite ${esc(r.version)}</span>` : tag) : tag}`
     + `${cap ? `<span class="tag rcount">${(r.players || []).length}/${cap}</span>` : ''}${join}</div></div></div>`;
 }
 // 1.4.10 (siritos 05.11): the lobby I am in - no Join on it ("You are here"), and Join on another one says "leave it first"
