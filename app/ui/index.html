@@ -153,19 +153,23 @@
       <div class="row"><label class="chk"><input type="checkbox" id="lanShare"><span data-t="lanShare"></span></label></div>
     </section>
     </div>
-    <section class="panel hk hidden" id="hotkeys">
-      <div class="h hk-head"><span data-t="hotkeys"></span><span class="hk-note" id="hkState"></span><div class="hk-act"><button class="btn small" id="hkReset" data-t="hkReset"></button><button class="btn gold small hidden" id="hkSave" data-t="save"></button></div></div>
+    <!-- 1.5.0 (D): the hotkeys in two panels - the main one (the grid of keys), then the commands and every key with the search -->
+    <div class="set-col hidden" id="hotkeys">
+    <section class="panel hk sec">
+      <div class="h hk-head"><span data-t="hotkeys"></span><span class="hk-note" id="hkState"></span><div class="hk-act"><button class="btn small ghost" id="hkReset" data-t="hkReset"></button><button class="btn gold small hidden" id="hkSave" data-t="save"></button></div></div>
       <div class="hk-top">
         <label class="chk"><input type="checkbox" id="hkGrid"><span data-t="hkGrid"></span></label>
         <span class="note" data-t="hkGridNote"></span>
       </div>
       <div class="hk-grid" id="hkGridBox"></div>
-      <div class="h small" data-t="hkMain"></div>
+    </section>
+    <section class="panel hk sec">
+      <h3 data-t="hkMain"></h3>
       <div class="hk-list" id="hkMain"></div>
-      <details class="hk-all"><summary data-t="hkAll"></summary>
-        <input id="hkSearch" data-tp="hkSearch"><div class="hk-groups" id="hkAllList"></div></details>
+      <div class="hk-all"><div class="hk-allh"><span data-t="hkAll"></span><input id="hkSearch" data-tp="hkSearch"></div><div class="hk-groups" id="hkAllList"></div></div>
       <div class="note hk-how" data-t="hkHow"></div>
     </section>
+    </div>
     </div>
   </main>
 
