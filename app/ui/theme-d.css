@@ -255,3 +255,51 @@ footer .status{flex:1;min-width:0}
 /* the connection icon in the game's empty portrait frame, lit on hover */
 .hdr-net{width:40px;height:40px;margin-left:8px;border:0;padding:0;display:grid;place-items:center;background:url(img/d/frame-portrait.png) center/100% 100%;cursor:pointer;transition:filter .15s}
 .hdr-net:hover,.hdr-net:focus-visible{filter:brightness(1.2) drop-shadow(0 0 5px rgba(69,224,192,.45))}
+.me-box{align-items:stretch;text-align:left}
+.me-item{width:100%;justify-content:flex-start}
+.me-st{text-align:left}
+
+/* ---------- Add-ons: a panel per group in balanced columns, rows with a checkbox ---------- */
+.addons-page{display:flex;flex-direction:column;background:none;border:0;padding:0}
+.addons-head{padding:0 2px 8px}
+.addons-head>span:first-child{font:700 24px var(--fh);color:#eafff8}
+.addon-all{flex:1;min-height:0;overflow:auto;padding-right:4px}
+.ag-cols{display:flex;gap:12px;align-items:flex-start}
+.ag-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+.ag-panel{border:10px solid transparent;border-image:url(img/d/frame-panel.jpg) 34 / 10px;background:linear-gradient(rgba(5,10,11,.74),rgba(5,10,11,.74)),url(img/d/panel-fill.jpg) center/cover padding-box;padding:0 0 2px}
+.ag-panel .addon-gh{display:flex;align-items:center;gap:8px;width:100%;padding:6px 12px;border:0;border-bottom:1px solid var(--ln);background:rgba(0,0,0,.3);text-align:left;
+  font:700 20px var(--fh);letter-spacing:0;text-transform:none;color:#d8f6ea;text-shadow:0 2px 2px #000;cursor:pointer}
+.ag-panel .addon-gh span{margin-left:auto;font:500 12px var(--fb);color:var(--mu);text-shadow:none}
+.ag-panel .addon-gh .chev{width:7px;height:7px;border:solid var(--gd);border-width:0 1.5px 1.5px 0;transform:rotate(45deg);margin:0 2px 3px 4px}
+.ag-panel.shut .addon-gh{border-bottom:0}
+.ag-panel.shut .addon-gh .chev{transform:rotate(-45deg);margin-bottom:0}
+.arow{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:start;padding:8px 12px;border-bottom:1px solid rgba(30,90,82,.45);cursor:pointer;transition:background .15s}
+.arow:last-child{border-bottom:0}
+.arow:hover{background:rgba(69,224,192,.06)}
+.arow.lock{cursor:default} .arow.lock:hover{background:none}
+.arow>input[type=checkbox]{margin-top:3px;width:18px;height:18px}
+.arow-n{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.arow-n b{font:700 17px var(--fh);color:#eef7f2}
+.arow-n b small{font:400 12px var(--fb);color:var(--mu);margin-left:5px}
+.arow.off .arow-n b{color:#9fb8b1}
+.arow .addon-desc{margin:2px 0 0;color:var(--sf);font-size:12.5px;line-height:1.4}
+.arow.off .addon-desc{color:var(--mu)}
+.arow-v{padding-top:3px;font:500 11.5px var(--fm);color:var(--mu);white-space:nowrap;text-align:right}
+.arow .addon-opts{padding:6px 0 0;margin:0}
+.arow .addon-opt{color:var(--sf);font-size:12.5px}
+.arow .addon-sub{border-left-color:var(--ln2)}
+.arow .addon-grp{font:600 11px var(--fb);letter-spacing:.5px;color:var(--mu)}
+.chip{border-radius:0;border:1px solid var(--ln2);background:rgba(0,0,0,.35);color:#cfe3dc;font:600 11px var(--fb);padding:1px 7px}
+.chip.hot{border-color:var(--gd);color:#04110f;background:var(--gd)}
+.chip.na{border-color:#8a7a52;color:#e7d9b4}
+.addon-note{color:var(--wa)}
+.ag-panel .addon-gh{margin:0}
+.ag-panel .addon-gh::after{display:none}
+.ag-panel .addon-gh span{order:0}
+.ag-panel .addon-gh .chev{order:1;border-width:0 1.5px 1.5px 0;border-color:var(--gd)}
+.hk-head,.addons-head{position:static;margin:0 0 8px;padding:0 2px;background:none;border:0;display:flex;align-items:center;gap:12px}
+.hk-head>span:first-child{font:700 24px var(--fh);color:#eafff8;letter-spacing:0;text-transform:none}
+.hk-head .hk-note{color:var(--mu);font:400 13px var(--fb)}
+.hk-head .hk-act{margin-left:auto}
+.hk-head::after{display:none}
+select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) calc(50% + 1px),0 0}

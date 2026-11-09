@@ -1057,19 +1057,19 @@ const T = {
 };
 
 // 1.5.0: the D look's strings
-Object.assign(T.en, { setupHide: 'Hide', setupMore: 'More', launcherRestarts: 'restarts by itself', launcherGet: 'Download', launcherUpdatingTo: 'Updating the launcher to {v}…',
+Object.assign(T.en, { addonsOnOf: '{n} of {m} on', setupHide: 'Hide', setupMore: 'More', launcherRestarts: 'restarts by itself', launcherGet: 'Download', launcherUpdatingTo: 'Updating the launcher to {v}…',
   launcherAfter: 'then the signature check and a restart', chWaitingShort: 'signing in in the browser…', meRating: '1v1 rating · {r}',
   lvAddonAsk: 'Watching needs the add-on “Watch running matches”. The launcher turns it on, starts the game and opens this match.' });
-Object.assign(T.ru, { setupHide: 'Скрыть', setupMore: 'Подробнее', launcherRestarts: 'перезапустится сам', launcherGet: 'Скачать', launcherUpdatingTo: 'Обновляю лаунчер до {v}…',
+Object.assign(T.ru, { addonsOnOf: 'включено {n} из {m}', setupHide: 'Скрыть', setupMore: 'Подробнее', launcherRestarts: 'перезапустится сам', launcherGet: 'Скачать', launcherUpdatingTo: 'Обновляю лаунчер до {v}…',
   launcherAfter: 'затем проверка подписи и перезапуск', chWaitingShort: 'вход в браузере…', meRating: 'рейтинг 1v1 · {r}',
   lvAddonAsk: 'Для просмотра нужно дополнение «Смотреть идущие матчи». Лаунчер включит его, запустит игру и сразу откроет этот матч.' });
-Object.assign(T.es, { setupHide: 'Ocultar', setupMore: 'Más', launcherRestarts: 'se reinicia solo', launcherGet: 'Descargar', launcherUpdatingTo: 'Actualizando el launcher a {v}…',
+Object.assign(T.es, { addonsOnOf: '{n} de {m} activados', setupHide: 'Ocultar', setupMore: 'Más', launcherRestarts: 'se reinicia solo', launcherGet: 'Descargar', launcherUpdatingTo: 'Actualizando el launcher a {v}…',
   launcherAfter: 'luego la comprobación de la firma y el reinicio', chWaitingShort: 'iniciando sesión en el navegador…', meRating: 'rating 1v1 · {r}',
   lvAddonAsk: 'Para ver hace falta el complemento «Watch running matches». El launcher lo activa, inicia el juego y abre esta partida.' });
-Object.assign(T.fr, { setupHide: 'Masquer', setupMore: 'Plus', launcherRestarts: 'redémarre tout seul', launcherGet: 'Télécharger', launcherUpdatingTo: 'Mise à jour du launcher vers {v}…',
+Object.assign(T.fr, { addonsOnOf: '{n} sur {m} activés', setupHide: 'Masquer', setupMore: 'Plus', launcherRestarts: 'redémarre tout seul', launcherGet: 'Télécharger', launcherUpdatingTo: 'Mise à jour du launcher vers {v}…',
   launcherAfter: 'puis la vérification de la signature et le redémarrage', chWaitingShort: 'connexion dans le navigateur…', meRating: 'classement 1v1 · {r}',
   lvAddonAsk: 'Pour regarder, il faut le module « Watch running matches ». Le launcher l’active, lance le jeu et ouvre cette partie.' });
-Object.assign(T.de, { setupHide: 'Ausblenden', setupMore: 'Mehr', launcherRestarts: 'startet von selbst neu', launcherGet: 'Herunterladen', launcherUpdatingTo: 'Launcher wird auf {v} aktualisiert…',
+Object.assign(T.de, { addonsOnOf: '{n} von {m} an', setupHide: 'Ausblenden', setupMore: 'Mehr', launcherRestarts: 'startet von selbst neu', launcherGet: 'Herunterladen', launcherUpdatingTo: 'Launcher wird auf {v} aktualisiert…',
   launcherAfter: 'danach Signaturprüfung und Neustart', chWaitingShort: 'Anmeldung im Browser…', meRating: '1v1-Wertung · {r}',
   lvAddonAsk: 'Zum Zuschauen braucht es das Add-on „Watch running matches“. Der Launcher aktiviert es, startet das Spiel und öffnet dieses Match.' });
 let S = null;          // last status from Rust
@@ -1278,12 +1278,29 @@ function compList(box, list, full) {
       + '</div>';
   // the Add-ons tab in groups (siritos 02.11): launcher.json "category" when the owner sets it, else by the add-on id
   const groups = full ? COMP_CATS.map(k => ({ k, list: list.filter(c => compCat(c) === k).map((c, i) => [c, i]).sort((a, b) => compRank(a[0]) - compRank(b[0]) || a[1] - b[1]).map(x => x[0]) })).filter(g => g.list.length) : null;
-  box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '')
-    // a group folds on a click on its heading (kept for the next start); the heading says how many are on: "2 / 4"
-    + (full ? groups.map(g => { const shut = COMP_SHUT.has(g.k), on = g.list.filter(c => c.enabled && !naHere(c)).length;
-        return `<div class="addon-group ${shut ? 'shut' : ''}"><button class="addon-gh" data-cat="${g.k}" aria-expanded="${!shut}"><b class="chev"></b>${esc(t('cat_' + g.k))}<span>${on} / ${g.list.length}</span></button>`
-          + (shut ? '' : `<div class="addon-cols">${g.list.map(card).join('')}</div>`) + '</div>'; }).join('')
-      : list.map(card).join(''));
+  // 1.5.0 (D): on the Add-ons tab every group is a panel; the panels go into 1 / 2 / 3 columns by the window's width, whole,
+  // the columns about equally tall; an add-on is a row - a checkbox on the left (a click on the row ticks it), the name with
+  // its marks, the description, its settings; the version on the right
+  const row = c => `<div class="arow ${c.enabled && !naHere(c) ? '' : 'off'} ${naHere(c) ? 'na' : ''} ${lock || naHere(c) ? 'lock' : ''}">`
+      + `<input type="checkbox" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled ? 'checked' : ''} ${lock || naHere(c) ? 'disabled' : ''}>`
+      + `<div class="arow-b"><div class="arow-n"><b>${nameHtml(c)}</b>${naHere(c) ? `<span class="chip na" title="${esc(t('eliteOnlyNote'))}">${esc(t('eliteOnly'))}</span>` : ''}${compChips(c)}`
+      + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '') + '</div>'
+      + (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
+      + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '')
+      + (c.enabled && !naHere(c) && (c.options || []).length ? '<div class="addon-opts">' + optsHtml(c, lock) + '</div>' : '')
+      + `</div><div class="arow-v">${esc(compVer(c))}</div></div>`;
+  let cols = '';
+  if (full) {
+    const n = window.innerWidth < 1000 ? 1 : window.innerWidth < 1600 ? 2 : 3, col = Array.from({ length: n }, () => ({ h: 0, g: [] }));
+    groups.forEach(g => { const c = col.reduce((x, y) => y.h < x.h ? y : x); c.g.push(g); c.h += (COMP_SHUT.has(g.k) ? 0 : g.list.length * 2) + 1; });
+    compList.cols = n;
+    // a group folds on a click on its heading (kept for the next start); the heading says how many are on
+    cols = `<div class="ag-cols">${col.map(c => `<div class="ag-col">${c.g.map(g => { const shut = COMP_SHUT.has(g.k), on = g.list.filter(x => x.enabled && !naHere(x)).length;
+      return `<section class="ag-panel ${shut ? 'shut' : ''}"><button class="addon-gh" data-cat="${g.k}" aria-expanded="${!shut}">${esc(t('cat_' + g.k))}<span>${esc(t('addonsOnOf', { n: on, m: g.list.length }))}</span><b class="chev"></b></button>`
+        + (shut ? '' : g.list.map(row).join('')) + '</section>'; }).join('')}</div>`).join('')}</div>`;
+  }
+  box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '') + (full ? cols : list.map(card).join(''));
+  box.querySelectorAll('.arow').forEach(r => r.onclick = e => { if (e.target.closest('input,select,label,button,a,option')) return; const cb = r.querySelector('input[data-id]'); if (cb && !cb.disabled) cb.click(); });
   box.querySelectorAll('.addon-gh[data-cat]').forEach(b => b.onclick = () => {
     COMP_SHUT.has(b.dataset.cat) ? COMP_SHUT.delete(b.dataset.cat) : COMP_SHUT.add(b.dataset.cat);
     try { localStorage.setItem('compShut', JSON.stringify([...COMP_SHUT])); } catch (e) {}
@@ -1302,6 +1319,7 @@ function compList(box, list, full) {
 }
 
 // details of an add-on next to its "?": description, version, a hand-installed copy in the game folder
+addEventListener('resize', () => { const n = window.innerWidth < 1000 ? 1 : window.innerWidth < 1600 ? 2 : 3; if (S && compList.cols && n !== compList.cols) render(); });
 function popAddon(btn, c) {
   const pop = $('pop');
   if (!c || (pop.dataset.id === c.id && !pop.classList.contains('hidden'))) return popClose();
@@ -1634,6 +1652,7 @@ function render() {
   $('junk').disabled = S.busy || S.game_running || !S.installed_version;
   $('about').textContent = `Elite Launcher ${S.launcher_version} · ${S.os}`;
   $('hdrVer').textContent = S.launcher_version ? 'v' + S.launcher_version : '';
+  if (CH.me) chMe();   // the header's profile plate in the player's language
   onRender();
 }
 
