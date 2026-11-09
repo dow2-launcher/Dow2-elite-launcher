@@ -1241,9 +1241,15 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 /* bigger avatars (the portrait frame took their room): chat 36, Online 30 (its names a little bigger), lobby 44 */
 .ch-av .av{width:36px;height:36px}
 .on-p{min-height:32px}
-.on-p .nm{font-size:14.5px}
 /* the chat a little bigger from the third step of the window (1440) */
-@media (min-width:1440px){.ch-m{font-size:16px}.ch-m .w{font-size:12.5px}}
+/* the chat and Online at 16 px on every window (owner 09.11: everything was too small) */
+.ch-m{font-size:16px}
+.ch-m .w{font-size:12.5px}
+.ch-send textarea{font-size:15px}
+.on-p .nm{font-size:16px}
+.on-p .rt,.on-p .tag{font-size:13px}
+.on-gh span{font-size:13px}
+.on-mh,.on-wt{font-size:13px}
 /* my race and hero never go to a second line: a narrow slot cuts their names */
 .lr-armyrow .ldd{min-width:0;flex:0 1 auto}
 .lr-armyrow .ldd-b{max-width:100%;min-width:0}
