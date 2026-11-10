@@ -1382,3 +1382,14 @@ html{font-variant-numeric:lining-nums}
 @media (prefers-reduced-motion:reduce){.modal.lr-pg .pg-ico{animation:none}.modal.lr-pg .pg-main .pg-bar{transition:none}}
 /* Join as an observer (the eye) next to Join, both after the seats */
 .rfoot2 .lr-watch+.rjoin{margin-left:0}
+/* my lobby in the game's frame and its grimy fill, as the list of lobbies; the head a strip; Map / Match settings / Our servers
+   framed panels with a title strip, as the add-ons' groups; the teams' headings with a fading line (owner 10.11) */
+.lr-room{border:10px solid transparent;border-image:var(--art-frame) var(--art-frame-slice) / 10px;background:linear-gradient(rgba(5,10,11,.74),rgba(5,10,11,.74)),var(--art-panel) center/cover padding-box}
+.lr-room .lr-head{background:rgba(0,0,0,.32);border-bottom:1px solid var(--ln);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+.lr-room .lr-ev{border-bottom:1px solid var(--ln)}
+.lr-side{gap:10px}
+.lr-side .lr-blk{padding:0 10px 8px;border:10px solid transparent;border-image:var(--art-frame) var(--art-frame-slice) / 10px;background:linear-gradient(rgba(5,10,11,.55),rgba(5,10,11,.55)),var(--art-panel) center/cover padding-box}
+.lr-side .lr-blk:empty{display:none}
+.lr-side .lr-blk .lr-sub{margin:0 -10px 8px;padding:6px 10px;background:rgba(0,0,0,.32);border-bottom:1px solid var(--ln);font:700 18px var(--fh);color:#d8f6ea;text-shadow:0 2px 2px #000}
+.lr-room .lr-team>.lr-sub{display:flex;align-items:center;gap:10px}
+.lr-room .lr-team>.lr-sub::after{display:block;content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--ln2),transparent)}
