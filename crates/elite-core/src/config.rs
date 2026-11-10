@@ -189,6 +189,18 @@ pub struct Channel {
     /// Command-line arguments for this version on Windows. Old Elite (2.3, 2.9.3) has no launcher of its own and runs
     /// as a plain mod: `exe = "DOW2.exe"`, `args = ["-modname", "Elite"]`. Empty = the default arguments.
     pub args: Vec<String>,
+    /// 1.5.4 (owner 10.11.2026): `"addons": false` - a version our add-ons do not work with (grantovich's IG Rework: the game
+    /// crashes with them). While it is the installed version every add-on is off (uninstalled like an unticked one, the
+    /// player's ticks are kept for the other versions). Missing = true; older launchers ignore the field.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub addons: Option<bool>,
+}
+
+impl Channel {
+    /// Do our add-ons go into the game with this version?
+    pub fn addons_allowed(&self) -> bool {
+        self.addons != Some(false)
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -295,6 +307,17 @@ pub fn version_newer(a: &str, b: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn channel_addons_default_on() {
+        let c: LauncherConfig = serde_json::from_str(r#"{"channels": [{"id": "stable", "version": "3.2.1.0"},
+            {"id": "igrework", "version": "igrework-1", "exe": "IgRework.exe", "addons": false}, {"id": "x", "version": "x", "addons": true}]}"#).unwrap();
+        let allowed: Vec<bool> = c.channels.iter().map(|c| c.addons_allowed()).collect();
+        assert_eq!(allowed, vec![true, false, true]);
+        assert!(Channel::default().addons_allowed());
+        // a launcher.json written back keeps the field out when it was not there
+        assert!(!serde_json::to_string(&c.channels[0]).unwrap().contains("addons"));
+    }
+
     #[test]
     fn option_values() {
         let o: ComponentOption = serde_json::from_str(r#"{"id":"box","on":"2","off":"1"}"#).unwrap();

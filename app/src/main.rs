@@ -670,6 +670,9 @@ fn get_status(app: State<'_, App>) -> Value {
     let channel = current_channel(&app, &cfgd, &installed);
     let target = cfgd.channels.iter().find(|c| c.id == channel).cloned();
     let s = app.settings.lock().unwrap().clone();
+    // 1.5.4: the installed version takes no add-ons (they are off, the ticks greyed out); `next`: the version picked does not
+    let addons_off = dir.as_ref().is_some_and(|d| addons_blocked(d, &cfgd, &s));
+    let addons_off_next = !vanilla_on(&cfgd, &s) && channel_blocks(&cfgd, &channel);
     let launcher_update = cfgd.launcher_update.as_ref().filter(|u| version_newer(&u.version, LAUNCHER_VERSION)).map(|u| {
         json!({"version": u.version, "text": u.text, "url": u.urls.get(os_name()).or_else(|| u.urls.get("all")).cloned().unwrap_or_default()})
     });
@@ -706,11 +709,14 @@ fn get_status(app: State<'_, App>) -> Value {
         "vanilla_offered": vanilla_offered(&cfgd),
         "vanilla": cfgd.vanilla.as_ref().map(|v| json!({"name": v.name, "description": v.description})),
         "mode_sync": dir.as_ref().map(|d| mode_sync_needed(d, &cfgd, &s)).unwrap_or(false),
+        "addons_blocked": addons_off,
+        "addons_blocked_next": addons_off_next,
         "components": cfgd.components.iter().map(|c| json!({
             "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category, "order": c.order, "excludes": c.excludes, "requires": c.requires,
             "vanilla_ok": c.for_game("vanilla"), "elite_ok": c.for_game("elite"),
             "vanilla_installed": dir.as_ref().map(|d| update::Game::vanilla_component(d, &c.id).load_state().version).unwrap_or_default(),
-            "enabled": s.components.get(&c.id).copied().unwrap_or(c.default),
+            "enabled": !addons_off && s.components.get(&c.id).copied().unwrap_or(c.default),
+            "chosen": s.components.get(&c.id).copied().unwrap_or(c.default),
             "conflicts": dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default(),
             "installed": dir.as_ref().map(|d| update::Game::component(d, &c.id).load_state().version).unwrap_or_default(),
             "options": c.opts().iter().map(|o| {
@@ -1087,6 +1093,29 @@ fn drop_orphans(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
 }
 
 /// Component wanted by the player and not replaced by a hand-installed copy.
+// ---------- 1.5.4: versions without our add-ons (owner 10.11.2026) ----------
+// grantovich's IG Rework crashes with our add-ons: its channel in launcher.json says `"addons": false`. While such a version is
+// installed and Play starts it, every add-on is treated as unticked - the sync uninstalls them like an untick does (their DLLs
+// out of the game folder and of every launch config, Automatch's early winmm.dll too), the window greys the ticks out. The
+// player's ticks are not changed: back on a version with add-ons, the same sync installs what they chose.
+
+/// Is this channel one our add-ons do not go into?
+fn channel_blocks(cfg: &LauncherConfig, id: &str) -> bool {
+    cfg.channels.iter().find(|c| c.id == id).is_some_and(|c| !c.addons_allowed())
+}
+/// Does the game Play starts from this folder take no add-ons (the installed version's channel, not the vanilla game)?
+fn addons_blocked(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> bool {
+    !vanilla_on(cfg, s) && channel_blocks(cfg, &update::Game::new(dir).load_state().channel)
+}
+/// The ticks the game folder is brought to: the player's, or every add-on off for such a version.
+fn effective_settings(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Settings {
+    let mut e = s.clone();
+    if addons_blocked(dir, cfg, s) {
+        for c in &cfg.components { e.components.insert(c.id.clone(), false); }
+    }
+    e
+}
+
 fn comp_on(dir: &std::path::Path, c: &elite_core::config::Component, s: &Settings) -> bool {
     s.components.get(&c.id).copied().unwrap_or(c.default) && found_conflicts(dir, c).is_empty()
 }
@@ -1139,6 +1168,7 @@ fn clean_junk(app: State<'_, App>) -> Result<Value, String> {
 }
 
 fn junk_cleanup(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Value {
+    let s = &effective_settings(dir, cfg, s);
     let main = update::Game::new(dir);
     let mut keep: std::collections::HashSet<String> = main.load_state().files.iter().map(|f| f.path.to_ascii_lowercase()).collect();
     for c in &cfg.components {
@@ -1237,6 +1267,7 @@ fn sync_components_with(dir: &std::path::Path, cfg: &LauncherConfig, s: &Setting
         return sync_vanilla(dir, cfg, s, m, progress, load);   // 1.4.11: Elite's files stay as they are
     }
     hide_vanilla_loader(dir);            // Elite: no vanilla loader next to DOW2.exe (Automatch's early one comes back below)
+    let s = &effective_settings(dir, cfg, s);   // 1.5.4: a version without add-ons - all of them off
     let main = update::Game::new(dir);
     if main.load_state().version.is_empty() {
         return Ok(()); // Elite itself is not installed yet
@@ -1780,6 +1811,7 @@ fn start_game(app: &App) -> Result<Value, String> {
 /// The checks of the game folder right before a start (no network): what they did, for the player.
 fn prepare_start(dir: &std::path::Path, cfg: &LauncherConfig, settings: &Settings) -> Value {
     let (dir, cfg) = (dir.to_path_buf(), cfg.clone());
+    let settings = &effective_settings(&dir, &cfg, settings);   // 1.5.4: a version without add-ons - all of them off
     let vanilla = vanilla_on(&cfg, settings);
     let old = put_aside_old_copies(&dir, &cfg);
     // what the checks of our add-ons did is told to the player (siritos 02.11): only add-ons of launcher.json, the
@@ -2995,6 +3027,56 @@ fn main() {
 #[cfg(test)]
 mod enforce_off_tests {
     use super::*;
+    #[test]
+    fn a_version_without_addons_turns_them_all_off_and_back() {
+        let d = std::env::temp_dir().join(format!("noaddons_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        for p in ["Elite_DLLs", ".elite_launcher"] { std::fs::create_dir_all(d.join(p)).unwrap(); }
+        for f in ["Elite_DLLs/MMFind.dll", "winmm.dll", "Elite_DLLs/Cooldowns.dll"] { std::fs::write(d.join(f), b"x").unwrap(); }
+        for lc in ["Elite.launchconfig", "IgRework.launchconfig"] {
+            std::fs::write(d.join(lc), "[Launch]\r\nInjectedFiles=MMFind.dll,Cooldowns.dll\r\n").unwrap();
+        }
+        let st = |ch: &str| std::fs::write(d.join(".elite_launcher/state.json"), format!(r#"{{"version":"{ch}-1","channel":"{ch}","files":[]}}"#)).unwrap();
+        std::fs::write(d.join(".elite_launcher/component-automatch.json"),
+            r#"{"version":"mmfind-0.49","channel":"automatch","files":[{"path":"Elite_DLLs/MMFind.dll","size":1,"mtime":0,"sha":""},{"path":"winmm.dll","size":1,"mtime":0,"sha":""}]}"#).unwrap();
+        std::fs::write(d.join(".elite_launcher/component-cooldowns.json"),
+            r#"{"version":"cooldowns-8","channel":"cooldowns","files":[{"path":"Elite_DLLs/Cooldowns.dll","size":1,"mtime":0,"sha":""}]}"#).unwrap();
+        let mut cfg: LauncherConfig = serde_json::from_str(r#"{"channels": [{"id": "stable", "version": "stable-1", "default": true},
+            {"id": "igrework", "version": "igrework-1", "exe": "IgRework.exe", "addons": false}]}"#).unwrap();
+        let comp = |id: &str, dll: &str, def: bool| elite_core::config::Component { id: id.into(), inject: dll.into(), default: def, ..Default::default() };
+        cfg.components = vec![comp("automatch", "MMFind.dll", true), comp("cooldowns", "Cooldowns.dll", false)];
+        let mut s = Settings::default();
+        s.components.insert("cooldowns".into(), true);
+        let chosen = s.components.clone();
+        // the installed version takes add-ons: the player's ticks
+        st("stable");
+        assert!(!addons_blocked(&d, &cfg, &s));
+        let e = effective_settings(&d, &cfg, &s);
+        assert!(cfg.components.iter().all(|c| comp_on(&d, c, &e)));
+        // IG Rework installed: everything off at the start - DLLs, Automatch's early winmm.dll, every launch config
+        st("igrework");
+        assert!(addons_blocked(&d, &cfg, &s));
+        assert!(cfg.components.iter().all(|c| !comp_on(&d, c, &effective_settings(&d, &cfg, &s))));
+        let off = prepare_start(&d, &cfg, &s)["off"].clone();
+        for f in ["Elite_DLLs/MMFind.dll", "winmm.dll", "Elite_DLLs/Cooldowns.dll"] { assert!(!d.join(f).exists(), "{f} is gone ({off})"); }
+        for lc in ["Elite.launchconfig", "IgRework.launchconfig"] {
+            let t = std::fs::read_to_string(d.join(lc)).unwrap();
+            assert!(!t.contains("MMFind") && !t.contains("Cooldowns"), "{lc}: {t}");
+        }
+        assert_eq!(s.components, chosen, "the player's ticks are kept");
+        assert!(update::Game::component_ids(&d).is_empty(), "uninstalled like an untick");
+        // the vanilla game is another game: its add-ons are not blocked by the Elite version
+        let mut v = s.clone();
+        v.game_mode = "vanilla".into();
+        cfg.vanilla = Some(serde_json::from_str(r#"{"loader": "vloader-1"}"#).unwrap());
+        if vanilla_on(&cfg, &v) { assert!(!addons_blocked(&d, &cfg, &v)); }
+        // back on the main version: what the player chose
+        st("stable");
+        let e = effective_settings(&d, &cfg, &s);
+        assert!(cfg.components.iter().all(|c| comp_on(&d, c, &e)));
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
     #[test]
     fn off_addons_and_hand_copies_are_not_loadable() {
         let d = std::env::temp_dir().join(format!("eo_test_{}", std::process::id()));

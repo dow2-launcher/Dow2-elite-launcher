@@ -17,7 +17,7 @@ use std::fs::{self, File};
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 use std::sync::atomic::Ordering;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 pub const CONFIG_FILE: &str = "launcher.json";
 
@@ -50,6 +50,15 @@ pub struct Progress {
     pub reused: u64,
     pub from_cache: u64,
     pub mirror: String,
+    /// 1.5.4: what is being done to `file` right now: "check" (SHA-256 of the file on disk), "cache" (taken from the version
+    /// cache), "lan", "scan" (the old file read for the parts the new one keeps), "download", "build" (parts of the old file
+    /// copied), "verify" (SHA-256 of the result); "" between files
+    pub stage: String,
+    /// bytes of `file` handled in this stage, and its size: a big file shows it is alive
+    pub file_done: u64,
+    pub file_size: u64,
+    /// estimated seconds left of this phase (0 = not known yet)
+    pub eta_s: u64,
 }
 
 #[derive(Debug)]
@@ -356,6 +365,40 @@ fn stash(game: &Game, path: &Path, known_sha: Option<[u8; 32]>) {
     }
 }
 
+/// 1.5.4: like `stash`, but the file is moved into the cache (same disk: no copy of hundreds of MB) - for a file that is
+/// replaced or removed right after. A file that can not be moved (the game holds it) is copied as before.
+fn stash_move(game: &Game, path: &Path, known_sha: Option<[u8; 32]>) {
+    let sha = match known_sha {
+        Some(s) => s,
+        None => match File::open(path).and_then(cdc::sha256) {
+            Ok((s, _)) => s,
+            Err(_) => return,
+        },
+    };
+    let dir = game.cache_dir();
+    let _ = fs::create_dir_all(&dir);
+    let dst = dir.join(hex(&sha));
+    if !dst.exists() && fs::rename(path, &dst).is_ok() {
+        if let Ok(f) = File::options().write(true).open(&dst) {
+            let _ = f.set_modified(SystemTime::now());
+        }
+        return;
+    }
+    stash(game, path, Some(sha));
+}
+
+/// "0a1b…" (64 hex digits) -> the SHA-256 bytes.
+fn unhex(s: &str) -> Option<[u8; 32]> {
+    if s.len() != 64 || !s.is_ascii() {
+        return None;
+    }
+    let mut o = [0u8; 32];
+    for (i, b) in o.iter_mut().enumerate() {
+        *b = u8::from_str_radix(&s[2 * i..2 * i + 2], 16).ok()?;
+    }
+    Some(o)
+}
+
 /// Keep the version cache under `limit` bytes, dropping the oldest files first.
 pub fn prune_cache(game: &Game, limit: u64) {
     let Ok(rd) = fs::read_dir(game.cache_dir()) else { return };
@@ -432,7 +475,7 @@ pub fn adopt_existing(game: &Game, man: &Manifest, channel: &str) -> bool {
     game.save_state(&State { version: man.version.clone(), channel: channel.to_string(), files }).is_ok()
 }
 
-/// SHA-256 of a file, reporting progress every 32 MB so a big archive doesn't look like a hang.
+/// SHA-256 of a file, reporting progress every 8 MB so a big archive doesn't look like a hang.
 fn sha256_progress(path: &Path, cancel: &std::sync::atomic::AtomicBool, tick: &mut dyn FnMut(u64)) -> std::io::Result<([u8; 32], u64)> {
     use sha2::{Digest, Sha256};
     let mut r = File::open(path)?;
@@ -449,7 +492,7 @@ fn sha256_progress(path: &Path, cancel: &std::sync::atomic::AtomicBool, tick: &m
         }
         s.update(&buf[..n]);
         size += n as u64;
-        if size - last >= 32 << 20 {
+        if size - last >= 8 << 20 {
             last = size;
             tick(size);
         }
@@ -481,13 +524,22 @@ pub fn apply(game: &Game, m: &Mirrors, man: &Manifest, opt: &Options, progress: 
         let path = game.file(&f.path);
         let shahex = hex(&f.sha);
         let cur = mtime(&path);
-        let trusted = !opt.verify_all
-            && matches!((cur, known.get(f.path.as_str())), (Some((sz, mt)), Some(s)) if s.size == sz && s.mtime == mt && s.sha == shahex && sz == f.size);
-        if !trusted {
+        // the file as the launcher left it (same size and time): its SHA-256 is the state's
+        let as_left = known.get(f.path.as_str()).filter(|s| matches!(cur, Some((sz, mt)) if s.size == sz && s.mtime == mt));
+        let trusted = !opt.verify_all && as_left.is_some_and(|s| s.sha == shahex && s.size == f.size);
+        // 1.5.4: a file of the previous version that the new one replaces is not hashed again (a switch hashed hundreds of
+        // MB of archives here for nothing): the state knows what it is, and the result is checked by SHA-256 anyway
+        let known_old = if opt.verify_all || trusted { None } else { as_left.and_then(|s| unhex(&s.sha)) };
+        if let Some(sha) = known_old {
+            todo.push((f, Some(sha)));
+        } else if !trusted {
             let base = p.bytes_done;
             let have = match sha256_progress(&path, &m.cancel, &mut |done| {
                 let mut q = p.clone();
                 q.bytes_done = base + done.min(f.size);
+                q.stage = "check".into();
+                q.file_done = done.min(f.size);
+                q.file_size = f.size;
                 progress(&q);
             }) {
                 Ok(v) => Some(v),
@@ -510,15 +562,26 @@ pub fn apply(game: &Game, m: &Mirrors, man: &Manifest, opt: &Options, progress: 
     p.files_total = todo.len();
     p.bytes_done = 0;
     p.bytes_total = todo.iter().map(|(f, _)| f.size).sum();
+    let t0 = Instant::now();
     for (f, cur_sha) in &todo {
         p.file = f.path.clone();
+        p.stage = String::new();
+        p.file_done = 0;
+        p.file_size = f.size;
         progress(&p);
-        update_file(game, m, f, *cur_sha, &mut sum, &mut |done| {
+        let base = p.bytes_done;
+        // 1.5.4: progress while one file is built (it used to come only between the parts, a new 400 MB archive is one
+        // part): the stage, how far into the file, what came from the network, the time left of the phase
+        update_file(game, m, f, *cur_sha, &mut sum, &mut |stage, done| {
             let mut q = p.clone();
-            q.bytes_done += done;
+            q.stage = stage.into();
+            q.file_done = done.min(f.size);
+            if matches!(stage, "download" | "build") {
+                q.bytes_done = base + q.file_done;
+            }
             q.downloaded = m.downloaded.load(Ordering::Relaxed) - base_dl;
-            q.reused = sum_reused_hint(done);
             q.mirror = m.current_host();
+            q.eta_s = eta(q.bytes_done, q.bytes_total, t0.elapsed().as_secs_f64());
             progress(&q);
         })?;
         sum.updated += 1;
@@ -527,6 +590,7 @@ pub fn apply(game: &Game, m: &Mirrors, man: &Manifest, opt: &Options, progress: 
         p.downloaded = m.downloaded.load(Ordering::Relaxed) - base_dl;
         p.reused = sum.reused;
         p.from_cache = sum.from_cache;
+        p.eta_s = eta(p.bytes_done, p.bytes_total, t0.elapsed().as_secs_f64());
     }
 
     // 3. files of the previous version that the new one doesn't have
@@ -534,8 +598,9 @@ pub fn apply(game: &Game, m: &Mirrors, man: &Manifest, opt: &Options, progress: 
         if !man.files.iter().any(|n| n.path == f.path) {
             let path = game.file(&f.path);
             if path.is_file() {
-                stash(game, &path, None);
-                if fs::remove_file(&path).is_ok() {
+                let as_left = mtime(&path).is_some_and(|(sz, mt)| sz == f.size && mt == f.mtime);
+                stash_move(game, &path, if as_left { unhex(&f.sha) } else { None });
+                if !path.exists() || fs::remove_file(&path).is_ok() {
                     sum.removed += 1;
                 }
             }
@@ -563,11 +628,48 @@ pub fn apply(game: &Game, m: &Mirrors, man: &Manifest, opt: &Options, progress: 
     Ok(sum)
 }
 
-fn sum_reused_hint(_done: u64) -> u64 {
-    0
+/// Seconds left of a phase that did `done` of `total` bytes in `secs` (0 = too early to tell).
+fn eta(done: u64, total: u64, secs: f64) -> u64 {
+    if done == 0 || secs < 3.0 || done >= total {
+        return 0;
+    }
+    ((total - done) as f64 * secs / done as f64).ceil() as u64
 }
 
-fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]>, sum: &mut Summary, tick: &mut dyn FnMut(u64)) -> Result<(), Error> {
+/// Is this file the manifest's (SHA-256 and size)? Reports "verify" progress; a cancel is an error.
+fn verify_file(path: &Path, f: &FileEntry, cancel: &std::sync::atomic::AtomicBool, tick: &mut dyn FnMut(&str, u64)) -> Result<bool, Error> {
+    match sha256_progress(path, cancel, &mut |n| tick("verify", n)) {
+        Ok((s, z)) => Ok(s == f.sha && z == f.size),
+        Err(e) if e.kind() == std::io::ErrorKind::Interrupted => Err(Error::Cancelled),
+        Err(_) => Ok(false),
+    }
+}
+
+/// The checked new file `tmp` takes the place of `dst`; the old one goes into the version cache (moved, not copied).
+/// `tmp` is left where it is on an error.
+fn put_in_place(game: &Game, dst: &Path, tmp: &Path, cur_sha: Option<[u8; 32]>, rel: &str) -> Result<(), Error> {
+    if dst.exists() {
+        stash_move(game, dst, cur_sha);
+    }
+    // the copy left by a previous update while the game held the file (see below)
+    let old = dst.with_file_name(format!("{}.old", dst.file_name().map(|n| n.to_string_lossy()).unwrap_or_default()));
+    let _ = fs::remove_file(&old);
+    if let Err(e) = fs::rename(tmp, dst) {
+        // a running game (or a crashed one still hanging) keeps its DLLs locked: Windows can not overwrite or delete
+        // them, but it can rename them - the new file takes the name, the old one goes when the game lets it go
+        if !(dst.exists() && fs::rename(dst, &old).is_ok() && fs::rename(tmp, dst).is_ok()) {
+            return Err(Error::Io(format!("{rel}: {e} (is the game running?)")));
+        }
+    }
+    Ok(())
+}
+
+/// The biggest Range request: a broken connection costs at most this much again, and the next mirror goes on from here.
+const MAX_GET: u64 = 16 << 20;
+/// Neighbouring parts of the old file are copied with one read up to this size.
+const MAX_COPY: u32 = 4 << 20;
+
+fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]>, sum: &mut Summary, tick: &mut dyn FnMut(&str, u64)) -> Result<(), Error> {
     let dst = game.file(&f.path);
     if let Some(parent) = dst.parent() {
         fs::create_dir_all(parent)?;
@@ -575,17 +677,30 @@ fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]
     let tmp = dst.with_file_name(format!("{}.eliteupd", dst.file_name().unwrap().to_string_lossy()));
     let shahex = hex(&f.sha);
 
-    // a) exact file in the version cache
+    // a) exact file in the version cache: moved out of it (1.5.4; it was copied - hundreds of MB written again), checked,
+    // and the replaced file goes into the cache in its place
     let cached = game.cache_dir().join(&shahex);
     if cached.is_file() {
-        if fs::copy(&cached, &tmp).is_ok() && File::open(&tmp).and_then(cdc::sha256).map(|(s, z)| s == f.sha && z == f.size).unwrap_or(false) {
-            if dst.exists() {
-                stash(game, &dst, cur_sha);
+        tick("cache", 0);
+        let _ = fs::remove_file(&tmp);
+        let moved = fs::rename(&cached, &tmp).is_ok();
+        if moved || fs::copy(&cached, &tmp).is_ok() {
+            let ok = match verify_file(&tmp, f, &m.cancel, tick) {
+                Ok(ok) => ok,
+                Err(e) => {
+                    if moved { let _ = fs::rename(&tmp, &cached); } else { let _ = fs::remove_file(&tmp); }
+                    return Err(e);
+                }
+            };
+            if ok {
+                if let Err(e) = put_in_place(game, &dst, &tmp, cur_sha, &f.path) {
+                    if !(moved && fs::rename(&tmp, &cached).is_ok()) { let _ = fs::remove_file(&tmp); }
+                    return Err(e);
+                }
+                sum.from_cache += f.size;
+                tick("build", f.size);
+                return Ok(());
             }
-            fs::rename(&tmp, &dst)?;
-            sum.from_cache += f.size;
-            tick(f.size);
-            return Ok(());
         }
         let _ = fs::remove_file(&tmp);
         let _ = fs::remove_file(&cached);
@@ -593,14 +708,15 @@ fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]
 
     // a2) the whole file from another launcher on the local network; taken only if its SHA-256 is the manifest's
     if f.size >= 256 * 1024 {
+        tick("lan", 0);
         let got = File::create(&tmp).map(|mut t| crate::lan::fetch(&shahex, f.size, &mut t, &m.cancel)).unwrap_or(false);
-        if got && File::open(&tmp).and_then(cdc::sha256).map(|(s, z)| s == f.sha && z == f.size).unwrap_or(false) {
-            if dst.exists() {
-                stash(game, &dst, cur_sha);
+        if got && verify_file(&tmp, f, &m.cancel, tick).inspect_err(|_| { let _ = fs::remove_file(&tmp); })? {
+            if let Err(e) = put_in_place(game, &dst, &tmp, cur_sha, &f.path) {
+                let _ = fs::remove_file(&tmp);
+                return Err(e);
             }
-            fs::rename(&tmp, &dst)?;
             sum.from_lan += f.size;
-            tick(f.size);
+            tick("build", f.size);
             return Ok(());
         }
         let _ = fs::remove_file(&tmp);
@@ -612,12 +728,19 @@ fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]
     if let Some(o) = old.as_mut() {
         let mut ch = cdc::Chunker::default();
         let mut buf = vec![0u8; 1 << 22];
+        let mut read = 0u64;
+        tick("scan", 0);
         loop {
+            if m.cancel.load(Ordering::Relaxed) {
+                return Err(Error::Cancelled);
+            }
             let n = o.read(&mut buf)?;
             if n == 0 {
                 break;
             }
             ch.feed(&buf[..n]);
+            read += n as u64;
+            tick("scan", read);
         }
         let mut off = 0u64;
         for c in ch.finish() {
@@ -658,13 +781,18 @@ fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]
             }
             merged.push(Seg::Get(from, to)); i = j;
         } else {
-            if let Seg::Copy(p0, o, l) = plan[i] { merged.push(Seg::Copy(p0, o, l)); }
+            if let Seg::Copy(p0, o, l) = plan[i] {
+                // 1.5.4: parts that follow each other in both files are one read (was a seek + read per 16 KB part)
+                match merged.last_mut() {
+                    Some(Seg::Copy(q0, qo, ql)) if *q0 + *ql as u64 == p0 && *qo + *ql as u64 == o && *ql + l <= MAX_COPY => *ql += l,
+                    _ => merged.push(Seg::Copy(p0, o, l)),
+                }
+            }
             i += 1;
         }
     }
-    let mut cbuf = vec![0u8; cdc::MAX as usize];
+    let mut cbuf = vec![0u8; MAX_COPY.max(cdc::MAX) as usize];
     let result: Result<(), Error> = (|| {
-        let mut done = 0u64;
         for sgm in &merged {
             if m.cancel.load(Ordering::Relaxed) {
                 return Err(Error::Cancelled);
@@ -672,9 +800,14 @@ fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]
             match *sgm {
                 Seg::Get(from, to) => {
                     out.flush()?;
-                    m.get_range(&blob, from, to, out.get_mut())?;
-                    done = to;
-                    tick(done);
+                    // 1.5.4: at most MAX_GET per request, the bytes reported as they come (a new 400 MB archive was one
+                    // request with no progress until its end, and a broken connection started it over from zero)
+                    let mut at = from;
+                    while at < to {
+                        let end = (at + MAX_GET).min(to);
+                        m.get_range_cb(&blob, at, end, out.get_mut(), &mut |got| tick("download", at + got))?;
+                        at = end;
+                    }
                 }
                 Seg::Copy(p0, off, len) => {
                     let o = old.as_mut().unwrap();
@@ -682,11 +815,10 @@ fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]
                     o.read_exact(&mut cbuf[..len as usize])?;
                     out.write_all(&cbuf[..len as usize])?;
                     sum.reused += len as u64;
-                    done = p0 + len as u64;
+                    tick("build", p0 + len as u64);
                 }
             }
         }
-        let _ = done;
         out.flush()?;
         Ok(())
     })();
@@ -696,32 +828,71 @@ fn update_file(game: &Game, m: &Mirrors, f: &FileEntry, cur_sha: Option<[u8; 32]
         let _ = fs::remove_file(&tmp);
         return Err(e);
     }
-    let ok = File::open(&tmp).and_then(cdc::sha256).map(|(s, z)| s == f.sha && z == f.size).unwrap_or(false);
+    let ok = verify_file(&tmp, f, &m.cancel, tick).inspect_err(|_| { let _ = fs::remove_file(&tmp); })?;
     if !ok {
         let _ = fs::remove_file(&tmp);
         return Err(Error::Bad(format!("{}: checksum mismatch after download", f.path)));
     }
-    if dst.exists() {
-        stash(game, &dst, cur_sha);
+    if let Err(e) = put_in_place(game, &dst, &tmp, cur_sha, &f.path) {
+        let _ = fs::remove_file(&tmp);
+        return Err(e);
     }
-    // the copy left by a previous update while the game held the file (see below)
-    let old = dst.with_file_name(format!("{}.old", dst.file_name().map(|n| n.to_string_lossy()).unwrap_or_default()));
-    let _ = fs::remove_file(&old);
-    if let Err(e) = fs::rename(&tmp, &dst) {
-        // a running game (or a crashed one still hanging) keeps its DLLs locked: Windows can not overwrite or delete
-        // them, but it can rename them - the new file takes the name, the old one goes when the game lets it go
-        if !(dst.exists() && fs::rename(&dst, &old).is_ok() && fs::rename(&tmp, &dst).is_ok()) {
-            let _ = fs::remove_file(&tmp);
-            return Err(Error::Io(format!("{}: {e} (is the game running?)", f.path)));
-        }
-    }
-    tick(f.size);
+    tick("build", f.size);
     Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn switch_takes_files_out_of_the_cache_without_copying_or_rehashing() {
+        let dir = std::env::temp_dir().join(format!("elite_switch_test_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(dir.join("Archives")).unwrap();
+        let (v1, v2, same) = (vec![1u8; 70_000], vec![2u8; 90_000], b"same".to_vec());
+        let sha = |b: &[u8]| cdc::sha256(std::io::Cursor::new(b)).unwrap().0;
+        let fe = |p: &str, b: &[u8]| FileEntry { path: p.into(), size: b.len() as u64, sha: sha(b), chunks: vec![] };
+        fs::write(dir.join("Archives/a.sga"), &v1).unwrap();
+        fs::write(dir.join("b.txt"), &same).unwrap();
+        let g = Game::new(&dir);
+        let st = |p: &str, b: &[u8]| { let (size, mtime) = mtime(&g.file(p)).unwrap(); StateFile { path: p.into(), size, mtime, sha: hex(&sha(b)) } };
+        g.save_state(&State { version: "v1".into(), channel: "stable".into(), files: vec![st("Archives/a.sga", &v1), st("b.txt", &same)] }).unwrap();
+        // the new version's archive is in the version cache (an earlier switch)
+        fs::create_dir_all(g.cache_dir()).unwrap();
+        fs::write(g.cache_dir().join(hex(&sha(&v2))), &v2).unwrap();
+        let man = Manifest { version: "v2".into(), files: vec![fe("Archives/a.sga", &v2), fe("b.txt", &same)] };
+        let mut stages: Vec<String> = Vec::new();
+        let m = Mirrors::new(vec![]);
+        let opt = Options { verify_all: false, cache_limit: 1 << 30, channel: "igrework".into() };
+        let sum = apply(&g, &m, &man, &opt, &mut |p| if !p.stage.is_empty() && stages.last() != Some(&p.stage) { stages.push(p.stage.clone()) }).unwrap();
+        assert_eq!(fs::read(dir.join("Archives/a.sga")).unwrap(), v2);
+        assert_eq!(sum.from_cache, v2.len() as u64);
+        assert_eq!(sum.downloaded, 0);
+        // the file of the old version was known from the state: not hashed ("check"), moved into the cache
+        assert_eq!(stages, vec!["cache", "build"], "stages {stages:?}");
+        assert!(g.cache_dir().join(hex(&sha(&v1))).is_file(), "the replaced file is in the cache");
+        assert!(!g.cache_dir().join(hex(&sha(&v2))).exists(), "the cached file was moved, not copied");
+        assert_eq!(g.load_state().channel, "igrework");
+        // and back: free again, from the cache
+        let man1 = Manifest { version: "v1".into(), files: vec![fe("Archives/a.sga", &v1), fe("b.txt", &same)] };
+        let sum = apply(&g, &m, &man1, &Options { channel: "stable".into(), ..opt }, &mut |_| {}).unwrap();
+        assert_eq!((sum.from_cache, sum.updated), (v1.len() as u64, 1));
+        assert_eq!(fs::read(dir.join("Archives/a.sga")).unwrap(), v1);
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn hex_round_trip_and_time_left() {
+        let s = [7u8; 32];
+        assert_eq!(unhex(&hex(&s)), Some(s));
+        assert_eq!(unhex("xyz"), None);
+        assert_eq!(unhex(&"g".repeat(64)), None);
+        assert_eq!(eta(0, 100, 10.0), 0);
+        assert_eq!(eta(50, 100, 2.0), 0, "too early");
+        assert_eq!(eta(25, 100, 10.0), 30);
+        assert_eq!(eta(100, 100, 10.0), 0);
+    }
 
     #[test]
     fn orphan_component_uninstall_keeps_shared_files() {
