@@ -19,6 +19,10 @@
     <nav><button class="tab on" data-view="home" data-t="home"></button><button class="tab" data-view="rooms" data-t="roomsTab"></button><button class="tab" data-view="addons" data-t="components"></button><button class="tab tab-ico" data-view="settings" data-ta="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></nav>
     <div class="hdr-me" id="hdrMe"><span id="mePlate"></span><section class="me-box hidden" id="meBox" role="menu"></section></div>
   </header>
+  <!-- 1.5.3 (owner 10.11): the updates - a newer launcher, a newer Elite - in one strip under the header, one Update on the right;
+       an invitation into a launcher lobby the same way, under it -->
+  <div class="ubar hidden" id="updBar" role="status"><span class="ub-ico" aria-hidden="true"></span><div class="ub-items" id="updItems"></div><button class="btn gold ub-btn" id="updAll"></button></div>
+  <div class="ubar inv hidden" id="invBar" role="alert"><span class="ub-ico" aria-hidden="true"></span><div class="ub-items" id="invItems"></div><span class="bn-act"><button class="btn small ghost" id="invNo"></button><button class="btn gold ub-btn" id="invYes"></button></span></div>
   <!-- 1.5.0: the banners under the header, the whole width: the launcher in the game folder, the forwarding offer, no game (folded) -->
   <div class="bn warn hidden" id="launcherBanner"><span id="launcherText"></span></div>
   <div class="bn warn hidden" id="fwdBanner"><span id="fwdText"></span><span class="bn-act"><button class="btn small ghost" id="fwdLater"></button><button class="btn gold small" id="fwdBtn"></button></span></div>
@@ -62,6 +66,8 @@
         <div class="on-groups" id="onGroups"></div>
         <button class="more hidden" id="onLadder" data-t="onLadder"></button>
       </section>
+      <!-- 1.5.3 (owner 10.11): the launcher lobby I am in, under Online - its players, who is ready, back to it -->
+      <section class="panel lr-mini hidden" id="lrMini" aria-live="polite"></section>
       <section class="panel addons hidden" id="compBox">
         <div class="h"><span data-t="components"></span><button class="h-link" id="allComps" data-t="allAddons"></button></div>
         <div id="components" class="addon-list"></div>
@@ -173,7 +179,7 @@
     </div>
   </main>
 
-  <!-- 1.5.0: the version on the left, the status (progress, warnings, offers) in the middle, Play on the right -->
+  <!-- 1.5.0: the version on the left, the status (progress, warnings) in the middle, Play on the right (the offers: the strip under the header) -->
   <footer>
     <div class="ver-pick">
       <div class="ver-list hidden" id="verList"></div>
@@ -185,8 +191,6 @@
       <div class="meta" id="statusMeta"></div>
       <div class="ver-warn hidden" id="verWarn"></div>
     </div>
-    <div class="upd-box hidden" id="luBox"><div class="upd-text" id="luText"></div><button class="btn gold small" id="luBtn"></button></div>
-    <div class="upd-box hidden" id="updBox"><div class="upd-text" id="updText"></div><button class="btn gold small" id="updateBtn"></button></div>
     <button class="btn small hidden" id="cancel" data-t="cancel"></button>
     <button class="btn small red hidden" id="lrCancelFoot" data-t="lrCancel"></button>
     <span class="plw" id="playWrap"><button class="play" id="play"></button></span>

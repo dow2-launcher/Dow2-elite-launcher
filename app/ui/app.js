@@ -1057,6 +1057,11 @@ const T = {
 };
 
 // 1.5.0: the D look's strings
+Object.assign(T.en, { ubOne: 'Update', ubAll: 'Update all', ubBusy: 'Updating…' });
+Object.assign(T.ru, { ubOne: 'Обновить', ubAll: 'Обновить всё', ubBusy: 'Обновляю…' });
+Object.assign(T.es, { ubOne: 'Actualizar', ubAll: 'Actualizar todo', ubBusy: 'Actualizando…' });
+Object.assign(T.fr, { ubOne: 'Mettre à jour', ubAll: 'Tout mettre à jour', ubBusy: 'Mise à jour…' });
+Object.assign(T.de, { ubOne: 'Aktualisieren', ubAll: 'Alles aktualisieren', ubBusy: 'Aktualisiere…' });
 Object.assign(T.en, { rTeamShort: 'Team {n}', rAvg: 'avg {r}', secGame: 'Game', secLauncher: 'Launcher', secService: 'Maintenance', aboutTitle: 'About', aboutAuto: 'updates itself', aboutNews: 'What\'s new', aboutInstalled: 'Installed', aboutCode: 'Open source', aboutLicense: 'MIT license', addonsOnOf: '{n} of {m} on', setupHide: 'Hide', setupMore: 'More', launcherRestarts: 'restarts by itself', launcherGet: 'Download', launcherUpdatingTo: 'Updating the launcher to {v}…',
   launcherAfter: 'then the signature check and a restart', chWaitingShort: 'signing in in the browser…', meRating: '1v1 rating · {r}',
   lvAddonAsk: 'Watching needs the add-on “Watch running matches”. The launcher turns it on, starts the game and opens this match.' });
@@ -1174,6 +1179,10 @@ const ICO = {
   crown: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/></svg>',
   lock: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
   x: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  up: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>',
+  invite: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1M19 8v6M16 11h6"/></svg>',
+  seat: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 11V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6M4 11h16v5H4zM6 16v4M18 16v4"/></svg>',
+  mail: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14"/><path d="M3 6l9 7 9-7"/></svg>',
 };
 // 1.5.0: an icon by name - the game's own (img/ui/icons/<name>.png, listed in img/ui/art.js by scripts/game-art) when it was
 // extracted, else the line icon above
@@ -1405,13 +1414,30 @@ function renderLauncherBanner() {
   // (launcher_progress). launcher.json already names a newer launcher and the updater has not found it yet (the mirrors copy a
   // release a little later): ask again every minute, not every 15, so Update comes without a restart (owner 03.11.2026)
   if (lu && (!LU || versionNewer(lu.version, LU.version))) launcherRetrySoon();
-  const offer = !!v && !S.in_game_dir && !(LU && LU.installing);
-  $('luBox').classList.toggle('hidden', !offer);
-  if (!offer) return;
-  $('luText').innerHTML = `<b>${esc(t('launcherNew', { v }))}</b>` + (LU ? `<small>${esc(t('launcherRestarts'))}</small>` : '');
-  $('luBtn').textContent = t(LU ? 'launcherUpdateBtn' : 'launcherGet');
-  $('luBtn').disabled = !!LU && (!!S.busy || !!S.game_running);
-  $('luBtn').onclick = LU ? launcherInstall : () => open(lu.url);
+  // 1.5.3 (owner 10.11): the offer is a line of the strip under the header (renderUpdBar), not a box next to Play
+  UPD.lu = !v || S.in_game_dir ? null : LU && LU.installing ? { b: t('launcherUpdatingTo', { v }) + (LU.pct ? ' ' + LU.pct : ''), busy: true }
+    : { b: t('launcherNew', { v }), small: LU ? t('launcherRestarts') : '', run: LU ? launcherInstall : () => open(lu.url), get: !LU };
+  renderUpdBar();
+}
+// the strip of updates: every update this copy has, in one line, and one button for them all - Elite first (a download in
+// the footer's bar), then the launcher (it restarts). An Update of the launcher alone while a game runs or Elite downloads: off.
+const UPD = { lu: null, elite: null, then: '' };
+function renderUpdBar() {
+  const bar = $('updBar'); if (!bar || !S) return;
+  const its = [UPD.elite, UPD.lu].filter(Boolean);
+  bar.classList.toggle('hidden', !its.length);
+  if (!its.length) return;
+  bar.querySelector('.ub-ico').innerHTML = ico('up');
+  $('updItems').innerHTML = its.map(x => `<span class="ub-it${x.busy ? ' busy' : ''}"><b>${esc(x.b)}</b>${x.small ? `<small>${esc(x.small)}</small>` : ''}</span>`).join('');
+  const todo = its.filter(x => x.run && !x.busy), b = $('updAll');
+  b.classList.toggle('hidden', !todo.length);
+  b.textContent = UPD.then ? t('ubBusy') : todo.length > 1 ? t('ubAll') : todo[0] && todo[0].get ? t('launcherGet') : t('ubOne');
+  b.disabled = !!UPD.then || !!S.game_running || (!!S.busy && !UPD.elite);
+  b.onclick = () => {
+    if (UPD.elite && UPD.lu && UPD.lu.run && !UPD.lu.get) UPD.then = 'launcher';   // the launcher after Elite (render)
+    (UPD.elite || todo[0]).run();
+    renderUpdBar();
+  };
 }
 // 1.4.2 (owner 03.11.2026): Relic's game servers checked at start (relic_probe); players with a bad way to them are OFFERED our
 // forwarding servers (add-on relay_fwd, off by default) - never turned on for them. "Not now" hides the offer for this month.
@@ -1632,14 +1658,14 @@ function render() {
   // a newer version of the installed one: offered at the bottom of the home screen's right column, never forced
   const target = channelOf(S.installed_channel) || channelOf(S.channel);
   const showUpd = !!(S.game_found && target && S.installed_version && target.version !== S.installed_version && !S.busy && !S.game_running && !S.last_error);
-  $('updBox').classList.toggle('hidden', !showUpd);
   if (showUpd) {
     const cost = (S.costs || {})[target.version];
-    $('updText').innerHTML = `<b>${esc((L(cfg.update_text) || t('switchTo', { name: '{name}' })).replace('{name}', L(target.name)).replace('{version}', target.version))}</b>`
-      + (cost ? `<small>${esc(t('upTo', { s: mb(cost) }))}</small>` : '');
-    $('updateBtn').textContent = t('updateNow');
-    $('updateBtn').onclick = () => switchTo(target.id);
-  }
+    UPD.elite = { b: (L(cfg.update_text) || t('switchTo', { name: '{name}' })).replace('{name}', L(target.name)).replace('{version}', target.version),
+      small: cost ? t('upTo', { s: mb(cost) }) : '', run: () => switchTo(target.id) };
+  } else UPD.elite = null;
+  // Update all: Elite is done (no download any more) - now the launcher
+  if (UPD.then === 'launcher' && !S.busy && !UPD.elite) { UPD.then = ''; if (LU && !LU.installing) launcherInstall(); }
+  renderUpdBar();
 
   // status line
   if (!S.busy && !LU?.installing) {
@@ -1836,6 +1862,9 @@ $('allComps').onclick = () => document.querySelector('.tab[data-view="addons"]')
 // 1.3.15 (owner 02.11.2026): the Lobbies tab - open custom games from Relic's list through our ladder server, every 15 s while shown
 const RM = { timer: 0, host: '' };
 // 1.5.0: the player's country as its two letters in a small badge (a flag emoji is letters anyway in WebView2 on Windows)
+// 1.5.3 (owner 10.11): the map of a card - the minimap as a square on top (never stretched), its name under it, the same picture
+// dimmed behind the rest of the column
+const mmapHtml = (url, name) => `<div class="mmap"${url ? ` style="--mm:url('${esc(url)}')"` : ''}><i class="mm"></i><span>${esc(name || '')}</span></div>`;
 const roomFlag = c => /^[a-z]{2}$/i.test(c || '') ? `<span class="fl" title="${esc(c.toUpperCase())}">${esc(c.toUpperCase())}</span>` : '';
 // RoomJoin (experiment 03.11.2026): "Join" on an Elite room without a password while the add-on is on - the game starts (or is
 // already running) and RoomJoin.dll walks into the room from the main menu; if it can't, the game shows the public games list
@@ -1914,7 +1943,7 @@ function roomCard(r) {
     // 1.5.0 (D): the team's heading with its average 1v1 rating; an open seat as a row (an empty race square)
     const rts = ps.map(p => p.rating).filter(Boolean), avg = rts.length ? Math.round(rts.reduce((x, y) => x + y, 0) / rts.length) : 0;
     return `<div class="team"><div class="th"><span>${esc(t('rTeamShort', { n: tm + 1 }))}</span>${avg ? `<span>${esc(t('rAvg', { r: avg }))}</span>` : ''}</div>${ps.map(pl).join('')}`
-      + `${Array(per ? Math.max(0, per - ps.length) : 0).fill(`<div class="rp free"><span class="race empty"></span><span class="nm">${esc(t('roomsFree'))}</span></div>`).join('')}</div>`;
+      + `${Array(per ? Math.max(0, per - ps.length) : 0).fill(`<div class="rp free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`).join('')}</div>`;
   }).join('');
   const EYE = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.7 9.2 1.5 12c1.2 2.8 5 7 10.5 7s9.3-4.2 10.5-7C21.3 9.2 17.5 5 12 5zm0 11.5A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9zm0-7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/></svg>';
   const obs = nObs ? `<div class="robs" title="${esc(t('roomsObs'))}">${EYE}`
@@ -1929,7 +1958,7 @@ function roomCard(r) {
   // 1.5.0: the marks the Rooms tab's filters read (one list with the launcher's rooms, lroom.js rApplyFilter)
   const vok = r.game === 'elite' ? !why : r.game === 'vanilla' ? !!S.vanilla_offered : false;
   const dat = `data-kind="game" data-mode="${esc(r.mode || '')}" data-vok="${vok ? 1 : 0}" data-van="${r.game === 'vanilla' ? 1 : 0}" data-free="${!full && !r.password && (!cap || (r.players || []).filter(p => !isObs(p)).length < cap) ? 1 : 0}"`;
-  return `<div class="room${vok ? '' : ' dim'}" ${dat}><div class="mmap" style="${r.minimap ? `background-image:url('${A}${esc(r.minimap)}')` : ''}"><span>${esc(map)}</span></div><div class="rb">`
+  return `<div class="room${vok ? '' : ' dim'}" ${dat}>${mmapHtml(r.minimap ? A + r.minimap : '', map)}<div class="rb">`
     // 1.5.0 (D): the name, a lock, the mode; the teams; the host, vanilla / another mod, seats and Join at the bottom (a lobby
     // in the game carries no mark - only the launcher's are marked)
     + `<div class="rh"><span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${r.password ? `<span class="mu" title="${esc(t('roomsPw'))}">${ico('lock')}</span>` : ''}${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}</div>`

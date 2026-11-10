@@ -109,7 +109,8 @@ function lrSet(v) {
   } else if (LR.room && LR.room.id === v.id) LR.room = null;   // not in it any more (removed)
   const i = LR.list.findIndex(x => x.id === v.id), sum = { id: v.id, name: v.name, game: v.game, ver: v.ver, mode: v.mode, map: v.map, map_name: v.map_name, state: v.state,
     players: (v.slots || []).filter(Boolean).length, cap: (v.slots || []).length, names: (v.slots || []).filter(Boolean).map(s => s.name),
-    owner: v.owner, owner_name: ((v.slots || []).find(s => s && s.steam === v.owner) || {}).name };
+    owner: v.owner, owner_name: ((v.slots || []).find(s => s && s.steam === v.owner) || {}).name,
+    slots: (v.slots || []).map(s => s ? { steam: s.steam, name: s.name, race: s.race, hero: s.hero, rating: s.rating, ready: !!s.ready } : null) };
   if (i >= 0) LR.list[i] = sum; else LR.list.push(sum);
   lrRender(); lrLaunchCheck(); lrOnSoon();
 }
@@ -233,8 +234,11 @@ function lrHeroSel(r, me, cat) {
 function lrSlot(r, s, i, cat) {
   const me = lrMe(), owner = r.owner === me, A = lrAssets(), open = r.state === 'lobby' || r.state === 'countdown';
   if (!s) {
-    const can = lrMine(r) && open;
-    return `<div class="lr-slot free"><span>${esc(t('lrFree'))}</span>${can ? `<button class="btn small lr-sit" data-slot="${i}">${esc(t('lrSit'))}</button>` : ''}</div>`;
+    // 1.5.3 (owner 10.11): the empty avatar, the actions on the right - Sit here, Invite (a player of the launcher, a list like the maps')
+    const can = lrMine(r) && open, dd = 'lrInv' + i, on = LR.drop === dd;
+    const act = can ? `<span class="fs-act"><button class="btn small lr-sit" data-slot="${i}" data-tip="${esc(t('lrSit'))}" aria-label="${esc(t('lrSit'))}">${ico('seat')}<span class="l">${esc(t('lrSit'))}</span></button>`
+      + `<span class="ldd lr-invw${on ? ' open' : ''}"><button class="btn small gold lr-inv" id="${dd}" data-tip="${esc(t('lrInviteTip'))}" aria-label="${esc(t('lrInviteTip'))}" aria-haspopup="dialog" aria-expanded="${on}">${ico('invite')}<span class="l">${esc(t('lrInvite'))}</span></button>${on ? lrInvMenu(r) : ''}</span></span>` : '';
+    return `<div class="lr-slot free"><i class="av sk-av"></i><div class="lr-who"><span class="lr-line"><span class="fr-t">${esc(t('lrFree'))}</span></span>${can ? `<span class="fr-h">${esc(t('lrFreeHint'))}</span>` : ''}</div>${act}</div>`;
   }
   const mine = s.steam === me;
   const heroes = ((cat && cat.heroes) || {})[s.race] || [];
@@ -252,6 +256,17 @@ function lrSlot(r, s, i, cat) {
     + `${s.owner ? `<span class="lr-crown" title="${esc(t('lrOwner'))}" aria-label="${esc(t('lrOwner'))}">${ico('crown')}</span>` : ''}${s.rating ? `<span class="rt">${Number(s.rating) | 0}</span>` : ''}`
     + `${s.spoil ? `<span class="tag bad">${esc(t('lrSpoil', { n: s.spoil }))}</span>` : ''}</span><span class="lr-armyrow">${army}</span></div>`
     + `${gs}${owner && !mine && open ? `<button class="lr-kick" data-kick="${esc(s.steam)}" data-tip="${esc(t('lrKick'))}" aria-label="${esc(t('lrKick'))}">${ico('x')}</button>` : ''}${tick}</div>`;
+}
+function lrInvMenu(r) {
+  const inRoom = new Set((r.slots || []).filter(Boolean).map(s => String(s.steam))), f = (LR.invFind || '').toLowerCase(), sent = LR.invited || {};
+  const people = (LIVE.launcher || []).filter(p => p && !inRoom.has(String(p.steam)) && onUser(p.steam).name && (!f || onUser(p.steam).name.toLowerCase().includes(f)))
+    .sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''));
+  const row = p => { const u = onUser(p.steam), was = sent[p.steam] && Date.now() - sent[p.steam] < 120000;
+    return `<button class="ii${was ? ' sent' : ''}" data-inv="${esc(p.steam)}"${was ? ' disabled' : ''}>${avatar(u.avatar)}<span class="nm">${esc(u.name)}</span>${onRt(u.rating)}<span class="ii-st">${was ? '✓ ' + esc(t('lrInvSent')) : esc(t('lrInvite'))}</span></button>`; };
+  const g = (k, ps) => ps.length ? `<div class="ii-g"><span>${esc(t(k))}</span><span>${ps.length}</span></div>${ps.map(row).join('')}` : '';
+  const list = g('lrInvMenu', people.filter(p => p.state !== 'game')) + g('lrInvGame', people.filter(p => p.state === 'game'));
+  return `<div class="ldd-l lr-invl" role="dialog" aria-label="${esc(t('lrInviteTip'))}"><input id="lrInvFind" placeholder="${esc(t('lrInvFind'))}" value="${esc(LR.invFind || '')}" autocomplete="off">`
+    + `<div class="ii-list">${list || `<div class="note">${esc(t(f ? 'lrInvNoMatch' : 'lrInvNone'))}</div>`}</div><div class="note ii-note">${esc(t('lrInvNote'))}</div></div>`;
 }
 function lrNet(r) {
   const net = r.net || {}, rows = net.rows || [], nodes = net.nodes || [];
@@ -340,20 +355,30 @@ function lrCardHtml(x) {
     : `<button class="rjoin lr-join${vok ? ' go' : ''}" data-id="${esc(x.id)}" data-tip="${esc(t('rJoinTip', { name: x.name }))}" aria-label="${esc(t('rJoinTip', { name: x.name }))}">${ico('enter')}</button>`;
   // the room's game on every card: vanilla, or its Elite version (one look; a card of another version is dimmed)
   const vt = x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : `<span class="tag ver">Elite ${esc(x.ver || '')}</span>`;
+  // 1.5.3 (owner 10.11): the teams as on a game lobby's card; a ladder without the seats in its list - the names in a line
+  const per = Math.max(1, Math.round((x.cap || 2) / 2)), sl = Array.isArray(x.slots) && x.slots.length ? x.slots : null;
+  const pic = p => !p.race || p.race === 'random' ? raceImg('random') : p.hero >= 0
+    ? `<img src="${A}heroes/${esc(p.race)}_${p.hero | 0}.png" alt="" data-fb="${A}races/${esc(p.race)}.png">` : raceImg(p.race);
+  const row = p => p ? `<div class="rp${p.steam === x.owner ? ' host' : ''}">${pic(p)}<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`
+    + `${p.ready ? `<span class="rk" title="${esc(t('lrIsReady'))}"></span>` : ''}${p.rating ? `<span class="rt">${Number(p.rating) | 0}</span>` : ''}</div>`
+    : `<div class="rp free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`;
+  const teams = sl ? [0, 1].map(k => { const ps = sl.slice(k * per, k * per + per), rts = ps.filter(Boolean).map(p => p.rating).filter(Boolean);
+    const avg = rts.length ? Math.round(rts.reduce((a, b) => a + b, 0) / rts.length) : 0;
+    return `<div class="team"><div class="th"><span>${esc(t('rTeamShort', { n: k + 1 }))}</span>${avg ? `<span>${esc(t('rAvg', { r: avg }))}</span>` : ''}</div>${ps.map(row).join('')}</div>`; }).join('') : '';
   return `<div class="room lr-card${vok ? '' : ' dim'}" data-kind="lr" data-mode="${esc(x.mode)}" data-vok="${vok ? 1 : 0}" data-van="${x.game === 'vanilla' ? 1 : 0}" data-free="${free > 0 && open ? 1 : 0}">`
-    + `<div class="mmap" style="background-image:url('${A}maps/${encodeURIComponent(x.map)}.png')"><span>${esc(x.map_name || x.map)}</span></div><div class="rb">`
+    + mmapHtml(`${A}maps/${encodeURIComponent(x.map)}.png`, x.map_name || x.map) + '<div class="rb">'
     + `<div class="rh"><span class="tag lr">${esc(t('rTagLr'))}</span><span class="rn" title="${esc(x.name)}">${esc(x.name)}</span><span class="tag">${esc(x.mode)}</span></div>`
-    + `<div class="lr-names">${(x.names || []).map(esc).join(', ')}</div>`
+    + (sl ? `<div class="teams">${teams}</div>` : `<div class="lr-names">${(x.names || []).map(esc).join(', ')}</div>`)
     + `<div class="rfoot2">${vt}<span class="tag rcount">${x.players}/${x.cap}</span>${act}</div></div></div>`;
 }
 function lrListHtml() { return LR.list.map(lrCardHtml).join(''); }
-const segf = (key, items, cur) => `<div class="seg" role="radiogroup">${items.map(([v, l]) => `<button role="radio" aria-checked="${v === cur}" class="${v === cur ? 'on' : ''}" data-f="${key}" data-v="${esc(v)}">${esc(l)}</button>`).join('')}</div>`;
+const segf = (key, items, cur) => `<div class="seg" role="radiogroup">${items.map(([v, l, tip]) => `<button role="radio" aria-checked="${v === cur}" class="${v === cur ? 'on' : ''}" data-f="${key}" data-v="${esc(v)}"${tip ? ` data-tip="${esc(tip)}"` : ''}>${esc(l)}</button>`).join('')}</div>`;
 function rFilters() {
   const mine = S && /^\d/.test(S.installed_version || '') ? 'Elite ' + S.installed_version : t('rFltMine');
-  $('rFlt').innerHTML = `<span>${esc(t('rFltWhere'))}${segf('kind', [['all', t('rFltAll')], ['lr', t('rFltLr')], ['game', t('rFltGame')]], RF.kind)}</span>`
+  $('rFlt').innerHTML = `<span>${esc(t('rFltWhere'))}${segf('kind', [['all', t('rFltAll')], ['lr', t('rFltLr'), t('rFltLrTip')], ['game', t('rFltGame'), t('rFltGameTip')]], RF.kind)}</span>`
     + `<span>${esc(t('lrMode'))}${segf('mode', [['all', t('rFltAll')], ['1v1', '1v1'], ['2v2', '2v2'], ['3v3', '3v3']], RF.mode)}</span>`
-    + `<span>${esc(t('rFltVer'))}<select id="rFltVer"><option value="all"${RF.ver === 'all' ? ' selected' : ''}>${esc(t('rFltAll'))}</option><option value="mine"${RF.ver === 'mine' ? ' selected' : ''}>${esc(mine)}</option><option value="van"${RF.ver === 'van' ? ' selected' : ''}>${esc(t('roomsVan'))}</option></select></span>`
-    + `<label class="chk"><input type="checkbox" id="rFltFree"${RF.free ? ' checked' : ''}><span>${esc(t('rFltFree'))}</span></label>`;
+    + `<label class="chk"><input type="checkbox" id="rFltFree"${RF.free ? ' checked' : ''}><span>${esc(t('rFltFree'))}</span></label>`
+    + `<span>${esc(t('rFltVer'))}<select id="rFltVer"><option value="all"${RF.ver === 'all' ? ' selected' : ''}>${esc(t('rFltAll'))}</option><option value="mine"${RF.ver === 'mine' ? ' selected' : ''}>${esc(mine)}</option><option value="van"${RF.ver === 'van' ? ' selected' : ''}>${esc(t('roomsVan'))}</option></select></span>`;
   $('rLiveFlt').innerHTML = `<span>${esc(t('rFltFrom'))}${segf('from', [['all', t('rFltAll')], ['lr', t('rFltFromLr')], ['fag', 'Find a Game']], RF.from)}</span>`
     + `<span>${esc(t('lrMode'))}${segf('lmode', [['all', t('rFltAll')], ['1v1', '1v1'], ['2v2', '2v2'], ['3v3', '3v3']], RF.lmode)}</span>`;
   const save = () => { try { localStorage.setItem('roomsFilter', JSON.stringify(RF)); } catch (e) {} };
@@ -392,7 +417,7 @@ function rLiveRender() {
   box.innerHTML = ms.map(({ m, lr }) => {
     const map = String(m.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
     const act = m.live ? `<button class="rjoin lvw go" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('rWatchTip'))}" aria-label="${esc(t('rWatchTip'))}">${ico('eye')}</button>` : '';
-    return `<div class="room live-card"><div class="mmap" style="background-image:url('${A}maps/${encodeURIComponent(m.map || '')}.png')"><span>${esc(map)}</span></div><div class="rb">`
+    return `<div class="room live-card">${mmapHtml(`${A}maps/${encodeURIComponent(m.map || '')}.png`, map)}<div class="rb">`
       + `<div class="rh">${lr ? `<span class="tag lr">${esc(t('rTagLr'))}</span>` : ''}<span class="rn">${esc(lr && lr.name ? lr.name : map)}</span><span class="tag">${esc(m.mode)}</span></div>`
       + `<div class="teams"><div class="team">${(m.team1 || []).map(pl).join('')}</div><div class="team">${(m.team2 || []).map(pl).join('')}</div></div>`
       + `<div class="rfoot2"><span class="rhost">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span>${act}</div></div></div>`;
@@ -409,8 +434,9 @@ function rTop(r) {
   if (r) {
     const filled = (r.slots || []).filter(Boolean), wait = (r.slots || []).filter(s => !s || !s.ready).length;
     const st = r.state === 'countdown' ? t('rStCd') : r.state === 'launching' ? t('lrLaunching') : r.state === 'playing' ? t('lrPlaying') : wait ? t('rStWait', { n: wait }) : t('rStAll');
-    return `<button class="rmine${RV.view === 'mine' ? ' on' : ''}" id="rMine" data-tip="${esc(r.name)}"><span class="mi">${ico('crown')}</span><span class="k">${esc(t(r.owner === lrMe() ? 'rMineHost' : 'rMineIn'))}</span>`
-      + `<b>${esc(r.name)}</b><small>${esc(r.mode)} · ${filled.length}/${(r.slots || []).length} · ${esc(st)}</small>${RV.view === 'mine' ? '' : `<span class="go">${esc(t('rBack'))}</span>`}</button>`;
+    return `<div class="rmine-w"><button class="rmine${RV.view === 'mine' ? ' on' : ''}" id="rMine" data-tip="${esc(r.name)}"><span class="mi">${ico('crown')}</span><span class="k">${esc(t(r.owner === lrMe() ? 'rMineHost' : 'rMineIn'))}</span>`
+      + `<b>${esc(r.name)}</b><small>${esc(r.mode)} · ${filled.length}/${(r.slots || []).length} · ${esc(st)}</small>${RV.view === 'mine' ? '' : `<span class="go">${esc(t('rBack'))}</span>`}</button>`
+      + `<button class="rmine-x" id="rMineX" data-tip="${esc(t('lrLeave'))}" aria-label="${esc(t('lrLeave'))}">${ico('x')}</button></div>`;
   }
   if (RM.mine) return `<div class="rmine gm" data-tip="${esc(t('rInGame') + ': ' + RM.mine.name)}"><span class="mi">${ico('door')}</span><span class="k">${esc(t('rInGame'))}</span><b>${esc(RM.mine.name)}</b><small>${esc(t('rInGameNote'))}</small></div>`;
   return `<button class="btn gold rcreate" id="rCreate" data-tip="${esc(t('rCreate'))}">${ico('plus')}<span class="lbl">${esc(t('rCreate'))}</span></button>`;
@@ -423,6 +449,7 @@ function lrRender() {
   if (!r) { RV.seen = ''; if (RV.view === 'mine') RV.view = 'open'; }
   $('rTop').innerHTML = rTop(r);
   if ($('rMine')) $('rMine').onclick = () => rShow('mine');
+  if ($('rMineX')) $('rMineX').onclick = e => { e.stopPropagation(); lrLeave(); };
   if ($('rCreate')) $('rCreate').onclick = lrCreate;
   if ($('rSignIn')) $('rSignIn').onclick = chLogin;
   document.querySelectorAll('.rnb[data-r]').forEach(b => { b.classList.toggle('on', b.dataset.r === RV.view); b.onclick = () => rShow(b.dataset.r); });
@@ -432,16 +459,23 @@ function lrRender() {
   if (!$('rFlt').innerHTML) rFilters();
   list.innerHTML = lrListHtml();
   list.querySelectorAll('.lr-join').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id }));
+  list.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
+  list.querySelectorAll('.rp .nm[data-steam]').forEach(n => { if (n.dataset.steam) nickBind(n, n.dataset.steam, n.dataset.name); });
   tipCut(list);
   rApplyFilter(); rLiveRender(); lrPlay();
+  if (!(r && RV.view === 'mine')) { box.classList.add('hidden'); box.innerHTML = ''; LR.drop = null; LR.mapsOpen = false; LR.pop = null; return; }
   if (((LR.pop && LR.mapsOpen) || LR.drop || Date.now() < (LR.holdUntil || 0)) && !LR.popForce) return;   // a drop-down / the map list in use
   LR.popForce = 0;
-  if (r && RV.view === 'mine') {
-    const focus = document.activeElement && document.activeElement.id;
-    box.innerHTML = lrRoomHtml(r); box.classList.remove('hidden');
-    lrBind(r);
-    if (focus === 'lrNameIn' && $('lrNameIn')) $('lrNameIn').focus();
-  } else { box.classList.add('hidden'); box.innerHTML = ''; }
+  const focus = document.activeElement && document.activeElement.id;
+  box.innerHTML = lrRoomHtml(r); box.classList.remove('hidden');
+  lrBind(r);
+  if (focus === 'lrNameIn' && $('lrNameIn')) $('lrNameIn').focus();
+}
+// leave my lobby: the lobby's button, the cross in the panel, the block on Home
+async function lrLeave() {
+  const r = LR.room; if (!r) return;
+  LR.room = null; LR.drop = null; LR.mapsOpen = false; LR.pop = null; lrRender();
+  await lrCall('leave'); invoke('lroom_launch_cancel', { room: r.id }).catch(() => {}); lrLoad();
 }
 // A drop-down of the room is being used: no redraw under it for a while (a redraw replaces the element and the pick is lost).
 // Not by focus: WebKitGTK (the Linux launcher, 06.11.2026) blurs the select when its popup opens and focuses it again after.
@@ -455,7 +489,17 @@ function lrBind(r) {
   const box = $('lrRoom');
   box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
   box.querySelectorAll('.lr-slot .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));
-  $('lrLeaveBtn').onclick = async () => { const id = r.id; LR.room = null; await lrCall('leave'); invoke('lroom_launch_cancel', { room: id }).catch(() => {}); lrLoad(); };
+  $('lrLeaveBtn').onclick = lrLeave;
+  // Invite on a free seat: the list of the launcher's players; a name sends the invitation (lroom.py "invite"), marked as sent
+  box.querySelectorAll('.lr-inv').forEach(b => b.onclick = e => { e.stopPropagation(); LR.drop = LR.drop === b.id ? null : b.id; LR.invFind = ''; LR.popForce = 1; lrRender(); if ($('lrInvFind')) $('lrInvFind').focus(); });
+  if ($('lrInvFind')) $('lrInvFind').oninput = e => { LR.invFind = e.target.value; LR.popForce = 1; lrRender(); const f = $('lrInvFind'); if (f) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); } };
+  // the list opens upwards when there is no room under it in the teams' part
+  const ml = box.querySelector('.lr-invl'), tm = box.querySelector('.lr-teams');
+  if (ml && tm) { const c = tm.getBoundingClientRect(), m = ml.getBoundingClientRect(); if (m.bottom > c.bottom - 4 && m.top - m.height - 40 > c.top) ml.classList.add('up'); }
+  box.querySelectorAll('.ii[data-inv]').forEach(b => b.onclick = async e => {
+    e.stopPropagation(); const st = b.dataset.inv; (LR.invited = LR.invited || {})[st] = Date.now(); LR.popForce = 1; lrRender();
+    const res = await lrCall('invite', { steam: st }); if (res && res.ok !== false) toast(t('lrInvToast', { name: onUser(st).name || '' }));
+  });
   if ($('lrReadyTick')) $('lrReadyTick').onclick = () => { const me = r.slots.find(s => s && s.steam === lrMe()); lrCall('ready', { on: !(me && me.ready) }); };
   const hold = el => { if (!el) return; el.onmousedown = el.onkeydown = () => lrHold(true); };
   box.querySelectorAll('.ldd-b').forEach(b => b.onclick = e => { e.stopPropagation(); LR.drop = LR.drop === b.id ? null : b.id; LR.popForce = 1; lrRender(); });
@@ -500,7 +544,7 @@ function lrPlay() {
   const play = $('play'), wrap = $('playWrap'), cf = $('lrCancelFoot'); if (!play || !wrap || !S) return;
   const r = LR.room && lrMine(LR.room) ? LR.room : null;
   wrap.removeAttribute('data-tip'); cf.classList.add('hidden'); play.classList.remove('lb', 'gl');
-  if ($('lrBackLnk')) $('statusText').innerHTML = '';                       // my own line from the last time
+  lrMiniRender(r);
   // out of the lobby (left it, removed, gone): Play back as the usual one - render sets it (and comes back here with no room)
   if (!r && play.dataset.lb) { delete play.dataset.lb; render(); return; }
   if (!r || S.busy || r.state === 'playing') return;                        // the usual Play (render)
@@ -524,13 +568,47 @@ function lrPlay() {
   if (owner && r.game === 'elite' && /^\d/.test(S.installed_version || '') && r.ver && !verSame(r.ver, S.installed_version) && !S.busy && LR.verSent !== S.installed_version) {
     LR.verSent = S.installed_version; lrCall('conf', { ver: S.installed_version });
   }
-  // which lobby I am in, with Back, while I am not on its screen
-  const onIt = !$('rooms').classList.contains('hidden') && RV.view === 'mine';
-  if (!onIt && !S.last_error && !$('statusText').textContent.trim()) {
-    $('statusText').innerHTML = `${ico('crown')}<span>${esc(t('inLobby', { name: r.name }))}</span> <button class="lnk" id="lrBackLnk">${esc(t('rBackShort'))}</button>`;
-    $('lrBackLnk').onclick = () => { const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click(); rShow('mine'); };
-  }
 }
+// 1.5.3 (owner 10.11): the lobby I am in, a block under Online on Home - its map and name, the teams with who is ready, what we
+// wait for, Back and Leave (no line next to Play any more)
+function lrMiniRender(r) {
+  const box = $('lrMini'); if (!box) return;
+  box.classList.toggle('hidden', !r);
+  if (!r) { box.innerHTML = ''; return; }
+  const me = lrMe(), slots = r.slots || [], n = r.size || Math.max(1, slots.length / 2), A = lrAssets(), owner = r.owner === me;
+  let st = '', cls = '';
+  if (r.state === 'countdown') { st = t('playCd') + ' ' + Math.max(0, Math.ceil((r.cd_end - (Date.now() + LR.skew)) / 1000)); cls = 'go'; }
+  else if (r.state === 'launching') { st = t('lrLaunching'); cls = 'go'; }
+  else if (r.state === 'playing') st = t('lrPlayingNow');
+  else if (r.hs && (r.all_ready != null ? r.all_ready : slots.every(s => s && s.ready))) { st = t(owner ? 'lmAllHost' : 'tipHost'); cls = 'go'; }
+  else {
+    const who = slots.map(s => !s ? null : s.ready ? '' : s.steam === me ? t('whoYou') : s.name).filter(x => x).concat(slots.some(s => !s) ? [t('whoFree')] : []);
+    st = t('playWait', { n: slots.filter(s => s && s.ready).length, m: slots.length }) + ' · ' + t('tipWait', { who: who.join(', ') });
+  }
+  const row = s => s ? `<div class="lm-p${s.steam === me ? ' me' : ''}">${avatar(s.avatar)}<span class="nm">${esc(s.name)}</span>${s.owner ? `<span class="lr-crown">${ico('crown')}</span>` : ''}<span class="rdy sm${s.ready ? ' on' : ''}" title="${esc(t(s.ready ? 'lrIsReady' : 'lrWaiting'))}"></span></div>`
+    : `<div class="lm-p free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`;
+  const teams = [0, 1].map(k => `<div class="lm-t"><div class="th">${esc(t('rTeamShort', { n: k + 1 }))}</div>${slots.slice(k * n, k * n + n).map(row).join('')}</div>`).join('');
+  const game = r.game === 'vanilla' ? t('roomsVan') : 'Elite ' + (r.ver || '');
+  box.innerHTML = `<div class="h"><span>${esc(t(owner ? 'rMineHost' : 'rMineIn'))}</span><span class="tag">${esc(r.mode)}</span></div>`
+    + `<button class="lm-head" id="lmGo" data-tip="${esc(t('lmBack'))}"><i class="lm-map" style="background-image:url('${A}maps/${encodeURIComponent(r.map)}.png')"></i><span class="lm-n"><b>${esc(r.name)}</b><small>${esc((r.map_name || r.map) + ' · ' + game)}</small></span></button>`
+    + `<div class="lm-teams">${teams}</div><div class="lm-st ${cls}">${esc(st)}</div>`
+    + `<div class="lm-act"><button class="btn small ghost" id="lmLeave">${esc(t('lmLeave'))}</button><button class="btn gold small" id="lmBack">${esc(t('lmBack'))}</button></div>`;
+  const back = () => { const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click(); rShow('mine'); };
+  $('lmGo').onclick = back; $('lmBack').onclick = back; $('lmLeave').onclick = lrLeave;
+}
+// an invitation into a launcher lobby (lroom.py "invite" -> the live stream's lroom_invite): a strip under the header, 3 minutes
+let INV = null;
+function renderInvBar() {
+  const bar = $('invBar'); if (!bar) return;
+  const d = INV && Date.now() - INV.at < 180000 ? INV : null;
+  bar.classList.toggle('hidden', !d); if (!d) return;
+  bar.querySelector('.ub-ico').innerHTML = ico('mail');
+  $('invItems').innerHTML = `<span class="ub-it"><b>${esc(t('invText', { who: d.from_name || 'Player', name: d.name || '' }))}</b><small>${esc([d.mode, d.map_name, d.game === 'vanilla' ? t('roomsVan') : d.ver ? 'Elite ' + d.ver : ''].filter(Boolean).join(' · '))}</small></span>`;
+  $('invNo').textContent = t('invNo'); $('invYes').textContent = t(LR.room && lrMine(LR.room) ? 'invYesLeave' : 'invYes');
+  $('invNo').onclick = () => { INV = null; renderInvBar(); };
+  $('invYes').onclick = async () => { INV = null; renderInvBar(); if (LR.room && lrMine(LR.room)) await lrLeave(); lrJoinHome(d.id); };
+}
+listen('c_ev', e => { const { e: ev, d } = e.payload || {}; if (ev === 'lroom_invite' && d && d.id) { INV = Object.assign({}, d, { at: Date.now() }); renderInvBar(); setTimeout(renderInvBar, 180500); } });
 // the owner picks another version in the footer while others are in his lobby: ask first (app.js, the version list)
 async function lrVerAsk(name) {
   const r = LR.room && lrMine(LR.room) ? LR.room : null, me = lrMe();
@@ -644,5 +722,18 @@ Object.assign(T.de, { lrSaving: 'Speichern…', rOpen: 'Offene Lobbys', rLive: '
   tipHost: 'Alle bereit – der Host startet das Match', tipWait: 'Warten auf: {who}', whoYou: 'dich', whoFree: 'freie Plätze', inLobby: 'Du bist in der Lobby „{name}“',
   verAskT: 'Version der Lobby ändern?', verAskText: 'Die Lobby wechselt auf {v}.', verAskWho: '{who} haben eine andere Version: ihr „bereit“ fällt weg, sie wechseln oder verlassen die Lobby.', verAskGo: 'Auf {v} wechseln',
   lrLeave: 'Lobby verlassen', lrKick: 'Aus der Lobby entfernen', lrSit: 'Hier setzen' });
+// 1.5.3 (owner 10.11): Invite, the free seat, the block on Home, the invitation, the filter's words
+Object.assign(T.en, { lrInvite: 'Invite', lrInviteTip: 'Invite a player of the launcher to this seat', lrInvFind: 'Find a player', lrInvMenu: 'In the launcher', lrInvGame: 'In the game',
+  lrInvSent: 'invited', lrInvNone: 'Nobody else is in the launcher right now.', lrInvNoMatch: 'Nobody by that name.', lrInvNote: 'The invitation comes to the player\'s launcher: a strip on top with Join.',
+  lrInvToast: 'Invitation sent: {name}', lrFreeHint: 'Invite a player or move here', invText: '{who} invites you into the lobby “{name}”', invYes: 'Join the lobby', invYesLeave: 'Leave mine and join',
+  invNo: 'Decline', lmBack: 'Back to the lobby', lmLeave: 'Leave', lmAllHost: 'All ready - start the match with Play',
+  rFltWhere: 'Lobbies', rFltLr: 'Launcher', rFltGame: 'Regular', rFltLrTip: 'Made in the launcher: the match on our servers, the start for everyone at once',
+  rFltGameTip: 'Made in the game itself (Custom Games): the launcher starts the game and joins it', rLegGame: 'Unmarked - a regular lobby made in the game: the launcher starts the game and joins it by itself.' });
+Object.assign(T.ru, { lrInvite: 'Пригласить', lrInviteTip: 'Пригласить на это место игрока из лаунчера', lrInvFind: 'Найти игрока', lrInvMenu: 'В лаунчере', lrInvGame: 'В игре',
+  lrInvSent: 'приглашён', lrInvNone: 'Сейчас в лаунчере больше никого.', lrInvNoMatch: 'Никого с таким именем.', lrInvNote: 'Приглашение придёт игроку в лаунчер: полоса сверху с кнопкой «Войти».',
+  lrInvToast: 'Приглашение отправлено: {name}', lrFreeHint: 'Пригласите игрока или пересядьте сюда', invText: '{who} приглашает вас в лобби «{name}»', invYes: 'Войти в лобби', invYesLeave: 'Выйти из своего и войти',
+  invNo: 'Отклонить', lmBack: 'Вернуться в лобби', lmLeave: 'Выйти', lmAllHost: 'Все готовы — начните матч кнопкой «Играть»',
+  rFltWhere: 'Лобби', rFltLr: 'Лаунчера', rFltGame: 'Обычные', rFltLrTip: 'Собраны в лаунчере: матч на наших серверах, старт у всех сразу',
+  rFltGameTip: 'Созданы в самой игре (Custom Games): лаунчер запустит игру и зайдёт в лобби', rLegGame: 'Без пометки — обычное лобби, созданное в игре: лаунчер сам запустит игру и зайдёт в него.' });
 // the strings of this file (the Rooms tab's panel) came after app.js: a render that ran before it is done again in them
 if (typeof S !== 'undefined' && S) render();
