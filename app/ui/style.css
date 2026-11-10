@@ -1310,7 +1310,7 @@ html{font-variant-numeric:lining-nums}
 
 /* the cards: as tall as a 3v3 lobby without observers at least, the teams in the middle of their part (owner 10.11); the map a
    square on top, never stretched, the same picture blurred and dark behind the rest of the column */
-.room{grid-template-columns:88px minmax(0,1fr);min-height:170px}
+.room{grid-template-columns:112px minmax(0,1fr);min-height:170px}
 .room .rb{display:flex;flex-direction:column}
 .room .teams{flex:1;align-content:center}
 .room .mmap{position:relative;overflow:hidden;display:flex;flex-direction:column;background:#061011}
@@ -1318,31 +1318,29 @@ html{font-variant-numeric:lining-nums}
 .room .mmap .mm{position:relative;display:block;width:100%;aspect-ratio:1;background:var(--mm,none) center/cover,#061011;border-bottom:1px solid var(--ln);box-shadow:0 2px 6px rgba(0,0,0,.6)}
 .room .mmap span{position:relative;padding:6px 6px 4px;background:none}
 /* a free seat: the empty avatar (the winged skull, as a player without his own), dimmed */
-.sk{flex:none;display:inline-block;width:20px;height:20px;box-sizing:border-box;border:1px solid #2b6f64;background:var(--av-def) center 40%/125% no-repeat,#0b1718;opacity:.5}
+.sk{flex:none;display:inline-block;width:20px;height:20px;background:var(--av-def) center 40%/125% no-repeat;opacity:.5}
 /* the country's mark as tall as the race / hero icon next to it (owner 10.11) */
 .room .rp .fl{height:20px;min-width:24px;box-sizing:border-box;padding:0 3px;line-height:18px;text-align:center;font-size:10px}
 /* a launcher lobby's card: who is ready */
 .room .rp .rk{flex:none;position:relative;width:10px;height:14px}
 .room .rp .rk::after{content:"";position:absolute;left:2px;top:0;width:4px;height:9px;border:solid #62e39a;border-width:0 2px 2px 0;transform:rotate(45deg);filter:drop-shadow(0 0 2px rgba(98,227,154,.7))}
-/* the heroes' portraits in the race icon's frame (variant A, owner 10.11: to try); variant B (html.rf-b) - the portraits as
-   they were, the random race's "?" without a frame */
-.room .rp img:not(.race),.on-p img.hero{box-sizing:border-box;padding:1px;border:1px solid #2b6f64;background:#0b1718;clip-path:none}
-.rf-b .room .rp img:not(.race){padding:0;border:0;background:none;clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
-.rf-b .race-rnd,.rf-b .hbox.q,.rf-b .rbox:has(.race-rnd){border-color:transparent;background:none;box-shadow:none}
+/* no frame around a race, a hero or the random "?" anywhere (owner 10.11); the drop-downs of my army keep their dark square */
+.race,.race-rnd{padding:0;border:0;background:none}
+.rbox,.hbox{border-color:transparent}
 
 /* my lobby: the avatar from the name's top to the drop-downs' bottom; VS away from team 1 when the teams are one above the other */
 .lr-slot .av{width:54px;height:54px}
 @media (max-width:1599px){.lr-vs{padding:18px 0 8px}}
-/* a free seat: the empty avatar, "Open seat" and a hint, the actions on the right - Sit here, Invite (variant B: icon squares) */
+/* a free seat: the empty avatar, "Open seat" and a hint, the actions on the right - Sit here, Invite, one kind of button;
+   with their words in a wide team, icons only in a narrow one (owner 10.11) */
 .lr-slot.free{justify-content:flex-start;align-items:center;flex-wrap:nowrap;font:inherit;font-style:normal;color:inherit}
 .lr-slot .sk-av{opacity:.42;filter:grayscale(.4)}
 .lr-slot .fr-t{font:700 17px var(--fh);color:#8fb0a8}
 .lr-slot .fr-h{font-size:12px;color:var(--mu)}
 .fs-act{flex:none;display:flex;align-items:center;gap:6px;margin-left:auto}
 .fs-act .btn .ico{width:15px;height:15px}
-.fs-b .fs-act .btn{width:34px;padding:0}
-.fs-b .fs-act .btn .l{display:none}
-.fs-b .fs-act .btn.gold{width:40px}
+.lr-team{container:lrteam / inline-size}
+@container lrteam (max-width:600px){.fs-act .btn{width:34px;padding:0}.fs-act .btn .l{display:none}}
 /* Invite: the launcher's players, in the menu / in the game, a search; a name sends the invitation */
 .lr-invw{position:relative}
 .lr-invl{left:auto;right:-8px;width:300px;max-height:330px;gap:0}
@@ -1371,3 +1369,25 @@ html{font-variant-numeric:lining-nums}
 /* a narrow window: the updates one under the other; a short one: the lobby on Home without its teams, Online keeps its rows */
 @media (max-width:1100px){.ub-items{flex-direction:column;align-items:flex-start}.ub-it{padding:0}.ub-it+.ub-it{border-left:0}}
 @media (max-height:760px){.lr-mini .lm-teams{display:none}}
+/* the pings: Ready check (the host) / Call the host (a player when all are ready) - in the lobby's head and on Home */
+.lr-head .lr-ping{margin-left:auto}
+.lr-head .lr-ping+#lrLeaveBtn{margin-left:0}
+.lr-ping .ico,.lm-ping .ico{width:15px;height:15px}
+.lm-st{display:flex;align-items:center;gap:8px}
+.lm-st>span{flex:1;min-width:0}
+.lm-ping{flex:none;height:26px;padding:0 9px;font-size:11px}
+/* the observers: under the teams in the lobby, a line in the block on Home */
+.lr-obsrow,.lm-obs{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-width:0;color:var(--mu);font-size:13px}
+.lr-obsrow{grid-column:1/-1;margin-top:10px;padding:8px 10px;border:1px dashed var(--ln2);background:rgba(0,0,0,.25)}
+.lr-obsrow>.ico,.lm-obs>.ico{flex:none;width:16px;height:16px;color:var(--gd)}
+.lr-obsrow .k{font:600 10.5px var(--fb);letter-spacing:.6px;text-transform:uppercase}
+.lr-obsrow .o,.lm-obs .o{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.lr-obsrow .av{width:26px;height:26px;border-width:2px;border-image:var(--art-portrait) 12 / 2px}
+.lm-obs .av{width:20px;height:20px;border-width:2px;border-image:var(--art-portrait) 12 / 2px}
+.lr-obsrow .nm,.lm-obs .nm{font-weight:600;color:#d8ece6;white-space:nowrap}
+/* a ping's window: a bell on top, the lobby's words, Back to the lobby / the answer */
+.modal.lr-pg .box{text-align:center;max-width:420px}
+.modal.lr-pg .pg-ico{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 6px;border:1px solid rgba(95,200,170,.55);background:rgba(2,14,12,.5);color:#bff3e4;box-shadow:0 0 10px rgba(69,224,192,.3);animation:invglow 2s ease-in-out infinite}
+.modal.lr-pg .pg-ico .ico{width:22px;height:22px}
+.modal.lr-pg .row{justify-content:center}
+@media (prefers-reduced-motion:reduce){.modal.lr-pg .pg-ico{animation:none}}
