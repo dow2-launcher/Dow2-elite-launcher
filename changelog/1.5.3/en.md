@@ -1,0 +1,7 @@
+- Updates: a newer launcher and a newer Elite are offered in one strip under the header, with one Update (Update all: Elite first, then the launcher); nothing next to Play any more.
+- Home: the launcher lobby you are in is a small block under Online - its map, name, how many are ready - with Back to the lobby and Leave.
+- Rooms: a launcher lobby's card shows its teams like a game lobby's, the free seats, who is ready and its observers; 1 column up to a 1280 px window, 3 on 1920, 4 on 2560; the minimap is a square, never stretched; no sideways scrolling; no frames around the race and hero icons; the filter is "Lobbies: All · Launcher · Regular", free seats before the version.
+- Your lobby: a free seat has Sit here and Invite - the players in the launcher right now, a search; the invited player gets a strip on top with Join. The host's Ready check and a player's Call the host (when all are ready) bring a window with a sound and 30 s to answer; the sound is soft or sharp in Settings.
+- Observers: join a launcher lobby as an observer (the eye on its card) - they go into its match as observers (with an add-on update of Automatch v2.0).
+- Your lobby: a bigger avatar, room between team 1 and VS, a cross on the panel's plate to leave; the old lobby no longer stays under the list after leaving.
+- Add-ons: turning an add-on off turns off the ones that work only with it.

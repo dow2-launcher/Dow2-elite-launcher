@@ -1057,11 +1057,11 @@ const T = {
 };
 
 // 1.5.0: the D look's strings
-Object.assign(T.en, { ubOne: 'Update', ubAll: 'Update all', ubBusy: 'Updating…' });
-Object.assign(T.ru, { ubOne: 'Обновить', ubAll: 'Обновить всё', ubBusy: 'Обновляю…' });
-Object.assign(T.es, { ubOne: 'Actualizar', ubAll: 'Actualizar todo', ubBusy: 'Actualizando…' });
-Object.assign(T.fr, { ubOne: 'Mettre à jour', ubAll: 'Tout mettre à jour', ubBusy: 'Mise à jour…' });
-Object.assign(T.de, { ubOne: 'Aktualisieren', ubAll: 'Alles aktualisieren', ubBusy: 'Aktualisiere…' });
+Object.assign(T.en, { ubOne: 'Update', ubAll: 'Update all', ubBusy: 'Updating…', addonDepsOff: 'Turned off too (they work only with it): {names}' });
+Object.assign(T.ru, { ubOne: 'Обновить', ubAll: 'Обновить всё', ubBusy: 'Обновляю…', addonDepsOff: 'Выключено и то, что работает только с ним: {names}' });
+Object.assign(T.es, { ubOne: 'Actualizar', ubAll: 'Actualizar todo', ubBusy: 'Actualizando…', addonDepsOff: 'También desactivado (solo funciona con él): {names}' });
+Object.assign(T.fr, { ubOne: 'Mettre à jour', ubAll: 'Tout mettre à jour', ubBusy: 'Mise à jour…', addonDepsOff: 'Désactivé aussi (ne fonctionne qu\'avec lui) : {names}' });
+Object.assign(T.de, { ubOne: 'Aktualisieren', ubAll: 'Alles aktualisieren', ubBusy: 'Aktualisiere…', addonDepsOff: 'Ebenfalls ausgeschaltet (funktioniert nur damit): {names}' });
 Object.assign(T.en, { rTeamShort: 'Team {n}', rAvg: 'avg {r}', secGame: 'Game', secLauncher: 'Launcher', secService: 'Maintenance', aboutTitle: 'About', aboutAuto: 'updates itself', aboutNews: 'What\'s new', aboutInstalled: 'Installed', aboutCode: 'Open source', aboutLicense: 'MIT license', addonsOnOf: '{n} of {m} on', setupHide: 'Hide', setupMore: 'More', launcherRestarts: 'restarts by itself', launcherGet: 'Download', launcherUpdatingTo: 'Updating the launcher to {v}…',
   launcherAfter: 'then the signature check and a restart', chWaitingShort: 'signing in in the browser…', meRating: '1v1 rating · {r}',
   lvAddonAsk: 'Watching needs the add-on “Watch running matches”. The launcher turns it on, starts the game and opens this match.' });
@@ -1283,6 +1283,20 @@ function compWarns(c) {
   if (rq.length && !rq.some(x => x.enabled)) out.push(t('addonReq', { names: rq.map(nm).join(' / ') }));
   return out;
 }
+// 1.5.3 (owner 10.11: "an add-on that works only with another - turn the main one off and the second must go off at once"):
+// the ticked add-ons left with none of the add-ons they need once `id` is off - and the ones that need those, in turn
+function compDependentsOff(id) {
+  const all = (S && S.components || []), me = all.find(c => c.id === id), off = new Set([compBase(me || { id })]), out = [];
+  for (let more = true; more;) {
+    more = false;
+    for (const c of all) {
+      if (!c.enabled || out.includes(c) || off.has(compBase(c))) continue;
+      const rq = (c.requires || []).map(r => all.find(x => compBase(x) === r)).filter(Boolean);
+      if (rq.length && rq.every(x => !x.enabled || off.has(compBase(x)))) { out.push(c); off.add(compBase(c)); more = true; }
+    }
+  }
+  return out;
+}
 const compWarnHtml = (c, cls) => compWarns(c).map(w => `<div class="${cls}">${esc(w)}</div>`).join('');
 const compWarnMark = c => compWarns(c).length ? `<span class="addon-warn" title="${esc(compWarns(c).join('; '))}">!</span>` : '';
 // 1.4.11 (owner 05.11.2026): Play starts vanilla Retribution - the add-ons for Elite only are grey there, their switch locked
@@ -1341,7 +1355,10 @@ function compList(box, list, full) {
   box.querySelectorAll('select[data-opt]').forEach(sel => sel.onchange = () =>
     invoke('set_comp_value', { comp: sel.dataset.comp, opt: sel.dataset.opt, value: sel.value }).then(reload).catch(e => toast(e, true)));
   box.querySelectorAll('input[data-id]').forEach(cb => cb.onchange = async () => {
+    const deps = cb.checked ? [] : compDependentsOff(cb.dataset.id);
     await invoke('set_component', { id: cb.dataset.id, on: cb.checked });
+    for (const d of deps) await invoke('set_component', { id: d.id, on: false });
+    if (deps.length) toast(t('addonDepsOff', { names: deps.map(x => L(x.name) || x.id).join(', ') }));
     if (S.installed_version || VAN()) { try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); } catch (e) { toast(e, true); } }
     else reload();
   });

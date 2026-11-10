@@ -74,6 +74,8 @@ struct Settings {
     mute_mention: Option<bool>,
     /// 1.3.12: the close button quits instead of hiding in the tray
     close_quits: Option<bool>,
+    /// 1.5.3: the sound of a launcher lobby's ping / invitation: "sharp", anything else (none) the soft one
+    lobby_sound: String,
     /// Random secret for the daily usage hash; never sent itself.
     ping_secret: String,
     /// Day number (UTC days since 1970) of the last successful usage ping.
@@ -723,6 +725,7 @@ fn get_status(app: State<'_, App>) -> Value {
         "usage_stats": s.usage_stats.unwrap_or(true),
         "mute_mention": s.mute_mention.unwrap_or(false),
         "close_quits": s.close_quits.unwrap_or(false),
+        "lobby_sound": if s.lobby_sound == "sharp" { "sharp" } else { "soft" },
         "lan_share": s.lan_share.unwrap_or(true),
         "release_news": app.release_news.lock().unwrap().clone(),
         "costs": app.costs.lock().unwrap().clone(),
@@ -802,6 +805,7 @@ fn set_setting(app: State<'_, App>, key: String, value: Value) {
         "usage_stats" => s.usage_stats = value.as_bool(),
         "mute_mention" => s.mute_mention = value.as_bool(),
         "close_quits" => s.close_quits = value.as_bool(),
+        "lobby_sound" => s.lobby_sound = if value.as_str() == Some("sharp") { "sharp".into() } else { String::new() },
         "lan_share" => { s.lan_share = value.as_bool(); elite_core::lan::ENABLED.store(s.lan_share.unwrap_or(true), Ordering::Relaxed); }
         "dismiss" => {
             if let Some(id) = value.as_str() {
@@ -2971,7 +2975,7 @@ fn main() {
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             livewatch::live_watch, livewatch::live_watch_probe, livewatch::live_watch_cancel,
-            lroom::lroom_api, lroom::lroom_list, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe,
+            lroom::lroom_api, lroom::lroom_list, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
             hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
             relic_probe, game_net_check, set_game_mode,
