@@ -20,7 +20,8 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager};
 
-const VERBS: [&str; 16] = ["create", "join", "leave", "seat", "army", "ready", "conf", "kick", "pings", "here", "get", "ticket", "game", "cancel", "start", "stop"];
+const VERBS: [&str; 18] = ["create", "join", "leave", "seat", "army", "ready", "conf", "kick", "pings", "here", "get", "ticket", "game", "cancel", "start", "stop",
+    "invite", "ping"];   // 1.5.3: an invitation, the ready check / a call of the host (lroom.py)
 
 /// One room call: Ok(the server's answer) whatever it says, Err only when no host answered.
 fn call(token: &str, verb: &str, body: &Value) -> Result<Value, String> {
@@ -200,4 +201,14 @@ pub async fn lroom_probe(app: AppHandle) -> Value {
         let g = roomjoin::games_of(&app, &MMF);
         json!({"running": crate::is_game_running() || !g.is_empty(), "games": g.iter().map(|(c, s)| json!({"pid": c.pid(), "status": s, "kind": roomjoin::kind(c)})).collect::<Vec<_>>()})
     }).await.unwrap_or(Value::Null)
+}
+
+/// 1.5.3: a ping or an invitation came (the window shows its box and plays the lobby's sound): the taskbar button flashes; a
+/// launcher hidden in the tray comes back while no game runs (over a running game it only flashes - never on top of a match).
+#[tauri::command]
+pub fn lroom_attention(app: AppHandle, running: bool) {
+    if let Some(w) = app.get_webview_window("main") {
+        if !running && !w.is_visible().unwrap_or(true) { let _ = w.unminimize(); let _ = w.show(); }
+        let _ = w.request_user_attention(Some(tauri::UserAttentionType::Informational));
+    }
 }

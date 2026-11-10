@@ -79,7 +79,9 @@ const LR_HERO_RU = { 'Chaos Lord': 'Лорд Хаоса', 'Plague Champion': 'Ч
   'Techmarine': 'Техмарин', 'XV-8 Crisis Commander': 'Командир «Кризис» XV-8', 'Ethereal': 'Эфирный', 'Hive Tyrant': 'Тиран улья', 'Ravener Alpha': 'Альфа-потрошитель', 'Lictor Alpha': 'Альфа-ликтор' };
 const LR = { list: [], room: null, cat: {}, host: '', skew: 0, tick: 0, here: 0, pingT: 0, pinging: false, launched: 0, gameEv: null, pop: null };
 const lrMe = () => (CH.me && CH.me.signed_in ? String(CH.me.steam || '') : '');
-const lrMine = r => !!(r && lrMe() && (r.slots || []).some(s => s && s.steam === lrMe()));
+// in the room: on a seat, or (1.5.3) among its observers
+const lrMine = r => !!(r && lrMe() && ((r.slots || []).some(s => s && s.steam === lrMe()) || (r.obs || []).some(o => o && o.steam === lrMe())));
+const lrObsMe = r => !!(r && lrMe() && (r.obs || []).some(o => o && o.steam === lrMe()));
 const lrAssets = () => (LR.host || LIVE.host || RM.host || 'https://rts.fintebtc.de') + '/elite/assets/';
 const lrHeroName = n => (lang === 'ru' && LR_HERO_RU[n]) || n || '';
 const lrNodeName = (net, ip) => { const n = (net.nodes || []).find(x => x.ip === ip); const nm = n ? n.name : ip;
@@ -109,7 +111,9 @@ function lrSet(v) {
   } else if (LR.room && LR.room.id === v.id) LR.room = null;   // not in it any more (removed)
   const i = LR.list.findIndex(x => x.id === v.id), sum = { id: v.id, name: v.name, game: v.game, ver: v.ver, mode: v.mode, map: v.map, map_name: v.map_name, state: v.state,
     players: (v.slots || []).filter(Boolean).length, cap: (v.slots || []).length, names: (v.slots || []).filter(Boolean).map(s => s.name),
-    owner: v.owner, owner_name: ((v.slots || []).find(s => s && s.steam === v.owner) || {}).name };
+    owner: v.owner, owner_name: ((v.slots || []).find(s => s && s.steam === v.owner) || {}).name,
+    slots: (v.slots || []).map(s => s ? { steam: s.steam, name: s.name, race: s.race, hero: s.hero, rating: s.rating, ready: !!s.ready } : null),
+    obs: (v.obs || []).map(o => ({ steam: o.steam, name: o.name })) };
   if (i >= 0) LR.list[i] = sum; else LR.list.push(sum);
   lrRender(); lrLaunchCheck(); lrOnSoon();
 }
@@ -233,8 +237,11 @@ function lrHeroSel(r, me, cat) {
 function lrSlot(r, s, i, cat) {
   const me = lrMe(), owner = r.owner === me, A = lrAssets(), open = r.state === 'lobby' || r.state === 'countdown';
   if (!s) {
-    const can = lrMine(r) && open;
-    return `<div class="lr-slot free"><span>${esc(t('lrFree'))}</span>${can ? `<button class="btn small lr-sit" data-slot="${i}">${esc(t('lrSit'))}</button>` : ''}</div>`;
+    // 1.5.3 (owner 10.11): the empty avatar, the actions on the right - Sit here, Invite (a player of the launcher, a list like the maps')
+    const can = lrMine(r) && open, dd = 'lrInv' + i, on = LR.drop === dd;
+    const act = can ? `<span class="fs-act"><button class="btn small lr-sit" data-slot="${i}" data-tip="${esc(t('lrSit'))}" aria-label="${esc(t('lrSit'))}">${ico('seat')}<span class="l">${esc(t('lrSit'))}</span></button>`
+      + `<span class="ldd lr-invw${on ? ' open' : ''}"><button class="btn small lr-inv" id="${dd}" data-tip="${esc(t('lrInviteTip'))}" aria-label="${esc(t('lrInviteTip'))}" aria-haspopup="dialog" aria-expanded="${on}">${ico('invite')}<span class="l">${esc(t('lrInvite'))}</span></button>${on ? lrInvMenu(r) : ''}</span></span>` : '';
+    return `<div class="lr-slot free"><i class="av sk-av"></i><div class="lr-who"><span class="lr-line"><span class="fr-t">${esc(t('lrFree'))}</span></span>${can ? `<span class="fr-h">${esc(t('lrFreeHint'))}</span>` : ''}</div>${act}</div>`;
   }
   const mine = s.steam === me;
   const heroes = ((cat && cat.heroes) || {})[s.race] || [];
@@ -252,6 +259,17 @@ function lrSlot(r, s, i, cat) {
     + `${s.owner ? `<span class="lr-crown" title="${esc(t('lrOwner'))}" aria-label="${esc(t('lrOwner'))}">${ico('crown')}</span>` : ''}${s.rating ? `<span class="rt">${Number(s.rating) | 0}</span>` : ''}`
     + `${s.spoil ? `<span class="tag bad">${esc(t('lrSpoil', { n: s.spoil }))}</span>` : ''}</span><span class="lr-armyrow">${army}</span></div>`
     + `${gs}${owner && !mine && open ? `<button class="lr-kick" data-kick="${esc(s.steam)}" data-tip="${esc(t('lrKick'))}" aria-label="${esc(t('lrKick'))}">${ico('x')}</button>` : ''}${tick}</div>`;
+}
+function lrInvMenu(r) {
+  const inRoom = new Set([...(r.slots || []).filter(Boolean), ...(r.obs || [])].map(s => String(s.steam))), f = (LR.invFind || '').toLowerCase(), sent = LR.invited || {};
+  const people = (LIVE.launcher || []).filter(p => p && p.state !== 'game' && !inRoom.has(String(p.steam)) && onUser(p.steam).name && (!f || onUser(p.steam).name.toLowerCase().includes(f)))
+    .sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''));
+  const row = p => { const u = onUser(p.steam), was = sent[p.steam] && Date.now() - sent[p.steam] < 120000;
+    return `<button class="ii${was ? ' sent' : ''}" data-inv="${esc(p.steam)}"${was ? ' disabled' : ''}>${avatar(u.avatar)}<span class="nm">${esc(u.name)}</span>${onRt(u.rating)}<span class="ii-st">${was ? '✓ ' + esc(t('lrInvSent')) : esc(t('lrInvite'))}</span></button>`; };
+  const g = (k, ps) => ps.length ? `<div class="ii-g"><span>${esc(t(k))}</span><span>${ps.length}</span></div>${ps.map(row).join('')}` : '';
+  const list = g('lrInvMenu', people);
+  return `<div class="ldd-l lr-invl" role="dialog" aria-label="${esc(t('lrInviteTip'))}"><input id="lrInvFind" placeholder="${esc(t('lrInvFind'))}" value="${esc(LR.invFind || '')}" autocomplete="off">`
+    + `<div class="ii-list">${list || `<div class="note">${esc(t(f ? 'lrInvNoMatch' : 'lrInvNone'))}</div>`}</div><div class="note ii-note">${esc(t('lrInvNote'))}</div></div>`;
 }
 function lrNet(r) {
   const net = r.net || {}, rows = net.rows || [], nodes = net.nodes || [];
@@ -319,10 +337,12 @@ function lrRoomHtml(r) {
   else if (why) { ev = why; evc = 'wa'; }
   else if (r.note && r.note.k) { ev = lrNoteTxt(r.note); evc = /late|version|match|left_search|game_failed|race|cancel|kicked/.test(r.note.k) ? 'bad' : ''; }
   const vt = r.game === 'vanilla' ? `<span class="tag van">${esc(t('lrGameVan'))}</span>` : '';
+  const ping = lrPingBtn(r, 'lr-ping');
+  const obs = (r.obs || []).length ? `<div class="lr-obsrow">${ico('eye')}<span class="k">${esc(t('lrObs'))} · ${r.obs.length}/${r.obs_cap != null ? r.obs_cap : Math.max(0, 8 - (r.slots || []).length)}</span>${r.obs.map(o => `<span class="o${o.steam === me ? ' me' : ''}">${avatar(o.avatar)}<span class="nm">${esc(o.name)}</span></span>`).join('')}</div>` : '';
   return `<div class="lr-head">${edit ? `<input id="lrNameIn" maxlength="48" value="${esc(r.name)}" aria-label="${esc(t('lrName'))}">` : `<span class="lr-title">${esc(r.name)}</span>`}`
-    + `${modeSel}${vt}<button class="btn small" id="lrLeaveBtn">${esc(t('lrLeave'))}</button></div>`
+    + `${modeSel}${vt}${ping}<button class="btn small" id="lrLeaveBtn">${esc(t('lrLeave'))}</button></div>`
     + (ev ? `<div class="lr-ev ${evc}">${ico('info')}<span>${esc(ev)}</span></div>` : '')
-    + `<div class="lr-body"><div class="lr-teams">${team(0)}<div class="lr-vs">vs</div>${team(1)}</div>`
+    + `<div class="lr-body"><div class="lr-teams">${team(0)}<div class="lr-vs">vs</div>${team(1)}${obs}</div>`
     + `<div class="lr-side"><div class="lr-blk"><div class="lr-sub">${esc(t('lrMap'))}</div><div class="lr-mapbox"><div class="lr-mm" style="background-image:url('${A}maps/${encodeURIComponent(shownMap)}.png')"></div><div class="lr-mapcol">${mapSel}</div></div></div>`
     + `<div class="lr-blk">${optsHtml}</div><div class="lr-blk">${lrNet(r)}</div></div></div>`;
 }
@@ -338,22 +358,36 @@ function lrCardHtml(x) {
     : !open ? `<span class="tag playing">${esc(t('lrPlaying'))}</span>`
     : free <= 0 ? `<span class="tag">${esc(t('lrFull'))}</span>`
     : `<button class="rjoin lr-join${vok ? ' go' : ''}" data-id="${esc(x.id)}" data-tip="${esc(t('rJoinTip', { name: x.name }))}" aria-label="${esc(t('rJoinTip', { name: x.name }))}">${ico('enter')}</button>`;
+  // 1.5.3 (owner 10.11): observers - our automatch takes 8 - 2 x the team (3v3: 2, 2v2: 4, 1v1: 6); the lobby's go into its match
+  const oc = x.obs_cap != null ? x.obs_cap : Math.max(0, 8 - (x.cap || 2)), on = (x.obs || []).length;
+  const watch = !mine && open && on < oc ? `<button class="rjoin lr-watch" data-id="${esc(x.id)}" data-tip="${esc(t('lrWatchJoin', { n: on, m: oc }))}" aria-label="${esc(t('lrWatchJoin', { n: on, m: oc }))}">${ico('eye')}</button>` : '';
   // the room's game on every card: vanilla, or its Elite version (one look; a card of another version is dimmed)
   const vt = x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : `<span class="tag ver">Elite ${esc(x.ver || '')}</span>`;
+  // 1.5.3 (owner 10.11): the teams as on a game lobby's card; a ladder without the seats in its list - the names in a line
+  const per = Math.max(1, Math.round((x.cap || 2) / 2)), sl = Array.isArray(x.slots) && x.slots.length ? x.slots : null;
+  const pic = p => !p.race || p.race === 'random' ? raceImg('random') : p.hero >= 0
+    ? `<img src="${A}heroes/${esc(p.race)}_${p.hero | 0}.png" alt="" data-fb="${A}races/${esc(p.race)}.png">` : raceImg(p.race);
+  const row = p => p ? `<div class="rp${p.steam === x.owner ? ' host' : ''}">${pic(p)}<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`
+    + `${p.ready ? `<span class="rk" title="${esc(t('lrIsReady'))}"></span>` : ''}${p.rating ? `<span class="rt">${Number(p.rating) | 0}</span>` : ''}</div>`
+    : `<div class="rp free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`;
+  const teams = sl ? [0, 1].map(k => { const ps = sl.slice(k * per, k * per + per), rts = ps.filter(Boolean).map(p => p.rating).filter(Boolean);
+    const avg = rts.length ? Math.round(rts.reduce((a, b) => a + b, 0) / rts.length) : 0;
+    return `<div class="team"><div class="th"><span>${esc(t('rTeamShort', { n: k + 1 }))}</span>${avg ? `<span>${esc(t('rAvg', { r: avg }))}</span>` : ''}</div>${ps.map(row).join('')}</div>`; }).join('') : '';
   return `<div class="room lr-card${vok ? '' : ' dim'}" data-kind="lr" data-mode="${esc(x.mode)}" data-vok="${vok ? 1 : 0}" data-van="${x.game === 'vanilla' ? 1 : 0}" data-free="${free > 0 && open ? 1 : 0}">`
-    + `<div class="mmap" style="background-image:url('${A}maps/${encodeURIComponent(x.map)}.png')"><span>${esc(x.map_name || x.map)}</span></div><div class="rb">`
+    + mmapHtml(`${A}maps/${encodeURIComponent(x.map)}.png`, x.map_name || x.map) + '<div class="rb">'
     + `<div class="rh"><span class="tag lr">${esc(t('rTagLr'))}</span><span class="rn" title="${esc(x.name)}">${esc(x.name)}</span><span class="tag">${esc(x.mode)}</span></div>`
-    + `<div class="lr-names">${(x.names || []).map(esc).join(', ')}</div>`
-    + `<div class="rfoot2">${vt}<span class="tag rcount">${x.players}/${x.cap}</span>${act}</div></div></div>`;
+    + (sl ? `<div class="teams">${teams}</div>` : `<div class="lr-names">${(x.names || []).map(esc).join(', ')}</div>`)
+    + (on ? `<div class="robs" title="${esc(t('roomsObs'))}">${ico('eye')}${x.obs.map(o => `<span class="nm">${esc(o.name)}</span>`).join('<span class="sep">·</span>')}</div>` : '')
+    + `<div class="rfoot2">${vt}<span class="tag rcount">${x.players}/${x.cap}</span>${watch}${act}</div></div></div>`;
 }
 function lrListHtml() { return LR.list.map(lrCardHtml).join(''); }
-const segf = (key, items, cur) => `<div class="seg" role="radiogroup">${items.map(([v, l]) => `<button role="radio" aria-checked="${v === cur}" class="${v === cur ? 'on' : ''}" data-f="${key}" data-v="${esc(v)}">${esc(l)}</button>`).join('')}</div>`;
+const segf = (key, items, cur) => `<div class="seg" role="radiogroup">${items.map(([v, l, tip]) => `<button role="radio" aria-checked="${v === cur}" class="${v === cur ? 'on' : ''}" data-f="${key}" data-v="${esc(v)}"${tip ? ` data-tip="${esc(tip)}"` : ''}>${esc(l)}</button>`).join('')}</div>`;
 function rFilters() {
   const mine = S && /^\d/.test(S.installed_version || '') ? 'Elite ' + S.installed_version : t('rFltMine');
-  $('rFlt').innerHTML = `<span>${esc(t('rFltWhere'))}${segf('kind', [['all', t('rFltAll')], ['lr', t('rFltLr')], ['game', t('rFltGame')]], RF.kind)}</span>`
+  $('rFlt').innerHTML = `<span>${esc(t('rFltWhere'))}${segf('kind', [['all', t('rFltAll')], ['lr', t('rFltLr'), t('rFltLrTip')], ['game', t('rFltGame'), t('rFltGameTip')]], RF.kind)}</span>`
     + `<span>${esc(t('lrMode'))}${segf('mode', [['all', t('rFltAll')], ['1v1', '1v1'], ['2v2', '2v2'], ['3v3', '3v3']], RF.mode)}</span>`
-    + `<span>${esc(t('rFltVer'))}<select id="rFltVer"><option value="all"${RF.ver === 'all' ? ' selected' : ''}>${esc(t('rFltAll'))}</option><option value="mine"${RF.ver === 'mine' ? ' selected' : ''}>${esc(mine)}</option><option value="van"${RF.ver === 'van' ? ' selected' : ''}>${esc(t('roomsVan'))}</option></select></span>`
-    + `<label class="chk"><input type="checkbox" id="rFltFree"${RF.free ? ' checked' : ''}><span>${esc(t('rFltFree'))}</span></label>`;
+    + `<label class="chk"><input type="checkbox" id="rFltFree"${RF.free ? ' checked' : ''}><span>${esc(t('rFltFree'))}</span></label>`
+    + `<span>${esc(t('rFltVer'))}<select id="rFltVer"><option value="all"${RF.ver === 'all' ? ' selected' : ''}>${esc(t('rFltAll'))}</option><option value="mine"${RF.ver === 'mine' ? ' selected' : ''}>${esc(mine)}</option><option value="van"${RF.ver === 'van' ? ' selected' : ''}>${esc(t('roomsVan'))}</option></select></span>`;
   $('rLiveFlt').innerHTML = `<span>${esc(t('rFltFrom'))}${segf('from', [['all', t('rFltAll')], ['lr', t('rFltFromLr')], ['fag', 'Find a Game']], RF.from)}</span>`
     + `<span>${esc(t('lrMode'))}${segf('lmode', [['all', t('rFltAll')], ['1v1', '1v1'], ['2v2', '2v2'], ['3v3', '3v3']], RF.lmode)}</span>`;
   const save = () => { try { localStorage.setItem('roomsFilter', JSON.stringify(RF)); } catch (e) {} };
@@ -392,7 +426,7 @@ function rLiveRender() {
   box.innerHTML = ms.map(({ m, lr }) => {
     const map = String(m.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
     const act = m.live ? `<button class="rjoin lvw go" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('rWatchTip'))}" aria-label="${esc(t('rWatchTip'))}">${ico('eye')}</button>` : '';
-    return `<div class="room live-card"><div class="mmap" style="background-image:url('${A}maps/${encodeURIComponent(m.map || '')}.png')"><span>${esc(map)}</span></div><div class="rb">`
+    return `<div class="room live-card">${mmapHtml(`${A}maps/${encodeURIComponent(m.map || '')}.png`, map)}<div class="rb">`
       + `<div class="rh">${lr ? `<span class="tag lr">${esc(t('rTagLr'))}</span>` : ''}<span class="rn">${esc(lr && lr.name ? lr.name : map)}</span><span class="tag">${esc(m.mode)}</span></div>`
       + `<div class="teams"><div class="team">${(m.team1 || []).map(pl).join('')}</div><div class="team">${(m.team2 || []).map(pl).join('')}</div></div>`
       + `<div class="rfoot2"><span class="rhost">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span>${act}</div></div></div>`;
@@ -409,8 +443,9 @@ function rTop(r) {
   if (r) {
     const filled = (r.slots || []).filter(Boolean), wait = (r.slots || []).filter(s => !s || !s.ready).length;
     const st = r.state === 'countdown' ? t('rStCd') : r.state === 'launching' ? t('lrLaunching') : r.state === 'playing' ? t('lrPlaying') : wait ? t('rStWait', { n: wait }) : t('rStAll');
-    return `<button class="rmine${RV.view === 'mine' ? ' on' : ''}" id="rMine" data-tip="${esc(r.name)}"><span class="mi">${ico('crown')}</span><span class="k">${esc(t(r.owner === lrMe() ? 'rMineHost' : 'rMineIn'))}</span>`
-      + `<b>${esc(r.name)}</b><small>${esc(r.mode)} · ${filled.length}/${(r.slots || []).length} · ${esc(st)}</small>${RV.view === 'mine' ? '' : `<span class="go">${esc(t('rBack'))}</span>`}</button>`;
+    return `<div class="rmine-w"><button class="rmine${RV.view === 'mine' ? ' on' : ''}" id="rMine" data-tip="${esc(r.name)}"><span class="mi">${ico('crown')}</span><span class="k">${esc(t(r.owner === lrMe() ? 'rMineHost' : 'rMineIn'))}</span>`
+      + `<b>${esc(r.name)}</b><small>${esc(r.mode)} · ${filled.length}/${(r.slots || []).length} · ${esc(st)}</small>${RV.view === 'mine' ? '' : `<span class="go">${esc(t('rBack'))}</span>`}</button>`
+      + `<button class="rmine-x" id="rMineX" data-tip="${esc(t('lrLeave'))}" aria-label="${esc(t('lrLeave'))}">${ico('x')}</button></div>`;
   }
   if (RM.mine) return `<div class="rmine gm" data-tip="${esc(t('rInGame') + ': ' + RM.mine.name)}"><span class="mi">${ico('door')}</span><span class="k">${esc(t('rInGame'))}</span><b>${esc(RM.mine.name)}</b><small>${esc(t('rInGameNote'))}</small></div>`;
   return `<button class="btn gold rcreate" id="rCreate" data-tip="${esc(t('rCreate'))}">${ico('plus')}<span class="lbl">${esc(t('rCreate'))}</span></button>`;
@@ -423,6 +458,7 @@ function lrRender() {
   if (!r) { RV.seen = ''; if (RV.view === 'mine') RV.view = 'open'; }
   $('rTop').innerHTML = rTop(r);
   if ($('rMine')) $('rMine').onclick = () => rShow('mine');
+  if ($('rMineX')) $('rMineX').onclick = e => { e.stopPropagation(); lrLeave(); };
   if ($('rCreate')) $('rCreate').onclick = lrCreate;
   if ($('rSignIn')) $('rSignIn').onclick = chLogin;
   document.querySelectorAll('.rnb[data-r]').forEach(b => { b.classList.toggle('on', b.dataset.r === RV.view); b.onclick = () => rShow(b.dataset.r); });
@@ -432,16 +468,24 @@ function lrRender() {
   if (!$('rFlt').innerHTML) rFilters();
   list.innerHTML = lrListHtml();
   list.querySelectorAll('.lr-join').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id }));
+  list.querySelectorAll('.lr-watch').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id, as: 'obs' }));
+  list.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
+  list.querySelectorAll('.rp .nm[data-steam]').forEach(n => { if (n.dataset.steam) nickBind(n, n.dataset.steam, n.dataset.name); });
   tipCut(list);
   rApplyFilter(); rLiveRender(); lrPlay();
+  if (!(r && RV.view === 'mine')) { box.classList.add('hidden'); box.innerHTML = ''; LR.drop = null; LR.mapsOpen = false; LR.pop = null; return; }
   if (((LR.pop && LR.mapsOpen) || LR.drop || Date.now() < (LR.holdUntil || 0)) && !LR.popForce) return;   // a drop-down / the map list in use
   LR.popForce = 0;
-  if (r && RV.view === 'mine') {
-    const focus = document.activeElement && document.activeElement.id;
-    box.innerHTML = lrRoomHtml(r); box.classList.remove('hidden');
-    lrBind(r);
-    if (focus === 'lrNameIn' && $('lrNameIn')) $('lrNameIn').focus();
-  } else { box.classList.add('hidden'); box.innerHTML = ''; }
+  const focus = document.activeElement && document.activeElement.id;
+  box.innerHTML = lrRoomHtml(r); box.classList.remove('hidden');
+  lrBind(r);
+  if (focus === 'lrNameIn' && $('lrNameIn')) $('lrNameIn').focus();
+}
+// leave my lobby: the lobby's button, the cross in the panel, the block on Home
+async function lrLeave() {
+  const r = LR.room; if (!r) return;
+  LR.room = null; LR.drop = null; LR.mapsOpen = false; LR.pop = null; lrRender();
+  await lrCall('leave'); invoke('lroom_launch_cancel', { room: r.id }).catch(() => {}); lrLoad();
 }
 // A drop-down of the room is being used: no redraw under it for a while (a redraw replaces the element and the pick is lost).
 // Not by focus: WebKitGTK (the Linux launcher, 06.11.2026) blurs the select when its popup opens and focuses it again after.
@@ -455,7 +499,18 @@ function lrBind(r) {
   const box = $('lrRoom');
   box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
   box.querySelectorAll('.lr-slot .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));
-  $('lrLeaveBtn').onclick = async () => { const id = r.id; LR.room = null; await lrCall('leave'); invoke('lroom_launch_cancel', { room: id }).catch(() => {}); lrLoad(); };
+  $('lrLeaveBtn').onclick = lrLeave;
+  box.querySelectorAll('.lr-ping[data-ping]').forEach(b => b.onclick = () => lrPing(b.dataset.ping));
+  // Invite on a free seat: the list of the launcher's players; a name sends the invitation (lroom.py "invite"), marked as sent
+  box.querySelectorAll('.lr-inv').forEach(b => b.onclick = e => { e.stopPropagation(); LR.drop = LR.drop === b.id ? null : b.id; LR.invFind = ''; LR.popForce = 1; lrRender(); if ($('lrInvFind')) $('lrInvFind').focus(); });
+  if ($('lrInvFind')) $('lrInvFind').oninput = e => { LR.invFind = e.target.value; LR.popForce = 1; lrRender(); const f = $('lrInvFind'); if (f) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); } };
+  // the list opens upwards when there is no room under it in the teams' part
+  const ml = box.querySelector('.lr-invl'), tm = box.querySelector('.lr-teams');
+  if (ml && tm) { const c = tm.getBoundingClientRect(), m = ml.getBoundingClientRect(); if (m.bottom > c.bottom - 4 && m.top - m.height - 40 > c.top) ml.classList.add('up'); }
+  box.querySelectorAll('.ii[data-inv]').forEach(b => b.onclick = async e => {
+    e.stopPropagation(); const st = b.dataset.inv; (LR.invited = LR.invited || {})[st] = Date.now(); LR.popForce = 1; lrRender();
+    const res = await lrCall('invite', { steam: st }); if (res && res.ok !== false) toast(t('lrInvToast', { name: onUser(st).name || '' }));
+  });
   if ($('lrReadyTick')) $('lrReadyTick').onclick = () => { const me = r.slots.find(s => s && s.steam === lrMe()); lrCall('ready', { on: !(me && me.ready) }); };
   const hold = el => { if (!el) return; el.onmousedown = el.onkeydown = () => lrHold(true); };
   box.querySelectorAll('.ldd-b').forEach(b => b.onclick = e => { e.stopPropagation(); LR.drop = LR.drop === b.id ? null : b.id; LR.popForce = 1; lrRender(); });
@@ -499,8 +554,9 @@ async function lrCreate() {
 function lrPlay() {
   const play = $('play'), wrap = $('playWrap'), cf = $('lrCancelFoot'); if (!play || !wrap || !S) return;
   const r = LR.room && lrMine(LR.room) ? LR.room : null;
+  if ($('lobbySound') && document.activeElement !== $('lobbySound')) $('lobbySound').value = lrSoundPick();   // Settings: the launcher's pick
   wrap.removeAttribute('data-tip'); cf.classList.add('hidden'); play.classList.remove('lb', 'gl');
-  if ($('lrBackLnk')) $('statusText').innerHTML = '';                       // my own line from the last time
+  lrMiniRender(r);
   // out of the lobby (left it, removed, gone): Play back as the usual one - render sets it (and comes back here with no room)
   if (!r && play.dataset.lb) { delete play.dataset.lb; render(); return; }
   if (!r || S.busy || r.state === 'playing') return;                        // the usual Play (render)
@@ -524,13 +580,121 @@ function lrPlay() {
   if (owner && r.game === 'elite' && /^\d/.test(S.installed_version || '') && r.ver && !verSame(r.ver, S.installed_version) && !S.busy && LR.verSent !== S.installed_version) {
     LR.verSent = S.installed_version; lrCall('conf', { ver: S.installed_version });
   }
-  // which lobby I am in, with Back, while I am not on its screen
-  const onIt = !$('rooms').classList.contains('hidden') && RV.view === 'mine';
-  if (!onIt && !S.last_error && !$('statusText').textContent.trim()) {
-    $('statusText').innerHTML = `${ico('crown')}<span>${esc(t('inLobby', { name: r.name }))}</span> <button class="lnk" id="lrBackLnk">${esc(t('rBackShort'))}</button>`;
-    $('lrBackLnk').onclick = () => { const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click(); rShow('mine'); };
-  }
 }
+// 1.5.3 (owner 10.11): the lobby I am in, a small block under Online on Home - a reminder: its map and name, how many are
+// ready (no names), the observers, Back and Leave (the players themselves and who is ready are in the lobby; no line next to Play any more)
+function lrMiniRender(r) {
+  const box = $('lrMini'); if (!box) return;
+  box.classList.toggle('hidden', !r);
+  if (!r) { box.innerHTML = ''; return; }
+  const me = lrMe(), slots = r.slots || [], A = lrAssets(), owner = r.owner === me, nObs = (r.obs || []).length;
+  // the state in one line, without names: ready n of m, all ready, the countdown, the start, the match (owner 10.11)
+  const all = r.all_ready != null ? r.all_ready : slots.every(s => s && s.ready);
+  const st = r.state === 'countdown' ? t('playCd') + ' ' + Math.max(0, Math.ceil((r.cd_end - (Date.now() + LR.skew)) / 1000))
+    : r.state === 'launching' ? t('lrLaunching') : r.state === 'playing' ? t('lrPlaying') : all ? t('rStAll')
+    : t('playWait', { n: slots.filter(s => s && s.ready).length, m: slots.length });
+  const go = r.state === 'countdown' || r.state === 'launching' || (r.state === 'lobby' && all);
+  const sub = [st].concat(nObs ? [t('lmObs', { n: nObs })] : []).join(' · ');
+  box.innerHTML = `<div class="h"><span>${esc(t(owner ? 'rMineHost' : 'rMineIn'))}</span><span class="tag">${esc(r.mode)}</span></div>`
+    + `<button class="lm-head" id="lmGo" data-tip="${esc(t('lmBack'))}"><i class="lm-map" style="background-image:url('${A}maps/${encodeURIComponent(r.map)}.png')"></i><span class="lm-n"><b>${esc(r.name)}</b><small${go ? ' class="go"' : ''}>${esc(sub)}</small></span></button>`
+    + `<div class="lm-act"><button class="btn small ghost" id="lmLeave">${esc(t('lmLeave'))}</button><button class="btn gold small" id="lmBack">${esc(t('lmBack'))}</button></div>`;
+  const back = () => { const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click(); rShow('mine'); };
+  $('lmGo').onclick = back; $('lmBack').onclick = back; $('lmLeave').onclick = lrLeave;
+}
+// 1.5.3 (owner 10.11): the host asks who is not ready (Ready check), a player calls the host when all are ready (Call the host) -
+// in the lobby's head only (not in the block on Home) -
+// lroom.py "ping" sends lroom_ping to them: a window with a sound (Settings: soft / sharp). 30 s between two of them.
+function lrPingBtn(r, cls) {
+  if (!r || r.state !== 'lobby') return '';
+  const me = lrMe(), owner = r.owner === me, slots = r.slots || [], all = r.all_ready != null ? r.all_ready : slots.every(s => s && s.ready);
+  const kind = owner ? (slots.some(s => s && s.steam !== me && !s.ready) ? 'ready' : '') : (all && r.hs && !lrObsMe(r) ? 'start' : '');
+  if (!kind) return '';
+  const wait = LR.pinged && Date.now() - LR.pinged < 30000, left = wait ? Math.ceil((LR.pinged + 30000 - Date.now()) / 1000) : 0;
+  return `<button class="btn small ${cls}" data-ping="${kind}" data-tip="${esc(t(kind === 'ready' ? 'lrPingReadyTip' : 'lrPingHostTip'))}"${wait ? ' disabled' : ''}>${ico('bell')}<span class="l">${esc(wait ? t('lrPingSentN', { n: left }) : t(kind === 'ready' ? 'lrPingReady' : 'lrPingHost'))}</span></button>`;
+}
+async function lrPing(kind) {
+  LR.pinged = Date.now(); LR.popForce = 1; lrRender(); setTimeout(() => { LR.popForce = 1; lrRender(); }, 30500);
+  clearInterval(LR.pingT2); LR.pingT2 = setInterval(() => { const left = Math.ceil((LR.pinged + 30000 - Date.now()) / 1000), b = document.querySelector('.lr-ping .l');
+    if (left <= 0) { clearInterval(LR.pingT2); return; } if (b) b.textContent = t('lrPingSentN', { n: left }); }, 500);
+  const r = await lrCall('ping', { kind }); if (r && r.ok !== false) toast(t(kind === 'ready' ? 'lrPingReadyDone' : 'lrPingHostDone'));
+}
+// a ping came: the window (one at a time) and the sound
+let LR_PG = null;
+function lrPingGot(d) {
+  lrSound(); invoke('lroom_attention', { running: !!(S && S.game_running) }).catch(() => {});
+  const r = LR.room && lrMine(LR.room) ? LR.room : null, mine = r && (r.slots || []).find(s => s && s.steam === lrMe());
+  const go = () => { const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click(); rShow('mine'); };
+  const who = d.from_name || 'Player', name = d.name || (r && r.name) || '';
+  const box = d.kind === 'ready'
+    ? { title: t('pgReadyT'), lines: [t('pgReadyText', { who, name }), mine && mine.ready ? t('pgReadyAlready') : ''], btns: [{ label: t('lmBack'), val: 'go' }].concat(mine && mine.ready ? [{ label: 'OK', cls: 'gold', val: '' }] : [{ label: t('pgReadyYes'), cls: 'gold', val: 'ready' }]) }
+    : { title: t('pgStartT'), lines: [t('pgStartText', { who, name })], btns: [{ label: t('lmBack'), val: 'go' }, { label: t('playStart'), cls: 'gold', val: 'start' }] };
+  if (LR_PG) LR_PG.remove();
+  const m = document.createElement('div'); m.className = 'modal lr-pg'; LR_PG = m;
+  // 30 s to answer (owner 10.11): the seconds on the main button, a bar under it running out; then the window goes by itself
+  const ttl = (d.ttl || 30) * 1000, until = Date.now() + ttl;
+  m.innerHTML = `<div class="box"><i class="pg-ico" aria-hidden="true"></i><h3>${esc(box.title)}</h3>${box.lines.filter(Boolean).map(l => `<p>${esc(l)}</p>`).join('')}<div class="row">`
+    + box.btns.map((b, i) => b.cls === 'gold' ? `<button class="btn gold pg-main" data-i="${i}"><span>${esc(b.label)}</span><b class="pg-s">${Math.round(ttl / 1000)}</b><i class="pg-bar"></i></button>`
+      : `<button class="btn ${b.cls || ''}" data-i="${i}">${esc(b.label)}</button>`).join('') + '</div></div>';
+  document.body.appendChild(m);
+  const tick = () => { const left = Math.max(0, until - Date.now()), mb = m.querySelector('.pg-main');
+    if (mb) { mb.querySelector('.pg-s').textContent = Math.ceil(left / 1000); mb.style.setProperty('--p', (100 * left / ttl).toFixed(1) + '%'); }
+    if (!left) end(null, true); };
+  const timer = setInterval(tick, 250);
+  const end = (v, late) => { clearInterval(timer); m.remove(); if (LR_PG === m) LR_PG = null; if (late) toast(t('pgLate'), true);
+    if (v === 'go') go(); if (v === 'ready') { lrCall('ready', { on: true }); toast(t('pgReadyDone')); } if (v === 'start') lrCall('start'); };
+  m.querySelectorAll('button[data-i]').forEach(b => b.onclick = () => end(box.btns[+b.dataset.i].val));
+  m.onclick = e => { if (e.target === m) end(null); };
+  const last = m.querySelector('.row .btn.gold'); if (last) last.focus();
+}
+listen('c_ev', e => { const { e: ev, d } = e.payload || {}; if (ev === 'lroom_ping' && d && (d.kind === 'ready' || d.kind === 'start')) lrPingGot(d); });
+// the lobby's sound: soft - JoinSound's chime (E6 0.16 s, then B6, 0.55 s, 18 %, the same envelope); sharp - four loud square
+// pulses (the game's own alert of JoinSound later). Settings: lobby_sound, soft by default.
+const lrSoundPick = () => (S && S.lobby_sound === 'sharp' ? 'sharp' : 'soft');
+let lrAudio = null;
+function lrSound(pick) {
+  try {
+    lrAudio = lrAudio || new (window.AudioContext || window.webkitAudioContext)();
+    if (lrAudio.state === 'suspended') lrAudio.resume();
+    const ctx = lrAudio, rate = ctx.sampleRate;
+    if ((pick || lrSoundPick()) === 'soft') {
+      const n = Math.round(rate * 0.55), b = ctx.createBuffer(1, n, rate), d = b.getChannelData(0);
+      for (let i = 0; i < n; i++) {
+        const tt = i / rate, hi = tt >= 0.16, f = hi ? 1975.5 : 1318.5, t0 = hi ? tt - 0.16 : tt;
+        const env = (t0 < 0.008 ? t0 / 0.008 : 1) * Math.exp(-t0 * (hi ? 6.5 : 9));
+        d[i] = 0.18 * env * (Math.sin(2 * Math.PI * f * tt) + 0.25 * Math.sin(4 * Math.PI * f * tt)) / 1.25;
+      }
+      const src = ctx.createBufferSource(); src.buffer = b; src.connect(ctx.destination); src.start();
+    } else {
+      const t0 = ctx.currentTime;
+      [[988, 0], [1319, 0.13], [988, 0.26], [1319, 0.39]].forEach(([f, dl]) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'square'; o.frequency.value = f; o.connect(g); g.connect(ctx.destination);
+        g.gain.setValueAtTime(0.0001, t0 + dl); g.gain.exponentialRampToValueAtTime(0.2, t0 + dl + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dl + 0.11);
+        o.start(t0 + dl); o.stop(t0 + dl + 0.12);
+      });
+    }
+  } catch (e) {}
+}
+document.addEventListener('pointerdown', () => { try { lrAudio = lrAudio || new (window.AudioContext || window.webkitAudioContext)(); if (lrAudio.state === 'suspended') lrAudio.resume(); } catch (e) {} });
+if ($('lobbySound')) {
+  $('lobbySound').value = lrSoundPick();
+  $('lobbySound').onchange = e => { const v = e.target.value; if (S) S.lobby_sound = v; invoke('set_setting', { key: 'lobby_sound', value: v }).catch(() => {}); lrSound(v); };
+  $('lobbySoundTry').onclick = () => lrSound($('lobbySound').value);
+}
+// an invitation into a launcher lobby (lroom.py "invite" -> the live stream's lroom_invite): a strip under the header, 3 minutes
+let INV = null;
+function renderInvBar() {
+  const bar = $('invBar'); if (!bar) return;
+  const d = INV && Date.now() - INV.at < (INV.ttl || 180) * 1000 ? INV : null;
+  bar.classList.toggle('hidden', !d); if (!d) return;
+  bar.querySelector('.ub-ico').innerHTML = ico('mail');
+  $('invItems').innerHTML = `<span class="ub-it"><b>${esc(t('invText', { who: d.from_name || 'Player', name: d.name || '' }))}</b><small>${esc([d.mode, d.map_name, d.game === 'vanilla' ? t('roomsVan') : d.ver ? 'Elite ' + d.ver : ''].filter(Boolean).join(' · '))}</small></span>`;
+  $('invNo').textContent = t('invNo'); $('invYes').textContent = t(LR.room && lrMine(LR.room) ? 'invYesLeave' : 'invYes');
+  $('invNo').onclick = () => { INV = null; renderInvBar(); };
+  $('invYes').onclick = async () => { INV = null; renderInvBar(); if (LR.room && lrMine(LR.room)) await lrLeave(); lrJoinHome(d.id); };
+}
+listen('c_ev', e => { const { e: ev, d } = e.payload || {}; if (ev === 'lroom_invite' && d && d.id) {
+  INV = Object.assign({}, d, { at: Date.now() }); renderInvBar(); setTimeout(renderInvBar, (d.ttl || 180) * 1000 + 500);
+  if (typeof lrSound === 'function') lrSound(); invoke('lroom_attention', { running: !!(S && S.game_running) }).catch(() => {}); } });
 // the owner picks another version in the footer while others are in his lobby: ask first (app.js, the version list)
 async function lrVerAsk(name) {
   const r = LR.room && lrMine(LR.room) ? LR.room : null, me = lrMe();
@@ -644,5 +808,65 @@ Object.assign(T.de, { lrSaving: 'Speichern…', rOpen: 'Offene Lobbys', rLive: '
   tipHost: 'Alle bereit – der Host startet das Match', tipWait: 'Warten auf: {who}', whoYou: 'dich', whoFree: 'freie Plätze', inLobby: 'Du bist in der Lobby „{name}“',
   verAskT: 'Version der Lobby ändern?', verAskText: 'Die Lobby wechselt auf {v}.', verAskWho: '{who} haben eine andere Version: ihr „bereit“ fällt weg, sie wechseln oder verlassen die Lobby.', verAskGo: 'Auf {v} wechseln',
   lrLeave: 'Lobby verlassen', lrKick: 'Aus der Lobby entfernen', lrSit: 'Hier setzen' });
+// 1.5.3 (owner 10.11): Invite, the free seat, the block on Home, the invitation, the filter's words
+Object.assign(T.en, { lrInvite: 'Invite', lrInviteTip: 'Invite a player of the launcher to this seat', lrInvFind: 'Find a player', lrInvMenu: 'In the launcher',
+  lrInvSent: 'invited', lrInvNone: 'Nobody else is in the launcher right now.', lrInvNoMatch: 'Nobody by that name.', lrInvNote: 'Only who is in the launcher now (in the game an invitation is not seen): a strip on top with Join.',
+  lrPingReady: 'Ready check', lrPingReadyTip: 'Everybody not ready gets a window with a sound', lrPingHost: 'Call the host', lrPingHostTip: 'All are ready - the host gets a window with a sound to start the match',
+  lrPingSent: 'Sent', lrPingSentN: 'Sent · {n}', pgLate: 'The time to answer is over', pgReadyDone: 'You are ready', lmPlayers: 'players {n}/{m}', lmObs: 'observers {n}', lrWatchJoin: 'Join as an observer ({n} of {m} seats taken)', lrPingReadyDone: 'Ready check sent', lrPingHostDone: 'The host is called', lrObs: 'Observers', pgReadyT: 'Ready check', pgReadyText: '{who} checks who is ready in the lobby “{name}”.',
+  pgReadyAlready: 'You are marked ready already.', pgReadyYes: 'I am ready', pgStartT: 'All are ready', pgStartText: '{who} calls you to start: everybody in the lobby “{name}” is ready.',
+  lsTitle: 'The lobby\'s sound', lsNote: 'an invitation, a ready check, a call of the host', lsSoft: 'Soft', lsSharp: 'Sharp', lsTry: 'Listen',
+  lrInvToast: 'Invitation sent: {name}', lrFreeHint: 'Invite a player or move here', invText: '{who} invites you into the lobby “{name}”', invYes: 'Join the lobby', invYesLeave: 'Leave mine and join',
+  invNo: 'Decline', lmBack: 'Back to the lobby', lmLeave: 'Leave',
+  rFltWhere: 'Lobbies', rFltLr: 'Launcher', rFltGame: 'Regular', rFltLrTip: 'Made in the launcher: the match on our servers, the start for everyone at once',
+  rFltGameTip: 'Made in the game itself (Custom Games): the launcher starts the game and joins it', rLegGame: 'Unmarked - a regular lobby made in the game: the launcher starts the game and joins it by itself.' });
+Object.assign(T.ru, { lrInvite: 'Пригласить', lrInviteTip: 'Пригласить на это место игрока из лаунчера', lrInvFind: 'Найти игрока', lrInvMenu: 'В лаунчере',
+  lrInvSent: 'приглашён', lrInvNone: 'Сейчас в лаунчере больше никого.', lrInvNoMatch: 'Никого с таким именем.', lrInvNote: 'Только те, кто сейчас в лаунчере (в игре приглашение не видно): у них появится полоса сверху с кнопкой «Войти».',
+  lrPingReady: 'Проверить готовность', lrPingReadyTip: 'Всем, кто не готов, придёт окно со звуком', lrPingHost: 'Позвать хоста', lrPingHostTip: 'Все готовы — хосту придёт окно со звуком, чтобы он начал матч',
+  lrPingSent: 'Отправлено', lrPingSentN: 'Отправлено · {n}', pgLate: 'Время ответа вышло', pgReadyDone: 'Вы отмечены готовым', lmPlayers: 'игроков {n}/{m}', lmObs: 'наблюдателей {n}', lrWatchJoin: 'Войти наблюдателем (занято {n} из {m})', lrPingReadyDone: 'Проверка готовности отправлена', lrPingHostDone: 'Хост позван', lrObs: 'Наблюдатели', pgReadyT: 'Проверка готовности', pgReadyText: '{who} проверяет готовность в лобби «{name}».',
+  pgReadyAlready: 'Вы уже отмечены готовым.', pgReadyYes: 'Я готов', pgStartT: 'Все готовы', pgStartText: '{who} зовёт начинать: в лобби «{name}» все готовы.',
+  lsTitle: 'Звук лобби', lsNote: 'приглашение, проверка готовности, «позвать хоста»', lsSoft: 'Мягкий', lsSharp: 'Резкий', lsTry: 'Прослушать',
+  lrInvToast: 'Приглашение отправлено: {name}', lrFreeHint: 'Пригласите игрока или пересядьте сюда', invText: '{who} приглашает вас в лобби «{name}»', invYes: 'Войти в лобби', invYesLeave: 'Выйти из своего и войти',
+  invNo: 'Отклонить', lmBack: 'Вернуться в лобби', lmLeave: 'Выйти',
+  rFltWhere: 'Лобби', rFltLr: 'Лаунчера', rFltGame: 'Обычные', rFltLrTip: 'Собраны в лаунчере: матч на наших серверах, старт у всех сразу',
+  rFltGameTip: 'Созданы в самой игре (Custom Games): лаунчер запустит игру и зайдёт в лобби', rLegGame: 'Без пометки — обычное лобби, созданное в игре: лаунчер сам запустит игру и зайдёт в него.' });
+// 1.5.3: es / fr / de of the block above; the ladder's new answers (observers, pings, invitations)
+Object.assign(T.es, { lrInvite: 'Invitar', lrInviteTip: 'Invitar a esta plaza a un jugador del launcher', lrInvFind: 'Buscar jugador', lrInvMenu: 'En el launcher',
+  lrInvSent: 'invitado', lrInvNone: 'Ahora no hay nadie más en el launcher.', lrInvNoMatch: 'Nadie con ese nombre.', lrInvNote: 'Solo quien está ahora en el launcher (en el juego la invitación no se ve): le aparece una franja arriba con «Entrar».',
+  lrPingReady: 'Comprobar si están listos', lrPingReadyTip: 'A quien no esté listo le llega una ventana con sonido', lrPingHost: 'Llamar al anfitrión', lrPingHostTip: 'Todos listos: al anfitrión le llega una ventana con sonido para que empiece',
+  lrPingSent: 'Enviado', lrPingSentN: 'Enviado · {n}', pgLate: 'Se acabó el tiempo para responder', pgReadyDone: 'Estás listo', lmPlayers: 'jugadores {n}/{m}', lmObs: 'observadores {n}',
+  lrWatchJoin: 'Entrar como observador ({n} de {m} plazas ocupadas)', lrPingReadyDone: 'Comprobación enviada', lrPingHostDone: 'Anfitrión llamado', lrObs: 'Observadores',
+  pgReadyT: '¿Listos?', pgReadyText: '{who} comprueba quién está listo en la sala «{name}».', pgReadyAlready: 'Ya estás marcado como listo.', pgReadyYes: 'Estoy listo',
+  pgStartT: 'Todos listos', pgStartText: '{who} te llama a empezar: en la sala «{name}» todos están listos.', lsTitle: 'Sonido de la sala', lsNote: 'invitación, comprobación, llamada al anfitrión',
+  lsSoft: 'Suave', lsSharp: 'Fuerte', lsTry: 'Escuchar', lrInvToast: 'Invitación enviada: {name}', lrFreeHint: 'Invita a un jugador o cámbiate aquí',
+  invText: '{who} te invita a la sala «{name}»', invYes: 'Entrar en la sala', invYesLeave: 'Salir de la mía y entrar', invNo: 'Rechazar', lmBack: 'Volver a la sala', lmLeave: 'Salir',
+  rFltWhere: 'Salas', rFltLr: 'Launcher', rFltGame: 'Normales', rFltLrTip: 'Creadas en el launcher: la partida en nuestros servidores, el inicio para todos a la vez',
+  rFltGameTip: 'Creadas en el propio juego (Custom Games): el launcher inicia el juego y entra', rLegGame: 'Sin marca: una sala normal creada en el juego; el launcher inicia el juego y entra solo.',
+  e_too_soon: 'Demasiado pronto: espera unos segundos.', e_obs_full: 'No quedan plazas de observador.', e_obs: 'Un observador no puede hacer eso.', e_not_ready: 'Aún no están todos listos.', n_joined_obs: '{who} entró como observador.' });
+Object.assign(T.fr, { lrInvite: 'Inviter', lrInviteTip: 'Inviter un joueur du launcher à cette place', lrInvFind: 'Chercher un joueur', lrInvMenu: 'Dans le launcher',
+  lrInvSent: 'invité', lrInvNone: 'Personne d\'autre dans le launcher pour l\'instant.', lrInvNoMatch: 'Personne avec ce nom.', lrInvNote: 'Seulement ceux qui sont dans le launcher (en jeu l\'invitation ne se voit pas) : une bande en haut avec « Rejoindre ».',
+  lrPingReady: 'Vérifier qui est prêt', lrPingReadyTip: 'Ceux qui ne sont pas prêts reçoivent une fenêtre avec un son', lrPingHost: 'Appeler l\'hôte', lrPingHostTip: 'Tous prêts : l\'hôte reçoit une fenêtre avec un son pour lancer la partie',
+  lrPingSent: 'Envoyé', lrPingSentN: 'Envoyé · {n}', pgLate: 'Le temps pour répondre est écoulé', pgReadyDone: 'Vous êtes prêt', lmPlayers: 'joueurs {n}/{m}', lmObs: 'observateurs {n}',
+  lrWatchJoin: 'Rejoindre en observateur ({n} places sur {m} prises)', lrPingReadyDone: 'Vérification envoyée', lrPingHostDone: 'Hôte appelé', lrObs: 'Observateurs',
+  pgReadyT: 'Prêts ?', pgReadyText: '{who} vérifie qui est prêt dans le salon « {name} ».', pgReadyAlready: 'Vous êtes déjà marqué prêt.', pgReadyYes: 'Je suis prêt',
+  pgStartT: 'Tous prêts', pgStartText: '{who} vous appelle à lancer : dans le salon « {name} », tout le monde est prêt.', lsTitle: 'Son du salon', lsNote: 'invitation, vérification, appel de l\'hôte',
+  lsSoft: 'Doux', lsSharp: 'Fort', lsTry: 'Écouter', lrInvToast: 'Invitation envoyée : {name}', lrFreeHint: 'Invitez un joueur ou changez de place',
+  invText: '{who} vous invite dans le salon « {name} »', invYes: 'Rejoindre le salon', invYesLeave: 'Quitter le mien et rejoindre', invNo: 'Refuser', lmBack: 'Retour au salon', lmLeave: 'Quitter',
+  rFltWhere: 'Salons', rFltLr: 'Launcher', rFltGame: 'Normaux', rFltLrTip: 'Créés dans le launcher : la partie sur nos serveurs, le départ pour tous en même temps',
+  rFltGameTip: 'Créés dans le jeu (Custom Games) : le launcher lance le jeu et y entre', rLegGame: 'Sans marque : un salon normal créé dans le jeu ; le launcher lance le jeu et y entre tout seul.',
+  e_too_soon: 'Trop tôt : attendez quelques secondes.', e_obs_full: 'Plus de place d\'observateur.', e_obs: 'Un observateur ne peut pas faire cela.', e_not_ready: 'Tout le monde n\'est pas encore prêt.', n_joined_obs: '{who} est entré en observateur.' });
+Object.assign(T.de, { lrInvite: 'Einladen', lrInviteTip: 'Einen Spieler aus dem Launcher auf diesen Platz einladen', lrInvFind: 'Spieler suchen', lrInvMenu: 'Im Launcher',
+  lrInvSent: 'eingeladen', lrInvNone: 'Gerade ist sonst niemand im Launcher.', lrInvNoMatch: 'Niemand mit diesem Namen.', lrInvNote: 'Nur wer gerade im Launcher ist (im Spiel ist die Einladung nicht zu sehen): oben erscheint ein Streifen mit „Beitreten“.',
+  lrPingReady: 'Bereitschaft prüfen', lrPingReadyTip: 'Wer nicht bereit ist, bekommt ein Fenster mit Ton', lrPingHost: 'Host rufen', lrPingHostTip: 'Alle bereit – der Host bekommt ein Fenster mit Ton, um das Match zu starten',
+  lrPingSent: 'Gesendet', lrPingSentN: 'Gesendet · {n}', pgLate: 'Die Zeit zum Antworten ist um', pgReadyDone: 'Du bist bereit', lmPlayers: 'Spieler {n}/{m}', lmObs: 'Zuschauer {n}',
+  lrWatchJoin: 'Als Zuschauer beitreten ({n} von {m} Plätzen belegt)', lrPingReadyDone: 'Prüfung gesendet', lrPingHostDone: 'Host gerufen', lrObs: 'Zuschauer',
+  pgReadyT: 'Bereit?', pgReadyText: '{who} prüft, wer in der Lobby „{name}“ bereit ist.', pgReadyAlready: 'Du bist schon als bereit markiert.', pgReadyYes: 'Ich bin bereit',
+  pgStartT: 'Alle bereit', pgStartText: '{who} ruft dich zum Start: in der Lobby „{name}“ sind alle bereit.', lsTitle: 'Ton der Lobby', lsNote: 'Einladung, Bereitschaftsprüfung, Ruf an den Host',
+  lsSoft: 'Leise', lsSharp: 'Laut', lsTry: 'Anhören', lrInvToast: 'Einladung gesendet: {name}', lrFreeHint: 'Lade einen Spieler ein oder setz dich hierher',
+  invText: '{who} lädt dich in die Lobby „{name}“ ein', invYes: 'Der Lobby beitreten', invYesLeave: 'Meine verlassen und beitreten', invNo: 'Ablehnen', lmBack: 'Zurück zur Lobby', lmLeave: 'Verlassen',
+  rFltWhere: 'Lobbys', rFltLr: 'Launcher', rFltGame: 'Normale', rFltLrTip: 'Im Launcher erstellt: das Match auf unseren Servern, Start für alle gleichzeitig',
+  rFltGameTip: 'Im Spiel selbst erstellt (Custom Games): der Launcher startet das Spiel und tritt bei', rLegGame: 'Ohne Markierung – eine normale Lobby aus dem Spiel: der Launcher startet das Spiel und tritt selbst bei.',
+  e_too_soon: 'Zu früh – warte ein paar Sekunden.', e_obs_full: 'Keine Zuschauerplätze mehr frei.', e_obs: 'Ein Zuschauer kann das nicht.', e_not_ready: 'Noch sind nicht alle bereit.', n_joined_obs: '{who} ist als Zuschauer beigetreten.' });
+Object.assign(T.en, { e_too_soon: 'Too soon - wait a few seconds.', e_obs_full: 'No observer seats left.', e_obs: 'An observer can not do that.', e_not_ready: 'Not everybody is ready yet.', n_joined_obs: '{who} joined as an observer.' });
+Object.assign(T.ru, { e_too_soon: 'Слишком часто — подождите несколько секунд.', e_obs_full: 'Мест наблюдателей не осталось.', e_obs: 'Наблюдателю это нельзя.', e_not_ready: 'Ещё не все готовы.', n_joined_obs: '{who} вошёл наблюдателем.' });
 // the strings of this file (the Rooms tab's panel) came after app.js: a render that ran before it is done again in them
 if (typeof S !== 'undefined' && S) render();

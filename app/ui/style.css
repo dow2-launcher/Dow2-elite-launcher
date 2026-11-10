@@ -1,6 +1,9 @@
 /* ================= the game's art: every picture of the D look is a slot here (the files in img/ui, the list and where each
    comes from in img/ui/SLOTS.md). The crops of the game's menus stand in until the real textures are extracted
    (scripts/game-art); img/ui/art.css, loaded after this file, re-points a slot to the extracted file and its slice. ================= */
+/* the ping's sigil: the Adeptus Astra Telepathica (github.com/Certseeds/wh40k-icon, AGPL-3.0 - the licence to settle before a
+   release, as for --av-def) */
+:root{--art-ping:url("data:image/svg+xml,%3Csvg fill=%22%239fe3cf%22 version=%221.1%22 id=%22Layer_3_1_%22 x=%220px%22 y=%220px%22 viewBox=%220 0 468.19245 800.00002%22 xml:space=%22preserve%22 width=%22468.19244%22 height=%22800%22 xmlns=%22http://www.w3.org/2000/svg%22 xmlns:svg=%22http://www.w3.org/2000/svg%22 xmlns:rdf=%22http://www.w3.org/1999/02/22-rdf-syntax-ns%23%22 xmlns:cc=%22http://creativecommons.org/ns%23%22 xmlns:dc=%22http://purl.org/dc/elements/1.1/%22%3E %3Cpath d=%22m 468.19243,235.03036 c 0,-10.33785 -65.88821,-70.3721 -150.45928,-98.39639 l 0.12455,-25.65779 c 0,-8.71867 1.24552,-27.775184 13.94987,-45.710728 C 357.83902,28.7716 406.539,32.25907 409.27915,32.63273 c 0,-10.96061 0,-21.79667 0,-32.63273 H 234.78125 234.6567 60.158804 c 0,10.96061 0,21.79667 0,32.63273 2.740153,-0.24911 51.440136,-3.86113 77.471586,32.632722 12.8289,17.935544 13.94987,37.116608 13.94987,45.710728 0,0 0,9.46598 0,25.9069 C 66.510976,166.02834 0,228.67819 0,235.03036 c 0,6.35217 66.635529,69.12658 151.82936,98.14728 0.12456,145.7263 0.12456,310.75822 -0.2491,351.98506 0.37366,6.10306 1.37007,31.6363 -16.81457,53.18387 -17.56189,20.80025 -46.333493,30.01712 -74.731438,24.28771 V 800 h 174.622448 0.12455 174.62246 v -37.36572 c -28.39795,5.72941 -57.16955,-3.48746 -74.73144,-24.28771 C 316.48762,716.799 317.48404,691.26576 317.8577,685.1627 317.23494,611.67679 316.61217,538.31543 315.98941,464.82952 l 0.74732,-131.02912 c 85.19383,-27.89973 151.4557,-88.30764 151.4557,-98.77004 z m -421.236179,0 c 0,-5.72941 59.536039,-57.66776 137.256729,-75.10509 -16.06725,13.94987 -26.4051,34.62556 -26.4051,57.66776 0,42.22326 34.12735,76.35061 76.35061,76.35061 42.22326,0 76.35062,-34.12735 76.35062,-76.35061 0,-23.2913 -10.4624,-44.09155 -26.77877,-58.04142 77.9698,16.56547 137.63039,66.13732 137.63039,75.6033 0,11.45882 -86.56391,80.95906 -187.20224,80.95906 -100.63833,0 -187.202239,-74.10868 -187.202239,-81.08361 z%22 id=%22path2%22 stroke-width=%221.24552393%22 /%3E %3C/svg%3E")}
 :root{--art-bg:url(img/ui/bg.jpg);
   --art-frame:url(img/ui/frame-panel.jpg); --art-frame-slice:34;
   --art-panel:url(img/ui/panel-fill.jpg);
@@ -152,9 +155,6 @@ nav{margin-left:auto;display:flex;gap:4px}
 .nick-menu button{padding:7px 10px;border:0;background:none;text-align:left;cursor:pointer}
 .pop .w{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);color:var(--amber);font-size:12px}
 /* update offer (home, right column) */
-.upd-text{flex:1;min-width:0;font-size:13px}
-.upd-text b{display:block}
-.upd-text small{display:block;font-size:12px}
 /* version picker + Play: in the bottom bar, so they are there on every tab */
 .ver-pick{position:relative;flex:none;width:240px}
 .ver-btn{width:100%;display:flex;align-items:center;gap:8px;text-align:left}
@@ -454,7 +454,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .rj-status span{flex:1;min-width:0}
 .rj-status.ok{border-color:#4f6b39;color:var(--green)}
 .rj-status.err{border-color:var(--blood);color:var(--red)}
-.rooms-grid{flex:1;min-height:0;overflow:auto;align-content:start;margin:8px -14px 0;padding:0 14px 6px}
+.rooms-grid{flex:1;min-height:0;overflow:auto;align-content:start;margin:8px 0 0;padding:0 0 6px}
 .room .rh{flex-wrap:nowrap}
 .room .rh .tag{flex:none}
 .room .rn{font-weight:600}
@@ -757,10 +757,6 @@ footer .status{order:0}
 .bar i{background:linear-gradient(#5cf0cf,#1d8f78);box-shadow:0 0 10px rgba(69,224,192,.8)}
 .meta{color:var(--mu);font-size:11.5px}
 .ver-warn{font-size:12px;color:var(--wa)}
-.upd-box{flex:none;display:flex;align-items:center;gap:10px;padding:5px 6px 5px 12px;border:1px solid var(--ln2);background:rgba(16,48,43,.7);font-size:13px;color:#d8f5ea;white-space:nowrap}
-.upd-text{display:flex;flex-direction:column;line-height:1.25}
-.upd-text b{font-weight:600;color:#fff}
-.upd-text small{color:var(--mu)}
 .plw{position:relative;display:inline-flex;flex:none}
 .play{width:240px;height:58px;border:10px solid transparent;border-image:var(--art-plate) var(--art-plate-slice) / 10px;background:var(--art-plate-fill) center/100% 100% padding-box;border-radius:0;
   font:700 30px/1 var(--fh);letter-spacing:.5px;color:#fff;text-transform:none;text-shadow:0 2px 3px #000,0 0 12px rgba(0,0,0,.6);box-shadow:none;
@@ -1095,7 +1091,6 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .play .pcd b{font:700 30px/1 var(--fh);color:#fff;text-shadow:0 0 12px rgba(69,224,192,.9)}
 .play.gl{filter:brightness(1.25) drop-shadow(0 0 10px rgba(69,224,192,.7))}
 #statusText .ico{color:var(--gd);margin-right:6px}
-#statusText .lnk{margin-left:8px}
 @media (max-width:1599px){
   .lr-teams{grid-template-columns:minmax(0,1fr)}
   .lr-vs{padding:6px 0;font-size:22px}
@@ -1152,12 +1147,13 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
 .foot-link:hover,.foot-link:focus-visible{border-color:transparent;box-shadow:none;filter:drop-shadow(0 0 5px rgba(69,224,192,.7))}
 .news-link:hover,.ann .cl:hover,.lr-kick:hover{filter:drop-shadow(0 0 5px rgba(69,224,192,.6))}
 /* the lobby cards: wider, the teams to both edges with their headings, an open seat as a row, no line between the teams */
-/* the cards by the list's width: 1 column, 2 from 730 px, 3 from 1340 px, 4 from 2100 px (2560 window), 5 from 2700 px
-   and never more - a card stays 440-520 px at least; auto-fill gave 4-6 narrow ones that cut the players' names (owner 09.11) */
+/* the cards by the list's width: 1 column, 2 from 960 px (a 1280 window), 3 from 1450 px (1920), 4 from 2100 px (2560),
+   5 from 2700 px and never more - a card stays 475-530 px at least, the players' names fit; 2 columns of ~400 px on a small
+   window and auto-fill's 4-6 narrow ones on a big one cut them (owner 09.11) */
 .rlist{container-type:inline-size}
 .rooms-grid{grid-template-columns:minmax(0,1fr)}
-@container (min-width:730px){.rooms-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container (min-width:1340px){.rooms-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container (min-width:960px){.rooms-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@container (min-width:1450px){.rooms-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @container (min-width:2100px){.rooms-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @container (min-width:2700px){.rooms-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
 .room .teams{grid-template-columns:1fr 1fr;gap:14px}
@@ -1269,3 +1265,135 @@ html{font-variant-numeric:lining-nums}
 /* lobby cards: a name (or an open seat) right by its icon - the left team to the left, the right team to the right */
 .room .team .rp .nm{text-align:left}
 .room .team+.team .rp .nm{text-align:right}
+
+/* ---------- 1.5.3 (owner 10.11) ---------- */
+/* the strip of updates (and an invitation) under the header: green-teal over the whole width, the updates in one line, one button */
+.ubar{flex:none;display:flex;align-items:center;gap:14px;min-height:46px;padding:7px 20px;position:relative;z-index:2;color:#d8efe7;font-size:13.5px;
+  background:linear-gradient(90deg,rgba(20,64,54,.5),rgba(13,42,38,.4) 55%,rgba(9,26,25,.3));border-top:1px solid rgba(120,255,214,.08);border-bottom:1px solid rgba(63,191,154,.4);
+  box-shadow:inset 0 -8px 14px rgba(69,224,192,.04),0 2px 6px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.ub-ico{flex:none;display:grid;place-items:center;width:28px;height:28px;border:1px solid rgba(95,200,170,.55);background:rgba(2,14,12,.4);color:#a9e6d4;box-shadow:0 0 4px rgba(69,224,192,.2)}
+.ub-ico .ico{width:16px;height:16px}
+.ub-items{flex:1;min-width:0;display:flex;align-items:center;flex-wrap:wrap;row-gap:3px}
+.ub-it{display:flex;align-items:baseline;gap:8px;min-width:0;padding:0 16px}
+.ub-it:first-child{padding-left:0}
+.ub-it+.ub-it{border-left:1px solid rgba(160,255,225,.16)}
+.ub-it b{min-width:0;font-weight:600;color:#eaf7f2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ub-it small{flex:none;color:#8db8ab;font-size:12px}
+.ub-it.busy b{color:#c8fff0;font-weight:500}
+.ubar .ub-btn{flex:none;height:32px;padding:0 20px;font-size:15px}
+.ubar.inv{background:linear-gradient(90deg,rgba(18,58,68,.5),rgba(12,40,48,.4) 55%,rgba(9,26,30,.3));border-bottom-color:rgba(70,184,200,.4)}
+.ubar.inv .ub-ico{border-color:rgba(127,220,236,.55);color:#bfe9f3;animation:invglow 2s ease-in-out infinite}
+@keyframes invglow{50%{box-shadow:0 0 8px rgba(120,230,255,.45)}}
+@media (prefers-reduced-motion:reduce){.ubar.inv .ub-ico{animation:none}}
+
+/* my launcher lobby on Home, under Online - a reminder: the map, the name, how many players (back to it), Leave / Back */
+.lr-mini{flex:none;display:flex;flex-direction:column;gap:7px}
+.lr-mini .h{display:flex;align-items:center;justify-content:space-between;margin-bottom:0}
+.lm-head{display:flex;align-items:center;gap:10px;width:100%;padding:4px;border:1px solid var(--ln2);background:rgba(16,48,43,.45);text-align:left;color:inherit;font:inherit;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+.lm-head:hover,.lm-head:focus-visible{border-color:var(--gd);box-shadow:0 0 6px rgba(69,224,192,.3)}
+.lm-map{flex:none;width:44px;height:44px;border:1px solid var(--ln);background:#061011 center/cover}
+.lm-n{min-width:0;display:flex;flex-direction:column}
+.lm-n b{font:700 17px var(--fh);color:#eafff8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm-n small{font-size:12px;color:var(--sf);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lm-n small.go{color:#8af5b4}
+.lm-act{display:flex;justify-content:flex-end;align-items:center;gap:10px}
+
+/* the cards: as tall as a 3v3 lobby without observers at least, the teams in the middle of their part (owner 10.11); the map a
+   square on top, never stretched, the same picture blurred and dark behind the rest of the column */
+.room{grid-template-columns:112px minmax(0,1fr);min-height:170px}
+.room .rb{display:flex;flex-direction:column}
+.room .teams{flex:1;align-content:center}
+.room .mmap{position:relative;overflow:hidden;display:flex;flex-direction:column;background:#061011}
+.room .mmap::before{content:"";position:absolute;inset:-10px;background:var(--mm,none) center/cover;filter:blur(7px) brightness(.3) saturate(.7)}
+.room .mmap .mm{position:relative;display:block;width:100%;aspect-ratio:1;background:var(--mm,none) center/cover,#061011;border-bottom:1px solid var(--ln);box-shadow:0 2px 6px rgba(0,0,0,.6)}
+.room .mmap span{position:relative;padding:6px 6px 4px;background:none}
+/* a free seat: the empty avatar (the winged skull, as a player without his own), dimmed */
+.sk{flex:none;display:inline-block;width:20px;height:20px;background:var(--av-def) center 40%/125% no-repeat;opacity:.5}
+/* the country's mark as tall as the race / hero icon next to it (owner 10.11) */
+.room .rp .fl{height:20px;min-width:24px;box-sizing:border-box;padding:0 3px;line-height:18px;text-align:center;font-size:10px}
+/* a launcher lobby's card: who is ready */
+.room .rp .rk{flex:none;position:relative;width:10px;height:14px}
+.room .rp .rk::after{content:"";position:absolute;left:2px;top:0;width:4px;height:9px;border:solid #62e39a;border-width:0 2px 2px 0;transform:rotate(45deg);filter:drop-shadow(0 0 2px rgba(98,227,154,.7))}
+/* no frame around a race, a hero or the random "?" anywhere (owner 10.11); the drop-downs of my army keep their dark square */
+.race,.race-rnd{padding:0;border:0;background:none}
+.rbox,.hbox{border-color:transparent}
+
+/* my lobby: the avatar from the name's top to the drop-downs' bottom; VS away from team 1 when the teams are one above the other */
+.lr-slot .av{width:54px;height:54px}
+@media (max-width:1599px){.lr-vs{padding:18px 0 8px}}
+/* a free seat: the empty avatar, "Open seat" and a hint, the actions on the right - Sit here, Invite, one kind of button;
+   with their words in a wide team, icons only in a narrow one (owner 10.11) */
+.lr-slot.free{justify-content:flex-start;align-items:center;flex-wrap:nowrap;font:inherit;font-style:normal;color:inherit}
+.lr-slot .sk-av{opacity:.42;filter:grayscale(.4)}
+.lr-slot .fr-t{font:700 17px var(--fh);color:#8fb0a8}
+.lr-slot .fr-h{font-size:12px;color:var(--mu)}
+.fs-act{flex:none;display:flex;align-items:center;gap:6px;margin-left:auto}
+.fs-act .btn .ico{width:15px;height:15px}
+.lr-team{container:lrteam / inline-size}
+@container lrteam (max-width:600px){.fs-act .btn{width:34px;padding:0}.fs-act .btn .l{display:none}}
+/* Invite: the launcher's players, in the menu / in the game, a search; a name sends the invitation */
+.lr-invw{position:relative}
+.lr-invl{left:auto;right:-8px;width:300px;max-height:330px;gap:0}
+.lr-invl.up{top:auto;bottom:calc(100% + 3px)}
+.lr-invl input{flex:none;width:100%;height:28px;margin:0 0 4px;padding:0 8px;font:500 13px var(--fb)}
+.ii-list{display:flex;flex-direction:column;min-height:0;overflow:auto}
+.ii-g{display:flex;justify-content:space-between;padding:6px 6px 2px;font:600 10.5px var(--fb);letter-spacing:.6px;text-transform:uppercase;color:var(--mu)}
+.ii{display:flex;align-items:center;gap:8px;padding:4px 6px;border:0;background:none;color:#e4f3ed;font:500 13px var(--fb);text-align:left;cursor:pointer}
+.ii:hover:not(:disabled),.ii:focus-visible{background:rgba(69,224,192,.12)}
+.ii .av{flex:none;width:24px;height:24px;border-width:2px;border-image:var(--art-portrait) 12 / 2px}
+.ii .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.ii .rt{color:var(--mu);font-size:11.5px}
+.ii-st{flex:none;min-width:76px;text-align:right;font-size:12px;color:var(--gd)}
+.ii.sent{cursor:default}
+.ii.sent .ii-st{color:#8af5b4}
+.ii-note{flex:none;margin-top:4px;padding:6px 6px 2px;border-top:1px solid var(--ln);font-size:11.5px}
+
+/* my lobby in the panel: a cross to leave it */
+.rmine-w{position:relative}
+.rmine-w .rmine{padding-right:30px}
+.rmine-x{position:absolute;top:6px;right:6px;display:grid;place-items:center;width:22px;height:22px;padding:0;border:0;background:none;color:var(--mu);cursor:pointer;transition:color .15s,filter .15s}
+.rmine-x .ico{width:14px;height:14px}
+.rmine-x:hover,.rmine-x:focus-visible{color:#ffb1a3;filter:drop-shadow(0 0 5px rgba(255,120,100,.6))}
+.rnav .rmine-x[data-tip]:hover::after{content:attr(data-tip);right:-4px;left:auto;bottom:auto;top:calc(100% + 6px);transform:none}
+@media (max-width:1000px){.rmine-x{display:none}.rmine-w .rmine{padding-right:0}}
+/* a narrow window: the updates one under the other; a short one: the lobby on Home without its teams, Online keeps its rows */
+@media (max-width:1100px){.ub-items{flex-direction:column;align-items:flex-start}.ub-it{padding:0}.ub-it+.ub-it{border-left:0}}
+/* the pings: Ready check (the host) / Call the host (a player when all are ready) - in the lobby's head and on Home */
+.lr-head .lr-ping{margin-left:auto}
+.lr-head .lr-ping+#lrLeaveBtn{margin-left:0}
+.lr-ping .ico{width:15px;height:15px}
+/* the observers: under the teams in the lobby, a line in the block on Home */
+.lr-obsrow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-width:0;color:var(--mu);font-size:13px}
+.lr-obsrow{grid-column:1/-1;margin-top:10px;padding:8px 10px;border:1px dashed var(--ln2);background:rgba(0,0,0,.25)}
+.lr-obsrow>.ico{flex:none;width:16px;height:16px;color:var(--gd)}
+.lr-obsrow .k{font:600 10.5px var(--fb);letter-spacing:.6px;text-transform:uppercase}
+.lr-obsrow .o{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.lr-obsrow .av{width:26px;height:26px;border-width:2px;border-image:var(--art-portrait) 12 / 2px}
+.lr-obsrow .nm{font-weight:600;color:#d8ece6;white-space:nowrap}
+/* a ping's window: a bell on top, the lobby's words, Back to the lobby / the answer */
+.modal.lr-pg .box{text-align:center;max-width:420px}
+.modal.lr-pg .pg-ico{display:block;width:44px;height:64px;margin:0 auto 8px;background:var(--art-ping) center/contain no-repeat;filter:drop-shadow(0 0 6px rgba(69,224,192,.45));animation:pgglow 2s ease-in-out infinite}
+@keyframes pgglow{50%{filter:drop-shadow(0 0 12px rgba(120,240,210,.8))}}
+/* the 30 s to answer: the seconds on the button, a bar under its words running out */
+.modal.lr-pg .pg-main{position:relative;overflow:hidden;gap:10px}
+.modal.lr-pg .pg-main .pg-s{font:700 15px/1 var(--fb);font-variant-numeric:tabular-nums;min-width:2ch;text-align:right;opacity:.85}
+.modal.lr-pg .pg-main .pg-bar{position:absolute;left:0;bottom:0;height:3px;width:var(--p,100%);background:linear-gradient(90deg,#5cf0cf,#8af5b4);box-shadow:0 0 6px rgba(98,227,154,.7);transition:width .25s linear}
+.modal.lr-pg .row{justify-content:center}
+@media (prefers-reduced-motion:reduce){.modal.lr-pg .pg-ico{animation:none}.modal.lr-pg .pg-main .pg-bar{transition:none}}
+/* Join as an observer (the eye) next to Join, both after the seats */
+.rfoot2 .lr-watch+.rjoin{margin-left:0}
+/* my lobby in the game's frame and its grimy fill, as the list of lobbies; the head a strip; Map / Match settings / Our servers
+   framed panels with a title strip, as the add-ons' groups; the teams' headings with a fading line (owner 10.11) */
+.lr-room{border:10px solid transparent;border-image:var(--art-frame) var(--art-frame-slice) / 10px;background:linear-gradient(rgba(5,10,11,.74),rgba(5,10,11,.74)),var(--art-panel) center/cover padding-box}
+.lr-room .lr-head{background:rgba(0,0,0,.32);border-bottom:1px solid var(--ln);box-shadow:0 1px 0 rgba(0,0,0,.6)}
+.lr-room .lr-ev{border-bottom:1px solid var(--ln)}
+.lr-side{gap:10px}
+.lr-side .lr-blk{padding:0 10px 8px;border:10px solid transparent;border-image:var(--art-frame) var(--art-frame-slice) / 10px;background:linear-gradient(rgba(5,10,11,.55),rgba(5,10,11,.55)),var(--art-panel) center/cover padding-box}
+.lr-side .lr-blk:empty{display:none}
+.lr-side .lr-blk .lr-sub{margin:0 -10px 8px;padding:6px 10px;background:rgba(0,0,0,.32);border-bottom:1px solid var(--ln);font:700 18px var(--fh);color:#d8f6ea;text-shadow:0 2px 2px #000}
+.lr-room .lr-team>.lr-sub{display:flex;align-items:center;gap:10px}
+.lr-room .lr-team>.lr-sub::after{display:block;content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--ln2),transparent)}
+/* the side column a bit wider for its frames: "Starting locations" on one line on a 1440 window */
+.lr-body{grid-template-columns:minmax(0,1fr) 364px}
+@media (max-width:1000px){.lr-body{grid-template-columns:minmax(0,1fr) 300px}}
+@media (min-width:1700px){.lr-body{grid-template-columns:minmax(0,1fr) 420px}}
