@@ -110,7 +110,8 @@ function lrSet(v) {
   const i = LR.list.findIndex(x => x.id === v.id), sum = { id: v.id, name: v.name, game: v.game, ver: v.ver, mode: v.mode, map: v.map, map_name: v.map_name, state: v.state,
     players: (v.slots || []).filter(Boolean).length, cap: (v.slots || []).length, names: (v.slots || []).filter(Boolean).map(s => s.name),
     owner: v.owner, owner_name: ((v.slots || []).find(s => s && s.steam === v.owner) || {}).name,
-    slots: (v.slots || []).map(s => s ? { steam: s.steam, name: s.name, race: s.race, hero: s.hero, rating: s.rating, ready: !!s.ready } : null) };
+    slots: (v.slots || []).map(s => s ? { steam: s.steam, name: s.name, race: s.race, hero: s.hero, rating: s.rating, ready: !!s.ready } : null),
+    obs: (v.obs || []).map(o => ({ steam: o.steam, name: o.name })) };
   if (i >= 0) LR.list[i] = sum; else LR.list.push(sum);
   lrRender(); lrLaunchCheck(); lrOnSoon();
 }
@@ -335,7 +336,7 @@ function lrRoomHtml(r) {
   else if (r.note && r.note.k) { ev = lrNoteTxt(r.note); evc = /late|version|match|left_search|game_failed|race|cancel|kicked/.test(r.note.k) ? 'bad' : ''; }
   const vt = r.game === 'vanilla' ? `<span class="tag van">${esc(t('lrGameVan'))}</span>` : '';
   const ping = lrPingBtn(r, 'lr-ping');
-  const obs = (r.obs || []).length ? `<div class="lr-obsrow">${ico('eye')}<span class="k">${esc(t('lrObs'))}</span>${r.obs.map(o => `<span class="o">${avatar(o.avatar)}<span class="nm">${esc(o.name)}</span></span>`).join('')}</div>` : '';
+  const obs = (r.obs || []).length ? `<div class="lr-obsrow">${ico('eye')}<span class="k">${esc(t('lrObs'))} · ${r.obs.length}/${Math.max(0, 8 - (r.slots || []).length)}</span>${r.obs.map(o => `<span class="o">${avatar(o.avatar)}<span class="nm">${esc(o.name)}</span></span>`).join('')}</div>` : '';
   return `<div class="lr-head">${edit ? `<input id="lrNameIn" maxlength="48" value="${esc(r.name)}" aria-label="${esc(t('lrName'))}">` : `<span class="lr-title">${esc(r.name)}</span>`}`
     + `${modeSel}${vt}${ping}<button class="btn small" id="lrLeaveBtn">${esc(t('lrLeave'))}</button></div>`
     + (ev ? `<div class="lr-ev ${evc}">${ico('info')}<span>${esc(ev)}</span></div>` : '')
@@ -355,6 +356,9 @@ function lrCardHtml(x) {
     : !open ? `<span class="tag playing">${esc(t('lrPlaying'))}</span>`
     : free <= 0 ? `<span class="tag">${esc(t('lrFull'))}</span>`
     : `<button class="rjoin lr-join${vok ? ' go' : ''}" data-id="${esc(x.id)}" data-tip="${esc(t('rJoinTip', { name: x.name }))}" aria-label="${esc(t('rJoinTip', { name: x.name }))}">${ico('enter')}</button>`;
+  // 1.5.3 (owner 10.11): observers - our automatch takes 8 - 2 x the team (3v3: 2, 2v2: 4, 1v1: 6); the lobby's go into its match
+  const oc = Math.max(0, 8 - (x.cap || 2)), on = (x.obs || []).length;
+  const watch = !mine && open && on < oc ? `<button class="rjoin lr-watch" data-id="${esc(x.id)}" data-tip="${esc(t('lrWatchJoin', { n: on, m: oc }))}" aria-label="${esc(t('lrWatchJoin', { n: on, m: oc }))}">${ico('eye')}</button>` : '';
   // the room's game on every card: vanilla, or its Elite version (one look; a card of another version is dimmed)
   const vt = x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : `<span class="tag ver">Elite ${esc(x.ver || '')}</span>`;
   // 1.5.3 (owner 10.11): the teams as on a game lobby's card; a ladder without the seats in its list - the names in a line
@@ -371,7 +375,8 @@ function lrCardHtml(x) {
     + mmapHtml(`${A}maps/${encodeURIComponent(x.map)}.png`, x.map_name || x.map) + '<div class="rb">'
     + `<div class="rh"><span class="tag lr">${esc(t('rTagLr'))}</span><span class="rn" title="${esc(x.name)}">${esc(x.name)}</span><span class="tag">${esc(x.mode)}</span></div>`
     + (sl ? `<div class="teams">${teams}</div>` : `<div class="lr-names">${(x.names || []).map(esc).join(', ')}</div>`)
-    + `<div class="rfoot2">${vt}<span class="tag rcount">${x.players}/${x.cap}</span>${act}</div></div></div>`;
+    + (on ? `<div class="robs" title="${esc(t('roomsObs'))}">${ico('eye')}${x.obs.map(o => `<span class="nm">${esc(o.name)}</span>`).join('<span class="sep">·</span>')}</div>` : '')
+    + `<div class="rfoot2">${vt}<span class="tag rcount">${x.players}/${x.cap}</span>${watch}${act}</div></div></div>`;
 }
 function lrListHtml() { return LR.list.map(lrCardHtml).join(''); }
 const segf = (key, items, cur) => `<div class="seg" role="radiogroup">${items.map(([v, l, tip]) => `<button role="radio" aria-checked="${v === cur}" class="${v === cur ? 'on' : ''}" data-f="${key}" data-v="${esc(v)}"${tip ? ` data-tip="${esc(tip)}"` : ''}>${esc(l)}</button>`).join('')}</div>`;
@@ -461,6 +466,7 @@ function lrRender() {
   if (!$('rFlt').innerHTML) rFilters();
   list.innerHTML = lrListHtml();
   list.querySelectorAll('.lr-join').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id }));
+  list.querySelectorAll('.lr-watch').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id, as: 'obs' }));
   list.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
   list.querySelectorAll('.rp .nm[data-steam]').forEach(n => { if (n.dataset.steam) nickBind(n, n.dataset.steam, n.dataset.name); });
   tipCut(list);
@@ -592,16 +598,18 @@ function lrMiniRender(r) {
     : `<div class="lm-p free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`;
   const teams = [0, 1].map(k => `<div class="lm-t"><div class="th">${esc(t('rTeamShort', { n: k + 1 }))}</div>${slots.slice(k * n, k * n + n).map(row).join('')}</div>`).join('');
   const game = r.game === 'vanilla' ? t('roomsVan') : 'Elite ' + (r.ver || '');
-  const obs = (r.obs || []).length ? `<div class="lm-obs">${ico('eye')}${r.obs.map(o => `<span class="o">${avatar(o.avatar)}<span class="nm">${esc(o.name)}</span></span>`).join('')}</div>` : '';
+  // the observers: with their avatars; a short window - one line of names (the teams are hidden there too, Online keeps its rows)
+  const obs = (r.obs || []).length ? `<div class="lm-obs" title="${esc(t('lrObs') + ': ' + r.obs.map(o => o.name).join(', '))}">${ico('eye')}${r.obs.map(o => `<span class="o">${avatar(o.avatar)}<span class="nm">${esc(o.name)}</span></span>`).join('')}`
+    + `<span class="s">${esc(t('lrObs') + ': ' + r.obs.map(o => o.name).join(', '))}</span></div>` : '';
   box.innerHTML = `<div class="h"><span>${esc(t(owner ? 'rMineHost' : 'rMineIn'))}</span><span class="tag">${esc(r.mode)}</span></div>`
-    + `<button class="lm-head" id="lmGo" data-tip="${esc(t('lmBack'))}"><i class="lm-map" style="background-image:url('${A}maps/${encodeURIComponent(r.map)}.png')"></i><span class="lm-n"><b>${esc(r.name)}</b><small>${esc((r.map_name || r.map) + ' · ' + game)}</small></span></button>`
-    + `<div class="lm-teams">${teams}</div>${obs}<div class="lm-st ${cls}"><span>${esc(st)}</span>${lrPingBtn(r, 'lm-ping')}</div>`
+    + `<button class="lm-head" id="lmGo" data-tip="${esc(t('lmBack'))}"><i class="lm-map" style="background-image:url('${A}maps/${encodeURIComponent(r.map)}.png')"></i><span class="lm-n"><b>${esc(r.name)}</b><small class="lm-mt">${esc((r.map_name || r.map) + ' · ' + game)}</small><small class="lm-stt ${cls}">${esc(st)}</small></span></button>`
+    + `<div class="lm-teams">${teams}</div>${obs}<div class="lm-st ${cls}"><span>${esc(st)}</span></div>`
     + `<div class="lm-act"><button class="btn small ghost" id="lmLeave">${esc(t('lmLeave'))}</button><button class="btn gold small" id="lmBack">${esc(t('lmBack'))}</button></div>`;
   const back = () => { const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click(); rShow('mine'); };
   $('lmGo').onclick = back; $('lmBack').onclick = back; $('lmLeave').onclick = lrLeave;
-  box.querySelectorAll('.lm-ping[data-ping]').forEach(b => b.onclick = () => lrPing(b.dataset.ping));
 }
 // 1.5.3 (owner 10.11): the host asks who is not ready (Ready check), a player calls the host when all are ready (Call the host) -
+// in the lobby's head only (not in the block on Home) -
 // lroom.py "ping" sends lroom_ping to them: a window with a sound (Settings: soft / sharp). 30 s between two of them.
 function lrPingBtn(r, cls) {
   if (!r || r.state !== 'lobby') return '';
@@ -799,7 +807,7 @@ Object.assign(T.de, { lrSaving: 'Speichern…', rOpen: 'Offene Lobbys', rLive: '
 Object.assign(T.en, { lrInvite: 'Invite', lrInviteTip: 'Invite a player of the launcher to this seat', lrInvFind: 'Find a player', lrInvMenu: 'In the launcher', lrInvGame: 'In the game',
   lrInvSent: 'invited', lrInvNone: 'Nobody else is in the launcher right now.', lrInvNoMatch: 'Nobody by that name.', lrInvNote: 'Only who is in the launcher now (in the game an invitation is not seen): a strip on top with Join.',
   lrPingReady: 'Ready check', lrPingReadyTip: 'Everybody not ready gets a window with a sound', lrPingHost: 'Call the host', lrPingHostTip: 'All are ready - the host gets a window with a sound to start the match',
-  lrPingSent: 'Sent', lrPingReadyDone: 'Ready check sent', lrPingHostDone: 'The host is called', lrObs: 'Observers', pgReadyT: 'Ready check', pgReadyText: '{who} checks who is ready in the lobby “{name}”.',
+  lrPingSent: 'Sent', lrWatchJoin: 'Join as an observer ({n} of {m} seats taken)', lrPingReadyDone: 'Ready check sent', lrPingHostDone: 'The host is called', lrObs: 'Observers', pgReadyT: 'Ready check', pgReadyText: '{who} checks who is ready in the lobby “{name}”.',
   pgReadyAlready: 'You are marked ready already.', pgReadyYes: 'I am ready', pgStartT: 'All are ready', pgStartText: '{who} calls you to start: everybody in the lobby “{name}” is ready.',
   lsTitle: 'The lobby\'s sound', lsNote: 'an invitation, a ready check, a call of the host', lsSoft: 'Soft', lsSharp: 'Sharp', lsTry: 'Listen',
   lrInvToast: 'Invitation sent: {name}', lrFreeHint: 'Invite a player or move here', invText: '{who} invites you into the lobby “{name}”', invYes: 'Join the lobby', invYesLeave: 'Leave mine and join',
@@ -809,7 +817,7 @@ Object.assign(T.en, { lrInvite: 'Invite', lrInviteTip: 'Invite a player of the l
 Object.assign(T.ru, { lrInvite: 'Пригласить', lrInviteTip: 'Пригласить на это место игрока из лаунчера', lrInvFind: 'Найти игрока', lrInvMenu: 'В лаунчере', lrInvGame: 'В игре',
   lrInvSent: 'приглашён', lrInvNone: 'Сейчас в лаунчере больше никого.', lrInvNoMatch: 'Никого с таким именем.', lrInvNote: 'Только те, кто сейчас в лаунчере (в игре приглашение не видно): у них появится полоса сверху с кнопкой «Войти».',
   lrPingReady: 'Проверить готовность', lrPingReadyTip: 'Всем, кто не готов, придёт окно со звуком', lrPingHost: 'Позвать хоста', lrPingHostTip: 'Все готовы — хосту придёт окно со звуком, чтобы он начал матч',
-  lrPingSent: 'Отправлено', lrPingReadyDone: 'Проверка готовности отправлена', lrPingHostDone: 'Хост позван', lrObs: 'Наблюдатели', pgReadyT: 'Проверка готовности', pgReadyText: '{who} проверяет готовность в лобби «{name}».',
+  lrPingSent: 'Отправлено', lrWatchJoin: 'Войти наблюдателем (занято {n} из {m})', lrPingReadyDone: 'Проверка готовности отправлена', lrPingHostDone: 'Хост позван', lrObs: 'Наблюдатели', pgReadyT: 'Проверка готовности', pgReadyText: '{who} проверяет готовность в лобби «{name}».',
   pgReadyAlready: 'Вы уже отмечены готовым.', pgReadyYes: 'Я готов', pgStartT: 'Все готовы', pgStartText: '{who} зовёт начинать: в лобби «{name}» все готовы.',
   lsTitle: 'Звук лобби', lsNote: 'приглашение, проверка готовности, «позвать хоста»', lsSoft: 'Мягкий', lsSharp: 'Резкий', lsTry: 'Прослушать',
   lrInvToast: 'Приглашение отправлено: {name}', lrFreeHint: 'Пригласите игрока или пересядьте сюда', invText: '{who} приглашает вас в лобби «{name}»', invYes: 'Войти в лобби', invYesLeave: 'Выйти из своего и войти',

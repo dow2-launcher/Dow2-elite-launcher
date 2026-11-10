@@ -1368,14 +1368,14 @@ html{font-variant-numeric:lining-nums}
 @media (max-width:1000px){.rmine-x{display:none}.rmine-w .rmine{padding-right:0}}
 /* a narrow window: the updates one under the other; a short one: the lobby on Home without its teams, Online keeps its rows */
 @media (max-width:1100px){.ub-items{flex-direction:column;align-items:flex-start}.ub-it{padding:0}.ub-it+.ub-it{border-left:0}}
-@media (max-height:760px){.lr-mini .lm-teams{display:none}}
+.lm-obs .s{display:none}
+@media (max-height:760px){.lr-mini .lm-teams{display:none}.lr-mini .lm-obs{flex-wrap:nowrap}.lr-mini .lm-obs .o{display:none}.lr-mini .lm-obs .s{display:block;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
 /* the pings: Ready check (the host) / Call the host (a player when all are ready) - in the lobby's head and on Home */
 .lr-head .lr-ping{margin-left:auto}
 .lr-head .lr-ping+#lrLeaveBtn{margin-left:0}
-.lr-ping .ico,.lm-ping .ico{width:15px;height:15px}
+.lr-ping .ico{width:15px;height:15px}
 .lm-st{display:flex;align-items:center;gap:8px}
 .lm-st>span{flex:1;min-width:0}
-.lm-ping{flex:none;height:26px;padding:0 9px;font-size:11px}
 /* the observers: under the teams in the lobby, a line in the block on Home */
 .lr-obsrow,.lm-obs{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-width:0;color:var(--mu);font-size:13px}
 .lr-obsrow{grid-column:1/-1;margin-top:10px;padding:8px 10px;border:1px dashed var(--ln2);background:rgba(0,0,0,.25)}
@@ -1391,3 +1391,9 @@ html{font-variant-numeric:lining-nums}
 .modal.lr-pg .pg-ico .ico{width:22px;height:22px}
 .modal.lr-pg .row{justify-content:center}
 @media (prefers-reduced-motion:reduce){.modal.lr-pg .pg-ico{animation:none}}
+/* Join as an observer (the eye) next to Join, both after the seats */
+.rfoot2 .lr-watch+.rjoin{margin-left:0}
+/* a very short window: my lobby on Home is its plate (the state instead of the map) and the buttons - Online keeps its rows */
+.lm-n .lm-stt{display:none}
+.lm-n .lm-stt.go{color:#8af5b4}
+@media (max-height:680px){.lr-mini{gap:5px}.lr-mini .lm-teams,.lr-mini .lm-obs,.lr-mini .lm-st,.lr-mini .lm-n .lm-mt{display:none}.lr-mini .lm-n .lm-stt{display:block}}
