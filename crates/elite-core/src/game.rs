@@ -1,8 +1,20 @@
 //! Finding Dawn of War II: Retribution and Steam on Windows, Linux and macOS.
 use std::path::{Path, PathBuf};
 
+/// The game folder: `marker` (launcher.json, DOW2.exe) in it; on macOS (Feral's native game, no DOW2.exe) DOW2.module
+/// and the game's .app next to it (see `macos::is_game_dir`).
 pub fn is_game_dir(dir: &Path, marker: &str) -> bool {
-    dir.join(marker).is_file()
+    is_game_dir_on(dir, marker, cfg!(target_os = "macos"))
+}
+
+/// `is_game_dir` for the Mac game (`mac`) or the Windows one (Windows, Linux under Proton) - testable everywhere.
+pub fn is_game_dir_on(dir: &Path, marker: &str, mac: bool) -> bool {
+    if mac { crate::macos::is_game_dir(dir) } else { dir.join(marker).is_file() }
+}
+
+/// The file the launcher looks for in the game folder on this OS (for the messages): DOW2.module on macOS.
+pub fn marker_shown(marker: &str) -> &str {
+    if cfg!(target_os = "macos") { crate::macos::MARKER } else { marker }
 }
 
 /// Steam installation folders that exist on this machine.
@@ -71,8 +83,12 @@ pub fn steam_libraries() -> Vec<PathBuf> {
     libs
 }
 
-/// Where the game keeps Documents\My Games: on Linux under Proton - inside the game's prefix, else the user's Documents.
+/// Where the game keeps Documents\My Games: on Linux under Proton - inside the game's prefix, on macOS - Feral's VFS,
+/// else the user's Documents.
 pub fn documents_dir() -> Option<PathBuf> {
+    if cfg!(target_os = "macos") {
+        return dirs::home_dir().map(|h| crate::macos::vfs_documents(&h));
+    }
     #[cfg(target_os = "linux")]
     {
         let g = crate::config::GameInfo::default();
@@ -183,6 +199,24 @@ pub fn machine_id() -> String {
     use sha2::{Digest, Sha256};
     let h = Sha256::digest(format!("elite-launcher:{raw}").as_bytes());
     h.iter().take(16).map(|b| format!("{b:02x}")).collect()
+}
+
+#[cfg(test)]
+mod game_dir_tests {
+    #[test]
+    fn mac_game_dir_without_dow2_exe() {
+        let dir = std::env::temp_dir().join(format!("elite_gamedir_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let bin = dir.join("Dawn of War II - Retribution.app/Contents/MacOS");
+        std::fs::create_dir_all(&bin).unwrap();
+        std::fs::write(bin.join("Dawn of War II - Retribution"), b"x").unwrap();
+        std::fs::write(dir.join("DOW2.module"), b"x").unwrap();
+        assert!(super::is_game_dir_on(&dir, "DOW2.exe", true));
+        assert!(!super::is_game_dir_on(&dir, "DOW2.exe", false));
+        std::fs::write(dir.join("DOW2.exe"), b"x").unwrap();
+        assert!(super::is_game_dir_on(&dir, "DOW2.exe", false));
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 }
 
 #[cfg(test)]

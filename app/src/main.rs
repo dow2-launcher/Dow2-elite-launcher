@@ -537,7 +537,13 @@ mod procs {
 fn is_game_running() -> bool {
     #[cfg(windows)]
     { procs::running("DOW2.exe") || procs::running("Elite.exe") }
-    #[cfg(not(windows))]
+    // macOS: Feral's native game (no exe), its binary in the .app
+    #[cfg(target_os = "macos")]
+    {
+        let pat = format!("Contents/MacOS/{}", elite_core::macos::PROCESS_NAME);
+        std::process::Command::new("pgrep").args(["-f", &pat]).output().map(|o| o.status.success()).unwrap_or(false)
+    }
+    #[cfg(all(not(windows), not(target_os = "macos")))]
     {
         std::process::Command::new("pgrep").args(["-fi", "dow2\\.exe|[\\\\/]elite\\.exe"]).output().map(|o| o.status.success()).unwrap_or(false)
     }
@@ -1441,8 +1447,12 @@ async fn pick_game_dir(app: AppHandle) -> Result<Value, String> {
     let st = app.state::<App>();
     if let Some(p) = picked.and_then(|p| p.into_path().ok()) {
         let marker = st.config.lock().unwrap().clone().unwrap_or_default().game.marker;
+        // macOS: the game's .app picked instead of its folder - the folder with DOW2.module next to it
+        let p = if cfg!(target_os = "macos") && p.extension().is_some_and(|x| x.eq_ignore_ascii_case("app")) && !game::is_game_dir(&p, &marker) {
+            p.parent().map(|d| d.to_path_buf()).unwrap_or(p)
+        } else { p };
         if !game::is_game_dir(&p, &marker) {
-            return Err(format!("{marker} not found in this folder"));
+            return Err(format!("{} not found in this folder", game::marker_shown(&marker)));
         }
         let mut s = st.settings.lock().unwrap();
         s.game_dir = Some(p);
@@ -1777,6 +1787,12 @@ fn start_game(app: &App) -> Result<Value, String> {
 fn prepare_start(dir: &std::path::Path, cfg: &LauncherConfig, settings: &Settings) -> Value {
     let (dir, cfg) = (dir.to_path_buf(), cfg.clone());
     let vanilla = vanilla_on(&cfg, settings);
+    // macOS (Feral's native game): no Windows DLLs, winmm loader or Elite.exe there - nothing of the checks below applies;
+    // our Mac patches are dylibs in mac_addons (see `launch`)
+    if os_name() == "macos" {
+        c_log(&format!("launch: {} (macOS)", if vanilla { "vanilla" } else { "elite" }));
+        return json!({"off": [], "loader": false, "vanilla": vanilla, "vanilla_loader_missing": false});
+    }
     let old = put_aside_old_copies(&dir, &cfg);
     // what the checks of our add-ons did is told to the player (siritos 02.11): only add-ons of launcher.json, the
     // leftovers of their DLLs, and the ones gone from the catalog (drop_orphans) - nothing else in the game folder;
@@ -1910,6 +1926,11 @@ fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, guard: Val
             Err(e) => c_log(&format!("launch: no Proton run ({e}) - steam -applaunch")),
         }
     }
+    #[cfg(target_os = "macos")]
+    let guard = match mac_launch(&dir, &cfg, vanilla, guard) {
+        Ok(g) => return Ok(g),
+        Err(g) => g,
+    };
     let program = sub(&cmd.program);
     c_log(&format!("launch: {}{}", program, cmd.args.iter().map(|a| format!(" {}", sub(a))).collect::<String>()));
     let mut c = std::process::Command::new(&program);
@@ -1934,6 +1955,56 @@ fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, guard: Val
             }).map_err(|e2| format!("cannot start {program} as administrator: {e2}"))
         }
         Err(e) => Err(format!("cannot start {program}: {e}")),
+    }
+}
+
+/// macOS (Feral's native game): the launcher runs the .app's binary itself - not through open/sh/Steam, which drop
+/// DYLD_INSERT_LIBRARIES - with crossplay_fix (+ the other dylibs of mac_addons) and `-modname Elite -nomovies`.
+/// Ok = started (the guard tells the player what was not as it should be); Err(guard + the reason) = no crossplay_fix:
+/// the caller starts the game the old way (launch.macos, steam://rungameid) without our patches.
+#[cfg(target_os = "macos")]
+fn mac_launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, mut guard: Value) -> Result<Value, Value> {
+    use elite_core::macos;
+    let home = dirs::home_dir().unwrap_or_default();
+    let addons = macos::addons_dir(&home);
+    let appid = cfg.game.steam_appid;
+    let steam = std::process::Command::new("pgrep").args(["-x", "steam_osx"]).output().map(|o| o.status.success()).unwrap_or(false);
+    let mut warn: Vec<String> = Vec::new();
+    if !steam { warn.push("no_steam".into()); }
+    let (l, w) = match macos::plan(dir, vanilla, &addons, appid) {
+        Ok(v) => v,
+        Err(why) => {
+            c_log(&format!("launch: macOS - {} - through Steam, without our patches",
+                           if why.is_some() { format!("no {}.dylib in {}", macos::CROSSPLAY, addons.display()) } else { "the game's .app not found".into() }));
+            warn.push("no_dylib".into());
+            guard["mac_warn"] = json!(warn);
+            return Err(guard);
+        }
+    };
+    for x in w {
+        if let macos::Warn::GameVersion(v) = x { warn.push("game_version".into()); guard["mac_game_version"] = json!(v); }
+    }
+    if let Err(e) = macos::write_steam_appid(&l.cwd, appid) { c_log(&format!("launch: cannot write steam_appid.txt: {e}")); }
+    c_log(&format!("launch: {}{} (in {}; {})", l.program.display(), l.args.iter().map(|a| format!(" {a}")).collect::<String>(), l.cwd.display(),
+                   l.env.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join(" ")));
+    let mut c = std::process::Command::new(&l.program);
+    c.args(&l.args).current_dir(&l.cwd).envs(l.env.iter().map(|(k, v)| (k.as_str(), v.as_str())));
+    guard["mac_warn"] = json!(warn);
+    match c.spawn() {
+        Ok(mut child) => {
+            std::thread::spawn(move || {
+                let t0 = std::time::Instant::now();
+                let st = child.wait();
+                c_log(&format!("launch: the game ended after {} s ({})", t0.elapsed().as_secs(), st.map(|s| s.to_string()).unwrap_or_else(|e| e.to_string())));
+            });
+            Ok(guard)
+        }
+        Err(e) => {
+            c_log(&format!("launch: cannot start {}: {e} - through Steam", l.program.display()));
+            warn.push("direct_failed".into());
+            guard["mac_warn"] = json!(warn);
+            Err(guard)
+        }
     }
 }
 
