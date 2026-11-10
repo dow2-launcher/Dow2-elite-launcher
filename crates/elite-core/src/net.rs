@@ -128,6 +128,11 @@ impl Mirrors {
     /// Bytes [from, to) of `rel` appended to `out`. On a broken transfer the partial write
     /// is rolled back and the range is fetched from the next mirror.
     pub fn get_range<W: Write + Seek>(&self, rel: &str, from: u64, to: u64, out: &mut W) -> Result<(), NetError> {
+        self.get_range_cb(rel, from, to, out, &mut |_| {})
+    }
+
+    /// `get_range`, telling `got` (bytes of this range written so far; back to 0 when another mirror starts it over).
+    pub fn get_range_cb<W: Write + Seek>(&self, rel: &str, from: u64, to: u64, out: &mut W, got_cb: &mut dyn FnMut(u64)) -> Result<(), NetError> {
         let start = out.stream_position().map_err(|e| NetError::Failed(e.to_string()))?;
         self.each(|base| {
             out.seek(SeekFrom::Start(start)).map_err(|e| (false, e.to_string()))?;
@@ -154,6 +159,7 @@ impl Mirrors {
                 out.write_all(&buf[..n]).map_err(|e| (true, e.to_string()))?;
                 got += n as u64;
                 self.downloaded.fetch_add(n as u64, Ordering::Relaxed);
+                got_cb(got);
             }
             if got != to - from {
                 return Err((false, format!("short read {got}/{}", to - from)));

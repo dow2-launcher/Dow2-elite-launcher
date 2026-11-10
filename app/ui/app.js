@@ -100,6 +100,15 @@ const T = {
     "netTry": "Mirror {k}/{n}: {host}…",
     "netFail": "{host} is not responding, trying the next one…",
     "downloading": "Updating {file}",
+    "stage_check": "Checking",
+    "stage_cache": "From local cache:",
+    "stage_lan": "From the local network:",
+    "stage_scan": "Reading the old file",
+    "stage_download": "Downloading",
+    "stage_build": "Building",
+    "stage_verify": "Verifying",
+    "etaLeft": "~{t} left",
+    "addonsOffVersion": "Add-ons are turned off for this version: it does not work with them. Your choices come back on a version with add-ons.",
     "meta": "Downloaded {dl} · reused from disk {re} · from local cache {fc} · mirror {m}",
     "done": "Done: {n} file(s) updated, downloaded {dl}",
     "doneLine": "Done ✓",
@@ -318,6 +327,15 @@ const T = {
     "netTry": "Зеркало {k}/{n}: {host}…",
     "netFail": "{host} не отвечает, пробую следующее…",
     "downloading": "Обновляю {file}",
+    "stage_check": "Проверяю",
+    "stage_cache": "Беру из локального кэша",
+    "stage_lan": "Беру по локальной сети",
+    "stage_scan": "Сверяю старый файл",
+    "stage_download": "Скачиваю",
+    "stage_build": "Собираю",
+    "stage_verify": "Проверяю",
+    "etaLeft": "осталось ~{t}",
+    "addonsOffVersion": "Для этой версии дополнения отключены: с ними она не работает. На версии с дополнениями ваш выбор вернётся.",
     "meta": "Скачано {dl} · взято с диска {re} · из локального кэша {fc} · зеркало {m}",
     "done": "Готово: обновлено файлов {n}, скачано {dl}",
     "doneLine": "Готово ✓",
@@ -533,6 +551,15 @@ const T = {
     "updateNow": "Actualizar",
     "checking": "Comprobando archivos… {p}%",
     "downloading": "Actualizando {file}",
+    "stage_check": "Comprobando",
+    "stage_cache": "De la caché local:",
+    "stage_lan": "De la red local:",
+    "stage_scan": "Leyendo el archivo anterior",
+    "stage_download": "Descargando",
+    "stage_build": "Montando",
+    "stage_verify": "Verificando",
+    "etaLeft": "quedan ~{t}",
+    "addonsOffVersion": "Los complementos están desactivados para esta versión: no funciona con ellos. Tu selección vuelve en una versión con complementos.",
     "meta": "Descargado {dl} · reutilizado del disco {re} · de la caché local {fc} · espejo {m}",
     "done": "Listo: {n} archivo(s) actualizados, descargado {dl}",
     "upToDate": "Todo está al día",
@@ -737,6 +764,15 @@ const T = {
     "updateNow": "Mettre à jour",
     "checking": "Vérification des fichiers… {p} %",
     "downloading": "Mise à jour de {file}",
+    "stage_check": "Vérification de",
+    "stage_cache": "Depuis le cache local :",
+    "stage_lan": "Depuis le réseau local :",
+    "stage_scan": "Lecture de l'ancien fichier",
+    "stage_download": "Téléchargement de",
+    "stage_build": "Assemblage de",
+    "stage_verify": "Vérification de",
+    "etaLeft": "reste ~{t}",
+    "addonsOffVersion": "Les modules sont désactivés pour cette version : elle ne fonctionne pas avec eux. Vos choix reviennent sur une version avec modules.",
     "meta": "Téléchargé {dl} · réutilisé du disque {re} · depuis le cache local {fc} · miroir {m}",
     "done": "Terminé : {n} fichier(s) mis à jour, téléchargé {dl}",
     "upToDate": "Tout est à jour",
@@ -941,6 +977,15 @@ const T = {
     "updateNow": "Aktualisieren",
     "checking": "Prüfe Dateien… {p} %",
     "downloading": "Aktualisiere {file}",
+    "stage_check": "Prüfe",
+    "stage_cache": "Aus dem lokalen Cache:",
+    "stage_lan": "Aus dem lokalen Netz:",
+    "stage_scan": "Lese die alte Datei",
+    "stage_download": "Lade",
+    "stage_build": "Baue",
+    "stage_verify": "Prüfe",
+    "etaLeft": "noch ~{t}",
+    "addonsOffVersion": "Add-ons sind für diese Version ausgeschaltet: sie läuft nicht mit ihnen. Deine Auswahl kommt mit einer Version mit Add-ons zurück.",
     "meta": "Heruntergeladen {dl} · von der Festplatte übernommen {re} · aus dem lokalen Cache {fc} · Mirror {m}",
     "done": "Fertig: {n} Datei(en) aktualisiert, {dl} heruntergeladen",
     "upToDate": "Alles ist aktuell",
@@ -1305,7 +1350,9 @@ const naHere = c => VAN() && !c.vanilla_ok;
 // add-on rows: a switch each and its own options under it once it is on; the details behind "?" on the home screen,
 // written out on the Add-ons tab (full)
 function compList(box, list, full) {
-  const lock = S.busy || S.game_running;   // the game holds the add-on files while it runs
+  // the game holds the add-on files while it runs; 1.5.4: a version that takes no add-ons (launcher.json "addons": false)
+  const noAddons = !!(S.addons_blocked || S.addons_blocked_next);
+  const lock = S.busy || S.game_running || noAddons;
   const nameHtml = c => { const n = L(c.name) || c.id, m = n.match(/^(.+?)\s*\(([^()]+)\)$/); return m ? `${esc(m[1])}<small>${esc(m[2])}</small>` : esc(n); };
   const card = c => `<div class="addon ${c.enabled && !naHere(c) ? '' : 'off'} ${naHere(c) ? 'na' : ''}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
       + (full ? compChips(c) : '') + (naHere(c) ? `<span class="chip na" title="${esc(t('eliteOnlyNote'))}">${esc(t('eliteOnly'))}</span>` : '')
@@ -1342,7 +1389,8 @@ function compList(box, list, full) {
       return `<section class="ag-panel ${shut ? 'shut' : ''}"><button class="addon-gh" data-cat="${g.k}" aria-expanded="${!shut}">${esc(t('cat_' + g.k))}<span>${esc(t('addonsOnOf', { n: on, m: g.list.length }))}</span><b class="chev"></b></button>`
         + (shut ? '' : g.list.map(row).join('')) + '</section>'; }).join('')}</div>`).join('')}</div>`;
   }
-  box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '') + (full ? cols : list.map(card).join(''));
+  box.innerHTML = (S.game_running ? `<div class="addon-note">${esc(t('gameRunningAddons'))}</div>` : '')
+    + (noAddons ? `<div class="addon-note">${esc(t('addonsOffVersion'))}</div>` : '') + (full ? cols : list.map(card).join(''));
   box.querySelectorAll('.arow').forEach(r => r.onclick = e => { if (e.target.closest('input,select,label,button,a,option')) return; const cb = r.querySelector('input[data-id]'); if (cb && !cb.disabled) cb.click(); });
   box.querySelectorAll('.addon-gh[data-cat]').forEach(b => b.onclick = () => {
     COMP_SHUT.has(b.dataset.cat) ? COMP_SHUT.delete(b.dataset.cat) : COMP_SHUT.add(b.dataset.cat);
@@ -1743,7 +1791,15 @@ function renderProgress(p) {
     if (speedEMA > 0) spd = ` · ${mbps(speedEMA)}`;
   }
   $('statusText').classList.remove('err');
-  $('statusText').innerHTML = (p.phase === 'checking' ? esc(t('checking', { p: pct })) : esc(t('downloading', { file: p.file.split('/').pop() })) + ` <b>${pct}%</b>`) + spd;
+  // 1.5.4 (owner 10.11.2026: a switch stood on one file for half an hour, nothing told it was alive): what is done to the
+  // file now, the file's own MB (a big one grows while it is built), N/M files, the time left of the phase
+  const name = (p.file || '').split('/').pop(), st = p.stage && t('stage_' + p.stage) !== 'stage_' + p.stage ? t('stage_' + p.stage) : '';
+  const fileMb = p.file_size >= 4e6 && p.stage && p.stage !== 'cache' && p.stage !== 'lan' ? ` · ${mb(p.file_done || 0)} / ${mb(p.file_size)}` : '';
+  const nOfM = p.files_total > 1 ? ` (${Math.min(p.files_done + 1, p.files_total)}/${p.files_total})` : '';
+  const etaS = p.eta_s > 0 ? ` · ${esc(t('etaLeft', { t: p.eta_s >= 90 ? Math.round(p.eta_s / 60) + ' min' : p.eta_s + ' s' }))}` : '';
+  $('statusText').innerHTML = (p.phase === 'checking'
+    ? esc(t('checking', { p: pct })) + (p.stage === 'check' && p.file_size >= 64e6 ? esc(` · ${name}${fileMb}`) : '')
+    : esc((st ? `${st} ${name}` : t('downloading', { file: name })) + nOfM + fileMb) + ` <b>${pct}%</b>`) + spd + etaS;
   $('statusMeta').textContent = t('meta', { dl: mb(p.downloaded), re: mb(p.reused), fc: mb(p.from_cache), m: p.mirror });
 }
 
