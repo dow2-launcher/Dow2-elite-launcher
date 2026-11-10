@@ -1,6 +1,9 @@
 /* ================= the game's art: every picture of the D look is a slot here (the files in img/ui, the list and where each
    comes from in img/ui/SLOTS.md). The crops of the game's menus stand in until the real textures are extracted
    (scripts/game-art); img/ui/art.css, loaded after this file, re-points a slot to the extracted file and its slice. ================= */
+/* the ping's sigil: the Adeptus Astra Telepathica (github.com/Certseeds/wh40k-icon, AGPL-3.0 - the licence to settle before a
+   release, as for --av-def) */
+:root{--art-ping:url("data:image/svg+xml,%3Csvg fill=%22%239fe3cf%22 version=%221.1%22 id=%22Layer_3_1_%22 x=%220px%22 y=%220px%22 viewBox=%220 0 468.19245 800.00002%22 xml:space=%22preserve%22 width=%22468.19244%22 height=%22800%22 xmlns=%22http://www.w3.org/2000/svg%22 xmlns:svg=%22http://www.w3.org/2000/svg%22 xmlns:rdf=%22http://www.w3.org/1999/02/22-rdf-syntax-ns%23%22 xmlns:cc=%22http://creativecommons.org/ns%23%22 xmlns:dc=%22http://purl.org/dc/elements/1.1/%22%3E %3Cpath d=%22m 468.19243,235.03036 c 0,-10.33785 -65.88821,-70.3721 -150.45928,-98.39639 l 0.12455,-25.65779 c 0,-8.71867 1.24552,-27.775184 13.94987,-45.710728 C 357.83902,28.7716 406.539,32.25907 409.27915,32.63273 c 0,-10.96061 0,-21.79667 0,-32.63273 H 234.78125 234.6567 60.158804 c 0,10.96061 0,21.79667 0,32.63273 2.740153,-0.24911 51.440136,-3.86113 77.471586,32.632722 12.8289,17.935544 13.94987,37.116608 13.94987,45.710728 0,0 0,9.46598 0,25.9069 C 66.510976,166.02834 0,228.67819 0,235.03036 c 0,6.35217 66.635529,69.12658 151.82936,98.14728 0.12456,145.7263 0.12456,310.75822 -0.2491,351.98506 0.37366,6.10306 1.37007,31.6363 -16.81457,53.18387 -17.56189,20.80025 -46.333493,30.01712 -74.731438,24.28771 V 800 h 174.622448 0.12455 174.62246 v -37.36572 c -28.39795,5.72941 -57.16955,-3.48746 -74.73144,-24.28771 C 316.48762,716.799 317.48404,691.26576 317.8577,685.1627 317.23494,611.67679 316.61217,538.31543 315.98941,464.82952 l 0.74732,-131.02912 c 85.19383,-27.89973 151.4557,-88.30764 151.4557,-98.77004 z m -421.236179,0 c 0,-5.72941 59.536039,-57.66776 137.256729,-75.10509 -16.06725,13.94987 -26.4051,34.62556 -26.4051,57.66776 0,42.22326 34.12735,76.35061 76.35061,76.35061 42.22326,0 76.35062,-34.12735 76.35062,-76.35061 0,-23.2913 -10.4624,-44.09155 -26.77877,-58.04142 77.9698,16.56547 137.63039,66.13732 137.63039,75.6033 0,11.45882 -86.56391,80.95906 -187.20224,80.95906 -100.63833,0 -187.202239,-74.10868 -187.202239,-81.08361 z%22 id=%22path2%22 stroke-width=%221.24552393%22 /%3E %3C/svg%3E")}
 :root{--art-bg:url(img/ui/bg.jpg);
   --art-frame:url(img/ui/frame-panel.jpg); --art-frame-slice:34;
   --art-panel:url(img/ui/panel-fill.jpg);
@@ -1369,9 +1372,13 @@ html{font-variant-numeric:lining-nums}
 .lr-obsrow .nm{font-weight:600;color:#d8ece6;white-space:nowrap}
 /* a ping's window: a bell on top, the lobby's words, Back to the lobby / the answer */
 .modal.lr-pg .box{text-align:center;max-width:420px}
-.modal.lr-pg .pg-ico{display:grid;place-items:center;width:44px;height:44px;margin:0 auto 6px;border:1px solid rgba(95,200,170,.55);background:rgba(2,14,12,.5);color:#bff3e4;box-shadow:0 0 10px rgba(69,224,192,.3);animation:invglow 2s ease-in-out infinite}
-.modal.lr-pg .pg-ico .ico{width:22px;height:22px}
+.modal.lr-pg .pg-ico{display:block;width:44px;height:64px;margin:0 auto 8px;background:var(--art-ping) center/contain no-repeat;filter:drop-shadow(0 0 6px rgba(69,224,192,.45));animation:pgglow 2s ease-in-out infinite}
+@keyframes pgglow{50%{filter:drop-shadow(0 0 12px rgba(120,240,210,.8))}}
+/* the 30 s to answer: the seconds on the button, a bar under its words running out */
+.modal.lr-pg .pg-main{position:relative;overflow:hidden;gap:10px}
+.modal.lr-pg .pg-main .pg-s{font:700 15px/1 var(--fb);font-variant-numeric:tabular-nums;min-width:2ch;text-align:right;opacity:.85}
+.modal.lr-pg .pg-main .pg-bar{position:absolute;left:0;bottom:0;height:3px;width:var(--p,100%);background:linear-gradient(90deg,#5cf0cf,#8af5b4);box-shadow:0 0 6px rgba(98,227,154,.7);transition:width .25s linear}
 .modal.lr-pg .row{justify-content:center}
-@media (prefers-reduced-motion:reduce){.modal.lr-pg .pg-ico{animation:none}}
+@media (prefers-reduced-motion:reduce){.modal.lr-pg .pg-ico{animation:none}.modal.lr-pg .pg-main .pg-bar{transition:none}}
 /* Join as an observer (the eye) next to Join, both after the seats */
 .rfoot2 .lr-watch+.rjoin{margin-left:0}

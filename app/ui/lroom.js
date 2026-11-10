@@ -606,11 +606,13 @@ function lrPingBtn(r, cls) {
   const me = lrMe(), owner = r.owner === me, slots = r.slots || [], all = r.all_ready != null ? r.all_ready : slots.every(s => s && s.ready);
   const kind = owner ? (slots.some(s => s && s.steam !== me && !s.ready) ? 'ready' : '') : (all && r.hs ? 'start' : '');
   if (!kind) return '';
-  const wait = LR.pinged && Date.now() - LR.pinged < 30000;
-  return `<button class="btn small ${cls}" data-ping="${kind}" data-tip="${esc(t(kind === 'ready' ? 'lrPingReadyTip' : 'lrPingHostTip'))}"${wait ? ' disabled' : ''}>${ico('bell')}<span class="l">${esc(wait ? t('lrPingSent') : t(kind === 'ready' ? 'lrPingReady' : 'lrPingHost'))}</span></button>`;
+  const wait = LR.pinged && Date.now() - LR.pinged < 30000, left = wait ? Math.ceil((LR.pinged + 30000 - Date.now()) / 1000) : 0;
+  return `<button class="btn small ${cls}" data-ping="${kind}" data-tip="${esc(t(kind === 'ready' ? 'lrPingReadyTip' : 'lrPingHostTip'))}"${wait ? ' disabled' : ''}>${ico('bell')}<span class="l">${esc(wait ? t('lrPingSentN', { n: left }) : t(kind === 'ready' ? 'lrPingReady' : 'lrPingHost'))}</span></button>`;
 }
 async function lrPing(kind) {
   LR.pinged = Date.now(); LR.popForce = 1; lrRender(); setTimeout(() => { LR.popForce = 1; lrRender(); }, 30500);
+  clearInterval(LR.pingT2); LR.pingT2 = setInterval(() => { const left = Math.ceil((LR.pinged + 30000 - Date.now()) / 1000), b = document.querySelector('.lr-ping .l');
+    if (left <= 0) { clearInterval(LR.pingT2); return; } if (b) b.textContent = t('lrPingSentN', { n: left }); }, 500);
   const r = await lrCall('ping', { kind }); if (r && r.ok !== false) toast(t(kind === 'ready' ? 'lrPingReadyDone' : 'lrPingHostDone'));
 }
 // a ping came: the window (one at a time) and the sound
@@ -625,10 +627,18 @@ function lrPingGot(d) {
     : { title: t('pgStartT'), lines: [t('pgStartText', { who, name })], btns: [{ label: t('lmBack'), val: 'go' }, { label: t('playStart'), cls: 'gold', val: 'start' }] };
   if (LR_PG) LR_PG.remove();
   const m = document.createElement('div'); m.className = 'modal lr-pg'; LR_PG = m;
-  m.innerHTML = `<div class="box"><div class="pg-ico">${ico('bell')}</div><h3>${esc(box.title)}</h3>${box.lines.filter(Boolean).map(l => `<p>${esc(l)}</p>`).join('')}<div class="row">`
-    + box.btns.map((b, i) => `<button class="btn ${b.cls || ''}" data-i="${i}">${esc(b.label)}</button>`).join('') + '</div></div>';
+  // 30 s to answer (owner 10.11): the seconds on the main button, a bar under it running out; then the window goes by itself
+  const ttl = (d.ttl || 30) * 1000, until = Date.now() + ttl;
+  m.innerHTML = `<div class="box"><i class="pg-ico" aria-hidden="true"></i><h3>${esc(box.title)}</h3>${box.lines.filter(Boolean).map(l => `<p>${esc(l)}</p>`).join('')}<div class="row">`
+    + box.btns.map((b, i) => b.cls === 'gold' ? `<button class="btn gold pg-main" data-i="${i}"><span>${esc(b.label)}</span><b class="pg-s">${Math.round(ttl / 1000)}</b><i class="pg-bar"></i></button>`
+      : `<button class="btn ${b.cls || ''}" data-i="${i}">${esc(b.label)}</button>`).join('') + '</div></div>';
   document.body.appendChild(m);
-  const end = v => { m.remove(); if (LR_PG === m) LR_PG = null; if (v === 'go') go(); if (v === 'ready') lrCall('ready', { on: true }); if (v === 'start') lrCall('start'); };
+  const tick = () => { const left = Math.max(0, until - Date.now()), mb = m.querySelector('.pg-main');
+    if (mb) { mb.querySelector('.pg-s').textContent = Math.ceil(left / 1000); mb.style.setProperty('--p', (100 * left / ttl).toFixed(1) + '%'); }
+    if (!left) end(null, true); };
+  const timer = setInterval(tick, 250);
+  const end = (v, late) => { clearInterval(timer); m.remove(); if (LR_PG === m) LR_PG = null; if (late) toast(t('pgLate'), true);
+    if (v === 'go') go(); if (v === 'ready') { lrCall('ready', { on: true }); toast(t('pgReadyDone')); } if (v === 'start') lrCall('start'); };
   m.querySelectorAll('button[data-i]').forEach(b => b.onclick = () => end(box.btns[+b.dataset.i].val));
   m.onclick = e => { if (e.target === m) end(null); };
   const last = m.querySelector('.row .btn.gold'); if (last) last.focus();
@@ -797,7 +807,7 @@ Object.assign(T.de, { lrSaving: 'Speichern…', rOpen: 'Offene Lobbys', rLive: '
 Object.assign(T.en, { lrInvite: 'Invite', lrInviteTip: 'Invite a player of the launcher to this seat', lrInvFind: 'Find a player', lrInvMenu: 'In the launcher', lrInvGame: 'In the game',
   lrInvSent: 'invited', lrInvNone: 'Nobody else is in the launcher right now.', lrInvNoMatch: 'Nobody by that name.', lrInvNote: 'Only who is in the launcher now (in the game an invitation is not seen): a strip on top with Join.',
   lrPingReady: 'Ready check', lrPingReadyTip: 'Everybody not ready gets a window with a sound', lrPingHost: 'Call the host', lrPingHostTip: 'All are ready - the host gets a window with a sound to start the match',
-  lrPingSent: 'Sent', lmPlayers: 'players {n}/{m}', lmObs: 'observers {n}', lrWatchJoin: 'Join as an observer ({n} of {m} seats taken)', lrPingReadyDone: 'Ready check sent', lrPingHostDone: 'The host is called', lrObs: 'Observers', pgReadyT: 'Ready check', pgReadyText: '{who} checks who is ready in the lobby “{name}”.',
+  lrPingSent: 'Sent', lrPingSentN: 'Sent · {n}', pgLate: 'The time to answer is over', pgReadyDone: 'You are ready', lmPlayers: 'players {n}/{m}', lmObs: 'observers {n}', lrWatchJoin: 'Join as an observer ({n} of {m} seats taken)', lrPingReadyDone: 'Ready check sent', lrPingHostDone: 'The host is called', lrObs: 'Observers', pgReadyT: 'Ready check', pgReadyText: '{who} checks who is ready in the lobby “{name}”.',
   pgReadyAlready: 'You are marked ready already.', pgReadyYes: 'I am ready', pgStartT: 'All are ready', pgStartText: '{who} calls you to start: everybody in the lobby “{name}” is ready.',
   lsTitle: 'The lobby\'s sound', lsNote: 'an invitation, a ready check, a call of the host', lsSoft: 'Soft', lsSharp: 'Sharp', lsTry: 'Listen',
   lrInvToast: 'Invitation sent: {name}', lrFreeHint: 'Invite a player or move here', invText: '{who} invites you into the lobby “{name}”', invYes: 'Join the lobby', invYesLeave: 'Leave mine and join',
@@ -807,7 +817,7 @@ Object.assign(T.en, { lrInvite: 'Invite', lrInviteTip: 'Invite a player of the l
 Object.assign(T.ru, { lrInvite: 'Пригласить', lrInviteTip: 'Пригласить на это место игрока из лаунчера', lrInvFind: 'Найти игрока', lrInvMenu: 'В лаунчере', lrInvGame: 'В игре',
   lrInvSent: 'приглашён', lrInvNone: 'Сейчас в лаунчере больше никого.', lrInvNoMatch: 'Никого с таким именем.', lrInvNote: 'Только те, кто сейчас в лаунчере (в игре приглашение не видно): у них появится полоса сверху с кнопкой «Войти».',
   lrPingReady: 'Проверить готовность', lrPingReadyTip: 'Всем, кто не готов, придёт окно со звуком', lrPingHost: 'Позвать хоста', lrPingHostTip: 'Все готовы — хосту придёт окно со звуком, чтобы он начал матч',
-  lrPingSent: 'Отправлено', lmPlayers: 'игроков {n}/{m}', lmObs: 'наблюдателей {n}', lrWatchJoin: 'Войти наблюдателем (занято {n} из {m})', lrPingReadyDone: 'Проверка готовности отправлена', lrPingHostDone: 'Хост позван', lrObs: 'Наблюдатели', pgReadyT: 'Проверка готовности', pgReadyText: '{who} проверяет готовность в лобби «{name}».',
+  lrPingSent: 'Отправлено', lrPingSentN: 'Отправлено · {n}', pgLate: 'Время ответа вышло', pgReadyDone: 'Вы отмечены готовым', lmPlayers: 'игроков {n}/{m}', lmObs: 'наблюдателей {n}', lrWatchJoin: 'Войти наблюдателем (занято {n} из {m})', lrPingReadyDone: 'Проверка готовности отправлена', lrPingHostDone: 'Хост позван', lrObs: 'Наблюдатели', pgReadyT: 'Проверка готовности', pgReadyText: '{who} проверяет готовность в лобби «{name}».',
   pgReadyAlready: 'Вы уже отмечены готовым.', pgReadyYes: 'Я готов', pgStartT: 'Все готовы', pgStartText: '{who} зовёт начинать: в лобби «{name}» все готовы.',
   lsTitle: 'Звук лобби', lsNote: 'приглашение, проверка готовности, «позвать хоста»', lsSoft: 'Мягкий', lsSharp: 'Резкий', lsTry: 'Прослушать',
   lrInvToast: 'Приглашение отправлено: {name}', lrFreeHint: 'Пригласите игрока или пересядьте сюда', invText: '{who} приглашает вас в лобби «{name}»', invYes: 'Войти в лобби', invYesLeave: 'Выйти из своего и войти',
