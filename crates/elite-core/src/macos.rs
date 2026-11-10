@@ -108,11 +108,73 @@ pub fn dylibs(addons: &Path) -> Vec<PathBuf> {
     }
     let mut v = Vec::new();
     for d in scan(addons, true, &mut v) { scan(&d, false, &mut v); }
-    let first = |p: &PathBuf| !p.file_stem().is_some_and(|s| s.to_string_lossy().to_ascii_lowercase().starts_with(CROSSPLAY));
+    let first = |p: &PathBuf| !is_crossplay(p);
     v.sort_by(|a, b| (first(a), a.file_name()).cmp(&(first(b), b.file_name())));
     // without crossplay_fix (protfix) no other patch may load: Feral's integrity check would end the game in ~15 min
     if v.first().is_some_and(first) { return Vec::new(); }
     v
+}
+
+fn is_crossplay(p: &Path) -> bool {
+    p.file_stem().is_some_and(|s| s.to_string_lossy().to_ascii_lowercase().starts_with(CROSSPLAY))
+}
+
+/// The folder of the catalog's add-on `id` in `addons` (mac_addons/<id>/): the launcher installs it there, with its own
+/// .elite_launcher state and .elite_cache.
+pub fn addon_dir(addons: &Path, id: &str) -> PathBuf {
+    addons.join(crate::update::component_key(id))
+}
+
+/// `dylibs` of only the add-ons `ids` (the ones on for the game being started): crossplay_fix first, none without it.
+pub fn dylibs_of(addons: &Path, ids: &[String]) -> Vec<PathBuf> {
+    let dirs: Vec<PathBuf> = ids.iter().map(|i| addon_dir(addons, i)).collect();
+    let v: Vec<PathBuf> = dylibs(addons).into_iter().filter(|p| p.parent().is_some_and(|d| dirs.iter().any(|x| x == d))).collect();
+    if v.first().is_some_and(|p| !is_crossplay(p)) { return Vec::new(); }
+    v
+}
+
+/// What makes a downloaded dylib loadable, as the package's run_elite.command does: the quarantine flag off (Gatekeeper),
+/// an ad-hoc signature. (program, args) pairs; a failure of either is not fatal.
+pub fn prepare_commands(dylib: &Path) -> Vec<(&'static str, Vec<String>)> {
+    let f = dylib.to_string_lossy().to_string();
+    vec![
+        ("xattr", vec!["-d".into(), "com.apple.quarantine".into(), f.clone()]),
+        ("codesign", vec!["-f".into(), "-s".into(), "-".into(), f]),
+    ]
+}
+
+/// The logs crossplay_fix writes (the package's scripts collect the same).
+pub const TMP_LOGS: [&str; 2] = ["/tmp/elitefix.log", "/tmp/dow2_net.log"];
+
+/// Feral's folder of the game in Application Support (its VFS: My Games, syncerror files).
+pub fn feral_dir(home: &Path) -> PathBuf {
+    home.join("Library/Application Support/Feral Interactive/Dawn of War II - Retribution")
+}
+
+/// The game's own logs worth sending from Feral's folder: syncerror* and warnings* files at any depth (up to 8), changed
+/// in the last `days`, newest first, at most `max`.
+pub fn game_logs(home: &Path, days: u64, max: usize) -> Vec<PathBuf> {
+    fn walk(d: &Path, depth: u32, out: &mut Vec<(std::time::SystemTime, PathBuf)>) {
+        let Ok(rd) = std::fs::read_dir(d) else { return };
+        for e in rd.flatten() {
+            let (p, Ok(md)) = (e.path(), e.metadata()) else { continue };
+            if md.is_dir() { if depth > 0 { walk(&p, depth - 1, out); } continue; }
+            let n = e.file_name().to_string_lossy().to_ascii_lowercase();
+            if n.contains("syncerror") || n.starts_with("warnings") {
+                out.push((md.modified().unwrap_or(std::time::UNIX_EPOCH), p));
+            }
+        }
+    }
+    let mut v = Vec::new();
+    walk(&feral_dir(home), 8, &mut v);
+    v.retain(|(t, _)| t.elapsed().map(|e| e.as_secs() < days * 86400).unwrap_or(true));
+    v.sort_by(|a, b| b.0.cmp(&a.0));
+    v.into_iter().take(max).map(|x| x.1).collect()
+}
+
+/// Free bytes from the output of `df -Pk <path>` (POSIX form, the same on macOS and Linux).
+pub fn df_free_bytes(out: &str) -> Option<u64> {
+    out.lines().nth(1)?.split_whitespace().nth(3)?.parse::<u64>().ok().map(|kb| kb * 1024)
 }
 
 /// Why the start is not the full one (shown to the player).
@@ -142,11 +204,15 @@ pub fn args(vanilla: bool) -> Vec<String> {
 /// The start for the game folder `dir`. Err(None) = no game there; Err(Some(Warn::NoDylib)) = start through Steam
 /// (the fallback, launch.macos of launcher.json). Ok(launch, warnings): a version other than 1.0.3 starts without dylibs.
 pub fn plan(dir: &Path, vanilla: bool, addons: &Path, appid: u32) -> Result<(Launch, Vec<Warn>), Option<Warn>> {
+    plan_with(dir, vanilla, dylibs(addons), appid)
+}
+
+/// `plan` with the dylibs already picked (`dylibs_of` the add-ons on for this game).
+pub fn plan_with(dir: &Path, vanilla: bool, libs: Vec<PathBuf>, appid: u32) -> Result<(Launch, Vec<Warn>), Option<Warn>> {
     let app = mac_app(dir).ok_or(None)?;
     let program = mac_binary(&app).ok_or(None)?;
     let cwd = program.parent().map(Path::to_path_buf).unwrap_or_default();
     let mut warn = Vec::new();
-    let libs = dylibs(addons);
     if libs.is_empty() { return Err(Some(Warn::NoDylib)); }
     let ver = game_version(&app).unwrap_or_default();
     let mut env = vec![("SteamAppId".to_string(), appid.to_string()), ("SteamGameId".to_string(), appid.to_string())];
@@ -285,5 +351,30 @@ mod tests {
         let h = Path::new("/Users/p");
         assert_eq!(vfs_documents(h).join("My Games"), PathBuf::from("/Users/p/Library/Application Support/Feral Interactive/Dawn of War II - Retribution/VFS/User/AppData/Roaming/My Games"));
         assert_eq!(addons_dir(h), PathBuf::from("/Users/p/Library/Application Support/EliteLauncher/mac_addons"));
+    }
+    #[test]
+    fn addons_of_the_game_and_logs() {
+        let root = std::env::temp_dir().join(format!("mac_addons_test_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        let addons = addons_dir(&root);
+        for (id, f) in [("crossplay_mac", "crossplay_fix.dylib"), ("chathide_mac", "ChatHide.dylib"), ("old", "Old.dylib")] {
+            fs::create_dir_all(addon_dir(&addons, id)).unwrap();
+            fs::write(addon_dir(&addons, id).join(f), b"x").unwrap();
+        }
+        let names = |v: Vec<PathBuf>| v.iter().map(|p| p.file_name().unwrap().to_string_lossy().to_string()).collect::<Vec<_>>();
+        assert_eq!(names(dylibs_of(&addons, &["chathide_mac".into(), "crossplay_mac".into()])), ["crossplay_fix.dylib", "ChatHide.dylib"]);
+        assert!(dylibs_of(&addons, &["chathide_mac".into()]).is_empty(), "nothing loads without crossplay_fix");
+        let c = prepare_commands(&addon_dir(&addons, "crossplay_mac").join("crossplay_fix.dylib"));
+        assert_eq!((c[0].0, c[1].0, c[1].1[..3].join(" ")), ("xattr", "codesign", "-f -s -".to_string()));
+        let logs = feral_dir(&root).join("VFS/User/AppData/Roaming/My Games/Dawn of War II - Retribution/LogFiles");
+        fs::create_dir_all(&logs).unwrap();
+        for f in ["warnings.txt", "syncerror_1.txt", "other.txt"] { fs::write(logs.join(f), b"x").unwrap(); }
+        let mut got = names(game_logs(&root, 3, 10));
+        got.sort();
+        assert_eq!(got, ["syncerror_1.txt", "warnings.txt"]);
+        let _ = fs::remove_dir_all(&root);
+        let df = "Filesystem 1024-blocks Used Available Capacity Mounted on\n/dev/disk3s5 488245288 300000000 3000000 99% /System/Volumes/Data\n";
+        assert_eq!(df_free_bytes(df), Some(3_000_000 * 1024));
+        assert_eq!(df_free_bytes("garbage"), None);
     }
 }

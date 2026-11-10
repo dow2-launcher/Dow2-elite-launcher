@@ -56,6 +56,10 @@ pub struct LauncherConfig {
     /// 1.4.11: plain Dawn of War II: Retribution with our add-ons that work there ("Vanilla Retribution" next to Play).
     /// None or no loader - the launcher offers no vanilla. Older launchers ignore it.
     pub vanilla: Option<Vanilla>,
+    /// 10.11.2026: the add-ons of the native Mac game (dylibs, e.g. crossplay_mac). A list of its own, not entries with
+    /// `os` in `components`: launchers before the Mac support read only `components` and serde drops an unknown field of
+    /// an entry, so an `os` there would not hide a Mac entry from them. `for_os` merges both lists for this system.
+    pub components_macos: Vec<Component>,
 }
 
 /// The vanilla game (owner 05.11.2026): DOW2.exe without -modname, the add-ons whose `games` name "vanilla" are copied into
@@ -73,7 +77,24 @@ pub struct Vanilla {
     pub description: Text,
 }
 
+/// The system this launcher runs on: "windows", "linux" or "macos" (the names of `Component::os`).
+pub fn this_os() -> &'static str {
+    if cfg!(windows) { "windows" } else if cfg!(target_os = "macos") { "macos" } else { "linux" }
+}
+
 impl LauncherConfig {
+    /// The catalog as this launcher uses it on `os`: `components` + `components_macos` (an entry there without `os` is
+    /// for macos), only the ones for `os`; an id already taken by an earlier entry for `os` is skipped.
+    pub fn for_os(mut self, os: &str) -> Self {
+        let mac = std::mem::take(&mut self.components_macos).into_iter().map(|mut c| {
+            if c.os.is_empty() { c.os = vec!["macos".into()]; }
+            c
+        });
+        let mut seen = std::collections::HashSet::new();
+        self.components = std::mem::take(&mut self.components).into_iter().chain(mac)
+            .filter(|c| c.for_os(os) && seen.insert(c.id.clone())).collect();
+        self
+    }
     /// Is the vanilla mode offered by this catalog?
     pub fn vanilla_loader(&self) -> Option<&str> {
         self.vanilla.as_ref().map(|v| v.loader.as_str()).filter(|l| !l.is_empty())
@@ -115,6 +136,12 @@ pub struct Component {
     pub excludes: Vec<String>,
     /// 09.11.2026: ids of add-ons it does nothing without (any one of them on is enough); the window warns while none is on.
     pub requires: Vec<String>,
+    /// 10.11.2026: the systems it is for: "windows", "linux", "macos". Empty = windows + linux (every entry before the Mac
+    /// launcher). On a Mac the launcher offers only the entries with "macos", elsewhere it hides the macos-only ones.
+    pub os: Vec<String>,
+    /// 10.11.2026: always on where it is offered, the player cannot untick it (crossplay_mac: without it a Mac game
+    /// desyncs from the Windows ones and Feral's integrity check ends it).
+    pub required: bool,
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -149,6 +176,10 @@ impl Component {
     /// The switches the player sees: `settings` when the config has them, else `options`.
     pub fn opts(&self) -> &[ComponentOption] {
         if self.settings.is_empty() { &self.options } else { &self.settings }
+    }
+    /// Is it for the system `os` ("windows" / "linux" / "macos")? No `os` = windows + linux.
+    pub fn for_os(&self, os: &str) -> bool {
+        if self.os.is_empty() { !os.eq_ignore_ascii_case("macos") } else { self.os.iter().any(|o| o.eq_ignore_ascii_case(os)) }
     }
     /// Does it work in `game` ("elite" / "vanilla")? No `games` = Elite only.
     pub fn for_game(&self, game: &str) -> bool {
@@ -347,5 +378,22 @@ mod tests {
         assert_eq!(cfg.vanilla_loader(), Some("vloader-1"));
         let cfg: LauncherConfig = serde_json::from_str(r#"{"vanilla":{}}"#).unwrap();
         assert!(cfg.vanilla_loader().is_none());
+    }
+    #[test]
+    fn os_filter() {
+        let raw = r#"{"components":[{"id":"automatch"},{"id":"winonly","os":["windows"]},{"id":"both","os":["linux","macos"]}],
+            "components_macos":[{"id":"crossplay_mac","required":true,"games":["elite","vanilla"]},{"id":"automatch","os":["macos"]}]}"#;
+        let cfg: LauncherConfig = serde_json::from_str(raw).unwrap();
+        let ids = |os: &str| cfg.clone().for_os(os).components.iter().map(|c| c.id.clone()).collect::<Vec<_>>();
+        assert_eq!(ids("windows"), ["automatch", "winonly"]);
+        assert_eq!(ids("linux"), ["automatch", "both"]);
+        assert_eq!(ids("macos"), ["both", "crossplay_mac", "automatch"]);
+        let mac = cfg.clone().for_os("macos");
+        assert!(mac.components[1].required && mac.components[1].for_game("vanilla") && mac.components_macos.is_empty());
+        // a launcher before the Mac support: it knows only `components`, the Mac list never reaches it
+        #[derive(serde::Deserialize)]
+        struct Old { components: Vec<serde_json::Value> }
+        let old: Old = serde_json::from_str(raw).unwrap();
+        assert!(old.components.iter().all(|c| c["id"] != "crossplay_mac"));
     }
 }

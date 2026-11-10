@@ -279,13 +279,13 @@ pub fn fetch_config(m: &Mirrors) -> Result<(LauncherConfig, Vec<u8>, String), Er
     if !sign::verify(&raw, &sig) {
         return Err(Error::Bad("launcher.json signature is invalid — ignoring this mirror's data".into()));
     }
-    let cfg = serde_json::from_slice(&raw).map_err(|e| Error::Bad(format!("launcher.json: {e}")))?;
-    Ok((cfg, raw, sig))
+    let cfg: LauncherConfig = serde_json::from_slice(&raw).map_err(|e| Error::Bad(format!("launcher.json: {e}")))?;
+    Ok((cfg.for_os(crate::config::this_os()), raw, sig))
 }
 
 pub fn parse_signed_config(raw: &[u8], sig: &str) -> Option<LauncherConfig> {
     if sign::verify(raw, sig) {
-        serde_json::from_slice(raw).ok()
+        serde_json::from_slice::<LauncherConfig>(raw).ok().map(|c| c.for_os(crate::config::this_os()))
     } else {
         None
     }
