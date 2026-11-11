@@ -1,0 +1,1 @@
+- "Send logs" also sends the game's settings file (configuration.lua: resolution, UI scale) to see setting problems.
