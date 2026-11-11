@@ -135,8 +135,9 @@ fn set_grid(dir: &Path, on: bool) -> Result<(), String> {
 }
 
 /// "UI scale" of the game (the `uiscale` setting of configuration.lua, percent; the game writes 100). Returns (value, file found).
-/// Not seen in the game data: the range the game takes above 100 - the launcher offers UI_SCALE_MIN..=UI_SCALE_MAX.
-pub const UI_SCALE_MIN: u32 = 100;
+/// Checked on the stand 11.11.2026: it scales the in-match HUD only (minimap, panels, portraits; not the main menu, not the unit
+/// bars); the game clamps it to about 75..200 (300 looks like 200, 50 like 75) and keeps the value as written.
+pub const UI_SCALE_MIN: u32 = 75;
 pub const UI_SCALE_MAX: u32 = 200;
 
 fn ui_scale_span(t: &str) -> Option<(usize, usize)> {

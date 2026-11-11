@@ -1,0 +1,1 @@
+- UI scale: 75-200 % (the game clamps to that), the note says it changes the in-match interface (minimap, panels, portraits), not the main menu.
