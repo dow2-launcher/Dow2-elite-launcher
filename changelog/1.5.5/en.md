@@ -1,0 +1,2 @@
+- Settings: game UI scale (100-200 %) for 4K screens - the game's own uiscale setting, changed from the launcher (the game must be closed).
+- Developer feedback chat: Enter sends, Shift+Enter makes a new line.

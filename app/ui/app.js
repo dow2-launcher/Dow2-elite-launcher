@@ -137,6 +137,10 @@ const T = {
     "trayOpen": "Open Elite Launcher",
     "trayQuit": "Quit",
     "cacheNote": "switching back to them is instant",
+    "uiScale": "UI scale",
+    "uiScaleNote": "the game must be closed; applies at the next game start (for 4K screens)",
+    "uiScaleSet": "Apply",
+    "uiScaleDone": "applies at the next game start",
     "mirror": "Extra mirror (optional)",
     "netTitle": "Our servers from this computer", "netCheck": "Check again", "netChecking": "Checking…", "netFiles": "Files (Elite and add-on updates)", "netApi": "Chat, Online, rooms, launcher updates", "netMoscow": "Moscow", "netGermany": "Germany", "netR2": "Cloudflare (storage)", "netMs": "{n} ms", "netNone": "no answer", "netUsed": "in use", "netWait": "Checking our servers…", "netNoteDone": "Checked at the start; again when a server stops answering. No ping - one small download from each.", "netNoteOld": "The order of the last start; this one is being checked.",
     "save": "Save",
@@ -364,6 +368,10 @@ const T = {
     "trayOpen": "Открыть Elite Launcher",
     "trayQuit": "Выход",
     "cacheNote": "переключение на них — мгновенно",
+    "uiScale": "UI scale",
+    "uiScaleNote": "игру нужно закрыть; применится при следующем запуске (для 4K-экранов)",
+    "uiScaleSet": "Применить",
+    "uiScaleDone": "применится при следующем запуске игры",
     "mirror": "Дополнительное зеркало (необязательно)",
     "netTitle": "Наши серверы с этого компьютера", "netCheck": "Проверить заново", "netChecking": "Проверяю…", "netFiles": "Файлы (обновления Elite и дополнений)", "netApi": "Чат, онлайн, комнаты, обновление лаунчера", "netMoscow": "Москва", "netGermany": "Германия", "netR2": "Cloudflare (хранилище)", "netMs": "{n} мс", "netNone": "нет ответа", "netUsed": "используется", "netWait": "Проверяю наши серверы…", "netNoteDone": "Проверено при запуске; заново — если сервер перестал отвечать. Без пинга: по одной маленькой загрузке с каждого.", "netNoteOld": "Порядок с прошлого запуска, сейчас проверяется.",
     "save": "Сохранить",
@@ -586,6 +594,10 @@ const T = {
     "trayOpen": "Abrir Elite Launcher",
     "trayQuit": "Salir",
     "cacheNote": "volver a ellas es instantáneo",
+    "uiScale": "UI scale",
+    "uiScaleNote": "hay que cerrar el juego; se aplica en el próximo inicio (para pantallas 4K)",
+    "uiScaleSet": "Aplicar",
+    "uiScaleDone": "se aplica en el próximo inicio del juego",
     "mirror": "Espejo adicional (opcional)",
     "netTitle": "Nuestros servidores desde este equipo", "netCheck": "Comprobar de nuevo", "netChecking": "Comprobando…", "netFiles": "Archivos (actualizaciones de Elite y complementos)", "netApi": "Chat, en línea, salas, actualización del launcher", "netMoscow": "Moscú", "netGermany": "Alemania", "netR2": "Cloudflare (almacenamiento)", "netMs": "{n} ms", "netNone": "sin respuesta", "netUsed": "en uso", "netWait": "Comprobando nuestros servidores…", "netNoteDone": "Comprobado al iniciar; de nuevo si un servidor deja de responder. Sin ping: una pequeña descarga de cada uno.", "netNoteOld": "El orden del último inicio; se está comprobando.",
     "save": "Guardar",
@@ -799,6 +811,10 @@ const T = {
     "trayOpen": "Ouvrir Elite Launcher",
     "trayQuit": "Quitter",
     "cacheNote": "y revenir est instantané",
+    "uiScale": "UI scale",
+    "uiScaleNote": "le jeu doit être fermé ; appliqué au prochain lancement (pour les écrans 4K)",
+    "uiScaleSet": "Appliquer",
+    "uiScaleDone": "appliqué au prochain lancement du jeu",
     "mirror": "Miroir supplémentaire (facultatif)",
     "netTitle": "Nos serveurs depuis cet ordinateur", "netCheck": "Vérifier à nouveau", "netChecking": "Vérification…", "netFiles": "Fichiers (mises à jour d’Elite et des modules)", "netApi": "Chat, en ligne, salons, mise à jour du lanceur", "netMoscow": "Moscou", "netGermany": "Allemagne", "netR2": "Cloudflare (stockage)", "netMs": "{n} ms", "netNone": "pas de réponse", "netUsed": "utilisé", "netWait": "Vérification de nos serveurs…", "netNoteDone": "Vérifié au démarrage ; à nouveau si un serveur ne répond plus. Sans ping : un petit téléchargement depuis chacun.", "netNoteOld": "L’ordre du dernier démarrage ; vérification en cours.",
     "save": "Enregistrer",
@@ -1012,6 +1028,10 @@ const T = {
     "trayOpen": "Elite Launcher öffnen",
     "trayQuit": "Beenden",
     "cacheNote": "zurückwechseln geht sofort",
+    "uiScale": "UI scale",
+    "uiScaleNote": "das Spiel muss geschlossen sein; gilt beim nächsten Start (für 4K-Bildschirme)",
+    "uiScaleSet": "Anwenden",
+    "uiScaleDone": "gilt beim nächsten Spielstart",
     "mirror": "Zusätzlicher Mirror (optional)",
     "netTitle": "Unsere Server von diesem Computer aus", "netCheck": "Erneut prüfen", "netChecking": "Prüfe…", "netFiles": "Dateien (Updates von Elite und Erweiterungen)", "netApi": "Chat, Online, Lobbys, Launcher-Update", "netMoscow": "Moskau", "netGermany": "Deutschland", "netR2": "Cloudflare (Speicher)", "netMs": "{n} ms", "netNone": "keine Antwort", "netUsed": "in Benutzung", "netWait": "Prüfe unsere Server…", "netNoteDone": "Beim Start geprüft; erneut, wenn ein Server nicht mehr antwortet. Kein Ping – ein kleiner Download von jedem.", "netNoteOld": "Die Reihenfolge des letzten Starts; wird gerade geprüft.",
     "save": "Speichern",
@@ -2611,7 +2631,7 @@ async function fbInit() {
   $('fbName').onchange = () => invoke('fb_set_name', { name: $('fbName').value });
   $('fbText').placeholder = t('fbPlaceholder');
   $('fbSend').onclick = fbSend;
-  $('fbText').onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) fbSend(); };
+  $('fbText').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); fbSend(); } };   // Enter sends, Shift+Enter = new line (like the chat)
   $('fbAttach').onclick = () => $('fbFile').click();
   $('fbFile').onchange = e => { [...e.target.files].forEach(fbAddFile); e.target.value = ''; };
   document.addEventListener('paste', e => {
@@ -3118,8 +3138,23 @@ document.querySelectorAll('.set-tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.set-tab').forEach(x => x.classList.toggle('on', x === b));
   ['setMain', 'setNet', 'hotkeys'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
   if (b.dataset.set === 'hotkeys' && !HK.data) hkLoad();
+  if (b.dataset.set === 'setMain') uiScaleLoad();
   if (b.dataset.set === 'setNet' && !GN_OPENED) { GN_OPENED = true; if (!GN) gameNetCheck(); }
 });
+
+// ---------------- game UI scale (uiscale in configuration.lua; 4K screens) ----------------
+async function uiScaleLoad() {
+  try {
+    const d = await invoke('ui_scale_get'), r = $('uiScale');
+    r.min = d.min; r.max = d.max; r.value = d.value; $('uiScaleVal').textContent = d.value + '%';
+  } catch (e) { /* no Documents folder yet: the slider stays at 100 */ }
+}
+$('uiScale').oninput = e => { $('uiScaleVal').textContent = e.target.value + '%'; };
+$('uiScaleSet').onclick = async () => {
+  try { const d = await invoke('ui_scale_set', { value: +$('uiScale').value }); $('uiScale').value = d.value; $('uiScaleVal').textContent = d.value + '%'; toast(t('uiScale') + ' ' + d.value + '%: ' + t('uiScaleDone')); }
+  catch (e) { toast(String(e), true); }
+};
+uiScaleLoad();
 
 // ---------------- remove Elite completely ----------------
 let unArmed = 0;
