@@ -1669,6 +1669,9 @@ async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Result<
         let doc = dir.as_ref().and_then(|d| elite_core::proton::prefix_documents(d, 56400)).or_else(elite_core::game::documents_dir);
         if let Some(doc) = doc {
             take(doc.join("My Games").join("Dawn of War II - Retribution"), 3, &["txt", "log", "dmp", "mdmp", "xml", "ini"], 3, 40, &mut files);
+            // 1.5.7: the game's own settings (resolution, uiscale) - to see why "UI scale" does nothing for a player
+            let cfg = doc.join("My Games").join("Dawn of War II - Retribution").join("Settings").join("configuration.lua");
+            if cfg.is_file() && !files.contains(&cfg) { files.push(cfg); }
         }
         // дампы и отчёты Windows (WER) о падениях игры
         let is_game = |p: &std::path::Path| { let s = p.to_string_lossy().to_ascii_lowercase(); s.contains("dow2") || s.contains("elite") };
