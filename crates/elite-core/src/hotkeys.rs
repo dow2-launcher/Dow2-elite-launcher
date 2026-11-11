@@ -134,6 +134,56 @@ fn set_grid(dir: &Path, on: bool) -> Result<(), String> {
     fs::write(&p, new).map_err(|e| format!("configuration.lua: {e}"))
 }
 
+/// "UI scale" of the game (the `uiscale` setting of configuration.lua, percent; the game writes 100). Returns (value, file found).
+/// Not seen in the game data: the range the game takes above 100 - the launcher offers UI_SCALE_MIN..=UI_SCALE_MAX.
+pub const UI_SCALE_MIN: u32 = 100;
+pub const UI_SCALE_MAX: u32 = 200;
+
+fn ui_scale_span(t: &str) -> Option<(usize, usize)> {
+    let i = t.find("\"uiscale\"")?;
+    let rest = &t[i..];
+    let j = rest.find("value")?;
+    // stay inside this block: its closing brace comes before the next setting
+    if rest[..j].contains('}') { return None; }
+    let after = &rest[j + 5..];
+    let eq = after.find('=')?;
+    if !after[..eq].trim().is_empty() { return None; }
+    let tail = &after[eq + 1..];
+    let skip = tail.len() - tail.trim_start().len();
+    let digits = tail[skip..].bytes().take_while(|b| b.is_ascii_digit()).count();
+    if digits == 0 { return None; }
+    let start = i + j + 5 + eq + 1 + skip;
+    Some((start, start + digits))
+}
+
+pub fn ui_scale_get() -> (u32, bool) {
+    let Some(dir) = settings_dir() else { return (100, false) };
+    let Ok(t) = fs::read_to_string(dir.join("configuration.lua")) else { return (100, false) };
+    match ui_scale_span(&t).and_then(|(a, b)| t[a..b].parse().ok()) { Some(v) => (v, true), None => (100, true) }
+}
+
+fn with_ui_scale(t: &str, v: u32) -> Result<String, String> {
+    if let Some((a, b)) = ui_scale_span(t) { return Ok(format!("{}{}{}", &t[..a], v, &t[b..])); }
+    if t.contains("\"uiscale\"") { return Err("configuration.lua: uiscale has no value".into()); }
+    let Some(end) = t.rfind('}') else { return Err("configuration.lua is not what we expect".into()) };
+    let nl = if t.contains("\r\n") { "\r\n" } else { "\n" };
+    Ok(format!("{}\t {nl}\t{{{nl}\t\tsetting = \"uiscale\",{nl}\t\tvalue = {v},{nl}\t}},{nl}{}", &t[..end], &t[end..]))
+}
+
+pub fn ui_scale_set(v: u32) -> Result<(), String> {
+    if !(UI_SCALE_MIN..=UI_SCALE_MAX).contains(&v) { return Err(format!("UI scale: {UI_SCALE_MIN}..{UI_SCALE_MAX}")); }
+    let dir = settings_dir().ok_or("Documents folder not found")?;
+    let p = dir.join("configuration.lua");
+    let bytes = fs::read(&p).map_err(|e| format!("configuration.lua: {e}"))?;
+    let t = String::from_utf8(bytes).map_err(|_| "configuration.lua is not what we expect".to_string())?;
+    let new = with_ui_scale(&t, v)?;
+    if new == t { return Ok(()); }
+    // a temporary file next to it, then rename: a half-written configuration.lua would reset the game's settings
+    let tmp = dir.join("configuration.lua.elite_tmp");
+    fs::write(&tmp, new).map_err(|e| format!("configuration.lua: {e}"))?;
+    fs::rename(&tmp, &p).map_err(|e| { let _ = fs::remove_file(&tmp); format!("configuration.lua: {e}") })
+}
+
 /// Key names the game accepts ("Control+Shift+A" style).
 pub fn valid_key(v: &str) -> bool {
     const NAMED: &[&str] = &["Backspace", "Tab", "Enter", "Escape", "Space", "Apostrophe", "Comma", "Minus", "Period", "Slash", "Semicolon",
@@ -197,6 +247,16 @@ mod tests {
         let names: Vec<_> = b.iter().map(|x| format!("{}:{}={}", x.scope, x.name, x.value)).collect();
         assert_eq!(names, [":attack=A", ":reinforce=R", "grid:AB_key_1=Q", "grid:reinforce=Z", ":a=A"]);
         assert_eq!(b[0].section, "Global Commands");
+    }
+    #[test]
+    fn ui_scale_edit() {
+        let t = "configuration =\r\n{\r\n\t\r\n\t{\r\n\t\tsetting = \"uiscale\",\r\n\t\tvalue = 100,\r\n\t},\r\n\t\r\n\t{\r\n\t\tsetting = \"gridkeys\",\r\n\t\tvalue = 1,\r\n\t},\r\n}\r\n";
+        assert_eq!(ui_scale_span(t).map(|(a, b)| &t[a..b]), Some("100"));
+        assert_eq!(with_ui_scale(t, 150).unwrap(), t.replace("value = 100", "value = 150"));
+        let no = t.replace("uiscale", "other");
+        let n = with_ui_scale(&no, 140).unwrap();
+        assert!(n.starts_with(&no[..no.rfind('}').unwrap()]) && n.contains("setting = \"uiscale\",\r\n\t\tvalue = 140,") && n.ends_with("}\r\n"));
+        assert!(with_ui_scale("configuration = {}", 120).is_ok());
     }
     #[test]
     fn keys() {

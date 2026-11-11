@@ -442,6 +442,20 @@ fn hotkeys_save(app: State<'_, App>, changes: BTreeMap<String, String>, grid: bo
     elite_core::hotkeys::load(&o)
 }
 
+/// Game UI scale (`uiscale` in configuration.lua, %): the value now and whether the file is there (not yet: the game writes it at its first start).
+#[tauri::command]
+fn ui_scale_get() -> Value {
+    let (v, found) = elite_core::hotkeys::ui_scale_get();
+    json!({"value": v, "found": found, "min": elite_core::hotkeys::UI_SCALE_MIN, "max": elite_core::hotkeys::UI_SCALE_MAX})
+}
+
+#[tauri::command]
+fn ui_scale_set(app: State<'_, App>, value: u32) -> Result<Value, String> {
+    ensure_game_closed(&app)?;     // the game rewrites configuration.lua when it closes
+    elite_core::hotkeys::ui_scale_set(value)?;
+    Ok(ui_scale_get())
+}
+
 /// Back to the game's own hotkeys: no keydefaults.lua, no changes kept (Grid Hotkeys stays as it is).
 #[tauri::command]
 fn hotkeys_reset(app: State<'_, App>) -> Result<Value, String> {
@@ -3008,7 +3022,7 @@ fn main() {
             roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             livewatch::live_watch, livewatch::live_watch_probe, livewatch::live_watch_cancel,
             lroom::lroom_api, lroom::lroom_list, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
-            hotkeys_get, hotkeys_save, hotkeys_reset, uninstall_elite,
+            hotkeys_get, hotkeys_save, hotkeys_reset, ui_scale_get, ui_scale_set, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
             relic_probe, game_net_check, set_game_mode,
             conntest::nettest_run, conntest::nettest_cancel, conntest::nettest_history, conntest::nq_api
