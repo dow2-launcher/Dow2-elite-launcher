@@ -2611,7 +2611,7 @@ async function fbInit() {
   $('fbName').onchange = () => invoke('fb_set_name', { name: $('fbName').value });
   $('fbText').placeholder = t('fbPlaceholder');
   $('fbSend').onclick = fbSend;
-  $('fbText').onkeydown = e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) fbSend(); };
+  $('fbText').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); fbSend(); } };   // Enter sends, Shift+Enter = new line (like the chat)
   $('fbAttach').onclick = () => $('fbFile').click();
   $('fbFile').onchange = e => { [...e.target.files].forEach(fbAddFile); e.target.value = ''; };
   document.addEventListener('paste', e => {
