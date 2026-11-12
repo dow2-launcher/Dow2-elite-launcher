@@ -131,7 +131,7 @@ const T = {
     "usageTitle": "Anonymous usage count",
     "usage": "Count me as a launcher user",
     "usageNote": "Once a day the launcher sends a hash that changes every day, plus its version, OS and the Elite version. No names, Steam or hardware data; days can't be linked to each other.",
-    "onTag": "Mention in the chat", "roomsTab": "Lobbies", "roomsTitle": "Open lobbies", "roomsNote": "Custom games being set up right now - the same list as the game browser. Elite or vanilla is told by the races, the army badges and the map.", "roomsNone": "Nobody is setting up a game right now.", "roomsErr": "The list is not available right now.", "roomsFree": "open", "roomsVan": "vanilla", "roomsOther": "other mod", "roomsObs": "observers", "roomsPw": "password", "roomsJoin": "Join", "roomsJoinStart": "Starting the game and joining {name}...", "roomsJoinRunning": "The game is running: switch to it, the join starts there", "roomsJoinBusy": "You are searching for a match or playing one: stop the search (or finish the match), then press Join again", "roomsVerAsk": "Another Elite version", "roomsVerOther": "This game was created on Elite {v}, and you have Elite {mine}. You cannot join it with another version.", "roomsVerUp": "Update to Elite {v}", "roomsVerSw": "Switch to Elite {v}", "roomsVerClose": "Close", "rjSwitchAsk": "Go to another lobby?", "rjSwitchText": "You are in the lobby “{a}” now. Leave it and join “{b}”?", "rjSwitchHost": "You are the host of that lobby: if you leave, it closes for every player in it.", "rjSwitchGo": "Leave and join", "rjSwitchOld": "You are in the lobby “{a}”. Going from one lobby to another needs a newer add-on “Join a lobby from the launcher” - for now leave the lobby yourself.", "rjLeaving": "Leaving the lobby you are in, then joining {name}…", "rjCurLobby": "the current lobby", "roomsHere": "You are here", "roomsInOther": "You are already in the lobby {name} - leave it in the game first.", "roomsVerAfter": "Switching to Elite {v}. When it is done, press Join again.", "roomsVerNoCh": "The launcher has no Elite {v} to switch to.", "roomsVerGame": "Close the game first to switch the version.", "roomsVerBusy": "The launcher is updating the game right now - wait until it is done.", "rjCancel": "Cancel", "rjStarting": "Starting the game to join {name}…", "rjWaitGame": "Waiting for the game to start…", "rjAccepted": "The game took the request: {name}", "rjWalking": "The game is going to its main menu…", "rjJoining": "Connecting to {name}…", "rjInLobby": "You are in the lobby {name}", "rjFailed": "Could not join {name}: {why}", "rjCancelled": "Join cancelled", "rjNoPipe": "The game is running without the add-on “Join a lobby from the launcher”. Turn it on in Add-ons and restart the game.", "rjOnlyWin": "Joining from the launcher works on Windows and Linux only.", "rjAddonOff": "To join from a link, turn on the add-on “Join a lobby from the launcher” in Add-ons, then click the link again.", "rjWhy_full": "the lobby is full", "rjWhy_closed": "the lobby is gone or its game is starting", "rjWhy_password": "it needs a password", "rjWhy_version": "another version of the game or the mod", "rjWhy_timeout": "the lobby did not answer", "rjWhy_busy_search": "a search is on in Find a Game - stop it first", "rjWhy_busy_match": "you are in a match", "rjWhy_busy_join": "the game is joining another lobby", "rjWhy_not_menu": "the game is not in its main menu - go there first", "rjWhy_other_lobby": "you are in another lobby - leave it first", "rjWhy_cancelled": "cancelled", "rjWhy_game_closed": "the game closed", "rjWhy_no_answer": "the game did not answer", "rjWhy_no_game": "the game did not start", "rjWhy_no_pipe": "the game has no add-on “Join a lobby from the launcher” - turn it on and restart the game", "rjWhy_error": "the game could not join", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
+    "onTag": "Mention in the chat", "roomsTab": "Lobbies", "roomsTitle": "Open lobbies", "roomsNote": "Custom games being set up right now - the same list as the game browser. Elite or vanilla is told by the races, the army badges and the map.", "roomsNone": "Nobody is setting up a game right now.", "roomsErr": "The list is not available right now.", "roomsFree": "open", "roomsVan": "vanilla", "roomsOther": "other mod", "roomsObs": "observers", "roomsPw": "password", "roomsJoin": "Join", "roomsJoinStart": "Starting the game and joining {name}...", "roomsJoinRunning": "The game is running: switch to it, the join starts there", "roomsJoinBusy": "You are searching for a match or playing one: stop the search (or finish the match), then press Join again", "roomsVerAsk": "Another Elite version", "roomsVerOther": "This game was created on Elite {v}, and you have Elite {mine}. You cannot join it with another version.", "roomsVerUp": "Update to Elite {v}", "roomsVerSw": "Switch to Elite {v}", "roomsVerClose": "Close", "rjSwitchAsk": "Go to another lobby?", "rjSwitchText": "You are in the lobby “{a}” now. Leave it and join “{b}”?", "rjSwitchHost": "You are the host of that lobby: if you leave, it closes for every player in it.", "rjSwitchGo": "Leave and join", "rjSwitchOld": "You are in the lobby “{a}”. Going from one lobby to another needs a newer add-on “Lobby join” - for now leave the lobby yourself.", "rjLeaving": "Leaving the lobby you are in, then joining {name}…", "rjCurLobby": "the current lobby", "roomsHere": "You are here", "roomsInOther": "You are already in the lobby {name} - leave it in the game first.", "roomsVerAfter": "Switching to Elite {v}. When it is done, press Join again.", "roomsVerNoCh": "The launcher has no Elite {v} to switch to.", "roomsVerGame": "Close the game first to switch the version.", "roomsVerBusy": "The launcher is updating the game right now - wait until it is done.", "rjCancel": "Cancel", "rjStarting": "Starting the game to join {name}…", "rjWaitGame": "Waiting for the game to start…", "rjAccepted": "The game took the request: {name}", "rjWalking": "The game is going to its main menu…", "rjJoining": "Connecting to {name}…", "rjInLobby": "You are in the lobby {name}", "rjFailed": "Could not join {name}: {why}", "rjCancelled": "Join cancelled", "rjNoPipe": "The game is running without the add-on “Lobby join”. Turn it on in Add-ons and restart the game.", "rjOnlyWin": "Joining from the launcher works on Windows and Linux only.", "rjAddonOff": "To join from a link, turn on the add-on “Lobby join” in Add-ons, then click the link again.", "rjWhy_full": "the lobby is full", "rjWhy_closed": "the lobby is gone or its game is starting", "rjWhy_password": "it needs a password", "rjWhy_version": "another version of the game or the mod", "rjWhy_timeout": "the lobby did not answer", "rjWhy_busy_search": "a search is on in Find a Game - stop it first", "rjWhy_busy_match": "you are in a match", "rjWhy_busy_join": "the game is joining another lobby", "rjWhy_not_menu": "the game is not in its main menu - go there first", "rjWhy_other_lobby": "you are in another lobby - leave it first", "rjWhy_cancelled": "cancelled", "rjWhy_game_closed": "the game closed", "rjWhy_no_answer": "the game did not answer", "rjWhy_no_game": "the game did not start", "rjWhy_no_pipe": "the game has no add-on “Lobby join” - turn it on and restart the game", "rjWhy_error": "the game could not join", "behTitle": "Chat and window", "muteMention": "No sound when someone mentions me (@name) in the chat", "closeQuits": "The close button quits the launcher (instead of hiding it in the tray)",
     "lanTitle": "Local network",
     "lanShare": "Download Elite from other launchers on the local network and share it with them (faster; every file is checked against the signed version)",
     "trayOpen": "Open Elite Launcher",
@@ -197,7 +197,7 @@ const T = {
     "guardOff": "Turned off before the start (add-ons that are off in the launcher, hand-installed copies): {list}.", "guardLoader": "A stand-alone dow2-patches loader (winmm.dll) is still in the game folder: Settings → Clean up.",
     "playAfterSync": "Updating the add-ons first — the game starts by itself after that.",
     // 1.4.11: the vanilla game next to Play
-    "rjHintRelay": "If it happens again, try once with {list} off in Add-ons.", "rjFailedAsk": "Could not join the lobby", "rjWrongAsk": "Another game is running", "rjWrongVan": "This lobby is in vanilla Retribution, and the game running now is Elite. Close it (the launcher does not close a game itself) - then the launcher starts vanilla and joins the lobby.", "rjWrongElite": "This lobby is in Elite, and the game running now is vanilla Retribution. Close it (the launcher does not close a game itself) - then the launcher starts Elite and joins the lobby.", "rjWrongGo": "Join after I close it", "rjCloseGame": "Close the game - then the launcher starts {game} and joins {name}.", "rjWhy_wrong_game": "the other game is running (Elite instead of vanilla, or vanilla instead of Elite)", "rjVanAddonOff": "To join vanilla lobbies, turn on the add-on “Join a lobby from the launcher” in Add-ons (it works in vanilla too).", "rjVanNo": "This launcher does not start vanilla Retribution on this computer.", "vanillaH": "Without the mod", "vanillaName": "Vanilla Retribution", "vanillaNote": "The game without Elite, with our add-ons that work there", "vanillaTag": "our add-ons", "vanillaWarn": "You play vanilla Retribution: Elite lobbies and the add-ons for Elite only are not there.", "eliteOnly": "Elite only", "eliteOnlyNote": "Works only in Elite: not loaded in vanilla Retribution.", "readyVanilla": "Vanilla Retribution is ready", "guardVanillaLoader": "The loader of the add-ons is not in place yet: vanilla starts without them.", "toVanilla": "Getting vanilla Retribution ready…", "vanillaCopy": "in vanilla: version {v}",
+    "rjHintRelay": "If it happens again, try once with {list} off in Add-ons.", "rjFailedAsk": "Could not join the lobby", "rjWrongAsk": "Another game is running", "rjWrongVan": "This lobby is in vanilla Retribution, and the game running now is Elite. Close it (the launcher does not close a game itself) - then the launcher starts vanilla and joins the lobby.", "rjWrongElite": "This lobby is in Elite, and the game running now is vanilla Retribution. Close it (the launcher does not close a game itself) - then the launcher starts Elite and joins the lobby.", "rjWrongGo": "Join after I close it", "rjCloseGame": "Close the game - then the launcher starts {game} and joins {name}.", "rjWhy_wrong_game": "the other game is running (Elite instead of vanilla, or vanilla instead of Elite)", "rjVanAddonOff": "To join vanilla lobbies, turn on the add-on “Lobby join” in Add-ons (it works in vanilla too).", "rjVanNo": "This launcher does not start vanilla Retribution on this computer.", "vanillaH": "Without the mod", "vanillaName": "Vanilla Retribution", "vanillaNote": "The game without Elite, with our add-ons that work there", "vanillaTag": "our add-ons", "vanillaWarn": "You play vanilla Retribution: Elite lobbies and the add-ons for Elite only are not there.", "eliteOnly": "Elite only", "eliteOnlyNote": "Works only in Elite: not loaded in vanilla Retribution.", "readyVanilla": "Vanilla Retribution is ready", "guardVanillaLoader": "The loader of the add-ons is not in place yet: vanilla starts without them.", "toVanilla": "Getting vanilla Retribution ready…", "vanillaCopy": "in vanilla: version {v}",
     "launcherNew": "Elite Launcher {v} is out",
     "launcherUpdateBtn": "Update the launcher", "fwdOffer": "Your connection to Relic's game servers has trouble ({why}). Our forwarding servers can carry your games to Relic.", "fwdOn": "Turn on forwarding", "fwdLater": "Not now", "fwdDone": "Forwarding servers are on - they work from the next game start.",
     "gnTab": "Online play", "gnTitle": "Game servers from this computer", "gnCheck": "Check", "gnChecking": "Checking… (10-20 s)", "gnNote": "Checked by the same rules the add-ons use when they pick a server. Never while the game runs.", "gnGame": "The game is running: the check waits until it closes, so it does not disturb the match.", "gnNever": "Not checked yet.", "gnWhen": "checked at {time}", "gnRelic": "Relic", "gnRelicRelay": "Relic game server", "gnRelicApi": "Relic API (16 requests)", "gnClosed": "port closed", "gnSlowMs": "{n} ms - slow", "gnStreamOk": "{kb} KB in {s} s", "gnStreamCut": "stopped at {kb} KB", "gnRelicOk": "The connection to Relic is fine.", "gnRelicBad": "The connection to Relic has trouble: {why}. Forwarding servers can help.", "gnRelicFwdOn": "The connection to Relic has trouble: {why}. Forwarding is on.", "gnRelicWait": "Relic is checked a few seconds after the launcher starts.", "gnOwn": "Our game servers (Automatch)", "gnFwd": "Forwarding servers", "gnTickOn": "on", "gnTickOff": "off", "gnTickNone": "no such add-on", "gnUdpMs": "UDP {n} ms", "gnUdpNone": "no answer over UDP", "gnBurst": "stream {got}/{n}", "gnBurstCut": "stream stops: {got}/{n}, {tail} of the last 6", "gnTcpOk": "TCP {kb} KB", "gnTcpCut": "TCP stops at {kb} KB", "gnTcpNone": "TCP: no connection", "gnNearest": "nearest", "gnNotUsed": "not used", "gnOwnPick": "Our automatch would put your game on: {node}.", "gnOwnNone": "None of our servers is usable from here - automatch games may not connect.", "gnOwnOff": "Automatch is off. The tick is on the Add-ons tab.", "gnOwnHow": "Automatch games always go through our servers: the one best for all players, or through your nearest one. Other lobbies are Relic games.", "gnFwdVia": "Relic games would go through: {node}.", "gnFwdNone": "No forwarding server is usable from here - games go straight to Relic.", "gnFwdFit": "Usable as forwarding servers: {list}.", "gnFwdOff": "Off: games go to Relic directly. The tick is on the Add-ons tab.", "gnFwdNotNeeded": "Off - not needed while the connection to Relic is fine.", "gnTcpInfo": "The game reaches our servers over UDP only. TCP is for information: a stop at ~33 KB means the line cuts long connections.", "gnListLadder": "Server list of the ladder (signed), UDP port {port}.", "gnListBuiltin": "Built-in server list (the ladder did not answer), UDP port {port}.", "gnPoland": "Poland", "gnMoscow2": "Moscow 2",
@@ -212,13 +212,13 @@ const T = {
     "onStateLobby": "In the lobby",
     "onStatePlaying": "Playing",
     "lvTurnOn": "Turn it on and watch", "lvWatch": "Watch", "lvTitle": "Watch this match in the game as a replay (a few minutes behind)", "lvAsk": "Watch the match",
-    "lvAddonOff": "Watching needs the add-on “Watch running matches”: turn it on in Add-ons, then press Watch again.",
+    "lvAddonOff": "Watching needs the add-on “Live replay”: turn it on in Add-ons, then press Watch again.",
     "lvWrongGame": "The other game is running. Close it first, then press Watch again.", "lvBusy": "You are searching for a match or playing one.",
     "lvStarting": "Starting the game to watch the match…", "lvSent": "The game opens the match…", "lvWaitGame": "Waiting for the game to start…",
     "lvFetching": "The game is fetching the match…", "lvLoading": "The match is loading in the game", "lvFailed": "Could not open the match: {why}",
     "lvWhy_no_match": "the match is over or not on our servers", "lvWhy_server": "our server did not answer", "lvWhy_busy_match": "the game is in a match or a replay - leave it first",
     "lvWhy_busy_lobby": "the game is in a lobby - leave it first", "lvWhy_start": "the game did not start the replay", "lvWhy_file": "the replay file could not be written",
-    "lvWhy_no_pipe": "the game runs without the add-on “Watch running matches” - turn it on and restart the game", "lvWhy_no_game": "the game did not start",
+    "lvWhy_no_pipe": "the game runs without the add-on “Live replay” - turn it on and restart the game", "lvWhy_no_game": "the game did not start",
     "lvWhy_wrong_game": "the other game is running", "lvWhy_game_closed": "the game closed", "lvWhy_no_answer": "the game did not answer",
     "onNobody": "Nobody is looking for a game. Start the game and press “Find a Game”.",
     "onOffline": "No connection to the ladder server, trying again…",
@@ -362,7 +362,7 @@ const T = {
     "usageTitle": "Анонимная статистика",
     "usage": "Учитывать меня в числе пользователей лаунчера",
     "usageNote": "Раз в сутки лаунчер отправляет хеш, который каждый день новый, плюс свою версию, ОС и версию Elite. Никаких ников, Steam или данных о компьютере; связать дни между собой нельзя.",
-    "onTag": "Упомянуть в чате", "roomsTab": "Комнаты", "roomsJoin": "Войти", "roomsJoinStart": "Запускаю игру и вхожу в {name}...", "roomsJoinRunning": "Игра уже запущена: переключитесь в неё, вход начнётся там", "roomsJoinBusy": "Идёт поиск автоматча или вы в матче: остановите поиск (или доиграйте матч) и нажмите «Войти» ещё раз", "roomsVerAsk": "Другая версия Elite", "roomsVerOther": "Эта игра создана на Elite {v}, а у вас Elite {mine}. С другой версией в неё не войти.", "roomsVerUp": "Обновить до Elite {v}", "roomsVerSw": "Перейти на Elite {v}", "roomsVerClose": "Закрыть", "rjSwitchAsk": "Перейти в другое лобби?", "rjSwitchText": "Вы сейчас в лобби «{a}». Выйти из него и войти в «{b}»?", "rjSwitchHost": "Вы хост этого лобби: если выйти, оно закроется для всех игроков в нём.", "rjSwitchGo": "Выйти и войти", "rjSwitchOld": "Вы в лобби «{a}». Чтобы переходить из лобби в лобби, нужно новое дополнение «Вход в лобби из лаунчера» — пока выйдите из лобби сами.", "rjLeaving": "Выхожу из текущего лобби, потом вхожу в {name}…", "rjCurLobby": "текущее лобби", "roomsHere": "Вы здесь", "roomsInOther": "Вы уже в лобби {name} — сначала выйдите из него в игре.", "roomsVerAfter": "Переключаю на Elite {v}. Когда закончится, нажмите «Войти» ещё раз.", "roomsVerNoCh": "Elite {v} нет в лаунчере — переключиться на неё нельзя.", "roomsVerGame": "Чтобы переключить версию, сначала закройте игру.", "roomsVerBusy": "Лаунчер сейчас обновляет игру — дождитесь, пока закончит.", "rjCancel": "Отмена", "rjStarting": "Запускаю игру, чтобы войти в {name}…", "rjWaitGame": "Жду, пока запустится игра…", "rjAccepted": "Игра приняла запрос: {name}", "rjWalking": "Игра переходит в главное меню…", "rjJoining": "Подключаюсь к {name}…", "rjInLobby": "Вы в лобби {name}", "rjFailed": "Не удалось войти в {name}: {why}", "rjCancelled": "Вход отменён", "rjNoPipe": "Игра запущена без дополнения «Вход в лобби из лаунчера». Включите его во вкладке «Дополнения» и перезапустите игру.", "rjOnlyWin": "Вход из лаунчера работает только на Windows и Linux.", "rjAddonOff": "Чтобы входить по ссылке, включите дополнение «Вход в лобби из лаунчера» во вкладке «Дополнения» и нажмите ссылку ещё раз.", "rjWhy_full": "комната заполнена", "rjWhy_closed": "комнаты больше нет или её игра уже стартует", "rjWhy_password": "нужен пароль", "rjWhy_version": "другая версия игры или мода", "rjWhy_timeout": "комната не ответила", "rjWhy_busy_search": "идёт поиск в Find a Game — сначала остановите его", "rjWhy_busy_match": "вы в матче", "rjWhy_busy_join": "игра уже входит в другую комнату", "rjWhy_not_menu": "игра не в главном меню — сначала перейдите туда", "rjWhy_other_lobby": "вы в другом лобби — сначала выйдите из него", "rjWhy_cancelled": "отменено", "rjWhy_game_closed": "игра закрылась", "rjWhy_no_answer": "игра не ответила", "rjWhy_no_game": "игра не запустилась", "rjWhy_no_pipe": "в игре нет дополнения «Вход в лобби из лаунчера» — включите его и перезапустите игру", "rjWhy_error": "игре не удалось войти", "roomsTitle": "Открытые лобби", "roomsNote": "Кастомки, которые сейчас собираются, — тот же список, что в браузере игр. Elite или ваниль — по расам, значкам армий и карте.", "roomsNone": "Сейчас никто не собирает игру.", "roomsErr": "Список сейчас недоступен.", "roomsFree": "свободно", "roomsVan": "ваниль", "roomsOther": "другой мод", "roomsObs": "наблюдатели", "roomsPw": "с паролем", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
+    "onTag": "Упомянуть в чате", "roomsTab": "Комнаты", "roomsJoin": "Войти", "roomsJoinStart": "Запускаю игру и вхожу в {name}...", "roomsJoinRunning": "Игра уже запущена: переключитесь в неё, вход начнётся там", "roomsJoinBusy": "Идёт поиск автоматча или вы в матче: остановите поиск (или доиграйте матч) и нажмите «Войти» ещё раз", "roomsVerAsk": "Другая версия Elite", "roomsVerOther": "Эта игра создана на Elite {v}, а у вас Elite {mine}. С другой версией в неё не войти.", "roomsVerUp": "Обновить до Elite {v}", "roomsVerSw": "Перейти на Elite {v}", "roomsVerClose": "Закрыть", "rjSwitchAsk": "Перейти в другое лобби?", "rjSwitchText": "Вы сейчас в лобби «{a}». Выйти из него и войти в «{b}»?", "rjSwitchHost": "Вы хост этого лобби: если выйти, оно закроется для всех игроков в нём.", "rjSwitchGo": "Выйти и войти", "rjSwitchOld": "Вы в лобби «{a}». Чтобы переходить из лобби в лобби, нужно новое дополнение «Lobby join» — пока выйдите из лобби сами.", "rjLeaving": "Выхожу из текущего лобби, потом вхожу в {name}…", "rjCurLobby": "текущее лобби", "roomsHere": "Вы здесь", "roomsInOther": "Вы уже в лобби {name} — сначала выйдите из него в игре.", "roomsVerAfter": "Переключаю на Elite {v}. Когда закончится, нажмите «Войти» ещё раз.", "roomsVerNoCh": "Elite {v} нет в лаунчере — переключиться на неё нельзя.", "roomsVerGame": "Чтобы переключить версию, сначала закройте игру.", "roomsVerBusy": "Лаунчер сейчас обновляет игру — дождитесь, пока закончит.", "rjCancel": "Отмена", "rjStarting": "Запускаю игру, чтобы войти в {name}…", "rjWaitGame": "Жду, пока запустится игра…", "rjAccepted": "Игра приняла запрос: {name}", "rjWalking": "Игра переходит в главное меню…", "rjJoining": "Подключаюсь к {name}…", "rjInLobby": "Вы в лобби {name}", "rjFailed": "Не удалось войти в {name}: {why}", "rjCancelled": "Вход отменён", "rjNoPipe": "Игра запущена без дополнения «Lobby join». Включите его во вкладке «Дополнения» и перезапустите игру.", "rjOnlyWin": "Вход из лаунчера работает только на Windows и Linux.", "rjAddonOff": "Чтобы входить по ссылке, включите дополнение «Lobby join» во вкладке «Дополнения» и нажмите ссылку ещё раз.", "rjWhy_full": "комната заполнена", "rjWhy_closed": "комнаты больше нет или её игра уже стартует", "rjWhy_password": "нужен пароль", "rjWhy_version": "другая версия игры или мода", "rjWhy_timeout": "комната не ответила", "rjWhy_busy_search": "идёт поиск в Find a Game — сначала остановите его", "rjWhy_busy_match": "вы в матче", "rjWhy_busy_join": "игра уже входит в другую комнату", "rjWhy_not_menu": "игра не в главном меню — сначала перейдите туда", "rjWhy_other_lobby": "вы в другом лобби — сначала выйдите из него", "rjWhy_cancelled": "отменено", "rjWhy_game_closed": "игра закрылась", "rjWhy_no_answer": "игра не ответила", "rjWhy_no_game": "игра не запустилась", "rjWhy_no_pipe": "в игре нет дополнения «Lobby join» — включите его и перезапустите игру", "rjWhy_error": "игре не удалось войти", "roomsTitle": "Открытые лобби", "roomsNote": "Кастомки, которые сейчас собираются, — тот же список, что в браузере игр. Elite или ваниль — по расам, значкам армий и карте.", "roomsNone": "Сейчас никто не собирает игру.", "roomsErr": "Список сейчас недоступен.", "roomsFree": "свободно", "roomsVan": "ваниль", "roomsOther": "другой мод", "roomsObs": "наблюдатели", "roomsPw": "с паролем", "behTitle": "Чат и окно", "muteMention": "Без звука, когда меня упоминают (@ник) в чате", "closeQuits": "Крестик закрывает лаунчер (а не сворачивает в трей)",
     "lanTitle": "Локальная сеть",
     "lanShare": "Качать Elite с других лаунчеров в локальной сети и раздавать им (быстрее; каждый файл сверяется с подписанной версией)",
     "trayOpen": "Открыть Elite Launcher",
@@ -428,7 +428,7 @@ const T = {
     "guardOff": "Отключено перед запуском (выключенные в лаунчере дополнения, их ручные копии): {list}.", "guardLoader": "В папке игры остался отдельный загрузчик dow2-patches (winmm.dll): Настройки → Очистить от хлама.",
     "playAfterSync": "Сначала обновляю дополнения — игра запустится сама.",
     // 1.4.11: the vanilla game next to Play
-    "rjHintRelay": "Если повторится — попробуйте один раз выключить {list} во вкладке «Дополнения».", "rjFailedAsk": "Не удалось войти в лобби", "rjWrongAsk": "Запущена другая игра", "rjWrongVan": "Это лобби ванильного Retribution, а сейчас запущена Elite. Закройте её (сам лаунчер игру не закрывает) — потом лаунчер запустит ваниль и войдёт в лобби.", "rjWrongElite": "Это лобби Elite, а сейчас запущен ванильный Retribution. Закройте его (сам лаунчер игру не закрывает) — потом лаунчер запустит Elite и войдёт в лобби.", "rjWrongGo": "Войти, когда я закрою", "rjCloseGame": "Закройте игру — потом лаунчер запустит {game} и войдёт в {name}.", "rjWhy_wrong_game": "запущена другая игра (Elite вместо ванили или ваниль вместо Elite)", "rjVanAddonOff": "Чтобы входить в ванильные лобби, включите дополнение «Вход в лобби из лаунчера» во вкладке «Дополнения» (оно работает и в ванили).", "rjVanNo": "На этом компьютере лаунчер не запускает ванильный Retribution.", "vanillaH": "Без мода", "vanillaName": "Ваниль Retribution", "vanillaNote": "Игра без Elite, с нашими дополнениями, которые там работают", "vanillaTag": "наши дополнения", "vanillaWarn": "Вы играете в ванильный Retribution: лобби Elite и дополнений только для Elite здесь нет.", "eliteOnly": "Только Elite", "eliteOnlyNote": "Работает только в Elite: в ванильном Retribution не загружается.", "readyVanilla": "Ваниль Retribution готова", "guardVanillaLoader": "Загрузчик дополнений ещё не на месте: ваниль запустится без них.", "toVanilla": "Готовлю ванильный Retribution…", "vanillaCopy": "в ванили: версия {v}",
+    "rjHintRelay": "Если повторится — попробуйте один раз выключить {list} во вкладке «Дополнения».", "rjFailedAsk": "Не удалось войти в лобби", "rjWrongAsk": "Запущена другая игра", "rjWrongVan": "Это лобби ванильного Retribution, а сейчас запущена Elite. Закройте её (сам лаунчер игру не закрывает) — потом лаунчер запустит ваниль и войдёт в лобби.", "rjWrongElite": "Это лобби Elite, а сейчас запущен ванильный Retribution. Закройте его (сам лаунчер игру не закрывает) — потом лаунчер запустит Elite и войдёт в лобби.", "rjWrongGo": "Войти, когда я закрою", "rjCloseGame": "Закройте игру — потом лаунчер запустит {game} и войдёт в {name}.", "rjWhy_wrong_game": "запущена другая игра (Elite вместо ванили или ваниль вместо Elite)", "rjVanAddonOff": "Чтобы входить в ванильные лобби, включите дополнение «Lobby join» во вкладке «Дополнения» (оно работает и в ванили).", "rjVanNo": "На этом компьютере лаунчер не запускает ванильный Retribution.", "vanillaH": "Без мода", "vanillaName": "Ваниль Retribution", "vanillaNote": "Игра без Elite, с нашими дополнениями, которые там работают", "vanillaTag": "наши дополнения", "vanillaWarn": "Вы играете в ванильный Retribution: лобби Elite и дополнений только для Elite здесь нет.", "eliteOnly": "Только Elite", "eliteOnlyNote": "Работает только в Elite: в ванильном Retribution не загружается.", "readyVanilla": "Ваниль Retribution готова", "guardVanillaLoader": "Загрузчик дополнений ещё не на месте: ваниль запустится без них.", "toVanilla": "Готовлю ванильный Retribution…", "vanillaCopy": "в ванили: версия {v}",
     "launcherNew": "Вышел Elite Launcher {v}",
     "launcherUpdateBtn": "Обновить лаунчер", "fwdOffer": "Связь с игровыми серверами Relic с проблемами ({why}). Наши форвардинг-серверы могут вести ваши игры до Relic.", "fwdOn": "Включить форвардинг", "fwdLater": "Не сейчас", "fwdDone": "Форвардинг-серверы включены — работают со следующего запуска игры.",
     "gnTab": "Сетевая игра", "gnTitle": "Игровые серверы с этого компьютера", "gnCheck": "Проверить", "gnChecking": "Проверяю… (10–20 с)", "gnNote": "По тем же правилам, по которым дополнения выбирают сервер. Пока игра запущена, не проверяется.", "gnGame": "Игра запущена: проверка подождёт, пока она закроется, чтобы не мешать матчу.", "gnNever": "Ещё не проверялось.", "gnWhen": "проверено в {time}", "gnRelic": "Relic", "gnRelicRelay": "Игровой сервер Relic", "gnRelicApi": "API Relic (16 запросов)", "gnClosed": "порт закрыт", "gnSlowMs": "{n} мс — медленно", "gnStreamOk": "{kb} КБ за {s} с", "gnStreamCut": "оборвалось на {kb} КБ", "gnRelicOk": "Связь с Relic в порядке.", "gnRelicBad": "Связь с Relic с проблемами: {why}. Помогут форвардинг-серверы.", "gnRelicFwdOn": "Связь с Relic с проблемами: {why}. Форвардинг включён.", "gnRelicWait": "Relic проверяется через несколько секунд после запуска лаунчера.", "gnOwn": "Наши игровые серверы (Автоматч)", "gnFwd": "Форвардинг-серверы", "gnTickOn": "вкл.", "gnTickOff": "выкл.", "gnTickNone": "нет такого дополнения", "gnUdpMs": "UDP {n} мс", "gnUdpNone": "нет ответа по UDP", "gnBurst": "поток {got}/{n}", "gnBurstCut": "поток обрывается: {got}/{n}, {tail} из последних 6", "gnTcpOk": "TCP {kb} КБ", "gnTcpCut": "TCP обрыв на {kb} КБ", "gnTcpNone": "TCP: нет соединения", "gnNearest": "ближайший", "gnNotUsed": "не используется", "gnOwnPick": "Наш автоматч поставил бы вашу игру на: {node}.", "gnOwnNone": "Ни один наш сервер отсюда не годится — игры автоматча могут не соединиться.", "gnOwnOff": "Автоматч выключен. Галочка — на вкладке «Дополнения».", "gnOwnHow": "Игры автоматча всегда идут через наши серверы: лучший для всех игроков или через ваш ближайший. Остальные лобби — игры Relic.", "gnFwdVia": "Игры Relic пошли бы через: {node}.", "gnFwdNone": "Ни один форвардинг-сервер отсюда не годится — игры идут напрямую к Relic.", "gnFwdFit": "Годятся как форвардинг-серверы: {list}.", "gnFwdOff": "Выключено: игры идут к Relic напрямую. Галочка — на вкладке «Дополнения».", "gnFwdNotNeeded": "Выключено — не нужно, пока связь с Relic в порядке.", "gnTcpInfo": "Игра ходит к нашим серверам только по UDP. TCP — для сведения: обрыв на ~33 КБ значит, что линия режет длинные соединения.", "gnListLadder": "Список серверов с ладдера (подписан), UDP-порт {port}.", "gnListBuiltin": "Встроенный список серверов (ладдер не ответил), UDP-порт {port}.", "gnPoland": "Польша", "gnMoscow2": "Москва 2",
@@ -443,13 +443,13 @@ const T = {
     "onStateLobby": "В лобби",
     "onStatePlaying": "Идёт",
     "lvTurnOn": "Включить и смотреть", "lvWatch": "Смотреть", "lvTitle": "Смотреть этот матч в игре как реплей (с отставанием на несколько минут)", "lvAsk": "Просмотр матча",
-    "lvAddonOff": "Для просмотра нужно дополнение «Смотреть идущие матчи»: включите его в Дополнениях и нажмите «Смотреть» ещё раз.",
+    "lvAddonOff": "Для просмотра нужно дополнение «Live replay»: включите его в Дополнениях и нажмите «Смотреть» ещё раз.",
     "lvWrongGame": "Запущена другая игра. Закройте её и нажмите «Смотреть» ещё раз.", "lvBusy": "Вы ищете матч или играете.",
     "lvStarting": "Запускаю игру для просмотра матча…", "lvSent": "Игра открывает матч…", "lvWaitGame": "Жду запуска игры…",
     "lvFetching": "Игра загружает матч…", "lvLoading": "Матч загружается в игре", "lvFailed": "Не удалось открыть матч: {why}",
     "lvWhy_no_match": "матч закончился или идёт не на наших серверах", "lvWhy_server": "наш сервер не ответил", "lvWhy_busy_match": "в игре идёт матч или реплей — сначала выйдите из него",
     "lvWhy_busy_lobby": "игра в лобби — сначала выйдите из него", "lvWhy_start": "игра не запустила реплей", "lvWhy_file": "не удалось записать файл реплея",
-    "lvWhy_no_pipe": "игра запущена без дополнения «Смотреть идущие матчи» — включите его и перезапустите игру", "lvWhy_no_game": "игра не запустилась",
+    "lvWhy_no_pipe": "игра запущена без дополнения «Live replay» — включите его и перезапустите игру", "lvWhy_no_game": "игра не запустилась",
     "lvWhy_wrong_game": "запущена другая игра", "lvWhy_game_closed": "игра закрылась", "lvWhy_no_answer": "игра не ответила",
     "onNobody": "Никто не ищет игру. Запусти игру и нажми «Find a Game».",
     "onOffline": "Нет связи с сервером ладдера, пробую снова…",
@@ -683,7 +683,95 @@ const T = {
     "race_ordo_malleus": "Ordo Malleus",
     "race_random": "Raza aleatoria",
     "allAddons": "Todos ›",
-    "onInMatchH": "En partida"
+    "onInMatchH": "En partida",
+    // 1.5.10: the lobby join, Watch and the mirrors in this language too (were English)
+    "netTry": "Espejo {k}/{n}: {host}…",
+    "netFail": "{host} no responde, probando el siguiente…",
+    "doneLine": "Hecho ✓",
+    "metaDone": "Descargado {dl} · reutilizado del disco {re} · de la caché {fc}",
+    "roomsJoin": "Entrar",
+    "roomsJoinStart": "Iniciando el juego y entrando en {name}...",
+    "roomsJoinRunning": "El juego está abierto: cambia a él, la entrada empieza allí",
+    "roomsJoinBusy": "Estás buscando partida o jugando una: detén la búsqueda (o termina la partida) y pulsa Entrar otra vez",
+    "roomsVerAsk": "Otra versión de Elite",
+    "roomsVerOther": "Esta partida se creó en Elite {v} y tú tienes Elite {mine}. No puedes entrar con otra versión.",
+    "roomsVerUp": "Actualizar a Elite {v}",
+    "roomsVerSw": "Cambiar a Elite {v}",
+    "roomsVerClose": "Cerrar",
+    "rjSwitchAsk": "¿Ir a otra sala?",
+    "rjSwitchText": "Ahora estás en la sala «{a}». ¿Salir de ella y entrar en «{b}»?",
+    "rjSwitchHost": "Eres el anfitrión de esa sala: si sales, se cierra para todos los que están en ella.",
+    "rjSwitchGo": "Salir y entrar",
+    "rjSwitchOld": "Estás en la sala «{a}». Para pasar de una sala a otra hace falta una versión más nueva del complemento «Lobby join»: por ahora sal de la sala tú mismo.",
+    "rjLeaving": "Saliendo de la sala en la que estás y entrando en {name}…",
+    "rjCurLobby": "la sala actual",
+    "roomsHere": "Estás aquí",
+    "roomsInOther": "Ya estás en la sala {name}: sal de ella primero en el juego.",
+    "roomsVerAfter": "Cambiando a Elite {v}. Cuando termine, pulsa Entrar otra vez.",
+    "roomsVerNoCh": "El launcher no tiene Elite {v} a la que cambiar.",
+    "roomsVerGame": "Cierra el juego primero para cambiar de versión.",
+    "roomsVerBusy": "El launcher está actualizando el juego ahora mismo: espera a que termine.",
+    "rjCancel": "Cancelar",
+    "rjStarting": "Iniciando el juego para entrar en {name}…",
+    "rjWaitGame": "Esperando a que arranque el juego…",
+    "rjAccepted": "El juego aceptó la petición: {name}",
+    "rjWalking": "El juego va a su menú principal…",
+    "rjJoining": "Conectando con {name}…",
+    "rjInLobby": "Estás en la sala {name}",
+    "rjFailed": "No se pudo entrar en {name}: {why}",
+    "rjCancelled": "Entrada cancelada",
+    "rjNoPipe": "El juego está abierto sin el complemento «Lobby join». Actívalo en Complementos y reinicia el juego.",
+    "rjOnlyWin": "Entrar desde el launcher solo funciona en Windows y Linux.",
+    "rjAddonOff": "Para entrar desde un enlace, activa el complemento «Lobby join» en Complementos y vuelve a pulsar el enlace.",
+    "rjWhy_full": "la sala está llena",
+    "rjWhy_closed": "la sala ya no existe o su partida está empezando",
+    "rjWhy_password": "necesita contraseña",
+    "rjWhy_version": "otra versión del juego o del mod",
+    "rjWhy_timeout": "la sala no respondió",
+    "rjWhy_busy_search": "hay una búsqueda en Find a Game: detenla primero",
+    "rjWhy_busy_match": "estás en una partida",
+    "rjWhy_busy_join": "el juego está entrando en otra sala",
+    "rjWhy_not_menu": "el juego no está en su menú principal: ve allí primero",
+    "rjWhy_other_lobby": "estás en otra sala: sal de ella primero",
+    "rjWhy_cancelled": "cancelado",
+    "rjWhy_game_closed": "el juego se cerró",
+    "rjWhy_no_answer": "el juego no respondió",
+    "rjWhy_no_game": "el juego no se inició",
+    "rjWhy_no_pipe": "el juego no tiene el complemento «Lobby join»: actívalo y reinicia el juego",
+    "rjWhy_error": "el juego no pudo entrar",
+    "rjHintRelay": "Si vuelve a pasar, prueba una vez con {list} desactivado en Complementos.",
+    "rjFailedAsk": "No se pudo entrar en la sala",
+    "rjWrongAsk": "Hay otro juego abierto",
+    "rjWrongVan": "Esta sala es de Retribution vanilla y el juego abierto ahora es Elite. Ciérralo (el launcher no cierra el juego por sí mismo): luego el launcher inicia vanilla y entra en la sala.",
+    "rjWrongElite": "Esta sala es de Elite y el juego abierto ahora es Retribution vanilla. Ciérralo (el launcher no cierra el juego por sí mismo): luego el launcher inicia Elite y entra en la sala.",
+    "rjWrongGo": "Entrar cuando lo cierre",
+    "rjCloseGame": "Cierra el juego: luego el launcher inicia {game} y entra en {name}.",
+    "rjWhy_wrong_game": "está abierto el otro juego (Elite en lugar de vanilla, o vanilla en lugar de Elite)",
+    "rjVanAddonOff": "Para entrar en salas vanilla, activa el complemento «Lobby join» en Complementos (también funciona en vanilla).",
+    "rjVanNo": "Este launcher no inicia Retribution vanilla en este equipo.",
+    "lvTurnOn": "Activarlo y ver",
+    "lvTitle": "Ver esta partida en el juego como replay (unos minutos de retraso)",
+    "lvAsk": "Ver la partida",
+    "lvAddonOff": "Para ver hace falta el complemento «Live replay»: actívalo en Complementos y vuelve a pulsar Ver.",
+    "lvWrongGame": "Está abierto el otro juego. Ciérralo primero y vuelve a pulsar Ver.",
+    "lvBusy": "Estás buscando partida o jugando una.",
+    "lvStarting": "Iniciando el juego para ver la partida…",
+    "lvSent": "El juego abre la partida…",
+    "lvWaitGame": "Esperando a que arranque el juego…",
+    "lvFetching": "El juego está descargando la partida…",
+    "lvLoading": "La partida se está cargando en el juego",
+    "lvFailed": "No se pudo abrir la partida: {why}",
+    "lvWhy_no_match": "la partida terminó o no está en nuestros servidores",
+    "lvWhy_server": "nuestro servidor no respondió",
+    "lvWhy_busy_match": "el juego está en una partida o un replay: sal primero",
+    "lvWhy_busy_lobby": "el juego está en una sala: sal primero",
+    "lvWhy_start": "el juego no inició el replay",
+    "lvWhy_file": "no se pudo escribir el archivo del replay",
+    "lvWhy_no_pipe": "el juego está abierto sin el complemento «Live replay»: actívalo y reinicia el juego",
+    "lvWhy_no_game": "el juego no se inició",
+    "lvWhy_wrong_game": "está abierto el otro juego",
+    "lvWhy_game_closed": "el juego se cerró",
+    "lvWhy_no_answer": "el juego no respondió"
   },
   fr: {
     "chToday": "Aujourd'hui",
@@ -900,7 +988,95 @@ const T = {
     "race_ordo_malleus": "Ordo Malleus",
     "race_random": "Race aléatoire",
     "allAddons": "Tous ›",
-    "onInMatchH": "En partie"
+    "onInMatchH": "En partie",
+    // 1.5.10: the lobby join, Watch and the mirrors in this language too (were English)
+    "netTry": "Miroir {k}/{n} : {host}…",
+    "netFail": "{host} ne répond pas, essai du suivant…",
+    "doneLine": "Terminé ✓",
+    "metaDone": "Téléchargé {dl} · repris du disque {re} · depuis le cache {fc}",
+    "roomsJoin": "Rejoindre",
+    "roomsJoinStart": "Lancement du jeu pour rejoindre {name}...",
+    "roomsJoinRunning": "Le jeu est lancé : passez dessus, la connexion s'y fait",
+    "roomsJoinBusy": "Vous cherchez une partie ou en jouez une : arrêtez la recherche (ou finissez la partie), puis appuyez à nouveau sur Rejoindre",
+    "roomsVerAsk": "Autre version d'Elite",
+    "roomsVerOther": "Cette partie a été créée sous Elite {v} et vous avez Elite {mine}. Impossible de la rejoindre avec une autre version.",
+    "roomsVerUp": "Mettre à jour vers Elite {v}",
+    "roomsVerSw": "Passer à Elite {v}",
+    "roomsVerClose": "Fermer",
+    "rjSwitchAsk": "Aller dans un autre salon ?",
+    "rjSwitchText": "Vous êtes dans le salon « {a} ». Le quitter et rejoindre « {b} » ?",
+    "rjSwitchHost": "Vous êtes l'hôte de ce salon : si vous partez, il se ferme pour tous ses joueurs.",
+    "rjSwitchGo": "Quitter et rejoindre",
+    "rjSwitchOld": "Vous êtes dans le salon « {a} ». Pour passer d'un salon à l'autre, il faut une version plus récente du module « Lobby join » : pour l'instant, quittez le salon vous-même.",
+    "rjLeaving": "Sortie du salon actuel, puis connexion à {name}…",
+    "rjCurLobby": "le salon actuel",
+    "roomsHere": "Vous êtes ici",
+    "roomsInOther": "Vous êtes déjà dans le salon {name} : quittez-le d'abord dans le jeu.",
+    "roomsVerAfter": "Passage à Elite {v}. Une fois terminé, appuyez à nouveau sur Rejoindre.",
+    "roomsVerNoCh": "Le launcher n'a pas d'Elite {v} vers laquelle passer.",
+    "roomsVerGame": "Fermez d'abord le jeu pour changer de version.",
+    "roomsVerBusy": "Le launcher met le jeu à jour en ce moment : attendez la fin.",
+    "rjCancel": "Annuler",
+    "rjStarting": "Lancement du jeu pour rejoindre {name}…",
+    "rjWaitGame": "En attente du démarrage du jeu…",
+    "rjAccepted": "Le jeu a accepté la demande : {name}",
+    "rjWalking": "Le jeu va à son menu principal…",
+    "rjJoining": "Connexion à {name}…",
+    "rjInLobby": "Vous êtes dans le salon {name}",
+    "rjFailed": "Impossible de rejoindre {name} : {why}",
+    "rjCancelled": "Connexion annulée",
+    "rjNoPipe": "Le jeu tourne sans le module « Lobby join ». Activez-le dans Modules et relancez le jeu.",
+    "rjOnlyWin": "Rejoindre depuis le launcher ne fonctionne que sous Windows et Linux.",
+    "rjAddonOff": "Pour rejoindre par un lien, activez le module « Lobby join » dans Modules, puis cliquez à nouveau sur le lien.",
+    "rjWhy_full": "le salon est plein",
+    "rjWhy_closed": "le salon n'existe plus ou sa partie démarre",
+    "rjWhy_password": "il faut un mot de passe",
+    "rjWhy_version": "autre version du jeu ou du mod",
+    "rjWhy_timeout": "le salon n'a pas répondu",
+    "rjWhy_busy_search": "une recherche est en cours dans Find a Game : arrêtez-la d'abord",
+    "rjWhy_busy_match": "vous êtes en partie",
+    "rjWhy_busy_join": "le jeu rejoint un autre salon",
+    "rjWhy_not_menu": "le jeu n'est pas dans son menu principal : allez-y d'abord",
+    "rjWhy_other_lobby": "vous êtes dans un autre salon : quittez-le d'abord",
+    "rjWhy_cancelled": "annulé",
+    "rjWhy_game_closed": "le jeu s'est fermé",
+    "rjWhy_no_answer": "le jeu n'a pas répondu",
+    "rjWhy_no_game": "le jeu ne s'est pas lancé",
+    "rjWhy_no_pipe": "le jeu n'a pas le module « Lobby join » : activez-le et relancez le jeu",
+    "rjWhy_error": "le jeu n'a pas pu rejoindre",
+    "rjHintRelay": "Si cela se reproduit, essayez une fois avec {list} désactivé dans Modules.",
+    "rjFailedAsk": "Impossible de rejoindre le salon",
+    "rjWrongAsk": "Un autre jeu est lancé",
+    "rjWrongVan": "Ce salon est sous Retribution vanilla et le jeu lancé est Elite. Fermez-le (le launcher ne ferme pas le jeu lui-même) : ensuite le launcher lance vanilla et rejoint le salon.",
+    "rjWrongElite": "Ce salon est sous Elite et le jeu lancé est Retribution vanilla. Fermez-le (le launcher ne ferme pas le jeu lui-même) : ensuite le launcher lance Elite et rejoint le salon.",
+    "rjWrongGo": "Rejoindre après fermeture",
+    "rjCloseGame": "Fermez le jeu : ensuite le launcher lance {game} et rejoint {name}.",
+    "rjWhy_wrong_game": "l'autre jeu est lancé (Elite au lieu de vanilla, ou vanilla au lieu d'Elite)",
+    "rjVanAddonOff": "Pour rejoindre les salons vanilla, activez le module « Lobby join » dans Modules (il fonctionne aussi en vanilla).",
+    "rjVanNo": "Ce launcher ne lance pas Retribution vanilla sur cet ordinateur.",
+    "lvTurnOn": "L'activer et regarder",
+    "lvTitle": "Regarder cette partie dans le jeu en replay (quelques minutes de retard)",
+    "lvAsk": "Regarder la partie",
+    "lvAddonOff": "Pour regarder, il faut le module « Live replay » : activez-le dans Modules, puis appuyez à nouveau sur Regarder.",
+    "lvWrongGame": "L'autre jeu est lancé. Fermez-le d'abord, puis appuyez à nouveau sur Regarder.",
+    "lvBusy": "Vous cherchez une partie ou en jouez une.",
+    "lvStarting": "Lancement du jeu pour regarder la partie…",
+    "lvSent": "Le jeu ouvre la partie…",
+    "lvWaitGame": "En attente du démarrage du jeu…",
+    "lvFetching": "Le jeu télécharge la partie…",
+    "lvLoading": "La partie se charge dans le jeu",
+    "lvFailed": "Impossible d'ouvrir la partie : {why}",
+    "lvWhy_no_match": "la partie est terminée ou n'est pas sur nos serveurs",
+    "lvWhy_server": "notre serveur n'a pas répondu",
+    "lvWhy_busy_match": "le jeu est en partie ou dans un replay : quittez-le d'abord",
+    "lvWhy_busy_lobby": "le jeu est dans un salon : quittez-le d'abord",
+    "lvWhy_start": "le jeu n'a pas lancé le replay",
+    "lvWhy_file": "le fichier du replay n'a pas pu être écrit",
+    "lvWhy_no_pipe": "le jeu tourne sans le module « Live replay » : activez-le et relancez le jeu",
+    "lvWhy_no_game": "le jeu ne s'est pas lancé",
+    "lvWhy_wrong_game": "l'autre jeu est lancé",
+    "lvWhy_game_closed": "le jeu s'est fermé",
+    "lvWhy_no_answer": "le jeu n'a pas répondu"
   },
   de: {
     "chToday": "Heute",
@@ -1117,9 +1293,103 @@ const T = {
     "race_ordo_malleus": "Ordo Malleus",
     "race_random": "Zufällige Rasse",
     "allAddons": "Alle ›",
-    "onInMatchH": "Im Spiel"
+    "onInMatchH": "Im Spiel",
+    // 1.5.10: the lobby join, Watch and the mirrors in this language too (were English)
+    "netTry": "Mirror {k}/{n}: {host}…",
+    "netFail": "{host} antwortet nicht, versuche den nächsten…",
+    "doneLine": "Fertig ✓",
+    "metaDone": "Heruntergeladen {dl} · von der Festplatte übernommen {re} · aus dem Cache {fc}",
+    "roomsJoin": "Beitreten",
+    "roomsJoinStart": "Starte das Spiel und trete {name} bei...",
+    "roomsJoinRunning": "Das Spiel läuft: wechsle hinein, der Beitritt startet dort",
+    "roomsJoinBusy": "Du suchst ein Match oder spielst eins: beende die Suche (oder das Match) und drücke dann erneut Beitreten",
+    "roomsVerAsk": "Andere Elite-Version",
+    "roomsVerOther": "Dieses Spiel wurde mit Elite {v} erstellt, du hast Elite {mine}. Mit einer anderen Version kannst du nicht beitreten.",
+    "roomsVerUp": "Auf Elite {v} aktualisieren",
+    "roomsVerSw": "Zu Elite {v} wechseln",
+    "roomsVerClose": "Schließen",
+    "rjSwitchAsk": "In eine andere Lobby wechseln?",
+    "rjSwitchText": "Du bist gerade in der Lobby „{a}“. Sie verlassen und „{b}“ beitreten?",
+    "rjSwitchHost": "Du bist Host dieser Lobby: Wenn du gehst, wird sie für alle darin geschlossen.",
+    "rjSwitchGo": "Verlassen und beitreten",
+    "rjSwitchOld": "Du bist in der Lobby „{a}“. Um von Lobby zu Lobby zu wechseln, braucht es eine neuere Version des Add-ons „Lobby join“ – verlasse die Lobby vorerst selbst.",
+    "rjLeaving": "Verlasse die aktuelle Lobby und trete {name} bei…",
+    "rjCurLobby": "die aktuelle Lobby",
+    "roomsHere": "Du bist hier",
+    "roomsInOther": "Du bist schon in der Lobby {name} – verlasse sie zuerst im Spiel.",
+    "roomsVerAfter": "Wechsle zu Elite {v}. Wenn es fertig ist, drücke erneut Beitreten.",
+    "roomsVerNoCh": "Der Launcher hat kein Elite {v}, zu dem er wechseln kann.",
+    "roomsVerGame": "Schließe zuerst das Spiel, um die Version zu wechseln.",
+    "roomsVerBusy": "Der Launcher aktualisiert gerade das Spiel – warte, bis er fertig ist.",
+    "rjCancel": "Abbrechen",
+    "rjStarting": "Starte das Spiel, um {name} beizutreten…",
+    "rjWaitGame": "Warte auf den Start des Spiels…",
+    "rjAccepted": "Das Spiel hat die Anfrage übernommen: {name}",
+    "rjWalking": "Das Spiel geht ins Hauptmenü…",
+    "rjJoining": "Verbinde mit {name}…",
+    "rjInLobby": "Du bist in der Lobby {name}",
+    "rjFailed": "Beitritt zu {name} nicht möglich: {why}",
+    "rjCancelled": "Beitritt abgebrochen",
+    "rjNoPipe": "Das Spiel läuft ohne das Add-on „Lobby join“. Aktiviere es unter Erweiterungen und starte das Spiel neu.",
+    "rjOnlyWin": "Beitreten aus dem Launcher funktioniert nur unter Windows und Linux.",
+    "rjAddonOff": "Um über einen Link beizutreten, aktiviere das Add-on „Lobby join“ unter Erweiterungen und klicke den Link erneut.",
+    "rjWhy_full": "die Lobby ist voll",
+    "rjWhy_closed": "die Lobby gibt es nicht mehr oder ihr Spiel startet gerade",
+    "rjWhy_password": "sie braucht ein Passwort",
+    "rjWhy_version": "andere Version des Spiels oder Mods",
+    "rjWhy_timeout": "die Lobby hat nicht geantwortet",
+    "rjWhy_busy_search": "in Find a Game läuft eine Suche – beende sie zuerst",
+    "rjWhy_busy_match": "du bist in einem Match",
+    "rjWhy_busy_join": "das Spiel tritt gerade einer anderen Lobby bei",
+    "rjWhy_not_menu": "das Spiel ist nicht im Hauptmenü – geh zuerst dorthin",
+    "rjWhy_other_lobby": "du bist in einer anderen Lobby – verlasse sie zuerst",
+    "rjWhy_cancelled": "abgebrochen",
+    "rjWhy_game_closed": "das Spiel wurde geschlossen",
+    "rjWhy_no_answer": "das Spiel hat nicht geantwortet",
+    "rjWhy_no_game": "das Spiel ist nicht gestartet",
+    "rjWhy_no_pipe": "im Spiel fehlt das Add-on „Lobby join“ – aktiviere es und starte das Spiel neu",
+    "rjWhy_error": "das Spiel konnte nicht beitreten",
+    "rjHintRelay": "Wenn es wieder passiert, versuche es einmal mit {list} ausgeschaltet unter Erweiterungen.",
+    "rjFailedAsk": "Beitritt zur Lobby nicht möglich",
+    "rjWrongAsk": "Ein anderes Spiel läuft",
+    "rjWrongVan": "Diese Lobby ist in Vanilla-Retribution, das laufende Spiel ist Elite. Schließe es (der Launcher schließt kein Spiel selbst) – dann startet der Launcher Vanilla und tritt der Lobby bei.",
+    "rjWrongElite": "Diese Lobby ist in Elite, das laufende Spiel ist Vanilla-Retribution. Schließe es (der Launcher schließt kein Spiel selbst) – dann startet der Launcher Elite und tritt der Lobby bei.",
+    "rjWrongGo": "Beitreten, wenn ich es schließe",
+    "rjCloseGame": "Schließe das Spiel – dann startet der Launcher {game} und tritt {name} bei.",
+    "rjWhy_wrong_game": "das andere Spiel läuft (Elite statt Vanilla oder Vanilla statt Elite)",
+    "rjVanAddonOff": "Um Vanilla-Lobbys beizutreten, aktiviere das Add-on „Lobby join“ unter Erweiterungen (es funktioniert auch in Vanilla).",
+    "rjVanNo": "Dieser Launcher startet Vanilla-Retribution auf diesem Computer nicht.",
+    "lvTurnOn": "Aktivieren und zuschauen",
+    "lvTitle": "Dieses Match im Spiel als Replay ansehen (einige Minuten verzögert)",
+    "lvAsk": "Match ansehen",
+    "lvAddonOff": "Zum Zuschauen braucht es das Add-on „Live replay“: aktiviere es unter Erweiterungen und drücke erneut Zuschauen.",
+    "lvWrongGame": "Das andere Spiel läuft. Schließe es zuerst und drücke dann erneut Zuschauen.",
+    "lvBusy": "Du suchst ein Match oder spielst eins.",
+    "lvStarting": "Starte das Spiel, um das Match anzusehen…",
+    "lvSent": "Das Spiel öffnet das Match…",
+    "lvWaitGame": "Warte auf den Start des Spiels…",
+    "lvFetching": "Das Spiel lädt das Match herunter…",
+    "lvLoading": "Das Match lädt im Spiel",
+    "lvFailed": "Das Match ließ sich nicht öffnen: {why}",
+    "lvWhy_no_match": "das Match ist vorbei oder nicht auf unseren Servern",
+    "lvWhy_server": "unser Server hat nicht geantwortet",
+    "lvWhy_busy_match": "das Spiel ist in einem Match oder Replay – verlasse es zuerst",
+    "lvWhy_busy_lobby": "das Spiel ist in einer Lobby – verlasse sie zuerst",
+    "lvWhy_start": "das Spiel hat das Replay nicht gestartet",
+    "lvWhy_file": "die Replay-Datei ließ sich nicht schreiben",
+    "lvWhy_no_pipe": "das Spiel läuft ohne das Add-on „Live replay“ – aktiviere es und starte das Spiel neu",
+    "lvWhy_no_game": "das Spiel ist nicht gestartet",
+    "lvWhy_wrong_game": "das andere Spiel läuft",
+    "lvWhy_game_closed": "das Spiel wurde geschlossen",
+    "lvWhy_no_answer": "das Spiel hat nicht geantwortet"
   },
 };
+// 1.5.10: the errors of the Rust side and of the servers (errText), the launcher's lines in the developers' chat (fbMsgText)
+Object.assign(T.en, { errNotFound: "{p} was not found in this folder.", errFileBusy: "Could not write {f}: {e} (is the game running?)", errChecksum: "{f}: the checksum does not match after the download - try again.", errHkKey: "{k}: “{v}” is not a key the game knows.", errBusy: "Files are being updated - wait a few seconds.", errNoGameDir: "The game folder was not found.", errNotGameDir: "This is not the game folder (there is no DOW2.exe in it).", errGameRunning: "The game is running: close it to change add-ons or update.", errUpdRunning: "An update is already running.", errGameAlready: "The game is already running.", errLink: "This link cannot be opened.", errNoConfig: "No connection to the update server yet.", errNoLogs: "No log files yet - play once with the add-ons on, then send.", errNoHosts: "This build of the launcher has no server address - download the launcher from the site.", errLogs: "Could not send the logs: {e}", errStartProton: "Could not start {p} through Proton: {e}", errStartAdmin: "Could not start {p} as administrator: {e}", errStart: "Could not start {p}: {e}", errNoPrefix: "There is no Proton prefix {p} - start the game once from Steam.", errNotSteamLib: "The game is not in a Steam library.", errNoSteam: "Steam was not found.", errNoProton: "No Proton found (Steam maps the game to {e}).", errNoLauncherUpd: "No launcher update was found.", errNoAnswer: "The server does not answer - try again later.", errOs: "This works on Windows and Linux only.", errNoKeys: "The game has not written its key settings yet: start the game once, then come back.", errNoDocs: "The game's Documents folder was not found.", errCfgOdd: "The game's file configuration.lua is not as expected - start the game once, then try again.", errGameFile: "Could not change the game's file {f}: {e}", errUiScale: "The scale must be from {a}% to {b}%.", errNet: "Network error: {e}", errDisk: "Disk error: {e}", errTimeout: "No answer in time - try again.", errSig: "The data from this mirror failed the signature check and is ignored.", errBadData: "The server sent damaged data ({e}) - try again later.", errInternal: "Something went wrong inside the launcher ({e}) - press “Send logs” in Settings.", chErrSignIn: "Sign in with Steam to write.", chErrBanned: "You cannot write in the chat.", chErrFast: "Too fast - wait a moment.", chErrModeration: "Not sent: the message did not pass the moderation (incoherent text or politics). Rephrase it to the point.", fbModeration: "Message not sent: it did not pass the chat moderation (incoherent text or politics). Rephrase it to the point - we are here. Swearing and emotions about the mod are fine.", fbNoteLogs: "📋 Sent the logs: {id} ({n} files). The answer comes here.", fbNoteNet: "📶 Sent the connection test and the logs: {id} ({n} files). The answer comes here." });
+Object.assign(T.ru, { errNotFound: "В этой папке нет {p}.", errFileBusy: "Не удалось записать {f}: {e} (игра запущена?)", errChecksum: "{f}: контрольная сумма не совпала после скачивания — попробуйте ещё раз.", errHkKey: "{k}: «{v}» — такой клавиши игра не знает.", errBusy: "Файлы обновляются — подождите несколько секунд.", errNoGameDir: "Папка игры не найдена.", errNotGameDir: "Это не папка игры (в ней нет DOW2.exe).", errGameRunning: "Игра запущена: закройте её, чтобы менять дополнения или обновлять.", errUpdRunning: "Обновление уже идёт.", errGameAlready: "Игра уже запущена.", errLink: "Эту ссылку открыть нельзя.", errNoConfig: "Пока нет связи с сервером обновлений.", errNoLogs: "Логов пока нет — сыграйте один раз с включёнными дополнениями и отправьте.", errNoHosts: "В этой сборке лаунчера нет адреса сервера — скачайте лаунчер с сайта.", errLogs: "Не удалось отправить логи: {e}", errStartProton: "Не удалось запустить {p} через Proton: {e}", errStartAdmin: "Не удалось запустить {p} от имени администратора: {e}", errStart: "Не удалось запустить {p}: {e}", errNoPrefix: "Нет префикса Proton {p} — запустите игру один раз из Steam.", errNotSteamLib: "Игра не в библиотеке Steam.", errNoSteam: "Steam не найден.", errNoProton: "Proton не найден (Steam назначил игре {e}).", errNoLauncherUpd: "Обновление лаунчера не найдено.", errNoAnswer: "Сервер не отвечает — попробуйте позже.", errOs: "Это работает только в Windows и Linux.", errNoKeys: "Игра ещё не записала свои настройки клавиш: запустите игру один раз и вернитесь.", errNoDocs: "Папка игры в «Документах» не найдена.", errCfgOdd: "Файл игры configuration.lua не такой, как ожидалось, — запустите игру один раз и попробуйте снова.", errGameFile: "Не удалось изменить файл игры {f}: {e}", errUiScale: "Масштаб должен быть от {a}% до {b}%.", errNet: "Ошибка сети: {e}", errDisk: "Ошибка диска: {e}", errTimeout: "Ответа не дождались — попробуйте ещё раз.", errSig: "Данные с этого зеркала не прошли проверку подписи — они пропущены.", errBadData: "Сервер прислал повреждённые данные ({e}) — попробуйте позже.", errInternal: "Что-то пошло не так внутри лаунчера ({e}) — нажмите «Отправить логи» в настройках.", chErrSignIn: "Войдите через Steam, чтобы писать.", chErrBanned: "Вам нельзя писать в чат.", chErrFast: "Слишком часто — подождите немного.", chErrModeration: "Не отправлено: сообщение не прошло модерацию (бессвязный текст или политика). Переформулируйте по делу.", fbModeration: "Сообщение не отправлено: не прошло модерацию чата (бессвязный текст или политика). Переформулируйте по делу — мы на связи. Мат и эмоции в адрес мода при этом ок.", fbNoteLogs: "📋 Отправил логи: {id} (файлов: {n}). Ответ придёт сюда.", fbNoteNet: "📶 Отправил проверку связи и логи: {id} (файлов: {n}). Ответ придёт сюда." });
+Object.assign(T.es, { errNotFound: "{p} no está en esta carpeta.", errFileBusy: "No se pudo escribir {f}: {e} (¿está abierto el juego?)", errChecksum: "{f}: la suma de comprobación no coincide tras la descarga; inténtalo de nuevo.", errHkKey: "{k}: «{v}» no es una tecla que el juego conozca.", errBusy: "Se están actualizando archivos: espera unos segundos.", errNoGameDir: "No se encontró la carpeta del juego.", errNotGameDir: "Esta no es la carpeta del juego (no contiene DOW2.exe).", errGameRunning: "El juego está abierto: ciérralo para cambiar complementos o actualizar.", errUpdRunning: "Ya hay una actualización en curso.", errGameAlready: "El juego ya está abierto.", errLink: "Este enlace no se puede abrir.", errNoConfig: "Aún no hay conexión con el servidor de actualizaciones.", errNoLogs: "Aún no hay registros: juega una vez con los complementos activados y luego envía.", errNoHosts: "Esta versión del launcher no tiene dirección de servidor: descarga el launcher del sitio web.", errLogs: "No se pudieron enviar los registros: {e}", errStartProton: "No se pudo iniciar {p} con Proton: {e}", errStartAdmin: "No se pudo iniciar {p} como administrador: {e}", errStart: "No se pudo iniciar {p}: {e}", errNoPrefix: "No hay prefijo de Proton {p}: inicia el juego una vez desde Steam.", errNotSteamLib: "El juego no está en una biblioteca de Steam.", errNoSteam: "No se encontró Steam.", errNoProton: "No se encontró Proton (Steam asigna al juego {e}).", errNoLauncherUpd: "No se encontró ninguna actualización del launcher.", errNoAnswer: "El servidor no responde: inténtalo más tarde.", errOs: "Esto solo funciona en Windows y Linux.", errNoKeys: "El juego aún no ha guardado su configuración de teclas: inícialo una vez y vuelve.", errNoDocs: "No se encontró la carpeta del juego en Documentos.", errCfgOdd: "El archivo del juego configuration.lua no es como se esperaba: inicia el juego una vez y vuelve a intentarlo.", errGameFile: "No se pudo cambiar el archivo del juego {f}: {e}", errUiScale: "La escala debe estar entre {a}% y {b}%.", errNet: "Error de red: {e}", errDisk: "Error de disco: {e}", errTimeout: "No hubo respuesta a tiempo: inténtalo de nuevo.", errSig: "Los datos de este espejo no pasaron la comprobación de firma y se ignoran.", errBadData: "El servidor envió datos dañados ({e}): inténtalo más tarde.", errInternal: "Algo falló dentro del launcher ({e}): pulsa «Enviar registros» en Ajustes.", chErrSignIn: "Inicia sesión con Steam para escribir.", chErrBanned: "No puedes escribir en el chat.", chErrFast: "Demasiado rápido: espera un momento.", chErrModeration: "No enviado: el mensaje no pasó la moderación (texto incoherente o política). Reformúlalo yendo al grano.", fbModeration: "Mensaje no enviado: no pasó la moderación del chat (texto incoherente o política). Reformúlalo yendo al grano: estamos aquí. Los tacos y las emociones sobre el mod están bien.", fbNoteLogs: "📋 Registros enviados: {id} ({n} archivos). La respuesta llegará aquí.", fbNoteNet: "📶 Prueba de conexión y registros enviados: {id} ({n} archivos). La respuesta llegará aquí." });
+Object.assign(T.fr, { errNotFound: "{p} est introuvable dans ce dossier.", errFileBusy: "Impossible d'écrire {f} : {e} (le jeu est-il lancé ?)", errChecksum: "{f} : la somme de contrôle ne correspond pas après le téléchargement, réessayez.", errHkKey: "{k} : « {v} » n'est pas une touche connue du jeu.", errBusy: "Des fichiers sont en cours de mise à jour : attendez quelques secondes.", errNoGameDir: "Dossier du jeu introuvable.", errNotGameDir: "Ce n'est pas le dossier du jeu (il ne contient pas DOW2.exe).", errGameRunning: "Le jeu est lancé : fermez-le pour changer les modules ou mettre à jour.", errUpdRunning: "Une mise à jour est déjà en cours.", errGameAlready: "Le jeu est déjà lancé.", errLink: "Ce lien ne peut pas être ouvert.", errNoConfig: "Pas encore de connexion au serveur de mises à jour.", errNoLogs: "Pas encore de journaux : jouez une fois avec les modules activés, puis envoyez.", errNoHosts: "Cette version du launcher n'a pas d'adresse de serveur : téléchargez le launcher depuis le site.", errLogs: "Impossible d'envoyer les journaux : {e}", errStartProton: "Impossible de lancer {p} via Proton : {e}", errStartAdmin: "Impossible de lancer {p} en tant qu'administrateur : {e}", errStart: "Impossible de lancer {p} : {e}", errNoPrefix: "Pas de préfixe Proton {p} : lancez le jeu une fois depuis Steam.", errNotSteamLib: "Le jeu n'est pas dans une bibliothèque Steam.", errNoSteam: "Steam introuvable.", errNoProton: "Proton introuvable (Steam associe le jeu à {e}).", errNoLauncherUpd: "Aucune mise à jour du launcher trouvée.", errNoAnswer: "Le serveur ne répond pas : réessayez plus tard.", errOs: "Cela ne fonctionne que sous Windows et Linux.", errNoKeys: "Le jeu n'a pas encore écrit ses réglages de touches : lancez-le une fois, puis revenez.", errNoDocs: "Le dossier du jeu dans Documents est introuvable.", errCfgOdd: "Le fichier du jeu configuration.lua n'est pas celui attendu : lancez le jeu une fois, puis réessayez.", errGameFile: "Impossible de modifier le fichier du jeu {f} : {e}", errUiScale: "L'échelle doit être comprise entre {a} % et {b} %.", errNet: "Erreur réseau : {e}", errDisk: "Erreur disque : {e}", errTimeout: "Pas de réponse à temps : réessayez.", errSig: "Les données de ce miroir n'ont pas passé la vérification de signature et sont ignorées.", errBadData: "Le serveur a envoyé des données endommagées ({e}) : réessayez plus tard.", errInternal: "Un problème est survenu dans le launcher ({e}) : appuyez sur « Envoyer les journaux » dans les réglages.", chErrSignIn: "Connectez-vous avec Steam pour écrire.", chErrBanned: "Vous ne pouvez pas écrire dans le chat.", chErrFast: "Trop rapide : attendez un instant.", chErrModeration: "Non envoyé : le message n'a pas passé la modération (texte incohérent ou politique). Reformulez-le en allant à l'essentiel.", fbModeration: "Message non envoyé : il n'a pas passé la modération du chat (texte incohérent ou politique). Reformulez-le en allant à l'essentiel, nous sommes là. Les jurons et les émotions à propos du mod sont acceptés.", fbNoteLogs: "📋 Journaux envoyés : {id} ({n} fichiers). La réponse arrivera ici.", fbNoteNet: "📶 Test de connexion et journaux envoyés : {id} ({n} fichiers). La réponse arrivera ici." });
+Object.assign(T.de, { errNotFound: "{p} ist in diesem Ordner nicht vorhanden.", errFileBusy: "{f} ließ sich nicht schreiben: {e} (läuft das Spiel?)", errChecksum: "{f}: Die Prüfsumme stimmt nach dem Download nicht – versuch es erneut.", errHkKey: "{k}: „{v}“ ist keine Taste, die das Spiel kennt.", errBusy: "Dateien werden gerade aktualisiert – warte ein paar Sekunden.", errNoGameDir: "Spielordner nicht gefunden.", errNotGameDir: "Das ist nicht der Spielordner (darin ist keine DOW2.exe).", errGameRunning: "Das Spiel läuft: schließe es, um Erweiterungen zu ändern oder zu aktualisieren.", errUpdRunning: "Ein Update läuft bereits.", errGameAlready: "Das Spiel läuft bereits.", errLink: "Dieser Link lässt sich nicht öffnen.", errNoConfig: "Noch keine Verbindung zum Update-Server.", errNoLogs: "Noch keine Logs – spiel einmal mit aktivierten Erweiterungen und sende dann.", errNoHosts: "Dieser Launcher-Build hat keine Serveradresse – lade den Launcher von der Website.", errLogs: "Logs konnten nicht gesendet werden: {e}", errStartProton: "{p} ließ sich nicht über Proton starten: {e}", errStartAdmin: "{p} ließ sich nicht als Administrator starten: {e}", errStart: "{p} ließ sich nicht starten: {e}", errNoPrefix: "Kein Proton-Präfix {p} – starte das Spiel einmal über Steam.", errNotSteamLib: "Das Spiel liegt in keiner Steam-Bibliothek.", errNoSteam: "Steam nicht gefunden.", errNoProton: "Kein Proton gefunden (Steam ordnet dem Spiel {e} zu).", errNoLauncherUpd: "Kein Launcher-Update gefunden.", errNoAnswer: "Der Server antwortet nicht – versuch es später erneut.", errOs: "Das funktioniert nur unter Windows und Linux.", errNoKeys: "Das Spiel hat seine Tastenbelegung noch nicht gespeichert: starte es einmal und komm dann zurück.", errNoDocs: "Der Ordner des Spiels unter Dokumente wurde nicht gefunden.", errCfgOdd: "Die Spieldatei configuration.lua sieht anders aus als erwartet – starte das Spiel einmal und versuch es erneut.", errGameFile: "Die Spieldatei {f} ließ sich nicht ändern: {e}", errUiScale: "Die Skalierung muss zwischen {a} % und {b} % liegen.", errNet: "Netzwerkfehler: {e}", errDisk: "Festplattenfehler: {e}", errTimeout: "Keine rechtzeitige Antwort – versuch es erneut.", errSig: "Die Daten dieses Mirrors haben die Signaturprüfung nicht bestanden und werden ignoriert.", errBadData: "Der Server hat beschädigte Daten geschickt ({e}) – versuch es später erneut.", errInternal: "Im Launcher ist etwas schiefgelaufen ({e}) – drücke „Logs senden“ in den Einstellungen.", chErrSignIn: "Melde dich mit Steam an, um zu schreiben.", chErrBanned: "Du kannst nicht im Chat schreiben.", chErrFast: "Zu schnell – warte einen Moment.", chErrModeration: "Nicht gesendet: Die Nachricht hat die Moderation nicht bestanden (zusammenhangloser Text oder Politik). Formuliere sie sachlich um.", fbModeration: "Nachricht nicht gesendet: Sie hat die Chat-Moderation nicht bestanden (zusammenhangloser Text oder Politik). Formuliere sie sachlich um – wir sind da. Flüche und Emotionen über den Mod sind okay.", fbNoteLogs: "📋 Logs gesendet: {id} ({n} Dateien). Die Antwort kommt hierher.", fbNoteNet: "📶 Verbindungstest und Logs gesendet: {id} ({n} Dateien). Die Antwort kommt hierher." });
 
 // 1.5.0: the D look's strings
 Object.assign(T.en, { ubOne: 'Update', ubAll: 'Update all', ubBusy: 'Updating…', addonDepsOff: 'Turned off too (they work only with it): {names}' });
@@ -1129,23 +1399,23 @@ Object.assign(T.fr, { ubOne: 'Mettre à jour', ubAll: 'Tout mettre à jour', ubB
 Object.assign(T.de, { ubOne: 'Aktualisieren', ubAll: 'Alles aktualisieren', ubBusy: 'Aktualisiere…', addonDepsOff: 'Ebenfalls ausgeschaltet (funktioniert nur damit): {names}' });
 Object.assign(T.en, { rTeamShort: 'Team {n}', rAvg: 'avg {r}', secGame: 'Game', secLauncher: 'Launcher', secService: 'Maintenance', aboutTitle: 'About', aboutAuto: 'updates itself', aboutNews: 'What\'s new', aboutInstalled: 'Installed', aboutCode: 'Open source', aboutLicense: 'MIT license', addonsOnOf: '{n} of {m} on', setupHide: 'Hide', setupMore: 'More', launcherRestarts: 'restarts by itself', launcherGet: 'Download', launcherUpdatingTo: 'Updating the launcher to {v}…',
   launcherAfter: 'then the signature check and a restart', chWaitingShort: 'signing in in the browser…', meRating: '1v1 rating · {r}',
-  lvAddonAsk: 'Watching needs the add-on “Watch running matches”. The launcher turns it on, starts the game and opens this match.' });
+  lvAddonAsk: 'Watching needs the add-on “Live replay”. The launcher turns it on, starts the game and opens this match.' });
 Object.assign(T.ru, { rTeamShort: 'Ком. {n}', rAvg: 'ср. {r}', secGame: 'Игра', secLauncher: 'Лаунчер', secService: 'Обслуживание', aboutTitle: 'О приложении', aboutAuto: 'обновляется сам', aboutNews: 'Что нового', aboutInstalled: 'Установлено', aboutCode: 'Открытый код', aboutLicense: 'лицензия MIT', addonsOnOf: 'включено {n} из {m}', setupHide: 'Скрыть', setupMore: 'Подробнее', launcherRestarts: 'перезапустится сам', launcherGet: 'Скачать', launcherUpdatingTo: 'Обновляю лаунчер до {v}…',
   launcherAfter: 'затем проверка подписи и перезапуск', chWaitingShort: 'вход в браузере…', meRating: 'рейтинг 1v1 · {r}',
-  lvAddonAsk: 'Для просмотра нужно дополнение «Смотреть идущие матчи». Лаунчер включит его, запустит игру и сразу откроет этот матч.' });
+  lvAddonAsk: 'Для просмотра нужно дополнение «Live replay». Лаунчер включит его, запустит игру и сразу откроет этот матч.' });
 Object.assign(T.es, { rTeamShort: 'Eq. {n}', rAvg: 'media {r}', secGame: 'Juego', secLauncher: 'Launcher', secService: 'Mantenimiento', aboutTitle: 'Acerca de', aboutAuto: 'se actualiza solo', aboutNews: 'Novedades', aboutInstalled: 'Instalado', aboutCode: 'Código abierto', aboutLicense: 'licencia MIT', addonsOnOf: '{n} de {m} activados', setupHide: 'Ocultar', setupMore: 'Más', launcherRestarts: 'se reinicia solo', launcherGet: 'Descargar', launcherUpdatingTo: 'Actualizando el launcher a {v}…',
   launcherAfter: 'luego la comprobación de la firma y el reinicio', chWaitingShort: 'iniciando sesión en el navegador…', meRating: 'rating 1v1 · {r}',
-  lvAddonAsk: 'Para ver hace falta el complemento «Watch running matches». El launcher lo activa, inicia el juego y abre esta partida.' });
+  lvAddonAsk: 'Para ver hace falta el complemento «Live replay». El launcher lo activa, inicia el juego y abre esta partida.' });
 Object.assign(T.fr, { rTeamShort: 'Éq. {n}', rAvg: 'moy. {r}', secGame: 'Jeu', secLauncher: 'Launcher', secService: 'Maintenance', aboutTitle: 'À propos', aboutAuto: 'se met à jour tout seul', aboutNews: 'Nouveautés', aboutInstalled: 'Installé', aboutCode: 'Code source ouvert', aboutLicense: 'licence MIT', addonsOnOf: '{n} sur {m} activés', setupHide: 'Masquer', setupMore: 'Plus', launcherRestarts: 'redémarre tout seul', launcherGet: 'Télécharger', launcherUpdatingTo: 'Mise à jour du launcher vers {v}…',
   launcherAfter: 'puis la vérification de la signature et le redémarrage', chWaitingShort: 'connexion dans le navigateur…', meRating: 'classement 1v1 · {r}',
-  lvAddonAsk: 'Pour regarder, il faut le module « Watch running matches ». Le launcher l’active, lance le jeu et ouvre cette partie.' });
+  lvAddonAsk: 'Pour regarder, il faut le module « Live replay ». Le launcher l’active, lance le jeu et ouvre cette partie.' });
 Object.assign(T.de, { rTeamShort: 'Team {n}', rAvg: 'Ø {r}', secGame: 'Spiel', secLauncher: 'Launcher', secService: 'Wartung', aboutTitle: 'Über', aboutAuto: 'aktualisiert sich selbst', aboutNews: 'Neuigkeiten', aboutInstalled: 'Installiert', aboutCode: 'Open Source', aboutLicense: 'MIT-Lizenz', addonsOnOf: '{n} von {m} an', setupHide: 'Ausblenden', setupMore: 'Mehr', launcherRestarts: 'startet von selbst neu', launcherGet: 'Herunterladen', launcherUpdatingTo: 'Launcher wird auf {v} aktualisiert…',
   launcherAfter: 'danach Signaturprüfung und Neustart', chWaitingShort: 'Anmeldung im Browser…', meRating: '1v1-Wertung · {r}',
-  lvAddonAsk: 'Zum Zuschauen braucht es das Add-on „Watch running matches“. Der Launcher aktiviert es, startet das Spiel und öffnet dieses Match.' });
+  lvAddonAsk: 'Zum Zuschauen braucht es das Add-on „Live replay“. Der Launcher aktiviert es, startet das Spiel und öffnet dieses Match.' });
 let S = null;          // last status from Rust
 let lang = 'en';
 // the system's language (WebView2 takes the Windows display language): the first of ours among the preferred ones, else en
-const LANG_NAMES = { en: 'English', ru: 'Русский', es: 'Español', fr: 'Français', de: 'Deutsch' };
+const LANG_NAMES = { en: 'English', ru: 'Русский', es: 'Español', fr: 'Français', de: 'Deutsch' };   // i18n-ok: each language by its own name
 function sysLang() {
   for (const l of (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || 'en'])) {
     const c = String(l).slice(0, 2).toLowerCase(); if (LANG_NAMES[c]) return c;
@@ -1262,8 +1532,73 @@ const day = d => {
   return isNaN(x) ? d : x.toLocaleDateString(lang, { day: 'numeric', month: 'long', year: x.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' });
 };
 
+// 1.5.10: the errors of the Rust side and of our servers come as English text (a few as Russian): in the player's language
+// here. A row: the pattern, the key, the names of its groups ({p}, {e}...); the technical tail (an OS or network message)
+// stays as it came. Unknown texts are shown as they are. scripts/i18n_check.py checks every error text of the Rust code
+// has its row.
+const ERR_TXT = [
+  // update::Error: "Network: ..." / "Disk: ..." around the cause (the cause is translated too)
+  [/^Network: ([^]*)$/, 'errNet', ['e']],
+  [/^Disk: ([^]*)$/, 'errDisk', ['e']],
+  [/^files are being updated, wait a few seconds$/, 'errBusy'],
+  [/^game folder not found$/, 'errNoGameDir'],
+  [/^this is not the game folder$/, 'errNotGameDir'],
+  [/^(\S+) not found in this folder$/, 'errNotFound', ['p']],
+  [/^(.+): ([^]*) \(is the game running\?\)$/, 'errFileBusy', ['f', 'e']],
+  [/^(.+): checksum mismatch after download$/, 'errChecksum', ['f']],
+  [/^(\w+): "(.*)" is not a key the game knows$/, 'errHkKey', ['k', 'v']],
+  [/^the game is running: close it to change add-ons or update$/, 'errGameRunning'],
+  [/^already running$/, 'errUpdRunning'],
+  [/^the game is already running$/, 'errGameAlready'],
+  [/^unsupported link$/, 'errLink'],
+  [/^no connection to the update server yet$/, 'errNoConfig'],
+  [/^no log files found yet/, 'errNoLogs'],
+  [/^(log upload|the server) is not configured in this build$|^no mirrors configured$/, 'errNoHosts'],
+  [/^could not send logs: ([^]*)$/, 'errLogs', ['e']],
+  [/^cannot start (.+?) through Proton: ([^]*)$/, 'errStartProton', ['p', 'e']],
+  [/^cannot start (.+?) as administrator: ([^]*)$/, 'errStartAdmin', ['p', 'e']],
+  [/^cannot start (.+?): ([^]*)$/, 'errStart', ['p', 'e']],
+  [/^no Proton prefix (.+) - start the game once from Steam$/, 'errNoPrefix', ['p']],
+  [/^the game is not in a Steam library$/, 'errNotSteamLib'],
+  [/^Steam not found$/, 'errNoSteam'],
+  [/^no Proton found \(Steam maps the game to (.*)\)$/, 'errNoProton', ['e']],
+  [/^no launcher update (on our hosts|found)$/, 'errNoLauncherUpd'],
+  [/^the server does not answer$/, 'errNoAnswer'],
+  [/^not on this system$/, 'errOs'],
+  [/^the game has not written its key settings yet/, 'errNoKeys'],
+  [/^Documents folder not found$/, 'errNoDocs'],
+  [/^configuration\.lua is not what we expect$|^configuration\.lua: \w+ has no value$/, 'errCfgOdd'],
+  [/^(configuration\.lua|keydefaults\.lua): ([^]*)$/, 'errGameFile', ['f', 'e']],
+  [/^UI scale: (\d+)\.\.(\d+)$/, 'errUiScale', ['a', 'b']],
+  [/^[Cc]ancelled$/, 'cancelled'],
+  [/^offline: /, 'offline'],
+  [/^timeout$/, 'errTimeout'],
+  [/^(launcher\.json signature is invalid|manifest .+: signature is invalid)/, 'errSig'],
+  [/^(launcher\.json: .+|bad version id|bad version|manifest version mismatch|manifest truncated|not an Elite manifest|unsafe path in manifest: .+|bad path in the archive: .+|the archive is too big|no index\.html in the archive|size \d+ instead of \d+|the checksum does not match)$/, 'errBadData', ['e']],
+  [/^(unknown call|no room id|no room|no match|bad server|internal|secret key must be 32 bytes)$/, 'errInternal', ['e']],
+  // the players' chat (community.py say) and the developers' chat (ladder.py fb/send)
+  [/^sign in with Steam to write$/, 'chErrSignIn'],
+  [/^you cannot write in the chat$/, 'chErrBanned'],
+  [/^too fast$/, 'chErrFast'],
+  [/^(blocked|rejected)$/, 'chErrModeration'],
+];
+// the servers' Russian texts (shown as they are in Russian, by their key in the other languages)
+const SRV_TEXT_RU = { 'Не отправлено: сообщение не прошло модерацию': 'chErrModeration', 'Сообщение не отправлено: не прошло модерацию': 'fbModeration' };
+const srvRuKey = s => { const k = Object.keys(SRV_TEXT_RU).find(p => s.startsWith(p)); return k ? SRV_TEXT_RU[k] : ''; };
+function errText(e) {
+  const s = String(e && e.message ? e.message : e == null ? '' : e).trim();
+  const ru = srvRuKey(s);
+  if (ru) return lang === 'ru' ? s : t(ru);
+  for (const [re, key, names] of ERR_TXT) {
+    const m = s.match(re); if (!m) continue;
+    // {e} is a message of its own (the cause): translated too when it is one of these; never the whole text again
+    const vars = {}; (names || []).forEach((n, i) => { const v = m[i + 1] != null ? m[i + 1] : m[0]; vars[n] = n === 'e' && v.length < s.length ? errText(v) : v; });
+    return t(key, vars);
+  }
+  return s;
+}
 function toast(msg, err) {
-  const el = $('toast'); el.textContent = String(msg); el.className = 'toast' + (err ? ' err' : '');
+  const el = $('toast'); el.textContent = err ? errText(msg) : String(msg); el.className = 'toast' + (err ? ' err' : '');
   clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.add('hidden'), 4500);
 }
 
@@ -1581,7 +1916,7 @@ async function launcherCheck() {
 async function launcherInstall() {
   LU.installing = true; LU.pct = ''; renderLauncherBanner();
   try { await invoke('launcher_install'); }   // the launcher restarts into the new version
-  catch (e) { LU.installing = false; renderLauncherBanner(); toast(t('launcherFail', { e }), true); }
+  catch (e) { LU.installing = false; renderLauncherBanner(); toast(t('launcherFail', { e: errText(e) }), true); }
 }
 
 let trayLang = '';
@@ -1758,7 +2093,7 @@ function render() {
     $('bar').classList.add('hidden');
     $('statusText').classList.toggle('err', !!(S.last_error && S.config_loaded));
     $('statusText').innerHTML = S.last_error && !S.config_loaded ? esc(t('offline'))
-      : S.last_error ? esc(winPath(S.last_error))
+      : S.last_error ? esc(winPath(errText(S.last_error)))
       : VAN() ? esc(t('readyVanilla'))
       : S.installed_version ? esc(t('ready', { v: activeCh ? L(activeCh.name).replace(/^Elite\s+/i, '') : S.installed_version })) : (S.config_loaded ? '' : esc(t('connecting')));
     const hint = VAN() ? '' : L(cfg.launch?.[S.os]?.hint);   // the launch hint is about starting Elite
@@ -2195,7 +2530,7 @@ async function roomJoin(id, name, btn, leave, game) {
       }
     }
     await invoke('room_join', { id: room, name: RJ.name, wait, leave: !!leave, game: want });
-  } catch (e) { rjShow(String(e), 'err'); }
+  } catch (e) { rjShow(errText(e), 'err'); }
 }
 listen('room_join', e => {
   const v = e.payload || {}; const name = RJ.name;
@@ -2669,13 +3004,20 @@ function fbWatch() {   // the developers' chat: asked every 20 s only while its 
   fbLoad(); FB.timer = setInterval(fbLoad, 20000);
 }
 document.addEventListener('visibilitychange', () => fbWatch());
+// 1.5.10: the launcher's own lines in the thread in the player's language - "sent logs" (send_logs writes it in Russian and
+// English for the developers) and the server's moderation answer (Russian)
+function fbMsgText(m) {
+  const x = String(m.text || ''), lg = x.match(/^(📋|📶) .*· sent (the connection test and )?logs: (\S+) \((\d+) files\)/);
+  if (lg) return t(lg[1] === '📶' ? 'fbNoteNet' : 'fbNoteLogs', { id: lg[3], n: lg[4] });
+  return lang !== 'ru' && srvRuKey(x) ? t(srvRuKey(x)) : x;
+}
 async function fbLoad() {
   let d; try { d = await invoke('fb_thread'); } catch (e) { return; }
   const key = JSON.stringify(d.messages.map(m => m.id));
   if (key === FB.last) return; FB.last = key;
   const box = $('fbMsgs'), atEnd = box.scrollTop + box.clientHeight > box.scrollHeight - 30;
   const when = ts => new Date(ts * 1000).toLocaleString(lang, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-  box.innerHTML = d.messages.length ? d.messages.map(m => `<div class="fb-m ${m.author === 'dev' ? 'dev' : 'me'}"><div class="w">${esc(m.author === 'dev' ? t('fbDev') : (m.name || t('fbMe')))} · ${when(m.ts)}</div>${esc(m.text)}` +
+  box.innerHTML = d.messages.length ? d.messages.map(m => `<div class="fb-m ${m.author === 'dev' ? 'dev' : 'me'}"><div class="w">${esc(m.author === 'dev' ? t('fbDev') : (m.name || t('fbMe')))} · ${when(m.ts)}</div>${esc(fbMsgText(m))}` +
     m.images.map(f => `<img src="${d.img_base}${encodeURIComponent(f)}?uid=${encodeURIComponent(d.uid)}" data-u="${d.img_base}${encodeURIComponent(f)}?uid=${encodeURIComponent(d.uid)}">`).join('') + '</div>').join('')
     : `<div class="fb-empty">${esc(t('fbEmpty'))}</div>`;
   box.querySelectorAll('img').forEach(i => i.onclick = () => open(i.dataset.u));
@@ -2744,7 +3086,7 @@ async function chLogin() {
     toast(t('chSignedIn', { name: CH.me.name }));
   } catch (e) {
     if (String(e) === 'cancelled') return;   // a newer click or Cancel took over
-    CH.waiting = false; chMe(); toast(t('chLoginFail') + ' ' + e, true);
+    CH.waiting = false; chMe(); toast(t('chLoginFail') + ' ' + errText(e), true);
   }
 }
 async function chLogout() { try { localStorage.setItem('chNoAuto', '1'); } catch (e) {} try { CH.me = await invoke('c_logout'); } catch (e) {} CH.prof = null; chMe(); }
@@ -3036,7 +3378,7 @@ function hkVal(k) { const b = HK.data.map[k]; return k in HK.edits ? HK.edits[k]
 function hkPretty(name) { return name.replace(/_/g, ' ').replace(/^AB key /, '').replace(/^UC Row(\d) Col(\d)/, 'row $1 · $2'); }
 async function hkLoad() {
   try { const d = await invoke('hotkeys_get'); HK.data = d; HK.data.map = {}; d.bindings.forEach(b => HK.data.map[hkKey(b)] = b); HK.grid = d.grid; HK.edits = {}; hkRender(); }
-  catch (e) { $('hkGridBox').innerHTML = `<div class="note">${esc(String(e))}</div>`; }
+  catch (e) { $('hkGridBox').innerHTML = `<div class="note">${esc(errText(e))}</div>`; }
 }
 // with Grid Hotkeys on, the grid table re-assigns some commands (reinforce, melee, stance, repair) - those are the ones that work
 function hkMainKey(n) { const r = hkLinked(n); if (r.length) { const v = hkLinkVal(n); return r.find(k => hkVal(k) === v); } return HK.grid && HK.data.map['grid:' + n] ? 'grid:' + n : ':' + n; }

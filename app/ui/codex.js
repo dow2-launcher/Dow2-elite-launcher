@@ -88,6 +88,6 @@ async function codexOpen(any) {
     codexMsg(`<div>${esc(ver ? t('codexNone', { v: codexShow(ver) }) : t('codexNoGame'))}</div>`
       + (o ? `<button class="btn gold small" data-cx="any">${esc(t('codexOpenOther', { t: o.title || ('Elite ' + o.id) }))}</button>` : ''));
   } else if (why === 'offline') codexMsg(`<div>${esc(t('codexOfflineNone'))}</div>${retry}`);
-  else codexMsg(`<div>${esc(t('codexErr', { e: r.error || '' }))}</div>${retry}`);
+  else codexMsg(`<div>${esc(t('codexErr', { e: errText(r.error || '') }))}</div>${retry}`);
 }
 document.querySelector('.tab[data-view="codex"]').addEventListener('click', () => codexOpen(false));

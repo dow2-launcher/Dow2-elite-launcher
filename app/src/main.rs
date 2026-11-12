@@ -1834,8 +1834,8 @@ async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Result<
                 Ok(r) => {
                     let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                     let note = json!({"uid": uid, "name": if fb_name.is_empty() { who.clone() } else { fb_name.clone() },
-                        "text": if nettest { format!("📶 Отправил проверку связи и логи · sent the connection test and logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n) }
-                                else { format!("📋 Отправил логи · sent logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n) },
+                        "text": if nettest { format!("📶 Отправил проверку связи и логи · sent the connection test and logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n) }   // i18n-ok: both languages for the developers; the window shows it in the player's (app.js fbMsgText)
+                                else { format!("📋 Отправил логи · sent logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n) },   // i18n-ok
                         "launcher": LAUNCHER_VERSION, "os": os_name(), "elite": elite_v}).to_string();
                     let _ = HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(20))
                         .set("Content-Type", "application/json").send_string(&note);
