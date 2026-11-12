@@ -47,6 +47,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # every UI text in all five languages, no Russian outside the Russian texts, every error of the Rust side
+      # translated by the window (scripts/i18n_check.py; a new untranslated string fails the build)
+      - name: Translations
+        run: python3 scripts/i18n_check.py --keys
       - id: version
         env:
           EVENT: ${{ github.event_name }}
