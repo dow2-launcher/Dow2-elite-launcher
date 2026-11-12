@@ -1,0 +1,4 @@
+- Every screen speaks the chosen language: the lobby join, Watch and mirror messages are now in Spanish, French and German too; the launcher's room (the reasons a start was called off, the servers' places, the errors of the room) has no English or Russian leftovers.
+- Errors from the launcher itself and from our servers (updates, Proton, hotkeys, UI scale, chat sending, moderation) are shown in your language; the "sent logs" lines in the developers' chat too.
+- Add-ons are named in texts as on their cards: "Lobby join", "Live replay", "Automatch v2.0".
+- A check in the build fails on any new untranslated text (scripts/i18n_check.py).
