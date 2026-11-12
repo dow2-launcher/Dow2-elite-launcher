@@ -48,6 +48,8 @@ Object.assign(T.de, {
 const CX = { busy: false, ok: false, ver: null, lang: '' };
 const codexVer = () => (S && (S.installed_version || S.target_version)) || '';
 const codexLang = () => lang === 'ru' ? 'ru' : 'en';
+// for the eye: 3.2.1.0.0 -> 3.2.1 (the zero parts after the third say nothing to a player; the version is the same, see verSame)
+const codexShow = v => { const p = String(v || '').split('.'); while (p.length > 3 && /^0+$/.test(p[p.length - 1])) p.pop(); return p.join('.'); };
 function codexMsg(html) {
   const m = $('codexMsg');
   m.innerHTML = html;
@@ -61,7 +63,7 @@ async function codexOpen(any) {
   if (CX.ok && CX.ver === ver && CX.lang === wl) return;   // it shows this one already: the player stays on his page
   CX.busy = true;
   $('codexNote').textContent = '';
-  codexMsg(`<div class="codex-spin" aria-hidden="true"></div><div>${esc(t('codexLoading', { v: ver || '…' }))}</div>`);
+  codexMsg(`<div class="codex-spin" aria-hidden="true"></div><div>${esc(t('codexLoading', { v: codexShow(ver) || '…' }))}</div>`);
   let r;
   try { r = await invoke('codex_open', { ver, any: !!any || !ver }); } catch (e) { r = { ok: false, why: 'app' }; }
   CX.busy = false;
@@ -73,7 +75,7 @@ async function codexOpen(any) {
     $('codexMsg').classList.add('hidden');
     const bits = [r.title || ('Elite ' + r.id)];
     if (r.built) bits.push(t('codexBuilt', { d: r.built }));
-    if (!r.exact && ver) bits.push(t('codexOtherNote', { mine: ver }));
+    if (!r.exact && ver) bits.push(t('codexOtherNote', { mine: codexShow(ver) }));
     if (r.offline) bits.push(t('codexOffline')); else if (r.stale) bits.push(t('codexStale'));
     $('codexNote').textContent = bits.join(' · ');
     return;
@@ -83,7 +85,7 @@ async function codexOpen(any) {
   if (why === 'app') codexMsg(`<div>${esc(t('codexNoApp'))}</div>`);
   else if (why === 'none') {
     const o = (r.others || [])[0];
-    codexMsg(`<div>${esc(ver ? t('codexNone', { v: ver }) : t('codexNoGame'))}</div>`
+    codexMsg(`<div>${esc(ver ? t('codexNone', { v: codexShow(ver) }) : t('codexNoGame'))}</div>`
       + (o ? `<button class="btn gold small" data-cx="any">${esc(t('codexOpenOther', { t: o.title || ('Elite ' + o.id) }))}</button>` : ''));
   } else if (why === 'offline') codexMsg(`<div>${esc(t('codexOfflineNone'))}</div>${retry}`);
   else codexMsg(`<div>${esc(t('codexErr', { e: r.error || '' }))}</div>${retry}`);
