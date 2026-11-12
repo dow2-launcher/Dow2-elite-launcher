@@ -20,8 +20,9 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager};
 
-const VERBS: [&str; 18] = ["create", "join", "leave", "seat", "army", "ready", "conf", "kick", "pings", "here", "get", "ticket", "game", "cancel", "start", "stop",
-    "invite", "ping"];   // 1.5.3: an invitation, the ready check / a call of the host (lroom.py)
+const VERBS: [&str; 19] = ["create", "join", "leave", "seat", "army", "ready", "conf", "kick", "pings", "here", "get", "ticket", "game", "cancel", "start", "stop",
+    "invite", "ping",     // 1.5.3: an invitation, the ready check / a call of the host (lroom.py)
+    "ping_answer"];       // 1.5.12: the pinged player's answer (yes / no) - the room shows it next to his name
 
 /// One room call: Ok(the server's answer) whatever it says, Err only when no host answered.
 fn call(token: &str, verb: &str, body: &Value) -> Result<Value, String> {
@@ -206,7 +207,10 @@ pub async fn lroom_probe(app: AppHandle) -> Value {
 /// 1.5.3: a ping or an invitation came (the window shows its box and plays the lobby's sound): the taskbar button flashes; a
 /// launcher hidden in the tray comes back while no game runs (over a running game it only flashes - never on top of a match).
 #[tauri::command]
-pub fn lroom_attention(app: AppHandle, running: bool) {
+pub fn lroom_attention(app: AppHandle, running: bool, audio: Option<String>) {
+    // 1.5.12 (owner 12.11.2026: "the pings make no sound"): the window's sound state goes to community.log with every call,
+    // so a player's send-logs shows what held it back (the WebView's autoplay rule: "suspended" = no click in the window yet)
+    if let Some(a) = audio { crate::c_log(&format!("lroom attention: sound {}", a.chars().filter(|c| c.is_ascii_graphic() || *c == ' ').take(60).collect::<String>())); }
     if let Some(w) = app.get_webview_window("main") {
         if !running && !w.is_visible().unwrap_or(true) { let _ = w.unminimize(); let _ = w.show(); }
         let _ = w.request_user_attention(Some(tauri::UserAttentionType::Informational));
