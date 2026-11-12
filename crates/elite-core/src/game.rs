@@ -71,12 +71,17 @@ pub fn steam_libraries() -> Vec<PathBuf> {
     libs
 }
 
-/// Where the game keeps Documents\My Games: on Linux under Proton - inside the game's prefix, else the user's Documents.
+/// Where the game keeps Documents\My Games: the add-on "Documents fix" moved it (1.5.9: the game may not write to Documents -
+/// DocsFix.redirect next to DocsFix.dll names the new place); on Linux under Proton - inside the game's prefix; else the user's Documents.
 pub fn documents_dir() -> Option<PathBuf> {
+    let g = crate::config::GameInfo::default();
+    let game = find_game(&g.folder, &g.marker);
+    if let Some(d) = game.as_deref().and_then(crate::docscheck::docsfix_redirect) {
+        return Some(d);
+    }
     #[cfg(target_os = "linux")]
     {
-        let g = crate::config::GameInfo::default();
-        if let Some(d) = find_game(&g.folder, &g.marker).and_then(|dir| crate::proton::prefix_documents(&dir, g.steam_appid)) {
+        if let Some(d) = game.as_deref().and_then(|dir| crate::proton::prefix_documents(dir, g.steam_appid)) {
             return Some(d);
         }
     }

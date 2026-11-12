@@ -1,0 +1,2 @@
+- "Send logs" checks whether the game can save into its folder in Documents (settings, replays): a write test, when the settings and the last replay were saved, Windows Security's Controlled folder access and the game's blocks in its log.
+- With the new add-on "Documents fix" on (it moves the game's settings and replays when Windows does not let the game write to Documents), hotkeys, UI scale and "Send logs" use the new folder.

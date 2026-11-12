@@ -1763,6 +1763,64 @@ async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Result<
                 out += "\n\n"; n += 1;
             }
         }
+        // 1.5.9: can the game write its folder in Documents? (Malum 12.11.2026: volume reset after every start, no replays
+        // since 30.08.) The usual folder and the one of the add-on "Documents fix" (DocsFix.redirect) when it moved it; a write
+        // test from the launcher (the game process checks itself in DocsFix.log); Controlled folder access and its blocks.
+        {
+            use elite_core::docscheck;
+            let real_docs = dir.as_ref().and_then(|d| elite_core::proton::prefix_documents(d, 56400)).or_else(dirs::document_dir);
+            let redirect = dir.as_deref().and_then(docscheck::docsfix_redirect);
+            let mut lines: Vec<String> = Vec::new(); let mut sum: Vec<String> = Vec::new();
+            if let Some(d) = &real_docs {
+                let c = docscheck::check_folder(&d.join("My Games").join(docscheck::GAME_FOLDER));
+                let w = |r: &Option<(i32, String)>| match r { None => "ok".to_string(), Some((c, _)) => format!("FAILED {c}") };
+                sum.push(format!("launcher write test Settings {}, Playback {}; configuration.lua {}, temp.rec {}; game log started {}",
+                    w(&c.settings_write), w(&c.playback_write), c.cfg.map(docscheck::utc).unwrap_or_else(|| "missing".into()),
+                    c.rec.map(docscheck::utc).unwrap_or_else(|| "missing".into()), c.log_start));
+                lines.push(format!("Documents: {}", d.display())); lines.extend(c.lines);
+            } else { lines.push("Documents: not found".into()); sum.push("no Documents folder".into()); }
+            match &redirect {
+                Some(r) => { let c = docscheck::check_folder(&r.join("My Games").join(docscheck::GAME_FOLDER));
+                    sum.push(format!("Documents fix ON: the game uses {}", r.display()));
+                    lines.push(format!("Documents fix (DocsFix.redirect): the game's Documents is {}", r.display())); lines.extend(c.lines); }
+                None => lines.push("Documents fix: not redirecting (no DocsFix.redirect next to DocsFix.dll)".into()),
+            }
+            let (cfa, allowed) = docscheck::controlled_folder_access();
+            lines.push(format!("Controlled folder access (Windows Security > Ransomware protection): {cfa}; {allowed}"));
+            let mut blocks = 0usize; let mut game_blocks: Vec<String> = Vec::new();
+            #[cfg(windows)]
+            {
+                use std::os::windows::process::CommandExt;
+                // 1123 = blocked, 1124 = audited (would have been blocked); last 30 days, newest first; XML: field names are not translated
+                let q = "*[System[(EventID=1123 or EventID=1124) and TimeCreated[timediff(@SystemTime) <= 2592000000]]]";
+                match std::process::Command::new("wevtutil").args(["qe", "Microsoft-Windows-Windows Defender/Operational", "/c:200", "/rd:true", "/f:xml", &format!("/q:{q}")])
+                    .creation_flags(0x0800_0000).output() {
+                    Ok(o) if o.status.success() => {
+                        let t = procs::oem_text(&o.stdout);
+                        let field = |ev: &str, name: &str| ev.split(&format!("<Data Name='{name}'>")).nth(1).and_then(|x| x.split("</Data>").next()).unwrap_or("").to_string();
+                        for ev in t.split("<Event ").skip(1) {
+                            blocks += 1;
+                            let id = ev.split("<EventID>").nth(1).and_then(|x| x.split('<').next()).unwrap_or("?");
+                            let when = ev.split("SystemTime='").nth(1).and_then(|x| x.get(..16)).unwrap_or("?").replace('T', " ");
+                            let (pr, path) = (field(ev, "Process Name"), field(ev, "Path"));
+                            let l = format!("{pr} {path}").to_ascii_lowercase();
+                            if l.contains("dow2") || l.contains("elite") || l.contains("dawn of war") {
+                                game_blocks.push(format!("{when} UTC {} {pr} -> {path}", if id == "1124" { "audit" } else { "BLOCKED" }));
+                            }
+                        }
+                        lines.push(format!("Controlled folder access events (1123 blocked / 1124 audit), last 30 days: {blocks}, of them the game / Elite: {}", game_blocks.len()));
+                        for g in game_blocks.iter().take(12) { lines.push(format!("  {g}")); }
+                    }
+                    Ok(o) => lines.push(format!("Controlled folder access events: wevtutil failed: {}", procs::oem_text(&o.stderr).trim())),
+                    Err(e) => lines.push(format!("Controlled folder access events: wevtutil did not start: {e}")),
+                }
+            }
+            sum.push(format!("Controlled folder access {cfa}, {} blocks of the game in 30 days{}", game_blocks.len(),
+                game_blocks.first().map(|g| format!(" (last {g})")).unwrap_or_default()));
+            let _ = blocks;
+            out += &format!("=== Documents check (launcher {LAUNCHER_VERSION}) ===\nDOCSCHECK_L {}\n{}\n\n", sum.join(" | "), lines.join("\n"));
+            n += 1;
+        }
         if n == 0 { return Err("no log files found yet — play once with the add-ons on, then send".into()); }
         let who: String = who.chars().filter(|c| c.is_alphanumeric() || "._-".contains(*c)).take(32).collect();
         let who = if who.is_empty() { "anon".to_string() } else { who };
