@@ -180,7 +180,10 @@ fn open_blocking(app: &AppHandle, ver: &str, any: bool) -> Value {
     let s = st.settings.lock().unwrap().clone();
     let m = mirrors(&s, st.config.lock().unwrap().as_ref());
     let got = m.get("wiki/index.json");
-    data_note(&m, got.is_ok());
+    // every mirror said "not found": nothing is published (not a way that is lost - the mirrors' order stays)
+    let missing = matches!(&got, Err(e) if e.to_string().contains("404"));
+    data_note(&m, got.is_ok() || missing);
+    if missing { return json!({"ok": false, "why": "none", "ver": ver, "others": []}); }
     let (index, online, err) = match got.map(|b| (serde_json::from_slice::<Value>(&b).ok(), b)) {
         Ok((Some(v), b)) if v["wikis"].is_array() => {
             let _ = std::fs::write(root().join("index.json"), &b);
@@ -189,12 +192,8 @@ fn open_blocking(app: &AppHandle, ver: &str, any: bool) -> Value {
         Ok(_) => (None, true, "bad index".to_string()),
         Err(x) => (None, false, x.to_string()),
     };
-    // all mirrors answered "not found": nothing is published yet
-    let published = !err.contains("404");
     let index = index.or_else(|| std::fs::read(root().join("index.json")).ok().and_then(|b| serde_json::from_slice(&b).ok()));
-    let Some(index) = index else {
-        return if published { json!({"ok": false, "why": "offline", "error": err}) } else { json!({"ok": false, "why": "none", "ver": ver, "others": []}) };
-    };
+    let Some(index) = index else { return json!({"ok": false, "why": "offline", "error": err}) };
     let list = entries(&index);
     let fresh = online && err.is_empty();
     let e = match pick(&list, ver) {
