@@ -6,7 +6,8 @@ The UI texts live in the `T` dictionary (app/ui/app.js: `const T = { en: {...}, 
 
   1. every key is in all the languages (en, ru, es, fr, de);
   2. the {placeholders} of a key are the same in every language;
-  3. no Cyrillic in the en/es/fr/de texts;
+  3. no Cyrillic in the en/es/fr/de texts; an es/fr/de text of two or more words is not the English one copied
+     (names and terms that stay English: SAME_AS_EN);
   4. no Cyrillic in the UI code outside the dictionaries (a Russian string in the code shows to everybody); allowed:
      the Russian-only maps `const <NAME>_RU = {...}` (used only when lang === 'ru') and a line marked `// i18n-ok`;
   5. every t('literal') key of the code is in the dictionary;
@@ -34,6 +35,9 @@ CYR = re.compile(r"[Ѐ-ӿ]")
 PH = re.compile(r"\{(\w+)\}")
 # the language list shows each language by its own name
 NATIVE_NAMES = {"Русский"}
+# texts that are the same as the English ones on purpose (names, the players' terms)
+SAME_AS_EN = {"win_vpc_hero", "race_ordo_malleus", "race_space_marines", "vanillaName", "netTry", "gnStreamOk", "gnTcpOk",
+              "ntTcpOk", "addonChgVer", "gnUdpMs", "uiScale", "playCd"}
 # the codes our servers send that the page shows by a key (prefix + code); keep in step with the ladder (lroom.py)
 SERVER_CODES = {
     "e_": ["auth", "bad", "bad_map", "busy", "full", "kicked", "no_room", "not_ready", "obs", "obs_full", "owner", "state", "taken",
@@ -275,11 +279,18 @@ def dictionaries(path, src, toks):
     for k, t in enumerate(toks):
         # const T = { en: {...}, ... }
         if t.val == "const" and toks[k + 1].val == "T" and toks[k + 2].val == "=" and toks[k + 3].val == "{":
-            obj, _, end = parse_obj(toks, k + 3)
-            for lang, d in obj.items():
-                if lang not in LANGS or not isinstance(d, dict):
+            j = k + 4
+            while toks[j].val != "}":
+                if toks[j].val == ",":
+                    j += 1
+                    continue
+                lang = toks[j].val
+                if lang not in LANGS or toks[j + 1].val != ":" or toks[j + 2].val != "{":
                     raise SyntaxError(f"{path.name}: T.{lang} is not a language dictionary")
-                dicts.append((lang, d, toks[k + 3].start, end))
+                start = toks[j + 2].start
+                d, j, end = parse_obj(toks, j + 2)
+                dicts.append((lang, d, start, end))
+
         # Object.assign(T.xx, { ... })
         if t.val == "Object" and toks[k + 1].val == "." and toks[k + 2].val == "assign" and toks[k + 3].val == "(" \
                 and toks[k + 4].val == "T" and toks[k + 5].val == "." and toks[k + 7].val == "," and toks[k + 8].val == "{":
@@ -347,6 +358,11 @@ def check_ui(problems, report_keys=False):
         for l in have:
             if ph[l] != ref:
                 problems.append(f"{where.get(key, '?')}: key {key!r}: placeholders {sorted(ph[l])} in {l}, {sorted(ref)} in en")
+        if "en" in texts and key in texts["en"] and key not in SAME_AS_EN:
+            words = re.findall(r"[A-Za-z]{2,}", PH.sub("", texts["en"][key]))
+            for l in ("es", "fr", "de"):
+                if len(words) >= 2 and texts[l].get(key) == texts["en"][key]:
+                    problems.append(f"{where.get(key, '?')}: key {key!r}: T.{l} is the English text copied: {texts['en'][key][:60]!r}")
         for l in have:
             if l != "ru" and CYR.search(texts[l][key]):
                 problems.append(f"{where.get(key, '?')}: key {key!r}: Russian text in T.{l}: {texts[l][key][:80]!r}")
