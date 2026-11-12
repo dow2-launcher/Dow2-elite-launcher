@@ -8,6 +8,7 @@
 #![recursion_limit = "256"]   // get_status' json! grew past the default 128
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod codex;
 mod conntest;
 mod netgame;
 mod reach;
@@ -2898,6 +2899,11 @@ fn main() {
                 std::fs::read(data_dir().join("news.json")).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default(),
             ),
         })
+        // 1.5.8: the Codex tab's frame - the unpacked Codex of the Elite version from <data>/wiki only (codex.rs)
+        .register_asynchronous_uri_scheme_protocol(codex::SCHEME, |_ctx, req, responder| {
+            let path = req.uri().path().to_string();
+            std::thread::spawn(move || responder.respond(codex::serve(&path)));
+        })
         .setup(|app| {
             // 1.4.9: links elite://join/<id>?name=... (the ladder site's Join): registered for this user at every start (the
             // installer does it too; this covers the portable zip and the AppImage), handled like Join in the Lobbies tab
@@ -3028,7 +3034,8 @@ fn main() {
             hotkeys_get, hotkeys_save, hotkeys_reset, ui_scale_get, ui_scale_set, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
             relic_probe, game_net_check, set_game_mode,
-            conntest::nettest_run, conntest::nettest_cancel, conntest::nettest_history, conntest::nq_api
+            conntest::nettest_run, conntest::nettest_cancel, conntest::nettest_history, conntest::nq_api,
+            codex::codex_open
         ])
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")

@@ -1,0 +1,1 @@
+- New tab "Codex": the reference of your Elite version - squads, heroes, weapons, abilities, buildings and economy, with search and comparison (RU/EN). It is downloaded from our mirrors the first time you open it and works offline afterwards; a new Elite patch brings its own Codex without a launcher update.
