@@ -1,0 +1,10 @@
+/* 1.5.8: the Codex tab (codex.js) - the reference site in a frame that fills the panel, one line above it */
+#codex{display:flex;justify-content:center}
+.codex-page{width:100%;max-width:1500px;min-height:0;display:flex;flex-direction:column}
+.codex-head{flex:none}
+#codexFrame{flex:1;min-height:0;width:100%;display:block;border:1px solid var(--sep);background:#111518}
+.codex-msg{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;color:var(--soft);font-size:14px}
+.codex-msg>div{max-width:560px}
+.codex-spin{width:26px;height:26px;border-radius:50%;border:3px solid var(--sep);border-top-color:var(--gold);animation:codex-spin 1s linear infinite}
+@keyframes codex-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.codex-spin{animation:none}}
