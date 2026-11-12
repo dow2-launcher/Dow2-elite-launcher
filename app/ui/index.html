@@ -6,7 +6,6 @@
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="nettest.css">
-<link rel="stylesheet" href="codex.css">
 <!-- the game's art extracted by scripts/game-art: overrides of the art slots (style.css :root) and the icons -->
 <link rel="stylesheet" href="img/ui/art.css">
 <script src="img/ui/art.js"></script>
@@ -17,7 +16,7 @@
 <div class="app">
   <header>
     <div class="brand"><span class="logo">ELITE</span><span class="hdr-ver" id="hdrVer"></span></div>
-    <nav><button class="tab on" data-view="home" data-t="home"></button><button class="tab" data-view="rooms" data-t="roomsTab"></button><button class="tab" data-view="addons" data-t="components"></button><button class="tab" data-view="codex" data-t="codexTab"></button><button class="tab tab-ico" data-view="settings" data-ta="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></nav>
+    <nav><button class="tab on" data-view="home" data-t="home"></button><button class="tab" data-view="rooms" data-t="roomsTab"></button><button class="tab" data-view="addons" data-t="components"></button><button class="tab tab-ico" data-view="settings" data-ta="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></nav>
     <div class="hdr-me" id="hdrMe"><span id="mePlate"></span><section class="me-box hidden" id="meBox" role="menu"></section></div>
   </header>
   <!-- 1.5.3 (owner 10.11): the updates - a newer launcher, a newer Elite - in one strip under the header, one Update on the right;
@@ -107,15 +106,6 @@
   <main id="addons" class="view hidden">
     <section class="panel addons-page">
       <div class="h hk-head addons-head"><span data-t="components"></span><span class="hk-note" id="addonCheckNote"></span><div class="hk-act"><button class="btn small" id="addonCheck" data-t="addonCheck"></button></div></div>      <div class="addon-all" id="allCompList"></div>
-    </section>
-  </main>
-
-  <!-- 1.5.8: the Codex - the reference of the Elite version (codex.js): a line with its version, the site in a frame under it -->
-  <main id="codex" class="view hidden">
-    <section class="panel codex-page">
-      <div class="h codex-head"><span data-t="codexTitle"></span><span class="hk-note" id="codexNote"></span></div>
-      <div class="codex-msg hidden" id="codexMsg" role="status" aria-live="polite"></div>
-      <iframe id="codexFrame" class="hidden" title="Codex" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"></iframe>
     </section>
   </main>
 
@@ -212,6 +202,5 @@
 <div class="toast hidden" id="toast"></div>
 <script src="app.js"></script>
 <script src="lroom.js"></script>
-<script src="codex.js"></script>
 </body>
 </html>

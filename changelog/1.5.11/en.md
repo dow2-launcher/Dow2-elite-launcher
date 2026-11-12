@@ -1,0 +1,1 @@
+- The Codex tab is removed from the launcher (it did not open on Windows). The Elite reference stays a separate web page.
