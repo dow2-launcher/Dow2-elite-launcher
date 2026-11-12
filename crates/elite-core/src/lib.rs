@@ -5,6 +5,7 @@
 //! mirror fail-over and game detection. See README.md at the repository root.
 pub mod cdc;
 pub mod config;
+pub mod docscheck;
 pub mod elite;
 pub mod game;
 pub mod hotkeys;
