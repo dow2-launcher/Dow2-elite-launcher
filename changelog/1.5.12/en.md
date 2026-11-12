@@ -1,0 +1,1 @@
+- Codex on Windows: the tab showed "This content is blocked" instead of the reference (1.5.9 lost the permission for its frame), and its pictures did not load - fixed: every page now comes with its pictures, styles and scripts.

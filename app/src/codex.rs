@@ -276,19 +276,89 @@ fn file_of(path: &str) -> Option<PathBuf> {
     f.is_file().then_some(f)
 }
 
+/// A link of the page `page` ("<id>/unit/x.html") to `rel` ("../img/a.webp") as a path inside the same Codex ("<id>/img/a.webp");
+/// None for anything else (another scheme, an absolute path, a query, a way out of the Codex folder).
+fn resolve(page: &str, rel: &str) -> Option<String> {
+    if rel.is_empty() || rel.contains(':') || rel.starts_with('/') || rel.contains('?') || rel.contains('#') || rel.contains('\\') { return None; }
+    let mut parts: Vec<&str> = page.split('/').collect();
+    parts.pop();
+    for x in rel.split('/') {
+        match x {
+            "" | "." => {}
+            ".." => { if parts.len() <= 1 { return None; } parts.pop(); }
+            x => parts.push(x),
+        }
+    }
+    Some(parts.join("/"))
+}
+
+/// 1.5.12 (Malum 12.11, Windows: the Codex opened without its pictures): a page goes out WITH its style sheet, scripts and
+/// pictures (data: URIs), so the frame needs one request per page - the navigation, which every webview hands to the scheme.
+/// WebView2 serves a custom scheme as http://codex.localhost/ and the requests a frame of another origin makes itself
+/// (its pictures) do not reliably reach the scheme's handler there (WebView2Feedback #1114; newer Chromium also checks
+/// requests to *.localhost from a page with no address as "local network access"). Nothing of the site changes; a file
+/// that is missing or too big keeps its link.
+fn inline(page: &str, html: &str) -> String {
+    const MAX: u64 = 4 << 20;
+    let read = |rel: &str| -> Option<(PathBuf, Vec<u8>)> {
+        let f = file_of(&format!("/{}", resolve(page, rel)?))?;
+        if std::fs::metadata(&f).ok()?.len() > MAX { return None; }
+        Some((f.clone(), std::fs::read(&f).ok()?))
+    };
+    // replace every `<head>VALUE<tail>` by what `f` makes of VALUE (None: leave it)
+    let each = |src: &str, head: &str, tail: &str, f: &dyn Fn(&str) -> Option<String>| -> String {
+        let mut out = String::with_capacity(src.len());
+        let mut rest = src;
+        while let Some(i) = rest.find(head) {
+            let after = &rest[i + head.len()..];
+            let Some(j) = after.find(tail) else { break };
+            out.push_str(&rest[..i]);
+            match f(&after[..j]) {
+                Some(x) => out.push_str(&x),
+                None => { out.push_str(head); out.push_str(&after[..j]); out.push_str(tail); }
+            }
+            rest = &after[j + tail.len()..];
+        }
+        out.push_str(rest);
+        out
+    };
+    let text = |rel: &str| read(rel).and_then(|(_, b)| String::from_utf8(b).ok());
+    let html = each(html, "<link rel=\"stylesheet\" href=\"", "\">", &|rel| text(rel).map(|c| format!("<style>{}</style>", c.replace("</style", "<\\/style"))));
+    let html = each(&html, "<script src=\"", "\"></script>", &|rel| text(rel).map(|c| format!("<script>{}</script>", c.replace("</script", "<\\/script").replace("<!--", "<\\!--"))));
+    each(&html, " src=\"", "\"", &|rel| {
+        let (f, b) = read(rel)?;
+        let m = mime(&f);
+        if !m.starts_with("image/") { return None; }
+        use base64::Engine;
+        Some(format!(" src=\"data:{m};base64,{}\"", base64::engine::general_purpose::STANDARD.encode(&b)))
+    })
+}
+
 /// The scheme's answer (main.rs registers it; it runs off the window's thread).
 pub fn serve(path: &str) -> tauri::http::Response<Vec<u8>> {
     let r = tauri::http::Response::builder();
     match file_of(path).and_then(|f| std::fs::read(&f).ok().map(|b| (f, b))) {
-        Some((f, body)) => r
-            .status(200)
-            .header("Content-Type", mime(&f))
-            .header("Cache-Control", "no-cache")
-            // the site needs nothing from the network: no fetch, no forms, no plugins, no other origin's scripts
-            .header("Content-Security-Policy", "default-src 'self' data: 'unsafe-inline'; connect-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'")
-            .header("X-Content-Type-Options", "nosniff")
-            .body(body)
-            .unwrap_or_default(),
+        Some((f, body)) => {
+            let m = mime(&f);
+            let body = if m.starts_with("text/html") {
+                // the page's own path inside the Codex ("<id>/unit/x.html"), its links are relative to it
+                let rel = f.strip_prefix(root()).ok().map(|p| p.components().map(|c| c.as_os_str().to_string_lossy().to_string()).collect::<Vec<_>>().join("/"));
+                match (rel, String::from_utf8(body)) {
+                    (Some(rel), Ok(h)) => inline(&rel, &h).into_bytes(),
+                    (_, Ok(h)) => h.into_bytes(),
+                    (_, Err(e)) => e.into_bytes(),
+                }
+            } else { body };
+            r.status(200)
+                .header("Content-Type", m)
+                .header("Content-Length", body.len().to_string())
+                .header("Cache-Control", "no-cache")
+                // the site needs nothing from the network: no fetch, no forms, no plugins, no other origin's scripts
+                .header("Content-Security-Policy", "default-src 'self' data: 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'")
+                .header("X-Content-Type-Options", "nosniff")
+                .body(body)
+                .unwrap_or_default()
+        }
         None => r.status(404).header("Content-Type", "text/plain").body(b"not found".to_vec()).unwrap_or_default(),
     }
 }
@@ -331,6 +401,54 @@ mod tests {
         assert!(file_of("/3.2.1/C:/x").is_none());
         assert_eq!(unescape("a%20b"), Some("a b".into()));
         assert_eq!(unescape("a%2"), None);
+    }
+
+    /// 1.5.12: the merge of 1.5.9 lost `frame-src` from the window's CSP and WebView2 blocked the whole frame ("This content
+    /// is blocked") - the window must let the frame load the scheme in every webview's form of it.
+    #[test]
+    fn the_window_lets_the_frame_in() {
+        let conf: Value = serde_json::from_str(include_str!("../tauri.conf.json")).unwrap();
+        let csp = conf["app"]["security"]["csp"].as_str().unwrap_or("");
+        let fs = csp.split(';').map(str::trim).find(|d| d.starts_with("frame-src ")).unwrap_or_else(|| panic!("no frame-src in the CSP: {csp}"));
+        for src in [format!("{SCHEME}:"), format!("http://{SCHEME}.localhost"), format!("https://{SCHEME}.localhost")] {
+            assert!(fs.split_whitespace().any(|x| x == src), "frame-src has no {src}: {fs}");
+        }
+        assert!(base_url().starts_with(if cfg!(windows) { "http://codex.localhost/" } else { "codex://localhost/" }));
+    }
+
+    #[test]
+    fn links_resolve_inside_the_codex_only() {
+        assert_eq!(resolve("3.2.1/unit/a.html", "../img/x.webp").as_deref(), Some("3.2.1/img/x.webp"));
+        assert_eq!(resolve("3.2.1/index.html", "img/x.webp").as_deref(), Some("3.2.1/img/x.webp"));
+        assert_eq!(resolve("3.2.1/index.html", "./assets/app.js").as_deref(), Some("3.2.1/assets/app.js"));
+        assert!(resolve("3.2.1/index.html", "../x.webp").is_none());
+        assert!(resolve("3.2.1/unit/a.html", "../../settings.json").is_none());
+        assert!(resolve("3.2.1/index.html", "https://x/y.webp").is_none());
+        assert!(resolve("3.2.1/index.html", "/img/x.webp").is_none());
+        assert!(resolve("3.2.1/index.html", "data:image/png;base64,AA").is_none());
+    }
+
+    #[test]
+    fn a_page_goes_out_with_its_files() {
+        let id = format!("t{}", std::process::id());
+        let d = root().join(&id);
+        let _ = std::fs::remove_dir_all(&d);
+        for p in ["unit", "img", "assets"] { std::fs::create_dir_all(d.join(p)).unwrap(); }
+        std::fs::write(d.join("img/a.webp"), b"RIFF").unwrap();
+        std::fs::write(d.join("assets/s.css"), "b{color:red}").unwrap();
+        std::fs::write(d.join("assets/app.js"), "var x='</script>';").unwrap();
+        let page = r#"<link rel="stylesheet" href="../assets/s.css"><img class="ic" src="../img/a.webp" alt=""><img src="../img/none.webp"><script src="../assets/app.js"></script><a href="../index.html">x</a>"#;
+        std::fs::write(d.join("unit/u.html"), page).unwrap();
+        let r = serve(&format!("/{id}/unit/u.html"));
+        let body = String::from_utf8(r.body().clone()).unwrap();
+        let _ = std::fs::remove_dir_all(&d);
+        assert_eq!(r.status(), 200);
+        assert!(body.contains("<style>b{color:red}</style>"), "{body}");
+        assert!(body.contains(r#"<img class="ic" src="data:image/webp;base64,UklGRg==" alt="">"#), "{body}");
+        assert!(body.contains(r#"<img src="../img/none.webp">"#), "a missing file keeps its link: {body}");
+        assert!(body.contains(r#"<script>var x='<\/script>';</script>"#), "{body}");
+        assert!(body.contains(r#"<a href="../index.html">"#));
+        assert_eq!(r.headers()["Content-Type"], "text/html; charset=utf-8");
     }
 
     #[test]
