@@ -27,6 +27,9 @@ serde_json = "1"
 dirs = "5"
 base64 = "0.22"
 ureq = { version = "2", default-features = false, features = ["tls"] }
+# 1.5.8: the Codex archive (.tar.gz); both already come with tauri-plugin-updater
+tar = "0.4"
+flate2 = "1"
 
 [features]
 default = ["custom-protocol"]
