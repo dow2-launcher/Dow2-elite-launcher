@@ -2303,17 +2303,27 @@ document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
 });
 // 1.5.12 (owner 12.11.2026): the launcher's own update restarts it on the tab it was on (and the Rooms panel's view), not on Home.
 // Kept right before the restart (launcherInstall), taken once at the next start if it is fresh (5 minutes).
-function viewKeep() {
-  const tab = document.querySelector('.tab.on'), rv = typeof RV === 'object' ? RV.view : '';
-  try { localStorage.setItem('viewKeep', JSON.stringify({ view: tab ? tab.dataset.view : 'home', rv, at: Date.now() })); } catch (e) {}
+function viewNow() {
+  const tab = document.querySelector('.tab.on'), rv = typeof RV === 'object' ? RV.view : '', st = document.querySelector('.set-tab.on');
+  return JSON.stringify({ view: tab ? tab.dataset.view : 'home', rv, set: st ? st.dataset.set : '', at: Date.now() });
 }
+function viewKeep() { try { localStorage.setItem('viewKeep', viewNow()); } catch (e) {} }
+// 1.5.13 (owner 12.11.2026): the window's own reload (F5, Ctrl+R, Refresh in the right-click menu) threw the player out of
+// the Lobbies list onto Home with the chat. The view is kept for the reload too - in sessionStorage: it lives through a
+// reload only, so a new start of the launcher still opens on Home.
+addEventListener('pagehide', () => { try { sessionStorage.setItem('viewReload', viewNow()); } catch (e) {} });
 function viewRestore() {
   let k = null; try { k = JSON.parse(localStorage.getItem('viewKeep') || 'null'); localStorage.removeItem('viewKeep'); } catch (e) {}
-  if (!k || Date.now() - k.at > 300000 || !k.view || k.view === 'home') return;
+  if (!k || Date.now() - k.at > 300000) { k = null; try { k = JSON.parse(sessionStorage.getItem('viewReload') || 'null'); } catch (e) {} }
+  try { sessionStorage.removeItem('viewReload'); } catch (e) {}
+  if (!k || !k.view || k.view === 'home') return;
   const b = document.querySelector(`.tab[data-view="${k.view}"]`); if (b) b.click();
   if (k.view === 'rooms' && k.rv && typeof rShow === 'function' && k.rv !== 'mine') rShow(k.rv);   // "mine" comes back by itself with the room
+  const sb = k.view === 'settings' && k.set && document.querySelector(`.set-tab[data-set="${k.set}"]`); if (sb) sb.click();
 }
-setTimeout(viewRestore, 0);   // after lroom.js has loaded (the Rooms panel)
+// after lroom.js has run (the Rooms panel): a timer could come before it when the script was still loading (on a reload),
+// then the Rooms panel's view was not restored
+if (document.readyState === 'loading') addEventListener('DOMContentLoaded', viewRestore); else setTimeout(viewRestore, 0);
 $('allComps').onclick = () => document.querySelector('.tab[data-view="addons"]').click();
 
 // 1.3.15 (owner 02.11.2026): the Lobbies tab - open custom games from Relic's list through our ladder server, every 15 s while shown
