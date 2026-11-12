@@ -1,0 +1,1 @@
+- Reloading the window (F5, Ctrl+R or "Refresh" in the right-click menu) no longer throws you out of the Lobbies list onto Home with the chat: the launcher stays on the same tab - Lobbies (open or running matches), Add-ons, Settings and its sections.
