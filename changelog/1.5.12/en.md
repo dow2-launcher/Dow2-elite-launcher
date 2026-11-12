@@ -1,0 +1,12 @@
+- New name and header: DoW Launcher, "Dawn of War" with a red "II" in the header. A new app icon (Crux Terminatus).
+- "Call the host" works when every player but the host is ready. One call per lobby every 30 seconds: everybody sees who called and when it can be repeated. The host's "Start the match" marks him ready as well.
+- The ready check and "Call the host" come as a strip under the header, like an invitation: the Inquisition's sigil, who calls, 30 seconds to answer, "I am ready" / "Not ready". The answer shows in the lobby next to the player; a bell on his avatar while we wait.
+- The invitation to a lobby is a new strip with a winged skull and the map. While one invitation is shown, others do not disturb; after "Decline" that lobby is quiet for 30 seconds. The Invite list is bigger and has no timer: it lists everybody not in the lobby.
+- A removed player can come back at once or by an invitation.
+- The lobby's event line closes with its cross and by itself (8 seconds, a red one 12).
+- Tooltips and the lobby's drop-downs are no longer cut and no longer make a scroll bar - they are drawn over the whole window.
+- The window frames use the same game art with the rivets even and less frequent, clean corners.
+- Lobby cards: two columns from 1280, three on big screens; a narrow card puts its teams one under the other so the names fit.
+- The call's sound no longer waits for a click in the window; the sound's state goes to the log.
+- After its own update the launcher opens on the same tab.
+- The strips of updates, invitations and calls slide in and out.

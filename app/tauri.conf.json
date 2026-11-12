@@ -1,13 +1,14 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Elite Launcher",
-  "version": "1.5.11",
+  "version": "1.5.12",
   "identifier": "mod.elite.launcher",
   "build": { "frontendDist": "ui" },
   "app": {
     "withGlobalTauri": true,
     "windows": [
-      { "title": "Elite Launcher", "width": 1120, "height": 700, "minWidth": 900, "minHeight": 600, "resizable": true, "center": true }
+      { "title": "DoW Launcher", "width": 1120, "height": 700, "minWidth": 900, "minHeight": 600, "resizable": true, "center": true,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection --autoplay-policy=no-user-gesture-required" }
     ],
     "security": { "csp": "default-src 'self'; img-src 'self' https: data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:" }
   },

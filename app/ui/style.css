@@ -1152,10 +1152,11 @@ select{background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) c
    window and auto-fill's 4-6 narrow ones on a big one cut them (owner 09.11) */
 .rlist{container-type:inline-size}
 .rooms-grid{grid-template-columns:minmax(0,1fr)}
+/* 1.5.12 (owner 12.11.2026, variant v3 "to look at in the build"): one card per row on the smallest window (1120 and less), two
+   from 1280 up to 1920, three from 2560 (the list from 2000 px), four on an ultrawide */
 @container (min-width:960px){.rooms-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@container (min-width:1450px){.rooms-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@container (min-width:2100px){.rooms-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-@container (min-width:2700px){.rooms-grid{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@container (min-width:2000px){.rooms-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@container (min-width:2900px){.rooms-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .room .teams{grid-template-columns:1fr 1fr;gap:14px}
 .room .team+.team{border-left:0;padding-left:0}
 .room .team .th{display:flex;justify-content:space-between;gap:6px;white-space:nowrap;font:600 10.5px var(--fb);color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
@@ -1370,16 +1371,6 @@ html{font-variant-numeric:lining-nums}
 .lr-obsrow .o{display:inline-flex;align-items:center;gap:6px;min-width:0}
 .lr-obsrow .av{width:26px;height:26px;border-width:2px;border-image:var(--art-portrait) 12 / 2px}
 .lr-obsrow .nm{font-weight:600;color:#d8ece6;white-space:nowrap}
-/* a ping's window: a bell on top, the lobby's words, Back to the lobby / the answer */
-.modal.lr-pg .box{text-align:center;max-width:420px}
-.modal.lr-pg .pg-ico{display:block;width:44px;height:64px;margin:0 auto 8px;background:var(--art-ping) center/contain no-repeat;filter:drop-shadow(0 0 6px rgba(69,224,192,.45));animation:pgglow 2s ease-in-out infinite}
-@keyframes pgglow{50%{filter:drop-shadow(0 0 12px rgba(120,240,210,.8))}}
-/* the 30 s to answer: the seconds on the button, a bar under its words running out */
-.modal.lr-pg .pg-main{position:relative;overflow:hidden;gap:10px}
-.modal.lr-pg .pg-main .pg-s{font:700 15px/1 var(--fb);font-variant-numeric:tabular-nums;min-width:2ch;text-align:right;opacity:.85}
-.modal.lr-pg .pg-main .pg-bar{position:absolute;left:0;bottom:0;height:3px;width:var(--p,100%);background:linear-gradient(90deg,#5cf0cf,#8af5b4);box-shadow:0 0 6px rgba(98,227,154,.7);transition:width .25s linear}
-.modal.lr-pg .row{justify-content:center}
-@media (prefers-reduced-motion:reduce){.modal.lr-pg .pg-ico{animation:none}.modal.lr-pg .pg-main .pg-bar{transition:none}}
 /* Join as an observer (the eye) next to Join, both after the seats */
 .rfoot2 .lr-watch+.rjoin{margin-left:0}
 /* my lobby in the game's frame and its grimy fill, as the list of lobbies; the head a strip; Map / Match settings / Our servers
@@ -1397,3 +1388,151 @@ html{font-variant-numeric:lining-nums}
 .lr-body{grid-template-columns:minmax(0,1fr) 364px}
 @media (max-width:1000px){.lr-body{grid-template-columns:minmax(0,1fr) 300px}}
 @media (min-width:1700px){.lr-body{grid-template-columns:minmax(0,1fr) 420px}}
+/* ---------- 1.5.12 (owner 12.11.2026): tooltips and the lobby's lists over everything (layer.js) ---------- */
+[data-tip]:hover::after,[data-tip].tipon::after{content:none!important}
+[data-tip]>button:disabled,[data-tip]>.btn:disabled{pointer-events:none}
+.tiplayer{position:fixed;left:0;top:0;z-index:1000;width:max-content;max-width:260px;padding:6px 10px;background:rgba(4,10,11,.97);border:1px solid var(--ln2);
+  box-shadow:0 8px 20px rgba(0,0,0,.65);font:500 12.5px/1.35 var(--fb);color:#e4f3ed;white-space:normal;text-align:left;pointer-events:none;animation:tipIn .12s ease-out}
+.tiplayer[hidden]{display:none}
+@keyframes tipIn{from{opacity:0}}
+.poplayer{position:fixed;left:0;top:0;width:0;height:0;z-index:900}
+.poplayer .ldd-l.popped{position:fixed;right:auto!important;bottom:auto!important;z-index:900}
+.poplayer .lr-invl{width:300px}
+/* ---------- 1.5.12: the room's event line - a cross, a time line, it slides open and shut ---------- */
+.lr-ev{display:grid;grid-template-rows:1fr;padding:0;gap:0;transition:grid-template-rows .3s ease,border-color .3s ease}
+.lr-ev>.ev-c{min-height:0;overflow:hidden}
+.lr-ev .ev-row{position:relative;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px}
+.lr-ev .ev-row>span{flex:1;min-width:0}
+.lr-ev.new{animation:evOpen .32s ease-out}
+@keyframes evOpen{from{grid-template-rows:0fr}}
+.lr-ev.closing{grid-template-rows:0fr;border-bottom-color:transparent}
+.lr-ev .ev-x{flex:none;display:grid;place-items:center;width:24px;height:24px;padding:0;border:0;background:none;color:inherit;opacity:.65;cursor:pointer;transition:opacity .15s}
+.lr-ev .ev-x:hover,.lr-ev .ev-x:focus-visible{opacity:1}
+.lr-ev .ev-x .ico{width:14px;height:14px;color:inherit}
+.lr-ev .ev-bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:currentColor;opacity:.4;transform-origin:left;animation:evBar var(--ev-ttl,8s) linear var(--ev-d,0s) forwards}
+.lr-ev:hover .ev-bar{animation-play-state:paused}
+@keyframes evBar{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+/* ---------- 1.5.12: Call the host / Ready check - the room's pause, the same on every player's button ---------- */
+.lr-pingw{display:inline-flex}
+.lr-pingw.wait .lr-pingb{opacity:.72}
+.lr-pingw .l{font-variant-numeric:tabular-nums}
+/* ---------- 1.5.12: who is being called, and his answer - on his avatar (variant "a": in the row's free space) ---------- */
+.lr-slot .av-w{position:relative;flex:none;display:block;line-height:0}
+.pg-sg{display:none;color:var(--gd)}
+.pg-sg.yes{color:#8af5b4}
+.pg-sg.no{color:#ff8f7d}
+.pg-sg svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.pg-sg .no,.pg-sg .ok{display:none}
+.pg-sg.no path.no,.pg-sg.yes path.ok{display:block}
+.pg-sg.yes .b{opacity:.55}
+.pg-sg:not(.wait) .w{display:none}
+.pg-sg.wait .w{animation:sgWave 1.3s ease-out infinite}
+.pg-sg.wait .w2{animation-delay:.22s}
+.pg-sg.wait .b{transform-origin:12px 6px;animation:sgSwing 1.3s ease-in-out infinite}
+@keyframes sgWave{0%{opacity:0}35%{opacity:1}100%{opacity:0}}
+@keyframes sgSwing{0%,55%,100%{transform:rotate(0)}10%{transform:rotate(15deg)}22%{transform:rotate(-12deg)}34%{transform:rotate(7deg)}45%{transform:rotate(-3deg)}}
+body:not([data-pgv="a"]) .pg-sg.on-av{display:grid;place-items:center;position:absolute;right:-8px;top:-8px;z-index:2;width:24px;height:24px;padding:3px;
+  background:#061011;border:1px solid currentColor;box-shadow:0 0 8px currentColor;clip-path:polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px)}
+body:not([data-pgv="a"]) .lr-slot.sg-wait .av-w::before,body:not([data-pgv="a"]) .lr-slot.sg-wait .av-w::after{content:"";position:absolute;inset:-2px;z-index:1;
+  border:2px solid var(--gd);pointer-events:none;animation:sgRing 1.6s ease-out infinite}
+body:not([data-pgv="a"]) .lr-slot.sg-wait .av-w::after{animation-delay:.8s}
+@keyframes sgRing{from{transform:scale(1);opacity:.9}to{transform:scale(1.45);opacity:0}}
+body:not([data-pgv="a"]) .lr-slot.sg-no .av-w::before,body:not([data-pgv="a"]) .lr-slot.sg-yes .av-w::before{content:"";position:absolute;inset:-2px;z-index:1;
+  border:2px solid #ff8f7d;box-shadow:0 0 10px rgba(255,143,125,.6);pointer-events:none;animation:sgFade 5s ease-in forwards}
+body:not([data-pgv="a"]) .lr-slot.sg-yes .av-w::before{border-color:#8af5b4;box-shadow:0 0 10px rgba(138,245,180,.6)}
+@keyframes sgFade{0%,70%{opacity:1}100%{opacity:0}}
+body[data-pgv="a"] .pg-sg.in-row{display:inline-flex;align-items:center;gap:5px;flex:none;height:24px;padding:0 8px 0 5px;border:1px solid currentColor;background:rgba(0,0,0,.45);
+  font:600 11.5px var(--fb);white-space:nowrap}
+body[data-pgv="a"] .pg-sg.in-row svg{width:18px;height:18px}
+body[data-pgv="a"] .pg-sg.in-row em{font-style:normal}
+.rdy.on.flash{animation:rdyFlash .9s ease-out 2}
+@keyframes rdyFlash{from{box-shadow:0 0 0 0 rgba(98,227,154,.9),inset 0 0 8px rgba(98,227,154,.18)}to{box-shadow:0 0 0 12px rgba(98,227,154,0),inset 0 0 8px rgba(98,227,154,.18)}}
+.ii-st{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){.lr-ev,.lr-ev.new{animation:none;transition:none}.pg-sg.wait .w,.pg-sg.wait .b,.lr-slot .av-w::before,.lr-slot .av-w::after}
+/* ---------- 1.5.12 (owner 12.11, round 2): the Invite list bigger, without the note under it ---------- */
+.poplayer .lr-invl,.lr-invl{width:360px;max-height:440px;padding:6px 0}
+.lr-invl input{height:34px;margin:0 8px 6px;width:calc(100% - 16px);padding:0 10px;font-size:14px}
+.lr-invl .ii-g{padding:6px 12px 4px;font-size:11.5px}
+.lr-invl .ii{gap:10px;padding:6px 12px;font-size:14.5px}
+.lr-invl .ii .av{width:32px;height:32px}
+.lr-invl .ii .rt{font-size:12.5px}
+.lr-invl .ii-st{min-width:96px;font-size:13px}
+.lr-invl>.note{padding:8px 12px}
+/* ---------- 1.5.12 (owner 12.11, round 2): the invitation strip in the setting's look ---------- */
+.ubar.inv{min-height:70px;padding:8px 20px 8px 10px;gap:16px;overflow:hidden;
+  background:radial-gradient(ellipse 180px 70px at 70px 50%,rgba(69,224,192,.16),transparent 70%),linear-gradient(90deg,rgba(14,52,58,.75),rgba(10,34,40,.55) 55%,rgba(8,22,26,.4));
+  border-bottom:1px solid rgba(92,240,207,.4);box-shadow:inset 0 1px 0 rgba(92,240,207,.12)}
+.ubar.inv .ub-ico{width:112px;height:44px;border:0;background:none;box-shadow:none;color:#9fe3cf;animation:invsk 2.4s ease-in-out infinite}
+.ubar.inv .ub-ico svg{width:100%;height:100%;fill:currentColor;overflow:visible}
+@keyframes invsk{0%,100%{filter:drop-shadow(0 0 3px rgba(92,240,207,.35))}50%{filter:drop-shadow(0 0 9px rgba(92,240,207,.85))}}
+.ubar.inv .ub-items{flex-wrap:nowrap;gap:12px;align-items:center}
+.ubar.inv .inv-map{flex:none;width:46px;height:46px;background:#061011 center/cover no-repeat;border:1px solid var(--ln2);
+  clip-path:polygon(5px 0,100% 0,100% calc(100% - 5px),calc(100% - 5px) 100%,0 100%,0 5px)}
+.ubar.inv .inv-tx{display:flex;flex-direction:column;gap:1px;min-width:0}
+.ubar.inv .inv-k{font:600 11px/1.2 var(--fh);letter-spacing:2.4px;text-transform:uppercase;color:#7fe6cf}
+.ubar.inv .inv-tx b{font:700 17px/1.25 var(--fh);color:#eafff8;text-shadow:0 1px 2px #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ubar.inv .inv-m{color:#8db8ab;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ubar.inv .inv-bar{position:absolute;left:0;right:0;bottom:0;height:2px;background:#5cf0cf;opacity:.55;transform-origin:left;animation:evBar var(--ttl,180s) linear var(--d,0s) forwards}
+.ubar.inv .bn-act{display:flex;gap:10px;align-items:center}
+@media (max-width:1000px){.ubar.inv .ub-ico{width:84px;height:34px}.ubar.inv .inv-map{display:none}}
+@media (prefers-reduced-motion:reduce){.ubar.inv .ub-ico{animation:none}}
+/* ---------- 1.5.12 (owner 12.11.2026): frames variant B - the same game art, laid evenly ----------
+   frame-panel-b.png / slot-b.png (design/round3/frames-b/make.py): the art's 4 corners + ONE step of each edge, made to wrap.
+   The panel frame: one rivet per 92 px step of the art on all four sides (the art's every other rivet taken out - owner: "too
+   frequent"), ~27 px apart on screen with a 10 px border, ~35 px with 13 px. The slot: a break of the glow line every 222 px.
+   "round" lays whole steps along the width AND the height (a panel that grows keeps its rivets evenly spaced); it rides in the
+   variable - every border-image using it is a shorthand, which takes the repeat in any place (url(...) round 34 / 13px).
+   Everything outside the frame's outer edge and its 45-degree bevels is transparent in the PNGs (owner: "the corners show").
+   The framed boxes clip their whole background to the padding box: their first layer (a dark gradient) used to fill the border
+   area too (padding-box in the shorthand only applies to the last layer) - a dark square behind every bevel.
+   The plates (buttons, cards) stay as they are. */
+:root{--art-frame:url(img/ui/frame-panel-b.png) round; --art-frame-slice:34;
+  --art-slot:url(img/ui/slot-b.png) round; --art-slot-slice:10}
+.panel,.me-box,.ver-list,.ev-box,.setup,.pop,.modal .box,.ag-panel,.lr-maps,.ldd-l,.lr-room,.lr-side .lr-blk,.lr-slot,.lr-slot.me{background-clip:padding-box}
+/* ---------- 1.5.12 (owner 12.11, round 3): the strips under the header slide open and shut (app.js barShow / barHide) ---------- */
+.ubar.anim{overflow:hidden;transition:max-height .3s ease,min-height .3s ease,padding-top .3s ease,padding-bottom .3s ease,opacity .25s ease}
+.ubar.shut{min-height:0;padding-top:0;padding-bottom:0;opacity:0}
+@media (prefers-reduced-motion:reduce){.ubar.anim{transition:none}}
+/* a ping as a strip: the Inquisition's sigil where the invitation has its winged skull */
+.ubar.pg .ub-ico{animation:none}
+.ubar.pg .ub-ico{height:56px;display:grid;place-items:center}
+.ubar.pg .pg-sig{display:block;width:28px;height:48px;margin:0 auto;background:var(--art-ping) center/contain no-repeat;animation:pgsig 1.6s ease-in-out infinite}
+@keyframes pgsig{0%,100%{filter:drop-shadow(0 0 3px rgba(92,240,207,.35))}50%{filter:drop-shadow(0 0 10px rgba(92,240,207,.95))}}
+.ubar.pg{background:radial-gradient(ellipse 160px 70px at 66px 50%,rgba(92,240,207,.2),transparent 70%),linear-gradient(90deg,rgba(16,58,52,.8),rgba(10,38,36,.6) 55%,rgba(8,22,24,.42))}
+.ubar.pg .inv-m.wa{color:#f3dcc0}
+.ubar.pg .inv-m.ok{color:var(--ok)}
+@media (prefers-reduced-motion:reduce){.ubar.pg .pg-sig{animation:none}}
+.ii.sent{cursor:pointer}
+/* ---------- 1.5.12 (owner 12.11.2026): a room card narrower than 600 px (two columns on 1280-1440) puts its teams one under the
+   other - every name gets the card's whole width, the ratings stay at the right; a wide card keeps its teams together ---------- */
+.room{container:rcard / inline-size}
+.room .rb .teams{max-width:780px}
+@container rcard (max-width:599px){
+  .room .teams{grid-template-columns:minmax(0,1fr);gap:3px}
+  .room .team+.team{padding-top:4px;border-top:1px dashed rgba(69,224,192,.22)}
+  .room .team+.team .th,.room .team+.team .rp{flex-direction:row;text-align:left}
+  .room .team+.team .rp .nm{text-align:left}
+  .room .team .th{justify-content:flex-start;gap:10px}
+}
+/* ---------- 1.5.12 (owner 12.11.2026): the header DoW II Launcher, variant D ---------- */
+/* In place of the ELITE wordmark: the arrangement of the game's logo with our fonts - DAWN of WAR in silver on one line between two
+   silver rules, over a tall red Roman II (red as in the Retribution logo, a darker edge, 5 px clear of the header's top), LAUNCHER
+   in silver bone under it as the edition's line, the version at the side. Fits 900-1920 next to the tabs and the profile plate.
+   Markup: <div class="brand dow-d"> in index.html, #hdrVer kept for app.js. Needs nothing else of this file's header rules. */
+header .brand.dow-d{align-items:center;gap:10px;flex:none;overflow:visible}
+.dow-d .dd-sr{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.dow-d .dd-logo{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;height:44px;margin-top:5px;padding:0 4px}
+.dow-d .dd-ii{position:absolute;left:50%;top:50%;z-index:0;transform:translate(-50%,-50%);font:700 58px/.78 Cinzel,serif;letter-spacing:-6px;padding-right:6px;
+  background:linear-gradient(#ea5a47 0%,#c22d22 30%,#8e1610 66%,#560906 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  -webkit-text-stroke:1px rgba(38,3,2,.95);filter:drop-shadow(0 0 5px rgba(196,40,28,.45)) drop-shadow(0 1px 0 #000);pointer-events:none}
+.dow-d .dd-w{position:relative;z-index:1;display:flex;align-items:center;gap:6px;font:700 18px/1 Cinzel,serif;letter-spacing:1.6px;text-transform:uppercase;white-space:nowrap;
+  background:linear-gradient(#ffffff 0%,#e3f1ed 38%,#98b1aa 54%,#eef8f5 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 1px 0 #000) drop-shadow(0 0 2px rgba(0,0,0,.95))}
+.dow-d .dd-w em{font-style:normal;font-size:10px;letter-spacing:1px;vertical-align:3px;margin:0 1px}
+.dow-d .dd-w::before,.dow-d .dd-w::after{content:"";width:12px;height:1px;background:linear-gradient(90deg,transparent,#cfdbd7)}
+.dow-d .dd-w::after{transform:scaleX(-1)}
+.dow-d .dd-sub{position:relative;z-index:1;margin-top:5px;font:700 10px/1 Cinzel,serif;letter-spacing:4.6px;padding-left:4.6px;text-transform:uppercase;color:#ddd5c4;
+  text-shadow:0 1px 1px #000,0 0 2px #000}
+.dow-d .dd-st{display:flex;flex-direction:column;justify-content:center;min-width:0;line-height:1;align-self:flex-end;padding-bottom:9px}
+.dow-d .hdr-ver{margin:0;font:400 11px/1 var(--fb);color:var(--mu);letter-spacing:.3px}
+@media (max-width:1000px){.dow-d .dd-w{font-size:16px}.dow-d .dd-w::before,.dow-d .dd-w::after{width:8px}}
