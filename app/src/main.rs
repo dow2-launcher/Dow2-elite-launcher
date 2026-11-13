@@ -554,7 +554,13 @@ mod procs {
 fn is_game_running() -> bool {
     #[cfg(windows)]
     { procs::running("DOW2.exe") || procs::running("Elite.exe") }
-    #[cfg(not(windows))]
+    // macOS: Feral's native game (no exe), its binary in the .app
+    #[cfg(target_os = "macos")]
+    {
+        let pat = format!("Contents/MacOS/{}", elite_core::macos::PROCESS_NAME);
+        std::process::Command::new("pgrep").args(["-f", &pat]).output().map(|o| o.status.success()).unwrap_or(false)
+    }
+    #[cfg(all(not(windows), not(target_os = "macos")))]
     {
         std::process::Command::new("pgrep").args(["-fi", "dow2\\.exe|[\\\\/]elite\\.exe"]).output().map(|o| o.status.success()).unwrap_or(false)
     }
@@ -730,10 +736,13 @@ fn get_status(app: State<'_, App>) -> Value {
             "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category, "order": c.order, "excludes": c.excludes, "requires": c.requires,
             "vanilla_ok": c.for_game("vanilla"), "elite_ok": c.for_game("elite"),
             "vanilla_installed": dir.as_ref().map(|d| update::Game::vanilla_component(d, &c.id).load_state().version).unwrap_or_default(),
-            "enabled": !addons_off && s.components.get(&c.id).copied().unwrap_or(c.default),
-            "chosen": s.components.get(&c.id).copied().unwrap_or(c.default),
+            "enabled": !addons_off && (c.required || s.components.get(&c.id).copied().unwrap_or(c.default)),   // a version without add-ons wins
+            "chosen": c.required || s.components.get(&c.id).copied().unwrap_or(c.default),
+            "required": c.required, "os": c.os,
             "conflicts": dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default(),
-            "installed": dir.as_ref().map(|d| update::Game::component(d, &c.id).load_state().version).unwrap_or_default(),
+            "installed": if os_name() == "macos" {
+                update::Game::component(elite_core::macos::addon_dir(&mac_addons_root(), &c.id), &c.id).load_state().version
+            } else { dir.as_ref().map(|d| update::Game::component(d, &c.id).load_state().version).unwrap_or_default() },
             "options": c.opts().iter().map(|o| {
                 let k = format!("{}.{}", c.id, o.id);
                 json!({
@@ -841,6 +850,8 @@ fn set_setting(app: State<'_, App>, key: String, value: Value) {
 #[tauri::command]
 fn set_component(app: State<'_, App>, id: String, on: bool) -> Result<(), String> {
     ensure_game_closed(&app)?;
+    let required = app.config.lock().unwrap().as_ref().is_some_and(|c| c.components.iter().any(|c| c.id == id && c.required));
+    if required && !on { return Err("this add-on is required and cannot be turned off".into()); }
     let mut s = app.settings.lock().unwrap();
     s.components.insert(id, on);
     save_settings(&s);
@@ -1132,7 +1143,64 @@ fn effective_settings(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings)
 }
 
 fn comp_on(dir: &std::path::Path, c: &elite_core::config::Component, s: &Settings) -> bool {
-    s.components.get(&c.id).copied().unwrap_or(c.default) && found_conflicts(dir, c).is_empty()
+    (c.required || s.components.get(&c.id).copied().unwrap_or(c.default)) && found_conflicts(dir, c).is_empty()
+}
+
+// ---------- 10.11.2026: the add-ons of the native Mac game (Feral 1.0.3) ----------
+
+/// The Mac's folder of add-ons: ~/Library/Application Support/EliteLauncher/mac_addons (one folder per add-on).
+fn mac_addons_root() -> std::path::PathBuf {
+    elite_core::macos::addons_dir(&dirs::home_dir().unwrap_or_default())
+}
+
+/// The Mac add-ons on for the game started (vanilla or Elite): required or ticked, and made for that game.
+fn mac_on_ids(cfg: &LauncherConfig, s: &Settings, vanilla: bool) -> Vec<String> {
+    let game = if vanilla { "vanilla" } else { "elite" };
+    cfg.components.iter()
+        .filter(|c| c.for_os("macos") && c.for_game(game) && (c.required || s.components.get(&c.id).copied().unwrap_or(c.default)))
+        .map(|c| c.id.clone()).collect()
+}
+
+/// macOS: the add-ons are dylibs in mac_addons/<id>/ (never in the game's .app - Steam's file check would put it back - nor
+/// in its data). Ticked and required ones are installed there for both games (the start picks the dylibs of its game), the
+/// rest and the folders gone from the catalog are removed. A dylib just downloaded (its SHA-256 = the manifest's, checked by
+/// apply and once more here) loses the quarantine flag and gets an ad-hoc signature (`prepare`, as run_elite.command does).
+/// The signature makes the file differ from the manifest, so the next sync puts the exact file back from .elite_cache (no
+/// network) and signs it again: what loads is always the published file with a fresh signature.
+fn sync_mac_addons(addons: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &Mirrors, progress: &mut dyn FnMut(&update::Progress),
+                   load: LoadManifest, prepare: bool) -> Result<(), update::Error> {
+    use elite_core::macos;
+    let mut known = std::collections::HashSet::new();
+    for c in cfg.components.iter().filter(|c| c.for_os("macos")) {
+        let d = macos::addon_dir(addons, &c.id);
+        known.insert(d.clone());
+        let g = update::Game::component(&d, &c.id);
+        if c.required || s.components.get(&c.id).copied().unwrap_or(c.default) {
+            std::fs::create_dir_all(&d).map_err(|e| update::Error::Io(e.to_string()))?;
+            let man = load(&g, &c.version)?;
+            update::apply(&g, m, &man, &update::Options { verify_all: false, cache_limit: s.cache_mb.unwrap_or(DEFAULT_CACHE_MB) << 20, channel: c.id.clone() }, progress)?;
+            for f in man.files.iter().filter(|f| f.path.to_ascii_lowercase().ends_with(".dylib")) {
+                if !g.file_is_installed(&f.path) {
+                    return Err(update::Error::Bad(format!("{}: {} differs from the manifest", c.id, f.path)));
+                }
+                if prepare {
+                    for (prog, args) in macos::prepare_commands(&g.file(&f.path)) {
+                        let r = std::process::Command::new(prog).args(&args).output();
+                        c_log(&format!("mac add-on {}: {prog} -> {}", c.id, r.map(|o| o.status.to_string()).unwrap_or_else(|e| e.to_string())));
+                    }
+                }
+            }
+        } else if !g.load_state().version.is_empty() {
+            g.uninstall()?;
+        }
+    }
+    // folders of add-ons gone from the catalog: whatever the launcher installed there goes (a hand-put dylib stays)
+    for e in std::fs::read_dir(addons).into_iter().flatten().flatten() {
+        let d = e.path();
+        if !d.is_dir() || known.contains(&d) { continue; }
+        for id in update::Game::component_ids(&d) { update::Game::component(&d, &id).uninstall()?; }
+    }
+    Ok(())
 }
 
 /// The launch config lists exactly the add-ons that are on and whose DLL is in place. Elite updates and Elite's own
@@ -1271,6 +1339,18 @@ fn restore_originals(dir: &std::path::Path, id: &str) {
     if b.is_dir() { walk(&b, &b, dir); let _ = std::fs::remove_dir_all(&b); }
 }
 
+/// 10.11.2026: is there room for `need` bytes (+ 200 MB) on the disk of `dir`? Elite is ~2.9 GB; a full disk mid-install
+/// leaves a broken game. Unix (macOS, Linux) asks `df -Pk`; elsewhere, or when df gives nothing, it is not checked.
+fn enough_space(dir: &std::path::Path, need: u64) -> Result<(), update::Error> {
+    if cfg!(windows) || need == 0 { return Ok(()); }
+    let out = std::process::Command::new("df").arg("-Pk").arg(dir).output().ok().map(|o| String::from_utf8_lossy(&o.stdout).to_string());
+    match out.as_deref().and_then(elite_core::macos::df_free_bytes) {
+        Some(free) if free < need + (200 << 20) => Err(update::Error::Bad(format!(
+            "not enough disk space: {:.1} GB needed, {:.1} GB free on the game's disk", need as f64 / 1e9, free as f64 / 1e9))),
+        _ => Ok(()),
+    }
+}
+
 /// Install ticked components, remove unticked ones, keep Elite.launchconfig in sync.
 fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &Mirrors, progress: &mut dyn FnMut(&update::Progress)) -> Result<(), update::Error> {
     sync_components_with(dir, cfg, s, m, progress, &|g, v| update::load_manifest(g, m, v))
@@ -1278,6 +1358,9 @@ fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m:
 /// A version's manifest (update::load_manifest; the tests give their own).
 type LoadManifest<'a> = &'a dyn Fn(&update::Game, &str) -> Result<elite_core::manifest::Manifest, update::Error>;
 fn sync_components_with(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &Mirrors, progress: &mut dyn FnMut(&update::Progress), load: LoadManifest) -> Result<(), update::Error> {
+    if os_name() == "macos" {
+        return sync_mac_addons(&mac_addons_root(), cfg, s, m, progress, load, true);
+    }
     if vanilla_on(cfg, s) {
         return sync_vanilla(dir, cfg, s, m, progress, load);   // 1.4.11: Elite's files stay as they are
     }
@@ -1327,7 +1410,8 @@ fn sync_components_with(dir: &std::path::Path, cfg: &LauncherConfig, s: &Setting
 
 /// Is the vanilla game offered: the catalog names its loader; not on macOS (the native game loads no Windows DLLs).
 fn vanilla_offered(cfg: &LauncherConfig) -> bool {
-    cfg.vanilla_loader().is_some() && os_name() != "macos"
+    // macOS: no loader there (the Mac add-ons are dylibs, crossplay_fix loads in both games) - the catalog's vanilla entry is enough
+    if os_name() == "macos" { cfg.vanilla.is_some() } else { cfg.vanilla_loader().is_some() }
 }
 /// Does Play start the vanilla game?
 fn vanilla_on(cfg: &LauncherConfig, s: &Settings) -> bool {
@@ -1457,6 +1541,7 @@ fn sync_vanilla(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &M
 /// Does the game folder differ from what the chosen game wants (Play syncs first then)? Vanilla: the loader or a vanilla copy
 /// missing, old or extra. Elite: the vanilla loader still next to DOW2.exe.
 fn mode_sync_needed(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> bool {
+    if os_name() == "macos" { return false; }   // the same files for both games there; the start picks the dylibs
     let l = update::Game::vanilla_loader(dir);
     if !vanilla_on(cfg, s) { return l.file_is_installed("winmm.dll"); }
     if cfg.vanilla_loader() != Some(l.load_state().version.as_str()) || !l.file_is_installed("winmm.dll") { return true; }
@@ -1491,8 +1576,12 @@ async fn pick_game_dir(app: AppHandle) -> Result<Value, String> {
     let st = app.state::<App>();
     if let Some(p) = picked.and_then(|p| p.into_path().ok()) {
         let marker = st.config.lock().unwrap().clone().unwrap_or_default().game.marker;
+        // macOS: the game's .app picked instead of its folder - the folder with DOW2.module next to it
+        let p = if cfg!(target_os = "macos") && p.extension().is_some_and(|x| x.eq_ignore_ascii_case("app")) && !game::is_game_dir(&p, &marker) {
+            p.parent().map(|d| d.to_path_buf()).unwrap_or(p)
+        } else { p };
         if !game::is_game_dir(&p, &marker) {
-            return Err(format!("{marker} not found in this folder"));
+            return Err(format!("{} not found in this folder", game::marker_shown(&marker)));
         }
         let mut s = st.settings.lock().unwrap();
         s.game_dir = Some(p);
@@ -1559,6 +1648,7 @@ fn start_update(app: AppHandle, repair: bool, components_only: Option<bool>) -> 
             Ok(update::Summary::default())
         } else {
             update::load_manifest(&g, &m, &version).and_then(|man| {
+                enough_space(&dir, update::switch_cost(&g, None, &man))?;
                 update::apply(&g, &m, &man, &update::Options { verify_all: repair, cache_limit: s.cache_mb.unwrap_or(DEFAULT_CACHE_MB) << 20, channel: channel.clone() }, &mut emit)
             })
         })
@@ -1664,6 +1754,12 @@ async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Result<
             take(d.join(update::VANILLA_DIR), 0, &["log", "ini", "txt", "dmp"], 30, 40, &mut files);   // 1.4.11: the vanilla game's add-ons
             take(d.clone(), 0, &["log", "txt", "dmp", "mdmp", "launchconfig"], 7, 20, &mut files);
         }
+        if os_name() == "macos" {
+            // 10.11.2026, the Mac game: crossplay_fix's logs in /tmp, the add-ons' ini/logs, Feral's syncerror/warnings files
+            for f in elite_core::macos::TMP_LOGS { let p = PathBuf::from(f); if p.is_file() && recent(&p, 7) { files.push(p); } }
+            take(mac_addons_root(), 1, &["log", "ini", "txt"], 30, 40, &mut files);
+            if let Some(h) = dirs::home_dir() { files.extend(elite_core::macos::game_logs(&h, 3, 20)); }
+        }
         take(data_dir(), 0, &["log", "old"], 30, 4, &mut files);   // the launcher's own: community.log (Steam sign-in, chat)
         for f in conntest::share_files() { if !files.contains(&f) { files.push(f); } }   // 1.4.16: the connection test's runs and log
         // Linux under Proton: the game's Documents are inside its prefix (compatdata/56400/pfx/.../steamuser/Documents)
@@ -1674,6 +1770,7 @@ async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Result<
             let cfg = doc.join("My Games").join("Dawn of War II - Retribution").join("Settings").join("configuration.lua");
             if cfg.is_file() && !files.contains(&cfg) { files.push(cfg); }
         }
+        { let mut seen = std::collections::HashSet::new(); files.retain(|p| seen.insert(p.clone())); }   // the Mac's Feral logs are found twice
         // дампы и отчёты Windows (WER) о падениях игры
         let is_game = |p: &std::path::Path| { let s = p.to_string_lossy().to_ascii_lowercase(); s.contains("dow2") || s.contains("elite") };
         let mut wer_roots: Vec<PathBuf> = Vec::new();
@@ -1889,6 +1986,13 @@ fn prepare_start(dir: &std::path::Path, cfg: &LauncherConfig, settings: &Setting
     let (dir, cfg) = (dir.to_path_buf(), cfg.clone());
     let settings = &effective_settings(&dir, &cfg, settings);   // 1.5.4: a version without add-ons - all of them off
     let vanilla = vanilla_on(&cfg, settings);
+    // macOS (Feral's native game): no Windows DLLs, winmm loader or Elite.exe there - nothing of the checks below applies;
+    // our Mac patches are dylibs in mac_addons (see `launch`)
+    if os_name() == "macos" {
+        c_log(&format!("launch: {} (macOS)", if vanilla { "vanilla" } else { "elite" }));
+        return json!({"off": [], "loader": false, "vanilla": vanilla, "vanilla_loader_missing": false,
+                      "mac_addons": mac_on_ids(&cfg, settings, vanilla)});
+    }
     let old = put_aside_old_copies(&dir, &cfg);
     // what the checks of our add-ons did is told to the player (siritos 02.11): only add-ons of launcher.json, the
     // leftovers of their DLLs, and the ones gone from the catalog (drop_orphans) - nothing else in the game folder;
@@ -2022,6 +2126,11 @@ fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, guard: Val
             Err(e) => c_log(&format!("launch: no Proton run ({e}) - steam -applaunch")),
         }
     }
+    #[cfg(target_os = "macos")]
+    let guard = match mac_launch(&dir, &cfg, vanilla, guard) {
+        Ok(g) => return Ok(g),
+        Err(g) => g,
+    };
     let program = sub(&cmd.program);
     c_log(&format!("launch: {}{}", program, cmd.args.iter().map(|a| format!(" {}", sub(a))).collect::<String>()));
     let mut c = std::process::Command::new(&program);
@@ -2046,6 +2155,57 @@ fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, guard: Val
             }).map_err(|e2| format!("cannot start {program} as administrator: {e2}"))
         }
         Err(e) => Err(format!("cannot start {program}: {e}")),
+    }
+}
+
+/// macOS (Feral's native game): the launcher runs the .app's binary itself - not through open/sh/Steam, which drop
+/// DYLD_INSERT_LIBRARIES - with crossplay_fix (+ the other dylibs of mac_addons) and `-modname Elite -nomovies`.
+/// Ok = started (the guard tells the player what was not as it should be); Err(guard + the reason) = no crossplay_fix:
+/// the caller starts the game the old way (launch.macos, steam://rungameid) without our patches.
+#[cfg(target_os = "macos")]
+fn mac_launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, mut guard: Value) -> Result<Value, Value> {
+    use elite_core::macos;
+    let home = dirs::home_dir().unwrap_or_default();
+    let addons = macos::addons_dir(&home);
+    let appid = cfg.game.steam_appid;
+    let steam = std::process::Command::new("pgrep").args(["-x", "steam_osx"]).output().map(|o| o.status.success()).unwrap_or(false);
+    let mut warn: Vec<String> = Vec::new();
+    if !steam { warn.push("no_steam".into()); }
+    let ids: Vec<String> = serde_json::from_value(guard["mac_addons"].clone()).unwrap_or_default();
+    let (l, w) = match macos::plan_with(dir, vanilla, macos::dylibs_of(&addons, &ids), appid) {
+        Ok(v) => v,
+        Err(why) => {
+            c_log(&format!("launch: macOS - {} - through Steam, without our patches",
+                           if why.is_some() { format!("no {}.dylib in {}", macos::CROSSPLAY, addons.display()) } else { "the game's .app not found".into() }));
+            warn.push("no_dylib".into());
+            guard["mac_warn"] = json!(warn);
+            return Err(guard);
+        }
+    };
+    for x in w {
+        if let macos::Warn::GameVersion(v) = x { warn.push("game_version".into()); guard["mac_game_version"] = json!(v); }
+    }
+    if let Err(e) = macos::write_steam_appid(&l.cwd, appid) { c_log(&format!("launch: cannot write steam_appid.txt: {e}")); }
+    c_log(&format!("launch: {}{} (in {}; {})", l.program.display(), l.args.iter().map(|a| format!(" {a}")).collect::<String>(), l.cwd.display(),
+                   l.env.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join(" ")));
+    let mut c = std::process::Command::new(&l.program);
+    c.args(&l.args).current_dir(&l.cwd).envs(l.env.iter().map(|(k, v)| (k.as_str(), v.as_str())));
+    guard["mac_warn"] = json!(warn);
+    match c.spawn() {
+        Ok(mut child) => {
+            std::thread::spawn(move || {
+                let t0 = std::time::Instant::now();
+                let st = child.wait();
+                c_log(&format!("launch: the game ended after {} s ({})", t0.elapsed().as_secs(), st.map(|s| s.to_string()).unwrap_or_else(|e| e.to_string())));
+            });
+            Ok(guard)
+        }
+        Err(e) => {
+            c_log(&format!("launch: cannot start {}: {e} - through Steam", l.program.display()));
+            warn.push("direct_failed".into());
+            guard["mac_warn"] = json!(warn);
+            Err(guard)
+        }
     }
 }
 
@@ -3301,7 +3461,48 @@ mod vanilla_tests {
     }
 
     #[test]
+    fn mac_addons_sync() {
+        use elite_core::macos;
+        let root = std::env::temp_dir().join(format!("mac_addons_sync_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let addons = macos::addons_dir(&root);
+        let mut mans: std::collections::HashMap<String, Manifest> = Default::default();
+        for (id, ver, f, b) in [("crossplay_mac", "crossplay_mac-26", "crossplay_fix.dylib", &b"cp"[..]), ("chat_mac", "chat_mac-1", "ChatHide.dylib", b"ch")] {
+            let m = man(&macos::addon_dir(&addons, id), ver, &[(f, b), ("README.txt", b"r")]);
+            mans.insert(m.version.clone(), m);
+        }
+        let load = |_: &update::Game, v: &str| mans.get(v).cloned().ok_or_else(|| update::Error::Bad(format!("no {v}")));
+        let raw = r#"{"components":[{"id":"automatch","version":"mmfind-0.49","default":true}],"vanilla":{"loader":"vloader-1"},
+            "components_macos":[{"id":"crossplay_mac","version":"crossplay_mac-26","required":true,"games":["elite","vanilla"]},
+                                {"id":"chat_mac","version":"chat_mac-1","default":true}]}"#;
+        let cfg = serde_json::from_str::<LauncherConfig>(raw).unwrap().for_os("macos");
+        let (m, mut nop) = (Mirrors::new(vec![]), |_: &update::Progress| {});
+        let mut s = Settings::default();
+        s.components.insert("crossplay_mac".into(), false);   // required: a stale "off" changes nothing
+        // a folder of an add-on gone from the catalog, installed by an older catalog
+        let old = macos::addon_dir(&addons, "gone_mac");
+        let om = man(&old, "gone-1", &[("Gone.dylib", b"g")]);
+        update::apply(&update::Game::component(&old, "gone_mac"), &m, &om, &update::Options { verify_all: false, cache_limit: 1 << 30, channel: "x".into() }, &mut nop).unwrap();
+        sync_mac_addons(&addons, &cfg, &s, &m, &mut nop, &load, false).unwrap();
+        let cp = macos::addon_dir(&addons, "crossplay_mac").join("crossplay_fix.dylib");
+        assert!(cp.is_file() && macos::addon_dir(&addons, "chat_mac").join("ChatHide.dylib").is_file() && !old.join("Gone.dylib").exists());
+        assert_eq!(mac_on_ids(&cfg, &s, false), ["crossplay_mac", "chat_mac"]);
+        assert_eq!(mac_on_ids(&cfg, &s, true), ["crossplay_mac"]);   // chat_mac is for Elite only
+        assert_eq!(macos::dylibs_of(&addons, &mac_on_ids(&cfg, &s, true)), std::slice::from_ref(&cp));
+        // the signature changed the file: the next sync puts the published one back from the cache (and signs it again)
+        std::fs::write(&cp, b"cp signed").unwrap();
+        sync_mac_addons(&addons, &cfg, &s, &m, &mut nop, &load, false).unwrap();
+        assert_eq!(std::fs::read(&cp).unwrap(), b"cp");
+        s.components.insert("chat_mac".into(), false);
+        sync_mac_addons(&addons, &cfg, &s, &m, &mut nop, &load, false).unwrap();
+        assert!(!macos::addon_dir(&addons, "chat_mac").join("ChatHide.dylib").exists() && cp.is_file());
+        assert!(cfg.components.iter().all(|c| c.id != "automatch"), "Windows/Linux add-ons are not offered on a Mac");
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
     fn vanilla_and_elite_back_and_forth() {
+        if os_name() == "macos" { return; }   // the Mac's add-ons are dylibs in mac_addons: mac_addons_sync
         let d = std::env::temp_dir().join(format!("vanilla_mode_test_{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(d.join("Elite_DLLs")).unwrap();
@@ -3345,7 +3546,7 @@ mod vanilla_tests {
 
         // -> vanilla: copies of the vanilla add-ons that are on, the launcher's loader; Elite's files not touched at all
         s.game_mode = "vanilla".into();
-        assert!(vanilla_on(&cfg, &s) == (os_name() != "macos"));
+        assert!(vanilla_on(&cfg, &s));
         if os_name() == "macos" { let _ = std::fs::remove_dir_all(&d); return; }
         assert!(mode_sync_needed(&d, &cfg, &s));
         sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();

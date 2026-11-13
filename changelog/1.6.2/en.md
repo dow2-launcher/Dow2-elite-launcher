@@ -1,0 +1,4 @@
+- macOS: the launcher works with the native Mac game (Feral, version 1.0.3): finds the game, installs Elite without the Windows files and starts it with the Mac crossplay patch, so Mac and Windows players can play together.
+- macOS: the Mac crossplay patch is a required add-on, installed and updated by the launcher; vanilla Retribution can be started from a Mac too.
+- macOS: "Send logs" also sends the crossplay patch's logs and the game's sync error files.
+- Before installing Elite the launcher checks that the disk has enough free space (macOS and Linux).

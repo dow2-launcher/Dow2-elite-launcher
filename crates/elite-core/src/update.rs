@@ -279,13 +279,13 @@ pub fn fetch_config(m: &Mirrors) -> Result<(LauncherConfig, Vec<u8>, String), Er
     if !sign::verify(&raw, &sig) {
         return Err(Error::Bad("launcher.json signature is invalid — ignoring this mirror's data".into()));
     }
-    let cfg = serde_json::from_slice(&raw).map_err(|e| Error::Bad(format!("launcher.json: {e}")))?;
-    Ok((cfg, raw, sig))
+    let cfg: LauncherConfig = serde_json::from_slice(&raw).map_err(|e| Error::Bad(format!("launcher.json: {e}")))?;
+    Ok((cfg.for_os(crate::config::this_os()), raw, sig))
 }
 
 pub fn parse_signed_config(raw: &[u8], sig: &str) -> Option<LauncherConfig> {
     if sign::verify(raw, sig) {
-        serde_json::from_slice(raw).ok()
+        serde_json::from_slice::<LauncherConfig>(raw).ok().map(|c| c.for_os(crate::config::this_os()))
     } else {
         None
     }
@@ -301,7 +301,7 @@ pub fn load_manifest(game: &Game, m: &Mirrors, version: &str) -> Result<Manifest
     if let (Ok(b), Ok(s)) = (fs::read(&p), fs::read_to_string(&ps)) {
         if sign::verify(&b, &s) {
             if let Ok(man) = Manifest::parse(&b) {
-                return Ok(man);
+                return Ok(for_this_os(man));
             }
         }
     }
@@ -317,7 +317,13 @@ pub fn load_manifest(game: &Game, m: &Mirrors, version: &str) -> Result<Manifest
     fs::create_dir_all(&dir)?;
     fs::write(p, &b)?;
     fs::write(ps, s)?;
-    Ok(man)
+    Ok(for_this_os(man))
+}
+
+/// On macOS (Feral's native game) Elite's Windows-only files (exe, DLLs, Elite_bin/, the starter's config...) are left
+/// out of every manifest: the Mac game reads only Elite.module and Elite/. Elsewhere the manifest as it is.
+fn for_this_os(man: Manifest) -> Manifest {
+    crate::macos::files_for_os(man, if cfg!(target_os = "macos") { "macos" } else { "other" })
 }
 
 /// Upper bound of what switching to `man` would download: files that differ from the installed
