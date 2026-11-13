@@ -10,3 +10,4 @@
 - Replays: "Shared pool" is "All replays" now; both lines of the filters are exactly as wide, Reset sits by the (i) in the header; the Mechanicus' cog of the empty pane flickers with interference now and then.
 - The strips of a lobby invitation and of a ping under the header flicker with the same interference.
 - The connection check button is the last one in the header, after the profile.
+- Chat: Reply - the arrow next to the sender's name (on hover); the message shows the quote of the one it answers, a click on it scrolls there; a reply to you counts as a mention. Shown once the chat server says it can reply.

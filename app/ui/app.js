@@ -3082,7 +3082,7 @@ fbInit();
 
 // ---------- players' chat, Steam sign-in and the player's card (ladder service /ladder/api/c/*) ----------
 // Rooms General / RU / EN (the server's all / ru / en) next to the developers' chat.
-const CH = { room: 'all', msgs: {}, out: [], unread: {}, full: {}, me: null, prof: null, waiting: false };
+const CH = { room: 'all', msgs: {}, out: [], unread: {}, full: {}, me: null, prof: null, waiting: false, features: [], replyTo: null };
 try { CH.room = localStorage.getItem('chRoom') || 'all'; } catch (e) {}
 function chShowRoom() {
   document.querySelectorAll('.ch-tab').forEach(b => b.classList.toggle('on', b.dataset.room === CH.room));
@@ -3090,6 +3090,7 @@ function chShowRoom() {
   $('devPane').classList.toggle('hidden', CH.room !== 'dev');
   if (CH.room !== 'dev') { CH.chatRoom = CH.room; CH.unread[chKey(CH.room)] = 0; chRender(true); if (!CH.msgs[chKey(CH.room)]) chLoad(chKey(CH.room)); }
   chUnread(); FB.open = CH.room === 'dev'; fbWatch();
+  chReplyBar();   // 1.6.3: the Reply strip only over the chat's own input
 }
 // 1.5.0: the profile is a plate in the header (the online dot, the name, the 1v1 rating); a click opens its menu - the avatar,
 // the name with the sign-out icon on its line, the rating and the season's games, my stats, my Steam profile. Signed out - the
@@ -3170,6 +3171,7 @@ document.addEventListener('pointerdown', () => { try { chAudio = chAudio || new 
 function chMentionsMe(m) {
   const me = CH.me && CH.me.signed_in ? CH.me : null;
   if (!me || !me.name || m.steam === me.steam) return false;
+  if (m.reply && !m.reply.deleted && String(m.reply.steam) === String(me.steam)) return true;   // 1.6.3: a reply to me
   return String(chOrig(m) || '').toLowerCase().includes('@' + me.name.toLowerCase());
 }
 // Two kinds of server (siritos 02.11: on the live, older one the tabs changed nothing):
@@ -3217,11 +3219,54 @@ async function chLoad(key, how) {
   const room = key === 'feed' ? 'all' : key, list = CH.msgs[key] || [];
   const q = how === 'older' ? `limit=100&before=${list[0].id}` : how === 'new' && list.length ? `after=${list[list.length - 1].id}` : 'limit=100';
   let d; try { d = await invoke('c_api', { path: `msgs?room=${room}&${q}` }); } catch (e) { return; }
+  chFeatures(d);
   if (!CH.feed && key !== 'feed') { chFeedSeen(d.msgs); if (CH.feed) key = 'feed'; }
   let changed = chPut(key, d.msgs || [], how === 'new');
   if ((d.deleted || []).length) { const n = CH.msgs[key].length; CH.msgs[key] = CH.msgs[key].filter(m => !d.deleted.includes(m.id)); changed = changed || n !== CH.msgs[key].length; }
   if (how === 'older') CH.full[key] = (d.msgs || []).length < 100;
   if ((changed || !CH.shown) && chKey(CH.room) === key) chRender(false, how === 'older');
+}
+// 1.6.3 (owner 13.11.2026, variant A): Reply - the arrow next to the sender's name and the time, seen on hover (a highlight, no
+// frame), only on a server that says it can (hello / msgs: features ["reply"], ladder feat/chat-reply) - an older server keeps
+// the chat as it was. The box shows "Reply to <name>: ..." over the input (Esc or x cancels); the message goes with reply_to and
+// comes back with the quote of its original (reply: {id, steam, name, text, ru, en} or {id, deleted}); a click on the quote
+// scrolls to the original (older pages loaded for it, up to 5) and lights it up. A reply to me counts as a mention.
+Object.assign(T.en, { chReply: 'Reply', chReplyTo: 'Reply to', chReplyCancel: 'Cancel the reply (Esc)', chQuoteDel: 'The message was deleted', chQuoteGo: 'Show the message' });
+Object.assign(T.ru, { chReply: 'Ответить', chReplyTo: 'Ответ', chReplyCancel: 'Отменить ответ (Esc)', chQuoteDel: 'Сообщение удалено', chQuoteGo: 'Показать сообщение' });
+Object.assign(T.es, { chReply: 'Responder', chReplyTo: 'Respuesta a', chReplyCancel: 'Cancelar la respuesta (Esc)', chQuoteDel: 'El mensaje fue borrado', chQuoteGo: 'Mostrar el mensaje' });
+Object.assign(T.fr, { chReply: 'Répondre', chReplyTo: 'Réponse à', chReplyCancel: 'Annuler la réponse (Échap)', chQuoteDel: 'Le message a été supprimé', chQuoteGo: 'Afficher le message' });
+Object.assign(T.de, { chReply: 'Antworten', chReplyTo: 'Antwort an', chReplyCancel: 'Antwort abbrechen (Esc)', chQuoteDel: 'Die Nachricht wurde gelöscht', chQuoteGo: 'Nachricht zeigen' });
+const CH_ARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5A5.5 5.5 0 0 1 20 14.5v0A5.5 5.5 0 0 1 14.5 20H12"/></svg>';
+function chFeatures(d) {
+  if (!d || !Array.isArray(d.features)) return;
+  const was = chReplyOn(); CH.features = d.features;
+  if (was !== chReplyOn()) { if (!chReplyOn()) CH.replyTo = null; chReplyBar(); if (CH.shown) chRender(); }
+}
+const chReplyOn = () => (CH.features || []).includes('reply') && !!(CH.me && CH.me.signed_in) && CH.room !== 'dev';
+const chQuoteText = q => (CH.room === 'ru' ? q.ru : CH.room === 'en' ? q.en : null) || q.text || '';
+function chReplyBar() {
+  const b = $('chReply'); if (!b) return;
+  const r = chReplyOn() ? CH.replyTo : null;
+  b.classList.toggle('hidden', !r);
+  if (!r) { b.innerHTML = ''; return; }
+  b.innerHTML = `${CH_ARROW}<span class="rb-t">${esc(t('chReplyTo'))} <b>${esc(r.name)}</b>: <span>${esc(r.text)}</span></span>`
+    + `<button type="button" id="chReplyX" title="${esc(t('chReplyCancel'))}" aria-label="${esc(t('chReplyCancel'))}">×</button>`;
+  $('chReplyX').onclick = () => { CH.replyTo = null; chReplyBar(); $('chText').focus(); };
+}
+function chReplyStart(id) {
+  const m = (CH.msgs[chKey(CH.room)] || []).find(x => String(x.id) === String(id)); if (!m) return;
+  CH.replyTo = { id: m.id, name: m.name || '', text: chText(m) };
+  chReplyBar(); $('chText').focus();
+}
+async function chGoto(id) {
+  const box = $('chMsgs'), key = chKey(CH.room);
+  for (let i = 0; i < 6; i++) {
+    const el = box.querySelector(`.ch-m[data-id="${CSS.escape(String(id))}"]`);
+    if (el) { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); return; }
+    const list = CH.msgs[key] || [];
+    if (CH.full[key] || !list.length || list[0].id < id) return;   // not in the history any more
+    await chLoad(key, 'older');
+  }
 }
 function chRender(force, older) {
   const box = $('chMsgs'), key = chKey(CH.room), list = CH.msgs[key] || [];
@@ -3242,16 +3287,23 @@ function chRender(force, older) {
   const mention = html => names.reduce((h, n) => h.split('@' + esc(n)).join(`\u0000${n === myName ? 1 : 0}${esc(n)}\u0001`), html)
     .replace(/\u0000([01])([^\u0001]*)\u0001/g, (_, me, n) => `<span class="ch-at${me === '1' ? ' me' : ''}">@${n}</span>`);
   let prev = null;
+  const replyOn = chReplyOn();
+  const quote = q => !q ? '' : q.deleted ? `<div class="rq del"><i>${esc(t('chQuoteDel'))}</i></div>`
+    : `<div class="rq" data-goto="${esc(String(q.id))}" role="button" tabindex="0" title="${esc(t('chQuoteGo'))}"><b>${esc(q.name || '')}</b><i>${esc(chQuoteText(q))}</i></div>`;
   const row = (m, extra, tail) => {
     const k = dayKey(m.ts), head = k !== prev ? `<div class="ch-day"><span>${esc(dayName(m.ts))}</span></div>` : ''; prev = k;
     const text = chText(m), tr = text !== chOrig(m);   // translated: the original on hover
-    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${extra}"><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">` + avatar(m.avatar) + `</span>`
-      + `<div><div class="w"><b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${tail}</div>`
+    const toMe = mine && m.reply && !m.reply.deleted && String(m.reply.steam) === String(mine) && m.steam !== mine;
+    const rpl = replyOn && m.id && m.steam !== mine && !extra ? `<button class="rpl" data-reply="${esc(String(m.id))}" title="${esc(t('chReply'))}" aria-label="${esc(t('chReply'))}">${CH_ARROW}</button>` : '';
+    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${toMe ? 'tome' : ''} ${extra}"${m.id ? ` data-id="${esc(String(m.id))}"` : ''}><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">` + avatar(m.avatar) + `</span>`
+      + `<div><div class="w"><b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}${tail}</div>`
+      + quote(m.reply)
       + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${mention(esc(text))}</div></div></div>`;
   };
   const sent = list.map(m => row(m, '', '')).join('');   // first: the day headings run on into the queue
   // ours not confirmed yet stay at the bottom: a clock while sending, "Not sent · Retry · Delete" when it failed
-  const out = CH.out.filter(o => chKey(o.room) === key).map(o => row({ ts: o.ts, steam: mine, name: me ? me.name : '', avatar: me ? me.avatar : '', orig: o.text }, o.state === 'failed' ? 'failed' : o.state === 'sent' ? '' : 'sending',
+  const quoteOf = id => { const q = id && list.find(x => x.id === id); return q ? { id: q.id, steam: q.steam, name: q.name, text: chOrig(q), ru: q.ru, en: q.en } : null; };
+  const out = CH.out.filter(o => chKey(o.room) === key).map(o => row({ ts: o.ts, steam: mine, name: me ? me.name : '', avatar: me ? me.avatar : '', orig: o.text, reply: quoteOf(o.reply_to) }, o.state === 'failed' ? 'failed' : o.state === 'sent' ? '' : 'sending',
     o.state === 'sent' ? '' : o.state === 'failed' ? `<span class="ch-fail">${esc(t('chNotSent'))} · <button data-retry="${esc(o.cid)}">${esc(t('chRetry'))}</button> · <button data-drop="${esc(o.cid)}">${esc(t('chDelete'))}</button></span>`
       : `<span class="ch-wait" title="${esc(t('chSending'))}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>`));
   const html = sent + out.join('');
@@ -3262,6 +3314,11 @@ function chRender(force, older) {
   box.querySelectorAll('b[data-name]').forEach(b => nickBind(b, b.dataset.steam, b.dataset.name, true));
   box.querySelectorAll('[data-retry]').forEach(b => b.onclick = () => { const o = CH.out.find(x => x.cid === b.dataset.retry); if (o) { o.state = 'sending'; o.tries = 0; chOutSave(); chRender(); chPump(); } });
   box.querySelectorAll('[data-drop]').forEach(b => b.onclick = () => { CH.out = CH.out.filter(x => x.cid !== b.dataset.drop); chOutSave(); chRender(); });
+  box.querySelectorAll('[data-reply]').forEach(b => b.onclick = () => chReplyStart(b.dataset.reply));
+  box.querySelectorAll('.rq[data-goto]').forEach(q => {
+    q.onclick = () => chGoto(Number(q.dataset.goto));
+    q.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); chGoto(Number(q.dataset.goto)); } };
+  });
   if (older) box.scrollTop = box.scrollHeight - h0 + top0;   // older messages added on top: the view stays where it was
   else if (atEnd || force || !CH.shown) box.scrollTop = box.scrollHeight;
   CH.shown = true;
@@ -3286,13 +3343,15 @@ function chUnread() {
 // sending: the message is in the feed at once with a clock, the box is cleared, the button never locks. One sender for
 // all, in order; the same cid on every try, so a retry never makes a duplicate. The queue survives a restart.
 function chOutSave() {
-  try { localStorage.setItem('chOut', JSON.stringify(CH.out.map(({ cid, room, text, ts, state, id }) => ({ cid, room, text, ts, state, id })))); } catch (e) {}
+  try { localStorage.setItem('chOut', JSON.stringify(CH.out.map(({ cid, room, text, ts, state, id, reply_to }) => ({ cid, room, text, ts, state, id, reply_to })))); } catch (e) {}
 }
 function chSay() {
   if (CH.room === 'dev') return;
   const el = $('chText'), text = el.value.trim(); if (!text) return;
   const cid = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
-  CH.out.push({ cid, room: CH.room, text, ts: Math.floor(Date.now() / 1000), state: 'sending', tries: 0 });
+  const reply_to = chReplyOn() && CH.replyTo ? CH.replyTo.id : undefined;
+  CH.out.push({ cid, room: CH.room, text, ts: Math.floor(Date.now() / 1000), state: 'sending', tries: 0, reply_to });
+  CH.replyTo = null; chReplyBar();
   el.value = ''; chOutSave(); chRender(true); chPump();
 }
 const chSleep = ms => new Promise(r => setTimeout(r, ms));
@@ -3300,7 +3359,7 @@ async function chPump() {
   if (CH.pumping) return; CH.pumping = true;
   try {
     for (let o; (o = CH.out.find(x => x.state === 'sending'));) {
-      let r; try { r = await invoke('c_api', { path: 'say', body: { room: o.room, text: o.text, cid: o.cid } }); } catch (e) { r = { ok: false, error: String(e), retry: true }; }
+      let r; try { r = await invoke('c_api', { path: 'say', body: { room: o.room, text: o.text, cid: o.cid, ...(o.reply_to ? { reply_to: o.reply_to } : {}) } }); } catch (e) { r = { ok: false, error: String(e), retry: true }; }
       if (!CH.out.includes(o)) continue;                      // deleted, or confirmed by the stream meanwhile
       if (r.ok && r.msg) { CH.out = CH.out.filter(x => x !== o); chPut(chKey(o.room), [r.msg]); }
       else if (r.ok) {
@@ -3343,7 +3402,11 @@ function chEvent(ev, d) {
     const m = (CH.msgs[chKey(CH.room)] || []).find(x => x.id === d.id);
     if (m) { m.ru = d.ru; m.en = d.en; if (CH.room === 'ru' || CH.room === 'en') chRender(); }
   } else if (ev === 'msg_del') {
-    for (const k of Object.keys(CH.msgs)) CH.msgs[k] = CH.msgs[k].filter(m => m.id !== d.id);
+    for (const k of Object.keys(CH.msgs)) {
+      CH.msgs[k] = CH.msgs[k].filter(m => m.id !== d.id);
+      CH.msgs[k].forEach(m => { if (m.reply && m.reply.id === d.id) m.reply = { id: d.id, deleted: true }; });
+    }
+    if (CH.replyTo && CH.replyTo.id === d.id) { CH.replyTo = null; chReplyBar(); }
     chRender();
   } else if (ev === 'reset') { CH.msgs[chKey(d.room)] = []; chLoad(chKey(d.room)); }
   else if (ev === 'me') { CH.prof = { ok: true, rating: d.rating, stats: { games: d.games, wins: d.wins, losses: d.losses } }; chMe(); }
@@ -3351,6 +3414,7 @@ function chEvent(ev, d) {
 // "I'm here" with menu / game: at start and when that changes (the stream itself keeps the presence)
 async function chHello() {
   let d; try { d = await invoke('c_api', { path: 'hello', body: { state: S && S.game_running ? 'game' : 'menu' } }); } catch (e) { return; }
+  chFeatures(d);
   if (d.signed_in === false && CH.me && CH.me.signed_in) { CH.me = await invoke('c_logout'); CH.prof = null; chMe(); }   // the session is gone on the server
 }
 // without the stream (not up in 30 s, or down): Online every 15 s and the chat every 5 s while the window is seen
@@ -3378,7 +3442,10 @@ async function chInit() {
   document.querySelectorAll('.ch-tab').forEach(b => b.onclick = () => { CH.room = b.dataset.room; try { localStorage.setItem('chRoom', CH.room); } catch (e) {} chShowRoom(); });
   $('chIn2').onclick = chLogin;
   $('chSend').onclick = chSay;
-  $('chText').onkeydown = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chSay(); } };
+  $('chText').onkeydown = e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); chSay(); }
+    else if (e.key === 'Escape' && CH.replyTo) { e.preventDefault(); CH.replyTo = null; chReplyBar(); }
+  };
   $('chMsgs').onscroll = () => {   // at the top: 100 older ones
     const key = chKey(CH.room), box = $('chMsgs');
     if (box.scrollTop < 40 && !CH.full[key] && !CH.older && (CH.msgs[key] || []).length) { CH.older = true; chLoad(key, 'older').finally(() => { CH.older = false; }); }

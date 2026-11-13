@@ -1606,3 +1606,30 @@ header .brand.dow-d{align-items:center;gap:10px;flex:none;overflow:visible}
   95%,100%{opacity:0;transform:none;clip-path:inset(0)}}
 @keyframes glSweep{0%,86%{background-position:0 100%}97%,100%{background-position:0 -50%}}
 @media (prefers-reduced-motion:reduce){.rp-mech::before,.rp-mech::after,.ubar.pg .pg-sig::before,.ubar.pg .pg-sig::after,.ubar.inv:not(.pg) .ub-ico::before,.ubar.inv:not(.pg) .ub-ico::after{animation:none}}
+/* ---------- 1.6.3 (owner 13.11.2026, variant A): the chat's Reply - the arrow after the name and the time, seen on hover of a
+   message (a highlight, no frame); the quote of the original over a reply's text; "Reply to <name>: ..." over the input ---------- */
+.ch-m>div{flex:1;min-width:0}
+.ch-m .w{display:flex;align-items:center;min-width:0}
+.ch-m .rpl{display:inline-grid;place-items:center;height:20px;padding:0 4px;margin-left:6px;border:0;background:none;color:var(--mu);cursor:pointer;
+  opacity:0;transition:opacity .12s,color .12s,filter .12s}
+.ch-m .rpl svg,.ch-rbar svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ch-m:hover .rpl,.ch-m .rpl:focus-visible{opacity:1}
+.ch-m .rpl:hover,.ch-m .rpl:focus-visible{color:#c9f7ea;filter:drop-shadow(0 0 4px rgba(69,224,192,.7));outline:none}
+.ch-m .rq{display:flex;flex-direction:column;gap:1px;max-width:100%;margin:3px 0 2px;padding:2px 8px;border-left:2px solid var(--gd);background:rgba(69,224,192,.07);
+  cursor:pointer;font-size:12.5px;line-height:1.35}
+.ch-m .rq b{color:var(--bl);font-weight:600}
+.ch-m .rq i{font-style:normal;color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-m .rq:hover,.ch-m .rq:focus-visible{background:rgba(69,224,192,.13);outline:none}
+.ch-m .rq.del{cursor:default;border-left-color:var(--ln2)}
+.ch-m .rq.del i{font-style:italic}
+.ch-m.tome{box-shadow:inset 2px 0 0 var(--gd);background:rgba(69,224,192,.05)}
+.ch-m.flash{animation:chflash 1.4s ease}
+@keyframes chflash{0%,40%{background:rgba(69,224,192,.22)}100%{background:transparent}}
+.ch-rbar{display:flex;align-items:center;gap:8px;margin-top:8px;padding:4px 8px;border:1px solid #2b6f64;border-bottom:0;background:#0a1a1b;font-size:13px}
+.ch-rbar svg{flex:none;stroke:var(--gd);width:15px;height:15px}
+.ch-rbar .rb-t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--mu)}
+.ch-rbar .rb-t b{color:var(--gd);font-weight:600}
+.ch-rbar button{border:0;background:none;color:var(--mu);font-size:16px;line-height:1;cursor:pointer;padding:0 2px}
+.ch-rbar button:hover{color:#fff}
+.ch-rbar:not(.hidden)+.ch-send{margin-top:0}
+@media (prefers-reduced-motion:reduce){.ch-m.flash{animation:none}}
