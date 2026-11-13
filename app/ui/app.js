@@ -1946,12 +1946,17 @@ function syncTrayLabels() {
 }
 
 // 1.6.3: the first render() can come before the scripts after this one are read (the status answered while the page still
-// loaded replays.js), and the keys they add showed as they are ("replaysTab", "rpMine"). Once every script ran, a text still
-// showing its key gets its text (only those: the others may have been changed by the code since).
+// loaded replays.js), and the keys they add showed as they are ("replaysTab", "rpMine"). render() leaves a text whose key is
+// not there yet empty; once every script ran, the empty ones (or still showing their key) get their text - only after the
+// first render(), else they wait for it (no English flash before the player's language is known).
+let textsShown = false;
+const tHas = k => T[lang][k] != null || T.en[k] != null;
 document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('[data-t]').forEach(e => { if (e.textContent === e.dataset.t) e.textContent = t(e.dataset.t); });
-  document.querySelectorAll('[data-tp]').forEach(e => { if (e.placeholder === e.dataset.tp) e.placeholder = t(e.dataset.tp); });
-  document.querySelectorAll('[data-ta]').forEach(e => { if (e.title === e.dataset.ta) { e.title = t(e.dataset.ta); e.setAttribute('aria-label', e.title); } });
+  if (!textsShown) return;
+  const bare = (v, k) => !v || v === k;
+  document.querySelectorAll('[data-t]').forEach(e => { if (bare(e.textContent, e.dataset.t)) e.textContent = t(e.dataset.t); });
+  document.querySelectorAll('[data-tp]').forEach(e => { if (bare(e.placeholder, e.dataset.tp)) e.placeholder = t(e.dataset.tp); });
+  document.querySelectorAll('[data-ta]').forEach(e => { if (bare(e.title, e.dataset.ta)) { e.title = t(e.dataset.ta); e.setAttribute('aria-label', e.title); } });
 });
 function render() {
   // the player's pick in Settings; none - the system's language (siritos 02.11), English when we have no translation
@@ -1959,10 +1964,11 @@ function render() {
   if (!T[lang]) lang = 'en';
   document.documentElement.lang = lang;
   syncTrayLabels();
-  document.querySelectorAll('[data-t]').forEach(e => e.textContent = t(e.dataset.t));
+  document.querySelectorAll('[data-t]').forEach(e => { if (tHas(e.dataset.t)) e.textContent = t(e.dataset.t); });
   renderFwdBanner();
-  document.querySelectorAll('[data-tp]').forEach(e => e.placeholder = t(e.dataset.tp));
-  document.querySelectorAll('[data-ta]').forEach(e => { e.title = t(e.dataset.ta); e.setAttribute('aria-label', e.title); });   // icon buttons
+  document.querySelectorAll('[data-tp]').forEach(e => { if (tHas(e.dataset.tp)) e.placeholder = t(e.dataset.tp); });
+  document.querySelectorAll('[data-ta]').forEach(e => { if (tHas(e.dataset.ta)) { e.title = t(e.dataset.ta); e.setAttribute('aria-label', e.title); } });   // icon buttons
+  textsShown = true;
   const cfg = S.config || {};
 
   renderLauncherBanner();
@@ -2392,8 +2398,8 @@ function roomVerOther(v) {
   m.querySelector('#rvNo').onclick = () => m.remove();
   m.onclick = e => { if (e.target === m) m.remove(); };
   const sw = m.querySelector('#rvSw');
-  if (sw) { sw.onclick = () => { m.remove(); switchTo(ch.id); toast(t('roomsVerAfter', { v })); }; sw.focus(); }
-  else m.querySelector('#rvNo').focus();
+  // 1.6.3 (owner 13.11.2026): no button takes the focus when a window opens (its ring read as a pressed button)
+  if (sw) sw.onclick = () => { m.remove(); switchTo(ch.id); toast(t('roomsVerAfter', { v })); };
 }
 // the Join buttons follow my search / match at once (the list itself reloads every 15 s). 1.4.10 (siritos 05.11: "I started a
 // search, pressed Join - nothing happened, and no word why"): not disabled any more - dimmed, and a click says why
@@ -2502,7 +2508,6 @@ function askBox(title, lines, buttons) {
     const end = v => { m.remove(); done(v); };
     m.querySelectorAll('button[data-i]').forEach(b => b.onclick = () => end(buttons[+b.dataset.i].val));
     m.onclick = e => { if (e.target === m) end(null); };
-    const first = m.querySelector('button[data-i]'); if (first) first.focus();
   });
 }
 // 1.4.17 (owner 06.11.2026): the questions and the errors of a Join are siritos's small windows again (askBox) - "не перекрывать
@@ -2516,7 +2521,6 @@ function rjModal(title, lines) {
   document.body.appendChild(m); RJ_MODAL = m;
   const end = () => { m.remove(); if (RJ_MODAL === m) RJ_MODAL = null; };
   m.querySelector('button').onclick = end; m.onclick = e => { if (e.target === m) end(); };
-  m.querySelector('button').focus();
 }
 const roomById = id => (RM.last || []).find(x => String(x.id) === String(id));
 const roomIHost = r => { const me = CH.me && CH.me.signed_in ? String(CH.me.steam || '') : ''; return !!(me && r && (r.players || []).some(p => p.host && String(p.steam || '') === me)); };

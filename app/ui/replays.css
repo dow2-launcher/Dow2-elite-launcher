@@ -86,16 +86,19 @@
 .rp-info:hover,.rp-info:focus-visible{border-color:var(--gd);color:#c9f7ea;outline:none}
 .rp-hact{align-items:center}
 .rp-looks{display:inline-flex;gap:2px;margin-right:8px}
-.rp-ib{width:28px;height:28px}
-.rp-ib.on{color:var(--gd);background:linear-gradient(#24403f,#11201f) padding-box,linear-gradient(#45e0c0,#24393a 55%,#121c1d) border-box}
+.rp-ib{display:inline-grid;place-items:center;width:28px;height:28px;padding:0;border:0;background:none;color:var(--mu);cursor:pointer;transition:color .15s,filter .15s}
+.rp-ib .ico{width:18px;height:18px}
+.rp-ib:hover,.rp-ib:focus-visible{color:#c9f7ea;filter:drop-shadow(0 0 5px rgba(69,224,192,.6));outline:none}
+.rp-ib.on{color:var(--gd)}
 .rjoin.busy{opacity:.5;pointer-events:none}
 /* the filters over the list only: the search and the version, then the modes next to the races */
-.rp-flt{flex-direction:column;align-items:stretch;gap:6px;padding:0 6px 8px 0}
+.rp-flt{display:grid;grid-template-columns:minmax(0,max-content);justify-content:start;gap:6px;padding:0 6px 8px 0}   /* both lines as wide as the wider */
 .rp-f1,.rp-f2{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;min-width:0}
-.rp-f1 .rp-q{flex:1 1 140px;min-width:120px;max-width:250px}
+.rp-f1 .rp-q{flex:1 1 120px;width:120px;min-width:100px}
 .rp-f1 select{height:26px;font-size:12.5px}
 .rp-f1 .chk{font-size:12.5px}
 .rp-reset{margin-left:auto;font-size:12.5px}
+.rp-reset.off{visibility:hidden}
 .rp-f2 .seg button{padding:3px 10px}
 .rp-races{gap:2px}
 /* a row: the map's picture, the map / tags / teams, the length, the date and the action */
@@ -131,3 +134,23 @@
 .rp-mech{display:block;width:104px;height:113px;background:var(--art-mech) center/contain no-repeat;opacity:.5;filter:drop-shadow(0 0 12px rgba(69,224,192,.3))}
 .rp-none b{font:700 19px var(--fh);color:#e3f5ef;text-shadow:0 2px 2px #000}
 .rp-none span{font-size:13px;color:var(--mu)}
+/* the Mechanicus' cog breaks up now and then like a picture with interference: once every 7 s for ~0.8 s - slices of it slide
+   aside with a red / teal fringe (::before), a bright band runs down it (::after, masked by the cog itself), the cog flickers */
+.rp-mech{position:relative;animation:mechFlick 7s steps(1,end) infinite}
+.rp-mech::before,.rp-mech::after{content:"";position:absolute;inset:0;pointer-events:none}
+.rp-mech::before{background:var(--art-mech) center/contain no-repeat;opacity:0;filter:drop-shadow(-3px 0 0 rgba(255,80,70,.7)) drop-shadow(3px 0 0 rgba(69,224,192,.8));
+  animation:mechSlice 7s steps(1,end) infinite}
+.rp-mech::after{-webkit-mask:var(--art-mech) center/contain no-repeat;mask:var(--art-mech) center/contain no-repeat;
+  background:linear-gradient(transparent 0 42%,rgba(210,255,245,.9) 48%,rgba(210,255,245,.35) 52%,transparent 58% 100%) 0 0/100% 300% no-repeat;
+  background-position:0 100%;animation:mechSweep 7s linear infinite}
+@keyframes mechFlick{0%,88%{opacity:.5}89%{opacity:.25}90%{opacity:.6}92%{opacity:.3}94%{opacity:.55}96%,100%{opacity:.5}}
+@keyframes mechSlice{0%,88%{opacity:0;transform:none;clip-path:inset(0)}
+  89%{opacity:1;transform:translateX(-7px);clip-path:inset(14% 0 68% 0)}
+  90%{transform:translateX(6px);clip-path:inset(52% 0 30% 0)}
+  91%{transform:translateX(-4px);clip-path:inset(30% 0 55% 0)}
+  92%{transform:translateX(8px);clip-path:inset(72% 0 10% 0)}
+  93%{transform:translateX(-5px);clip-path:inset(4% 0 84% 0)}
+  94%{transform:translateX(3px);clip-path:inset(44% 0 40% 0)}
+  95%,100%{opacity:0;transform:none;clip-path:inset(0)}}
+@keyframes mechSweep{0%,86%{background-position:0 100%}97%,100%{background-position:0 -50%}}
+@media (prefers-reduced-motion:reduce){.rp-mech,.rp-mech::before,.rp-mech::after{animation:none}}

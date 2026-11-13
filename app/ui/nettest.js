@@ -156,7 +156,8 @@ function ntRunVerdict(r) {
   const b = document.createElement('button');
   b.className = 'hdr-net'; b.id = 'ntOpen';
   b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20v-3M9 20v-7M14 20v-11M19 20V5"/></svg>';
-  nav.appendChild(b);
+  // 1.6.3 (owner 13.11.2026): after the profile's plate, the last thing of the header
+  const me = $('hdrMe'); if (me) me.after(b); else nav.appendChild(b);
   b.onclick = ntOpen;
 })();
 function ntHeader() {
