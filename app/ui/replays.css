@@ -2,13 +2,12 @@
 .rp-page .h{display:flex;align-items:center;gap:8px}
 .rp-hact{margin-left:auto;display:flex;gap:6px}
 .rp-note{padding:0 0 6px;font-size:12.5px}
-.rp-q{flex:1 1 220px;min-width:180px}
 .rp-q input{width:100%;height:26px;font-size:13px}
 .rp-races{display:flex;align-items:center;gap:3px}
-.rp-race{display:inline-grid;place-content:center;width:28px;height:28px;padding:0;border:1px solid var(--ln);background:#0c1718;opacity:.45;filter:grayscale(.7)}
-.rp-race:hover{opacity:.8}
+.rp-race{display:inline-grid;place-content:center;width:26px;height:26px;padding:0;border:1px solid var(--ln);background:#0c1718;opacity:.7;filter:grayscale(.3)}
+.rp-race:hover{opacity:1;filter:none}
 .rp-race.on{opacity:1;filter:none;border-color:var(--gd);box-shadow:0 0 6px rgba(69,224,192,.45)}
-.rp-race .race{width:22px;height:22px}
+.rp-race .race{width:20px;height:20px}
 .rp-body{flex:1;min-height:0;display:flex;gap:12px}
 #replays.view{display:flex}
 .rp-lcol{flex:1 1 55%;min-width:0;min-height:0;display:flex;flex-direction:column}
@@ -26,7 +25,7 @@
 .rp-pg:disabled{opacity:.35}
 .rp-gap{color:var(--mu);padding:0 2px}
 .rp-det{flex:1 1 45%;min-width:280px;min-height:0;overflow-y:auto;border-left:1px solid var(--ln);padding:2px 2px 8px 12px}
-.rp-row{display:flex;flex-direction:column;gap:3px;width:100%;text-align:left;padding:6px 9px;border:1px solid transparent;border-left:3px solid var(--ln);background:rgba(12,23,24,.72);color:var(--tx);font:500 13px var(--fb)}
+.rp-row{display:grid;grid-template-columns:52px minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;text-align:left;padding:5px 9px 5px 5px;border:1px solid transparent;border-left:3px solid var(--ln);background:rgba(12,23,24,.72);color:var(--tx);font:500 13px var(--fb);cursor:pointer}
 .rp-row:hover{background:rgba(25,44,46,.8)}
 .rp-row.on{border-color:var(--ln2);border-left-color:var(--gd);background:rgba(28,54,52,.85)}
 .rp-row.broken{opacity:.6}
@@ -80,3 +79,64 @@
 .rp-rep th{color:var(--gd);font-weight:600}
 .rp-rep code{font:11.5px var(--fm)}
 @media (max-width:980px){.rp-body{flex-direction:column}.rp-body:not(.has-sel) .rp-det{display:none}.rp-lcol{flex:1 1 60%}.rp-det{flex:1 1 40%}.rp-det{border-left:0;border-top:1px solid var(--ln);padding:8px 0 0;min-width:0}}
+/* ---------- 1.6.3 (owner 13.11.2026) ---------- */
+/* the header: the (i) with the list's note in its tip; the actions as icons (the look of the list, the folder, Reload) */
+.rp-note{display:none}
+.rp-info{display:inline-grid;place-items:center;width:18px;height:18px;border:1px solid var(--ln2);border-radius:50%;font:700 11px/1 var(--fb);color:var(--gd);cursor:help;text-shadow:none}
+.rp-info:hover,.rp-info:focus-visible{border-color:var(--gd);color:#c9f7ea;outline:none}
+.rp-hact{align-items:center}
+.rp-looks{display:inline-flex;gap:2px;margin-right:8px}
+.rp-ib{display:inline-grid;place-items:center;width:28px;height:28px;padding:0;border:0;background:none;color:var(--mu);cursor:pointer;transition:color .15s,filter .15s}
+.rp-ib .ico{width:18px;height:18px}
+.rp-ib:hover,.rp-ib:focus-visible{color:#c9f7ea;filter:drop-shadow(0 0 5px rgba(69,224,192,.6));outline:none}
+.rp-ib.on{color:var(--gd)}
+.rjoin.busy{opacity:.5;pointer-events:none}
+/* the filters over the list only: the search and the version, then the modes next to the races */
+.rp-flt{display:grid;grid-template-columns:minmax(0,max-content);justify-content:start;gap:6px;padding:0 6px 8px 0}   /* both lines as wide as the wider */
+.rp-f1,.rp-f2{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;min-width:0}
+.rp-f1 .rp-q{flex:1 1 120px;width:120px;min-width:100px}
+.rp-f1 select{height:26px;font-size:12.5px}
+.rp-f1 .chk{font-size:12.5px}
+.rp-reset{font-size:12.5px;margin-left:4px}
+.rp-f2 .seg button{padding:3px 10px}
+.rp-races{gap:2px;margin-left:auto}   /* a wider first line: the races keep to the right edge, the two lines end together */
+/* a row: the map's picture, the map / tags / teams, the length, the date and the action */
+.rp-row .mmap{display:block;width:52px;border:1px solid var(--ln);background:#061011}
+.rp-row .mmap .mm{display:block;width:100%;aspect-ratio:1;background:var(--mm,none) center/cover,#061011}
+.rp-row .mmap span{display:none}
+.rp-mid{min-width:0;display:flex;flex-direction:column;gap:3px}
+.rp-end{display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:12px;color:var(--mu);white-space:nowrap}
+.rp-end em{font-style:normal}
+.rp-end em:first-child{color:var(--sf);font-weight:600}
+.rp-end .rjoin,.rp-end .rp-got,.rp-end .tag{margin-top:2px}
+.rp-row .rjoin{width:26px;height:26px}
+.rp-row:focus-visible,.rp-card:focus-visible{outline:2px solid var(--gd);outline-offset:-2px}
+.rp-got{display:inline-grid;place-items:center;width:26px;height:26px;color:#62e39a}
+.rp-got .ico{width:18px;height:18px;stroke-width:2.6}
+.tag.rp-my{color:#04110f;background:var(--gd);border-color:var(--gd)}
+/* the list as the Rooms tab's cards (.room): the map on the left, the teams, the foot with the action */
+.rp-list.cards{gap:8px}
+.rp-card{flex:none;cursor:pointer;min-height:150px}
+.rp-card.on{filter:brightness(1.12) drop-shadow(0 0 6px rgba(69,224,192,.45))}
+.rp-card .rn{font-size:16px}
+.rp-card .rp .rt{margin-left:6px;white-space:nowrap}
+.rp-card .rfoot2 .rhost{flex:1}
+.rp-card .rfoot2 .rjoin,.rp-card .rfoot2 .rp-got,.rp-card .rfoot2 .tag{margin-left:auto}
+/* the details */
+.rp-sub{font:italic 400 13px var(--fb);color:var(--mu);margin-top:-3px}
+.rp-gotl{display:inline-flex;align-items:center;gap:6px;color:#62e39a;font:600 13px var(--fb)}
+.rp-gotl .ico{stroke-width:2.6}
+.rp-acts .btn .ico{width:15px;height:15px}
+/* nothing chosen: the game's striped plate with the Mechanicus' cog */
+.rp-det.empty{display:flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--ln);background:var(--art-stripes)}
+.rp-none{display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px;text-align:center}
+.rp-mech{display:block;width:104px;height:113px;background:var(--art-mech) center/contain no-repeat;opacity:.5;filter:drop-shadow(0 0 12px rgba(69,224,192,.3))}
+.rp-none b{font:700 19px var(--fh);color:#e3f5ef;text-shadow:0 2px 2px #000}
+.rp-none span{font-size:13px;color:var(--mu)}
+/* the Mechanicus' cog flickers with its interference (style.css: the slices and the band, every 7 s) */
+.rp-mech{animation:mechFlick 7s steps(1,end) infinite}
+@keyframes mechFlick{0%,88%{opacity:.5}89%{opacity:.25}90%{opacity:.6}92%{opacity:.3}94%{opacity:.55}96%,100%{opacity:.5}}
+@media (prefers-reduced-motion:reduce){.rp-mech{animation:none}}
+/* Reset in the header, by the (i): not pushed to the right as the header's other buttons */
+.rp-page .h>.rp-reset{order:0;margin-left:4px}
+.rp-f1 .rp-q input{text-overflow:ellipsis}   /* a narrow search (All replays has "Only mine" beside it): the hint cut with "…" */

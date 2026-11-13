@@ -49,7 +49,7 @@
         <div class="ch-pane" id="chatPane">
           <div class="ch-msgs" id="chMsgs"></div>
           <div class="ch-login hidden" id="chLoginRow"><span data-t="chSignInToWrite"></span><button class="btn gold small" id="chIn2" data-t="chLogin"></button></div>
-          <div class="ch-send" id="chSendRow"><textarea id="chText" rows="2" maxlength="500" data-tp="chPlaceholder"></textarea><button class="btn-gold" id="chSend" data-t="fbSend"></button></div>
+          <div class="ch-rbar hidden" id="chReply" role="status"></div><div class="ch-send" id="chSendRow"><textarea id="chText" rows="2" maxlength="500" data-tp="chPlaceholder"></textarea><button class="btn-gold" id="chSend" data-t="fbSend"></button></div>
         </div>
         <div class="dev-pane hidden" id="devPane">
         <div class="fb-who"><span data-t="fbName"></span> <input id="fbName" maxlength="48"><span class="fb-id" id="fbId"></span></div>
@@ -116,10 +116,9 @@
       </nav>
       <div class="rmain">
         <section class="panel rpage rp-page">
-          <div class="h"><span id="rpTitle"></span><em id="rpCount"></em><div class="rp-hact" id="rpAct"></div></div>
+          <div class="h"><span id="rpTitle"></span><em id="rpCount"></em><span class="rp-info" id="rpInfo" tabindex="0" role="note">i</span><button class="link-btn rp-reset hidden" id="rpReset" data-t="rpReset"></button><div class="rp-hact" id="rpAct"></div></div>
           <div class="note rp-note" id="rpNote"></div>
-          <div class="rflt" id="rpFlt"></div>
-          <div class="rp-body"><div class="rp-lcol"><div class="rp-list" id="rpList"></div><div class="rp-pager" id="rpPager"></div></div><div class="rp-det" id="rpDet"></div></div>
+          <div class="rp-body"><div class="rp-lcol"><div class="rflt rp-flt" id="rpFlt"></div><div class="rp-list" id="rpList"></div><div class="rp-pager" id="rpPager"></div></div><div class="rp-det" id="rpDet"></div></div>
         </section>
       </div>
     </div>

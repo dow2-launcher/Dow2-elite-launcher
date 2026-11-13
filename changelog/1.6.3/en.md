@@ -1,0 +1,13 @@
+- Windows: after an update the launcher's shortcuts and taskbar button show its current icon (the installer now asks Windows to re-read its icon cache).
+- The plate buttons on the left of the window (Create a lobby, Sign in) are mirrored: their cut corner faces the middle of the window, as on Play.
+- The cards of lobbies, the match under Online, the announcements and the connection check have square corners (the top-left one looked rounded).
+- The Replays tab and its sections are named in the chosen language at start (they sometimes showed "replaysTab", "rpMine").
+- Replays: the filters take less room and stand over the list only (search and version, the modes next to the races); no 4v4 (DoW II has none) and no "Players" filter.
+- Replays: the list as rows with the map's picture or as cards like the Rooms tab (the switch in the header); the folder and Reload are icons; the length in minutes, the dates as today / yesterday / 11 Nov.
+- Replays: a pool replay shows Download, or Downloaded once it is in the game's replays; "Open in the pool" is gone. While nothing is chosen, the right pane shows the Mechanicus' cog on the game's striped plate.
+- The launcher's windows (questions, errors, Clean up) look like the game's: the cut top-left corner, the title over a gold line, a striped body under the text, two plate buttons facing each other - the action on the left, Cancel on the right; no button is focused when a window opens.
+- Replays: your replays on the server that are not on this computer are in My replays too, with Download. "Upload to the server" and the "on the server" mark; Upload and Download look the same in the list (only the icon differs); the header's icons have no frame.
+- Replays: "Shared pool" is "All replays" now; both lines of the filters are exactly as wide, Reset sits by the (i) in the header; the Mechanicus' cog of the empty pane flickers with interference now and then.
+- The strips of a lobby invitation and of a ping under the header flicker with the same interference.
+- The connection check button is the last one in the header, after the profile.
+- Chat: Reply - the arrow next to the sender's name (on hover); the message shows the quote of the one it answers, a click on it scrolls there; a reply to you counts as a mention. Shown once the chat server says it can reply.

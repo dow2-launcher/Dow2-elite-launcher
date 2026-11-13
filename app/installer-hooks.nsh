@@ -55,3 +55,18 @@ FunctionEnd
       ${EndIf}
   ${EndIf}
 !macroend
+
+; 1.6.3: the launcher's new icon (1.5.12) did not show after an update - the exe has it, but Explorer draws the shortcuts (desktop,
+; Start menu, the pinned taskbar button) from its icon cache, kept by the exe's path, and an update writes the same path. After the
+; files are in place: tell Explorer the icons changed (SHCNE_ASSOCCHANGED) and have it re-read its icon cache (ie4uinit -show,
+; Windows 10/11; the 64-bit one through Sysnative when this installer runs as a 32-bit process).
+!macro NSIS_HOOK_POSTINSTALL
+  System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
+  ${If} ${FileExists} "$WINDIR\Sysnative\ie4uinit.exe"
+    nsExec::Exec '"$WINDIR\Sysnative\ie4uinit.exe" -show'
+    Pop $R8
+  ${ElseIf} ${FileExists} "$SYSDIR\ie4uinit.exe"
+    nsExec::Exec '"$SYSDIR\ie4uinit.exe" -show'
+    Pop $R8
+  ${EndIf}
+!macroend
