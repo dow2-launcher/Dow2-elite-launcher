@@ -7,5 +7,6 @@
 - Replays: a pool replay shows Download, or Downloaded once it is in the game's replays; "Open in the pool" is gone. While nothing is chosen, the right pane shows the Mechanicus' cog on the game's striped plate.
 - The launcher's windows (questions, errors, Clean up) look like the game's: the cut top-left corner, the title over a gold line, a striped body under the text, two plate buttons facing each other - the action on the left, Cancel on the right; no button is focused when a window opens.
 - Replays: your replays on the server that are not on this computer are in My replays too, with Download. "Upload to the server" and the "on the server" mark; Upload and Download look the same in the list (only the icon differs); the header's icons have no frame.
-- Replays: both lines of the filters are as wide; the Mechanicus' cog of the empty pane flickers with interference now and then.
+- Replays: "Shared pool" is "All replays" now; both lines of the filters are exactly as wide, Reset sits by the (i) in the header; the Mechanicus' cog of the empty pane flickers with interference now and then.
+- The strips of a lobby invitation and of a ping under the header flicker with the same interference.
 - The connection check button is the last one in the header, after the profile.
