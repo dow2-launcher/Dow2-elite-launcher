@@ -32,3 +32,6 @@ Every picture of the D look, from `scripts/game-art/slots.json`. The stand-ins a
 | `door` | icon | `icons/door.png` | 32x32 |  | line icon | Open lobbies (the Rooms panel) | Custom Games |
 | `signal` | icon | `icons/signal.png` | 32x32 |  | signal bars drawn in SVG | the connection check button | the connection quality bars |
 | `avatar` | icon | `icons/avatar.png` | 64x64 |  | a winged skull drawn in SVG | a player without a Steam avatar (chat, Online, lobbies) | a winged skull of the menus / loading screens |
+| `band` | fill | `band.png` | 556x17 |  | crop of the gold line under the title of the game's "Are you sure?" window (one turn of it, it wraps) | under the title of every window (askBox, Clean up, another version) | the dialogs' header: "THE IMMORTAL EMPEROR · VENERATE THE IMMORTAL EMPEROR" |
+| `stripes` | fill | `(drawn in CSS)` |  |  | the stripes measured on the screenshots (~5 px step), drawn with a gradient | the windows' body, the Replays pane while nothing is chosen | the striped inside of "Are you sure?" / "Performance Results" |
+| `mech` | icon | `icons/(SVG in CSS)` | vector |  | the Adeptus Mechanicus cog of github.com/Certseeds/wh40k-icon | the Replays pane while nothing is chosen | "Performance Results": the half cog with the skull |

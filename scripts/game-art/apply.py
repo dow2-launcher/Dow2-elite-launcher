@@ -20,6 +20,7 @@ CSS_ICON = {
     'chevron': 'select{background-image:url(icons/chevron.png),linear-gradient(#112324,#081314);background-position:calc(100% - 10px) 50%,0 0;background-size:12px 12px,100% 100%}'
                '\n.ver-btn::after,.me-chip .chev{content:"";width:12px;height:12px;border:0;transform:none;background:url(icons/chevron.png) center/contain no-repeat}',
     'avatar': ':root{--av-def:url(icons/avatar.png)}',
+    'mech': ':root{--art-mech:url(icons/mech.png)}',
     'signal': '.hdr-net svg{display:none}\n.hdr-net::before{content:"";width:20px;height:20px;background:url(icons/signal.png) center/contain no-repeat}',
     'door': '.rnb[data-r="open"] svg{display:none}\n.rnb[data-r="open"]::before{content:"";width:16px;height:16px;background:url(icons/door.png) center/contain no-repeat}',
     'eye': '.rnb[data-r="live"] svg{display:none}\n.rnb[data-r="live"]::before{content:"";width:16px;height:16px;background:url(icons/eye.png) center/contain no-repeat}',
@@ -55,7 +56,8 @@ def main():
         else:
             im.save(os.path.join(UI, k + '.png'))
             var = {'frame': 'frame', 'panel': 'panel', 'plate': 'plate', 'plate-fill': 'plate-fill', 'card': 'card', 'slot': 'slot',
-                   'name': 'name', 'name-fill': 'name-fill', 'field': 'field', 'portrait': 'portrait', 'bg': 'bg'}[k]
+                   'name': 'name', 'name-fill': 'name-fill', 'field': 'field', 'portrait': 'portrait', 'bg': 'bg',
+                   'band': 'band', 'stripes': 'stripes'}[k]
             root_vars.append(f'--art-{var}:url({k}.png);')
             if m.get('slice') is not None or s.get('slice') is not None:
                 root_vars.append(f"--art-{var}-slice:{m.get('slice', s.get('slice'))};")

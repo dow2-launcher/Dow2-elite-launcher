@@ -2,3 +2,7 @@
 - The plate buttons on the left of the window (Create a lobby, Sign in) are mirrored: their cut corner faces the middle of the window, as on Play.
 - The cards of lobbies, the match under Online, the announcements and the connection check have square corners (the top-left one looked rounded).
 - The Replays tab and its sections are named in the chosen language at start (they sometimes showed "replaysTab", "rpMine").
+- Replays: the filters take less room and stand over the list only (search and version, the modes next to the races); no 4v4 (DoW II has none) and no "Players" filter.
+- Replays: the list as rows with the map's picture or as cards like the Rooms tab (the switch in the header); the folder and Reload are icons; the length in minutes, the dates as today / yesterday / 11 Nov.
+- Replays: a pool replay shows Download, or Downloaded once it is in the game's replays; "Open in the pool" is gone. While nothing is chosen, the right pane shows the Mechanicus' cog on the game's striped plate.
+- The launcher's windows (questions, errors, Clean up) look like the game's: the title over a gold line, a striped body, two plate buttons facing each other.

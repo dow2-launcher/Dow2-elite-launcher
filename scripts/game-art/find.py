@@ -12,7 +12,8 @@ TH = os.path.join(os.path.dirname(os.path.abspath(OUT)), 'find-thumbs')
 os.makedirs(TH, exist_ok=True)
 EXT = ('.dds', '.tga', '.png', '.jpg', '.jpeg', '.bmp')
 rows = []
-for d, _, fs in os.walk(ROOT):
+for d, ds, fs in os.walk(ROOT):
+    ds[:] = [x for x in ds if not x.startswith('_') and x != 'find-thumbs']   # extract.ps1's tools and our own thumbnails
     for f in sorted(fs):
         if not f.lower().endswith(EXT): continue
         p = os.path.join(d, f); rel = os.path.relpath(p, ROOT).replace('\\', '/')
