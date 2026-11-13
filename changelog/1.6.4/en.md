@@ -1,0 +1,1 @@
+- Replays: a "Watch the match on the map" button - the site plays the whole match on the minimap second by second: every squad with its health and orders, fights, losses, heroes, chat, army and points charts. The data comes from the game's own simulation. Such replays have a "▶ on the map" tag in the list.

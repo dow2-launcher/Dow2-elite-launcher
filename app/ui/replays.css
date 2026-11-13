@@ -41,6 +41,7 @@
 .rp-vs{font-style:normal;color:var(--wa);font-size:11px;padding:0 2px}
 .tag.rp-v{color:#d8c690;border-color:#6d5f35}
 .tag.rp-in{color:var(--gd);border-color:var(--ln2)}
+.tag.rp-sim{color:#f3d77a;border-color:#8a7330}
 .rp-more{align-self:center;margin:6px 0}
 .rp-pick{padding:20px 4px}
 .rp-dtop{display:flex;gap:12px;align-items:flex-start}
