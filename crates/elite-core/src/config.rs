@@ -225,12 +225,26 @@ pub struct Channel {
     /// player's ticks are kept for the other versions). Missing = true; older launchers ignore the field.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub addons: Option<bool>,
+    /// 1.6.5 (owner 13.11.2026): a version that is another mod with its own launcher exe (grantovich's IG Rework:
+    /// IgRework.exe, IgRework.launchconfig, IgRework_DLLs) names its game here, e.g. "igrework". The add-ons whose `games`
+    /// list it go into it as copies in dow2-patches, loaded by the launcher's winmm loader (loader vloader-3+: any -modname that is
+    /// not Elite gets that folder), exactly like the vanilla game's; the others are off for it. Its launch config is never
+    /// given our DLLs (its exe refuses to start when a DLL it names is not in its own _DLLs folder). Set, it wins over
+    /// `addons` (main.rs channel_blocks) - which stays false in the catalog for launchers up to 1.6.3: they know no per-game
+    /// add-ons and would put every ticked one into the mod's launch config.
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub game: String,
 }
 
 impl Channel {
     /// Do our add-ons go into the game with this version?
     pub fn addons_allowed(&self) -> bool {
         self.addons != Some(false)
+    }
+    /// The game of the add-ons' `games` for this version when it is another mod ("igrework"), None for Elite.
+    pub fn addon_game(&self) -> Option<&str> {
+        let g = self.game.trim();
+        (!g.is_empty() && !g.eq_ignore_ascii_case("elite") && !g.eq_ignore_ascii_case("vanilla")).then_some(g)
     }
 }
 
