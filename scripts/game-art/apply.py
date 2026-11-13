@@ -60,6 +60,9 @@ def main():
             if m.get('slice') is not None or s.get('slice') is not None:
                 root_vars.append(f"--art-{var}-slice:{m.get('slice', s.get('slice'))};")
         print('ok', k, im.size)
+    if 'plate' in mp or 'plate-fill' in mp:   # the plate's mirrored and square copies follow it (derive.py, 1.6.3)
+        sys.path.insert(0, HERE); import derive; derive.derive()
+        root_vars.append('--art-plate-m:url(plate-m.png);--art-plate-fill-m:url(plate-fill-m.jpg);--art-plate-sq:url(plate-sq.png);')
     css = '/* written by scripts/game-art/apply.py from art-map.json - the game\'s own pictures in the art slots */\n'
     if root_vars: css += ':root{' + ''.join(root_vars) + '}\n'
     css += '\n'.join(rules) + '\n'

@@ -9,6 +9,8 @@
   --art-panel:url(img/ui/panel-fill.jpg);
   --art-plate:url(img/ui/plate.png); --art-plate-slice:14;
   --art-plate-fill:url(img/ui/plate-fill.jpg);
+  --art-plate-m:url(img/ui/plate-m.png); --art-plate-fill-m:url(img/ui/plate-fill-m.jpg);   /* mirrored: the cut corner at the top right */
+  --art-plate-sq:url(img/ui/plate-sq.png);                                                  /* square corners: the cards */
   --art-card:url(img/ui/card-fill.jpg);
   --art-slot:url(img/ui/slot.png); --art-slot-slice:10;
   --art-name:url(img/ui/plate-name.png); --art-name-slice:6 26 6 6;
@@ -1536,3 +1538,11 @@ header .brand.dow-d{align-items:center;gap:10px;flex:none;overflow:visible}
 .dow-d .dd-st{display:flex;flex-direction:column;justify-content:center;min-width:0;line-height:1;align-self:flex-end;padding-bottom:9px}
 .dow-d .hdr-ver{margin:0;font:400 11px/1 var(--fb);color:var(--mu);letter-spacing:.3px}
 @media (max-width:1000px){.dow-d .dd-w{font-size:16px}.dow-d .dd-w::before,.dow-d .dd-w::after{width:8px}}
+/* ---------- 1.6.3 (owner 13.11.2026): the plate mirrored and the plate with square corners (scripts/game-art/derive.py) ----------
+   Mirrored: a plate button on the left of the window has its cut corner at the top right, facing the middle of the window as
+   Play's does from the right (Create a lobby / Sign in in the Rooms panel). Any other plate button takes it with the class "mir".
+   The variables are swapped on the box, so every rule of the plate (normal, hover, disabled) draws the mirrored one.
+   Square: the cards (the lobbies, the match under Online, the announcements, the connection check's nodes) are framed by the
+   plate with its corners square - the plate's 20 px cut squeezed into a 6 px border read as a rounded top-left corner. */
+.rnav,.mir{--art-plate:var(--art-plate-m);--art-plate-fill:var(--art-plate-fill-m)}
+.ann,.ann.accent,.ann.warning,.on-mc,.room{border-image-source:var(--art-plate-sq)}

@@ -128,3 +128,5 @@
 .modal .box.nt-box{border:13px solid transparent;border-image:var(--art-frame) var(--art-frame-slice) / 13px;background:linear-gradient(rgba(5,10,11,.88),rgba(5,10,11,.88)),var(--art-panel) center/cover padding-box}
 .nt-box .h{font:700 17px var(--fh);letter-spacing:0;text-transform:none;color:#d8f6ea}
 .nt-box .h::after{display:none}
+/* 1.6.3: the nodes are cards - the plate with square corners (style.css, the end) */
+.nt-node{border-image-source:var(--art-plate-sq)}

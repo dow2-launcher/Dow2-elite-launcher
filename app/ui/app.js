@@ -1945,6 +1945,14 @@ function syncTrayLabels() {
   invoke('set_tray_labels', { open: t('trayOpen'), quit: t('trayQuit') }).catch(() => {});
 }
 
+// 1.6.3: the first render() can come before the scripts after this one are read (the status answered while the page still
+// loaded replays.js), and the keys they add showed as they are ("replaysTab", "rpMine"). Once every script ran, a text still
+// showing its key gets its text (only those: the others may have been changed by the code since).
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('[data-t]').forEach(e => { if (e.textContent === e.dataset.t) e.textContent = t(e.dataset.t); });
+  document.querySelectorAll('[data-tp]').forEach(e => { if (e.placeholder === e.dataset.tp) e.placeholder = t(e.dataset.tp); });
+  document.querySelectorAll('[data-ta]').forEach(e => { if (e.title === e.dataset.ta) { e.title = t(e.dataset.ta); e.setAttribute('aria-label', e.title); } });
+});
 function render() {
   // the player's pick in Settings; none - the system's language (siritos 02.11), English when we have no translation
   lang = S.lang || sysLang();

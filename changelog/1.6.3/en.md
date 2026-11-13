@@ -1,0 +1,4 @@
+- Windows: after an update the launcher's shortcuts and taskbar button show its current icon (the installer now asks Windows to re-read its icon cache).
+- The plate buttons on the left of the window (Create a lobby, Sign in) are mirrored: their cut corner faces the middle of the window, as on Play.
+- The cards of lobbies, the match under Online, the announcements and the connection check have square corners (the top-left one looked rounded).
+- The Replays tab and its sections are named in the chosen language at start (they sometimes showed "replaysTab", "rpMine").

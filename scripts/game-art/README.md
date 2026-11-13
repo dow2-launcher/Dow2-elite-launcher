@@ -16,6 +16,8 @@ On a computer with Dawn of War II: Retribution installed:
    the frames. Slots left out keep their stand-ins.
 4. **Put them in.** `python3 apply.py <unpacked folder>`: the pictures go to `app/ui/img/ui` (icons to `img/ui/icons`) as PNG,
    `img/ui/art.css` points the slots at them, `img/ui/art.js` lists the icons for the code. Run it again after any change.
+   The plate's mirrored copy (the plate buttons on the left of the window) and its copy with square corners (the cards) are
+   made from it by `derive.py`; `apply.py` runs it when the map has the plate.
 5. Commit `art-map.json` and what `apply.py` wrote. Not sure which picture is which - send `find.html` (with `find-thumbs/`),
    the map can be filled from it.
 
