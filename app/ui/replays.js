@@ -11,7 +11,7 @@ Object.assign(T.en, {
   rpMineNote: 'The replays of the game on this computer (the Playback folder). Put one into the shared pool with one button - you are its author and can add a description.',
   rpPoolNote: 'Replays of all players: the ladder matches, the ones put in from the launcher and from the community Discord. Download puts the file into the game\'s replays.',
   rpSearch: 'Player, map, author, description', rpMode: 'Mode', rpAll: 'All', rpPlayers: 'Players', rpVersion: 'Version', rpRaces: 'Races',
-  rpRacesTip: 'Only matches with every race picked here', rpOnlyMine: 'Only mine', rpMore: 'Show more', rpReload: 'Refresh', rpOpenDir: 'Open the folder',
+  rpRacesTip: 'Only matches with every race picked here', rpOnlyMine: 'Only mine', rpMore: 'Show more', rpShown: '{from}–{to} of {total}', rpPrev: 'Previous page', rpNext: 'Next page', rpPageN: 'Page {n}', rpReload: 'Refresh', rpOpenDir: 'Open the folder',
   rpNone: 'No replays here yet.', rpNoneFilter: 'No replay fits the filters.', rpNoDir: 'The game\'s replay folder was not found.',
   rpPoolErr: 'The pool did not answer. Check the connection and press Refresh.', rpLoading: 'Loading…',
   rpPick: 'Pick a replay on the left to see it in detail.', rpVanilla: 'Vanilla', rpVerUnknown: 'unknown version', rpBroken: 'not a readable replay',
@@ -35,7 +35,7 @@ Object.assign(T.ru, {
   rpMineNote: 'Реплеи игры на этом компьютере (папка Playback). Любой можно одной кнопкой отправить в общий пул — там вы будете его автором и сможете добавить описание.',
   rpPoolNote: 'Реплеи всех игроков: матчи ладдера, присланные из лаунчера и из Discord-сообществ. «Скачать» кладёт файл в реплеи игры.',
   rpSearch: 'Игрок, карта, автор, описание', rpMode: 'Режим', rpAll: 'Все', rpPlayers: 'Игроков', rpVersion: 'Версия', rpRaces: 'Расы',
-  rpRacesTip: 'Только матчи, где есть все выбранные расы', rpOnlyMine: 'Только мои', rpMore: 'Показать ещё', rpReload: 'Обновить', rpOpenDir: 'Открыть папку',
+  rpRacesTip: 'Только матчи, где есть все выбранные расы', rpOnlyMine: 'Только мои', rpMore: 'Показать ещё', rpShown: '{from}–{to} из {total}', rpPrev: 'Предыдущая страница', rpNext: 'Следующая страница', rpPageN: 'Страница {n}', rpReload: 'Обновить', rpOpenDir: 'Открыть папку',
   rpNone: 'Реплеев пока нет.', rpNoneFilter: 'Под фильтры ничего не подходит.', rpNoDir: 'Папка реплеев игры не найдена.',
   rpPoolErr: 'Пул не ответил. Проверьте соединение и нажмите «Обновить».', rpLoading: 'Загрузка…',
   rpPick: 'Выберите реплей слева, чтобы посмотреть подробно.', rpVanilla: 'Ваниль', rpVerUnknown: 'версия неизвестна', rpBroken: 'файл не читается как реплей',
@@ -59,7 +59,7 @@ Object.assign(T.es, {
   rpMineNote: 'Las repeticiones del juego en este equipo (la carpeta Playback). Cualquiera se envía a la colección común con un botón: allí apareces como autor y puedes añadir una descripción.',
   rpPoolNote: 'Repeticiones de todos los jugadores: partidas del ladder, las enviadas desde el launcher y desde el Discord de la comunidad. «Descargar» pone el archivo en las repeticiones del juego.',
   rpSearch: 'Jugador, mapa, autor, descripción', rpMode: 'Modo', rpAll: 'Todos', rpPlayers: 'Jugadores', rpVersion: 'Versión', rpRaces: 'Razas',
-  rpRacesTip: 'Solo partidas con todas las razas elegidas', rpOnlyMine: 'Solo las mías', rpMore: 'Mostrar más', rpReload: 'Actualizar', rpOpenDir: 'Abrir la carpeta',
+  rpRacesTip: 'Solo partidas con todas las razas elegidas', rpOnlyMine: 'Solo las mías', rpMore: 'Mostrar más', rpShown: '{from}–{to} de {total}', rpPrev: 'Página anterior', rpNext: 'Página siguiente', rpPageN: 'Página {n}', rpReload: 'Actualizar', rpOpenDir: 'Abrir la carpeta',
   rpNone: 'Aún no hay repeticiones.', rpNoneFilter: 'Ninguna repetición cumple los filtros.', rpNoDir: 'No se encontró la carpeta de repeticiones del juego.',
   rpPoolErr: 'La colección no respondió. Revisa la conexión y pulsa Actualizar.', rpLoading: 'Cargando…',
   rpPick: 'Elige una repetición a la izquierda para verla en detalle.', rpVanilla: 'Vanilla', rpVerUnknown: 'versión desconocida', rpBroken: 'no se puede leer como repetición',
@@ -83,7 +83,7 @@ Object.assign(T.fr, {
   rpMineNote: 'Les rediffusions du jeu sur cet ordinateur (le dossier Playback). Chacune s\'envoie dans la collection commune d\'un clic : vous y êtes son auteur et pouvez ajouter une description.',
   rpPoolNote: 'Les rediffusions de tous les joueurs : parties du ladder, envois du launcher et du Discord de la communauté. « Télécharger » place le fichier dans les rediffusions du jeu.',
   rpSearch: 'Joueur, carte, auteur, description', rpMode: 'Mode', rpAll: 'Tous', rpPlayers: 'Joueurs', rpVersion: 'Version', rpRaces: 'Races',
-  rpRacesTip: 'Seulement les parties avec toutes les races choisies', rpOnlyMine: 'Seulement les miennes', rpMore: 'Afficher plus', rpReload: 'Actualiser', rpOpenDir: 'Ouvrir le dossier',
+  rpRacesTip: 'Seulement les parties avec toutes les races choisies', rpOnlyMine: 'Seulement les miennes', rpMore: 'Afficher plus', rpShown: '{from}–{to} sur {total}', rpPrev: 'Page précédente', rpNext: 'Page suivante', rpPageN: 'Page {n}', rpReload: 'Actualiser', rpOpenDir: 'Ouvrir le dossier',
   rpNone: 'Pas encore de rediffusion.', rpNoneFilter: 'Aucune rediffusion ne correspond aux filtres.', rpNoDir: 'Le dossier des rediffusions du jeu est introuvable.',
   rpPoolErr: 'La collection n\'a pas répondu. Vérifiez la connexion et cliquez sur Actualiser.', rpLoading: 'Chargement…',
   rpPick: 'Choisissez une rediffusion à gauche pour la voir en détail.', rpVanilla: 'Vanilla', rpVerUnknown: 'version inconnue', rpBroken: 'illisible comme rediffusion',
@@ -107,7 +107,7 @@ Object.assign(T.de, {
   rpMineNote: 'Die Wiederholungen des Spiels auf diesem Rechner (Ordner Playback). Jede geht mit einem Klick in die gemeinsame Sammlung – dort stehst du als Autor und kannst eine Beschreibung ergänzen.',
   rpPoolNote: 'Wiederholungen aller Spieler: Ladder-Spiele, Einsendungen aus dem Launcher und aus dem Discord der Community. „Herunterladen“ legt die Datei zu den Wiederholungen des Spiels.',
   rpSearch: 'Spieler, Karte, Autor, Beschreibung', rpMode: 'Modus', rpAll: 'Alle', rpPlayers: 'Spieler', rpVersion: 'Version', rpRaces: 'Völker',
-  rpRacesTip: 'Nur Spiele mit allen gewählten Völkern', rpOnlyMine: 'Nur meine', rpMore: 'Mehr zeigen', rpReload: 'Aktualisieren', rpOpenDir: 'Ordner öffnen',
+  rpRacesTip: 'Nur Spiele mit allen gewählten Völkern', rpOnlyMine: 'Nur meine', rpMore: 'Mehr zeigen', rpShown: '{from}–{to} von {total}', rpPrev: 'Vorherige Seite', rpNext: 'Nächste Seite', rpPageN: 'Seite {n}', rpReload: 'Aktualisieren', rpOpenDir: 'Ordner öffnen',
   rpNone: 'Noch keine Wiederholungen.', rpNoneFilter: 'Keine Wiederholung passt zu den Filtern.', rpNoDir: 'Der Wiederholungsordner des Spiels wurde nicht gefunden.',
   rpPoolErr: 'Die Sammlung hat nicht geantwortet. Prüfe die Verbindung und klicke auf Aktualisieren.', rpLoading: 'Lädt…',
   rpPick: 'Wähle links eine Wiederholung, um sie genau anzusehen.', rpVanilla: 'Vanilla', rpVerUnknown: 'unbekannte Version', rpBroken: 'als Wiederholung nicht lesbar',
@@ -130,7 +130,7 @@ Object.assign(T.de, {
 // ---- state ----
 const RP = {
   view: 'mine', loaded: false,
-  mine: { items: [], dir: '', err: '', have: {}, sel: '' },
+  mine: { items: [], dir: '', err: '', have: {}, sel: '', page: 0 },
   pool: { items: [], total: 0, page: 0, err: '', sel: '', loading: false },
   det: null, versions: [], cat: null,
   f: { q: '', mode: 'all', players: 'all', version: 'all', races: [], onlyMine: false },
@@ -194,14 +194,15 @@ async function rpLoadMine() {
 async function rpLoadPool(reset) {
   if (RP.pool.loading) return;
   RP.pool.loading = true;
-  if (reset) { RP.pool.page = 0; $('rpList').innerHTML = `<div class="note">${esc(t('rpLoading'))}</div>`; }
+  if (reset) RP.pool.page = 0;
+  $('rpList').innerHTML = `<div class="note">${esc(t('rpLoading'))}</div>`;
   const f = RP.f;
   const q = { q: f.q, mode: f.mode === 'all' ? '' : f.mode, players: f.players === 'all' ? '' : f.players, version: f.version === 'all' ? '' : f.version,
-              race: f.races.join(','), mine: f.onlyMine && rpSigned(), page: RP.pool.page, n: 50 };
+              race: f.races.join(','), mine: f.onlyMine && rpSigned(), page: RP.pool.page, n: RP_PAGE };
   try {
     const r = await invoke('replays_pool', { q });
     RP.pool.err = '';
-    RP.pool.items = reset ? r.items || [] : RP.pool.items.concat(r.items || []);
+    RP.pool.items = r.items || [];
     RP.pool.total = r.total || 0;
   } catch (e) { RP.pool.err = String(e); if (reset) RP.pool.items = []; }
   RP.pool.loading = false;
@@ -220,7 +221,7 @@ function rpFilters() {
     + `<span>${esc(t('rpVersion'))}<select id="rpVer"><option value="all">${esc(t('rpAll'))}</option>${vers.map(v => `<option value="${esc(v)}"${f.version === v ? ' selected' : ''}>${esc(rpVer(v))}</option>`).join('')}</select></span>`
     + `<span class="rp-races" data-tip="${esc(t('rpRacesTip'))}">${esc(t('rpRaces'))}${RP_RACES.map(r => `<button class="rp-race${f.races.includes(r) ? ' on' : ''}" data-race="${r}" aria-pressed="${f.races.includes(r)}">${raceImg(r)}</button>`).join('')}</span>`
     + (RP.view === 'pool' && rpSigned() ? `<label class="chk"><input type="checkbox" id="rpOnlyMine"${f.onlyMine ? ' checked' : ''}><span>${esc(t('rpOnlyMine'))}</span></label>` : '');
-  const changed = () => { rpSaveF(); if (RP.view === 'pool') rpLoadPool(true); else rpRender(); };
+  const changed = () => { rpSaveF(); if (RP.view === 'pool') rpLoadPool(true); else { RP.mine.page = 0; rpRender(); } };
   box.querySelectorAll('[data-f]').forEach(b => b.onclick = () => { f[b.dataset.f] = b.dataset.v; rpFilters(); changed(); });
   box.querySelectorAll('.rp-race').forEach(b => b.onclick = () => {
     const r = b.dataset.race; f.races = f.races.includes(r) ? f.races.filter(x => x !== r) : f.races.concat(r); rpFilters(); changed();
@@ -277,21 +278,48 @@ function rpRender() {
     $('rpCount').textContent = RP.mine.items.length ? (items.length === RP.mine.items.length ? String(items.length) : `${items.length} / ${RP.mine.items.length}`) : '';
     html = RP.mine.err === 'no_dir' ? `<div class="note">${esc(t('rpNoDir'))}</div>`
       : RP.mine.err ? `<div class="note">${esc(rpErr(RP.mine.err))}</div>`
-      : items.length ? items.map(x => rpRow(x, 'mine')).join('')
+      : items.length ? items.slice(RP.mine.page * RP_PAGE, (RP.mine.page + 1) * RP_PAGE).map(x => rpRow(x, 'mine')).join('')
       : `<div class="note">${esc(t(RP.mine.items.length ? 'rpNoneFilter' : 'rpNone'))}</div>`;
+    if (RP.mine.page * RP_PAGE >= items.length && RP.mine.page) { RP.mine.page = 0; return rpRender(); }
   } else {
     items = RP.pool.items;
     $('rpCount').textContent = RP.pool.total ? String(RP.pool.total) : '';
     html = RP.pool.err && !items.length ? `<div class="note">${esc(t('rpPoolErr'))}</div>`
-      : items.length ? items.map(x => rpRow(x, 'pool')).join('') + (items.length < RP.pool.total ? `<button class="btn small rp-more" id="rpMore">${esc(t('rpMore'))}</button>` : '')
+      : items.length ? items.map(x => rpRow(x, 'pool')).join('')
       : `<div class="note">${esc(t(RP.f.q || RP.f.races.length || RP.f.mode !== 'all' || RP.f.players !== 'all' || RP.f.version !== 'all' || RP.f.onlyMine ? 'rpNoneFilter' : 'rpNone'))}</div>`;
   }
   const top = list.scrollTop;
   list.innerHTML = html;
   list.scrollTop = top;
   list.querySelectorAll('.rp-row').forEach(b => b.onclick = () => rpSelect(b.dataset.id));
-  const more = $('rpMore'); if (more) more.onclick = () => { RP.pool.page++; rpLoadPool(false); };
+  rpPager(mine ? items.length : RP.pool.total, mine ? RP.mine.page : RP.pool.page);
   rpDetail();
+}
+// pages of RP_PAGE: the arrows, the first and the last page, two around the current one; "51–100 of 2138"
+const RP_PAGE = 50;
+function rpPager(total, page) {
+  const box = $('rpPager'); if (!box) return;
+  const pages = Math.ceil(total / RP_PAGE);
+  if (!total) { box.innerHTML = ''; return; }
+  const from = page * RP_PAGE + 1, to = Math.min(total, (page + 1) * RP_PAGE);
+  const nums = [];
+  for (let i = 0; i < pages; i++) if (i === 0 || i === pages - 1 || Math.abs(i - page) <= 2) nums.push(i);
+  let html = '', last = -1;
+  for (const i of nums) {
+    if (i - last > 1) html += '<span class="rp-gap">…</span>';
+    html += `<button class="rp-pg${i === page ? ' on' : ''}" data-pg="${i}" aria-label="${esc(t('rpPageN', { n: i + 1 }))}"${i === page ? ' aria-current="page"' : ''}>${i + 1}</button>`;
+    last = i;
+  }
+  box.innerHTML = `<span class="rp-shown">${esc(t('rpShown', { from, to, total }))}</span>`
+    + (pages > 1 ? `<span class="rp-pgs"><button class="rp-pg" data-pg="${page - 1}"${page ? '' : ' disabled'} aria-label="${esc(t('rpPrev'))}">‹</button>${html}`
+      + `<button class="rp-pg" data-pg="${page + 1}"${page < pages - 1 ? '' : ' disabled'} aria-label="${esc(t('rpNext'))}">›</button></span>` : '');
+  box.querySelectorAll('.rp-pg[data-pg]').forEach(b => b.onclick = () => rpGoPage(Number(b.dataset.pg)));
+}
+function rpGoPage(p) {
+  if (p < 0) return;
+  $('rpList').scrollTop = 0;
+  if (RP.view === 'mine') { RP.mine.page = p; rpRender(); }
+  else { RP.pool.page = p; rpLoadPool(false); }
 }
 function rpSelect(id) {
   if (RP.view === 'mine') RP.mine.sel = id; else RP.pool.sel = id;
@@ -332,6 +360,7 @@ function rpDetail() {
   const box = $('rpDet'); if (!box) return;
   const mine = RP.view === 'mine';
   const x = mine ? RP.mine.items.find(i => i.file === RP.mine.sel) : RP.pool.items.find(i => i.id === RP.pool.sel);
+  box.parentElement.classList.toggle('has-sel', !!x);   // a narrow window: the pane under the list only for a chosen replay
   if (!x) { box.innerHTML = `<div class="note rp-pick">${esc(t('rpPick'))}</div>`; return; }
   if (x.broken) { box.innerHTML = `<div class="rp-dh"><b>${esc(x.file)}</b></div><div class="note">${esc(t('rpBroken'))}</div>`; return; }
   const pid = mine ? RP.mine.have[x.id] : x.id;

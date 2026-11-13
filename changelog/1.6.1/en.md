@@ -1,0 +1,2 @@
+- Replays: the list scrolls with the mouse wheel and the touchpad (on macOS it did not move at all) and has a visible scroll bar.
+- Replays: pages of 50 with the page numbers and arrows under the list, and the count "51-100 of 2137". In a narrow window the details open under the list only for a chosen replay.
