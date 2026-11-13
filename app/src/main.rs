@@ -13,6 +13,7 @@ mod netgame;
 mod reach;
 mod roomjoin;
 mod lroom;
+mod replays;
 mod livewatch;
 
 use elite_core::config::{version_newer, LauncherConfig};
@@ -3082,6 +3083,8 @@ fn main() {
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             livewatch::live_watch, livewatch::live_watch_probe, livewatch::live_watch_cancel,
+            replays::replays_local, replays::replays_pool, replays::replays_versions, replays::replays_have, replays::replay_info, replays::replay_upload,
+            replays::replay_describe, replays::replay_download, replays::replays_open_dir,
             lroom::lroom_api, lroom::lroom_list, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
             hotkeys_get, hotkeys_save, hotkeys_reset, ui_scale_get, ui_scale_set, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,

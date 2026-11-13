@@ -14,6 +14,7 @@ pub mod manifest;
 pub mod net;
 pub mod nettest;
 pub mod proton;
+pub mod replay;
 pub mod sign;
 pub mod update;
 

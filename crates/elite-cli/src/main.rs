@@ -1,5 +1,6 @@
 //! elite-cli [--game DIR] [--mirror URL]... [--channel ID | --version V] [--verify] [status|update|channels]
 //! elite-cli nettest [--mode 1v1|2v2|3v3] [--secs N] [--port P] [--node IP[=name]]... [--json FILE]   (the launcher's connection test)
+//! elite-cli replay <file.rec>...   what the launcher's Replays tab reads from a replay, one JSON line per file
 use elite_core::{config::LauncherConfig, game, net::Mirrors, update};
 
 /// Default mirrors, set at build time like the launcher (ELITE_MIRRORS, separated by `;`).
@@ -8,6 +9,15 @@ const DEFAULT_MIRRORS: &str = match option_env!("ELITE_MIRRORS") { Some(v) => v,
 fn main() {
     let a: Vec<String> = std::env::args().skip(1).collect();
     if a.first().map(String::as_str) == Some("nettest") { return nettest(&a[1..]); }
+    if a.first().map(String::as_str) == Some("replay") {
+        for f in &a[1..] {
+            match elite_core::replay::parse_file(std::path::Path::new(f)) {
+                Some(r) => println!("{}", serde_json::to_string(&r).unwrap_or_default()),
+                None => println!("{}", serde_json::json!({"file": f, "error": "not a replay"})),
+            }
+        }
+        return;
+    }
     let (mut dir, mut mirrors, mut channel, mut version, mut verify, mut cmd) = (None, Vec::new(), None, None, false, "status".to_string());
     let mut i = 0;
     while i < a.len() {

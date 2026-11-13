@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="fonts.css">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="nettest.css">
+<link rel="stylesheet" href="replays.css">
 <!-- the game's art extracted by scripts/game-art: overrides of the art slots (style.css :root) and the icons -->
 <link rel="stylesheet" href="img/ui/art.css">
 <script src="img/ui/art.js"></script>
@@ -17,7 +18,7 @@
   <header>
     <!-- 1.5.12 (owner 12.11.2026): DoW Launcher, variant D - the game's logo arrangement: DAWN of WAR over a red Roman II, LAUNCHER in silver as its edition line -->
     <div class="brand dow-d"><span class="dd-sr">DoW Launcher — Dawn of War II</span><span class="dd-logo" aria-hidden="true"><b class="dd-ii">II</b><span class="dd-w">Dawn <em>of</em> War</span><span class="dd-sub">Launcher</span></span><span class="dd-st"><span class="hdr-ver" id="hdrVer"></span></span></div>
-    <nav><button class="tab on" data-view="home" data-t="home"></button><button class="tab" data-view="rooms" data-t="roomsTab"></button><button class="tab" data-view="addons" data-t="components"></button><button class="tab tab-ico" data-view="settings" data-ta="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></nav>
+    <nav><button class="tab on" data-view="home" data-t="home"></button><button class="tab" data-view="rooms" data-t="roomsTab"></button><button class="tab" data-view="replays" data-t="replaysTab"></button><button class="tab" data-view="addons" data-t="components"></button><button class="tab tab-ico" data-view="settings" data-ta="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button></nav>
     <div class="hdr-me" id="hdrMe"><span id="mePlate"></span><section class="me-box hidden" id="meBox" role="menu"></section></div>
   </header>
   <!-- 1.5.3 (owner 10.11): the updates - a newer launcher, a newer Elite - in one strip under the header, one Update on the right;
@@ -102,6 +103,24 @@
           <div class="rlist"><div class="rooms-grid" id="rLiveCards"></div></div>
         </section>
         <div class="lr-room hidden" id="lrRoom" aria-live="polite"></div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 1.6.0 (owner 13.11.2026): the Replays tab - the player's own replays (Playback) and the shared pool on our server (replays.js) -->
+  <main id="replays" class="view hidden">
+    <div class="rwrap">
+      <nav class="rnav" id="rpNav">
+        <button class="rnb on" data-rp="mine"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M10 9l5 3-5 3z"/></svg><span class="lbl" data-t="rpMine"></span><span class="n" id="rpMineN"></span></button>
+        <button class="rnb" data-rp="pool"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span class="lbl" data-t="rpPool"></span><span class="n" id="rpPoolN"></span></button>
+      </nav>
+      <div class="rmain">
+        <section class="panel rpage rp-page">
+          <div class="h"><span id="rpTitle"></span><em id="rpCount"></em><div class="rp-hact" id="rpAct"></div></div>
+          <div class="note rp-note" id="rpNote"></div>
+          <div class="rflt" id="rpFlt"></div>
+          <div class="rp-body"><div class="rp-list" id="rpList"></div><div class="rp-det" id="rpDet"></div></div>
+        </section>
       </div>
     </div>
   </main>
@@ -205,6 +224,7 @@
 <div class="toast hidden" id="toast"></div>
 <script src="app.js"></script>
 <script src="lroom.js"></script>
+<script src="replays.js"></script>
 <script src="layer.js"></script>
 </body>
 </html>
