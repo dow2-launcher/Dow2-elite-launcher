@@ -3109,7 +3109,7 @@ function chMe() {
       : `<div class="me-st">${esc(t('prNoGames'))}</div>`;
     plate.innerHTML = `<button class="me-chip" id="meChip" aria-haspopup="menu" aria-expanded="${!box.classList.contains('hidden')}"><i class="me-dot"></i>`
       + `<span class="me-nr"><span class="me-n">${esc(me.name || me.steam)}</span>${rating ? `<span class="me-r">${Number(rating) | 0}</span>` : ''}</span><b class="chev"></b></button>`;
-    box.innerHTML = `<div class="me-head">${avatar(me.avatar, 'me-av')}<div class="me-info"><div class="me-top"><span class="me-name">${esc(me.name || me.steam)}</span>`
+    box.innerHTML = `<div class="me-head">${avatar(me.avatar, 'me-av')}<div class="me-info"><div class="me-top"><span class="me-name${String(me.name || me.steam).length > 14 ? ' long' : ''}">${esc(me.name || me.steam)}</span>`
       + `<button class="me-out" id="chOut" data-tip="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}">${ico('out')}</button></div>`
       + (rating ? `<div class="me-rt">${esc(t('meRating', { r: Number(rating) | 0 }))}</div>` : '') + '</div></div>' + games
       + `<button class="me-item" id="meStats" role="menuitem">${ico('bars')}<span>${esc(t('myStats'))}</span></button>`
@@ -3122,12 +3122,17 @@ function chMe() {
     box.classList.add('hidden'); box.innerHTML = '';
     // waiting for the browser: a line and Cancel (a new click on the chat's button opens Steam again)
     plate.innerHTML = CH.waiting ? `<span class="me-wait">${esc(t('chWaitingShort'))}</span><button class="btn small ghost" id="chCancel">${esc(t('chCancel'))}</button>`
-      : `<button class="btn gold small" id="chIn">${ico('steam')}${esc(CH.me && CH.me.local_name ? t('chLoginAs', { name: CH.me.local_name }) : t('chLogin'))}</button>`;
+      : chInBtn();
     if ($('chIn')) $('chIn').onclick = chLogin;
     if ($('chCancel')) $('chCancel').onclick = () => { invoke('c_login_cancel').catch(() => {}); CH.waiting = false; chMe(); };
   }
   $('chLoginRow').classList.toggle('hidden', !!me);
   $('chSendRow').classList.toggle('hidden', !me);
+}
+// 1.6.7: "Sign in as <the Steam name>" - a long name is cut with "…" (the whole line in the tip), the header keeps its room
+function chInBtn() {
+  const nm = CH.me && CH.me.local_name || '', label = nm ? t('chLoginAs', { name: nm }) : t('chLogin');
+  return `<button class="btn gold small me-in" id="chIn"${nm.length > 14 ? ` data-tip="${esc(label)}"` : ''}>${ico('steam')}<span>${esc(label)}</span></button>`;
 }
 // a click anywhere else closes the profile menu
 document.addEventListener('click', e => { const b = $('meBox'); if (b && !b.classList.contains('hidden') && !e.target.closest('#hdrMe')) { b.classList.add('hidden'); const c = $('meChip'); if (c) c.setAttribute('aria-expanded', 'false'); } });

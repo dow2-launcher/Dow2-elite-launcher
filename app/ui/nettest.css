@@ -97,7 +97,7 @@
 .nq-note{margin-top:4px;font-size:12px}
 
 /* ================= 1.5.0: the D look ================= */
-.hdr-net{width:40px;height:40px;margin-left:8px;border:0;padding:0;display:grid;place-items:center;background:var(--art-portrait) center/100% 100%;cursor:pointer;transition:filter .15s}
+.hdr-net{flex:none;width:40px;height:40px;margin-left:8px;border:0;padding:0;display:grid;place-items:center;background:var(--art-portrait) center/100% 100%;cursor:pointer;transition:filter .15s}
 .hdr-net:hover,.hdr-net:focus-visible{filter:brightness(1.2) drop-shadow(0 0 5px rgba(69,224,192,.45))}
 .modal .box.nt-box{border-radius:0}
 .nt-head{border-bottom:1px solid var(--ln)}

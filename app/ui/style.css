@@ -647,8 +647,20 @@ header nav{align-self:stretch;align-items:center;gap:4px}
 .me-chip:hover,.me-chip[aria-expanded="true"]{filter:brightness(1.2) drop-shadow(0 0 5px rgba(69,224,192,.45))}
 .me-dot{width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#c8ffc0,#2bbf52 60%,#0d5a22);box-shadow:0 0 6px #3ee06a}
 .me-r{font:400 12px var(--fb);color:var(--mu)}
+/* 1.6.7 (owner 14.11.2026): a long name is cut with "…" here - the whole of it is in the menu, on two lines */
+/* and a narrow window cuts it more (the header's own parts keep their room, the connection button stays in the window) */
+.hdr-me{flex:0 1 auto;min-width:0}
+.hdr-me #mePlate{min-width:0}
+.me-chip{min-width:0;max-width:300px}
+.me-nr{min-width:0}
+.me-r,.me-dot,.me-chip .chev{flex:none}
+.me-n{min-width:0;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* a window under 1000 px (it can be 900): the rating only in the menu, the tabs a little closer - the plate keeps its dot and arrow */
+@media (max-width:1000px){.me-chip .me-r{display:none}header .tab{padding:0 9px}}
 .me-chip .chev{width:7px;height:7px;border:solid var(--gd);border-width:0 1.5px 1.5px 0;transform:translateY(-2px) rotate(45deg);margin-left:2px}
 .me-wait{font-size:12.5px;color:var(--mu);white-space:nowrap}
+.hdr-me .me-in{min-width:0;max-width:280px}
+.hdr-me .me-in>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .hdr-me .btn .ico{width:15px;height:15px}
 /* its menu */
 .me-box{position:absolute;top:calc(100% + 8px);right:0;z-index:40;width:290px;padding:6px 0;margin:0;display:flex;flex-direction:column;
@@ -656,8 +668,11 @@ header nav{align-self:stretch;align-items:center;gap:4px}
 .me-head{display:flex;gap:12px;align-items:center;padding:4px 12px 10px;border-bottom:1px solid var(--ln)}
 .me-box .av.me-av{width:46px;height:46px;flex:none}
 .me-info{flex:1;min-width:0}
-.me-top{display:flex;align-items:center;gap:8px}
-.me-name{flex:1;min-width:0;font:700 22px var(--fh);color:#eafff8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.me-top{display:flex;align-items:flex-start;gap:8px}
+/* the whole name: up to two lines, broken anywhere when it has no spaces; a long one a size smaller; Sign out by its first line */
+.me-name{flex:1;min-width:0;font:700 22px/1.15 var(--fh);color:#eafff8;overflow:hidden;overflow-wrap:anywhere;
+  display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.me-name.long{font-size:18px}
 .me-rt{font:400 12px var(--fb);color:var(--mu)}
 .me-st{padding:8px 12px 2px;font-size:13px;color:var(--sf)}
 .me-out{flex:none;display:grid;place-items:center;width:28px;height:28px;padding:0;border:1px solid transparent;background:none;color:#7fb3a8;transition:color .15s,border-color .15s,box-shadow .15s}
