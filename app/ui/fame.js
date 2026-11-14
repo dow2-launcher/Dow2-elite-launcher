@@ -1,4 +1,4 @@
-// The Hall of Fame (owner 14.11.2026): Settings > About > Hall of Fame opens a window with the players who helped the launcher
+// The Hall of Fame (owner 14.11.2026): a tab of Settings with the players who helped the launcher
 // most - on top the one who helped most recently, 1-5 orders relative to the best one in the hall (no sorting by them), a click on
 // a name opens what they did and what we changed thanks to it. The list lives on our server (/elite/fame.json, the site's
 // /elite/fame/ shows the same) - edited there, no release needed. Texts of the list: en and ru, the rest fall back to en.
@@ -15,18 +15,16 @@ const fameTx = o => o ? (o[lang] || o.en || o.ru || '') : '';
 const fameLast = p => (p.events || []).reduce((m, e) => (e.date > m ? e.date : m), '');
 const fameScore = p => (p.events || []).reduce((s, e) => s + (e.changed ? 2 : 1), 0);
 const fameDay = d => { try { return new Date(d + 'T12:00:00').toLocaleDateString(lang === 'en' ? 'en-GB' : lang, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return d; } };
-async function fameShow() {
-  const m = document.createElement('div'); m.className = 'modal fame-modal';
-  m.innerHTML = `<div class="box"><h3>${esc(t('fameTitle'))}</h3><p class="fame-lead">${esc(t('fameLead'))}</p><div class="fame-list"><div class="spin"></div></div>`
-    + `<div class="row"><button class="btn gold" data-x="1">${esc(t('roomsVerClose'))}</button><button class="btn ghost" data-site="1">${esc(t('fameSite'))}</button></div></div>`;
-  document.body.appendChild(m);
-  const end = () => m.remove();
-  m.querySelector('[data-x]').onclick = end; m.onclick = e => { if (e.target === m) end(); };
-  m.querySelector('[data-site]').onclick = () => invoke('open_url', { url: 'https://rts.fintebtc.de/elite/fame/?lang=' + lang }).catch(() => {});
+// 1.6.10: a tab of Settings (#setFame) instead of a window; loaded when the tab opens, again after 10 minutes
+let FAME_AT = 0;
+async function fameLoad(force) {
+  const box = document.getElementById('fameList'); if (!box) return;
+  if (!force && FAME_AT && Date.now() - FAME_AT < 600000 && box.childElementCount) return;
+  if (!box.childElementCount) box.innerHTML = '<div class="spin"></div>';
   let d = null; try { d = await invoke('fame_get'); } catch (e) { d = null; }
-  const box = m.querySelector('.fame-list');
   const ppl = ((d && d.people) || []).slice().sort((a, b) => fameLast(b).localeCompare(fameLast(a)));
-  if (!ppl.length) { box.innerHTML = `<p>${esc(t('fameNone'))}</p>`; return; }
+  if (!ppl.length) { box.innerHTML = `<p class="note">${esc(t('fameNone'))}</p>`; return; }
+  FAME_AT = Date.now();
   const best = Math.max(1, ...ppl.map(fameScore));
   box.innerHTML = ppl.map((p, i) => {
     const n = Math.max(1, Math.min(5, Math.round(5 * fameScore(p) / best)));
@@ -39,4 +37,4 @@ async function fameShow() {
         + (e.changed ? `<div class="fame-c"><b>${esc(t('fameChanged'))}</b> ${esc(fameTx(e.changed))}</div>` : '') + '</li>').join('')}</ul></details>`;
   }).join('');
 }
-(() => { const b = document.getElementById('fameOpen'); if (b) b.onclick = fameShow; })();
+(() => { const b = document.getElementById('fameSite'); if (b) b.onclick = () => invoke('open_url', { url: 'https://rts.fintebtc.de/elite/fame/?lang=' + lang }).catch(() => {}); })();

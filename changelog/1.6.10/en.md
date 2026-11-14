@@ -1,0 +1,1 @@
+- The Hall of Fame is now a tab of Settings (under Hotkeys): the list right in the panel, click a name for what they did and what we changed; an "On the site" button.

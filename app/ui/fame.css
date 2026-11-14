@@ -1,4 +1,9 @@
-/* the Hall of Fame window (fame.js) */
+/* the Hall of Fame tab of Settings (fame.js) */
+.fame-page{display:flex;flex-direction:column;min-height:0}
+.fame-page .fame-list{max-height:calc(100vh - 250px)}
+.fame-page .fame-lead{margin:6px 0 8px}
+.fame-foot{margin-top:10px}
+#setFame{max-width:860px}
 .fame-modal .box{width:min(720px,92vw);max-width:none;max-height:86vh;display:flex;flex-direction:column}
 .fame-lead{margin:0 0 8px}
 .fame-list{overflow-y:auto;min-height:60px;padding-right:6px;display:flex;flex-direction:column;gap:6px}

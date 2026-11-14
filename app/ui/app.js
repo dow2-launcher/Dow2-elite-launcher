@@ -3609,8 +3609,9 @@ $('hkReset').onclick = async () => {
 // checked when it is first opened), Hotkeys (the bindings are read when the tab is first opened)
 document.querySelectorAll('.set-tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.set-tab').forEach(x => x.classList.toggle('on', x === b));
-  ['setMain', 'setNet', 'hotkeys'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
+  ['setMain', 'setNet', 'hotkeys', 'setFame'].forEach(id => $(id).classList.toggle('hidden', id !== b.dataset.set));
   if (b.dataset.set === 'hotkeys' && !HK.data) hkLoad();
+  if (b.dataset.set === 'setFame' && typeof fameLoad === 'function') fameLoad();
   if (b.dataset.set === 'setMain') uiScaleLoad();
   if (b.dataset.set === 'setNet' && !GN_OPENED) { GN_OPENED = true; if (!GN) gameNetCheck(); }
 });

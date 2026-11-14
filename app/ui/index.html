@@ -133,7 +133,7 @@
 
   <main id="settings" class="view hidden">
     <div class="set-wrap">
-    <nav class="set-tabs"><button class="set-tab on" data-set="setMain"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span data-t="setGeneral"></span></button><button class="set-tab" data-set="setNet"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span data-t="netTab"></span></button><button class="set-tab" data-set="hotkeys"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="hotkeys"></span></button></nav>
+    <nav class="set-tabs"><button class="set-tab on" data-set="setMain"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span data-t="setGeneral"></span></button><button class="set-tab" data-set="setNet"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span data-t="netTab"></span></button><button class="set-tab" data-set="hotkeys"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="hotkeys"></span></button><button class="set-tab" data-set="setFame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.2 3.1 3.6-1-1 3.6L20 11l-3.2 1.9 1 3.6-3.6-1L12 18.6 9.8 15.5l-3.6 1 1-3.6L4 11l3.2-1.9-1-3.6 3.6 1z"/><circle cx="12" cy="11" r="2.2"/></svg><span data-t="fameTitle"></span></button></nav>
     <!-- 1.5.0 (D): General in sections - Game and Launcher on the left, Maintenance and About on the right; a row is the name
          (with its note under it) on the left and the controls on the right -->
     <div class="set-col set-grid" id="setMain">
@@ -161,7 +161,6 @@
       <div class="fr"><div><span id="about"></span><small data-t="aboutAuto"></small></div><div class="row"><button class="btn small ghost" id="aboutNews" data-t="aboutNews"></button></div></div>
       <div class="fr"><div><span data-t="aboutInstalled"></span></div><div class="row"><span class="about-v" id="aboutVer"></span></div></div>
       <div class="fr"><div><span data-t="aboutCode"></span><small data-t="aboutLicense"></small></div><div class="row about-links" id="aboutLinks"></div></div>
-      <div class="fr"><div><span data-t="fameTitle"></span><small data-t="fameSub"></small></div><div class="row"><button class="btn small ghost" id="fameOpen" data-t="fameOpen"></button></div></div>
     </section>
     </div>
     </div>
@@ -200,6 +199,11 @@
       <div class="hk-all"><div class="hk-allh"><span data-t="hkAll"></span><input id="hkSearch" data-tp="hkSearch"></div><div class="hk-groups" id="hkAllList"></div></div>
       <div class="note hk-how" data-t="hkHow"></div>
     </section>
+    </div>
+    <!-- 1.6.10 (owner 14.11.2026): the Hall of Fame as a tab of Settings (fame.js) -->
+    <div class="set-col hidden" id="setFame">
+    <section class="panel sec fame-page"><h3 data-t="fameTitle"></h3><p class="note fame-lead" data-t="fameLead"></p><div class="fame-list" id="fameList"></div>
+      <div class="row fame-foot"><button class="btn small ghost" id="fameSite" data-t="fameSite"></button></div></section>
     </div>
     </div>
   </main>
