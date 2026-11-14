@@ -24,7 +24,7 @@ Object.assign(T.en, {
   rpInPoolTip: 'This replay is on the server, in All replays', rpShowPool: 'Show it in the pool', rpDownload: 'Download', rpDownloading: 'Downloading…',
   rpDownloaded: 'Saved to the game\'s replays: {file}', rpHad: 'Already in the game\'s replays: {file}', rpWatchHint: 'In the game: Replays in the main menu.',
   rpSignIn: 'Sign in with Steam to upload replays to the server - they show you as their author.', rpSignInBtn: 'Sign in',
-  rpWatch: 'Watch the match on the map', rpWatchTip: 'Opens the site: every squad of the match second by second, as the game itself simulated it', rpSimTag: 'on the map', rpReport: 'Analysis of the match', rpReportShow: 'Show the analysis', rpReportHide: 'Hide the analysis', rpReportWait: 'The server is still analysing this replay.',
+  rpDeep: 'Detailed analysis on the map', rpDeepTip: 'The game itself replays the match on our server (about a minute, then a few minutes in the queue) - the site then shows every squad of the match on the map', rpWatch: 'Watch the match on the map', rpWatchTip: 'Opens the site: every squad of the match second by second, as the game itself simulated it', rpSimTag: 'on the map', rpReport: 'Analysis of the match', rpReportShow: 'Show the analysis', rpReportHide: 'Hide the analysis', rpReportWait: 'The server is still analysing this replay.',
   rpe_auth: 'Sign in with Steam first.', rpe_no_file: 'The file is gone from the replay folder.', rpe_not_replay: 'This is not a Dawn of War II replay.',
   rpe_too_big: 'The file is too big for the server (30 MB at most).', rpe_too_many: 'Too many replays sent from here in the last hour - try again later.',
   rpe_full: 'The pool is full right now - try later.', rpe_rejected: 'The pool did not take the file.', rpe_not_yours: 'Only the one who uploaded the replay can change its description.',
@@ -48,7 +48,7 @@ Object.assign(T.ru, {
   rpInPoolTip: 'Этот реплей есть на сервере, во «Всех реплеях»', rpShowPool: 'Открыть в пуле', rpDownload: 'Скачать', rpDownloading: 'Скачиваю…',
   rpDownloaded: 'Сохранён в реплеи игры: {file}', rpHad: 'Уже есть в реплеях игры: {file}', rpWatchHint: 'В игре: «Реплеи» в главном меню.',
   rpSignIn: 'Войдите через Steam, чтобы загружать реплеи на сервер — там вы будете указаны их автором.', rpSignInBtn: 'Войти',
-  rpWatch: 'Смотреть матч на карте', rpWatchTip: 'Откроется сайт: все отряды матча посекундно, как их просчитала сама игра', rpSimTag: 'на карте', rpReport: 'Разбор матча', rpReportShow: 'Показать разбор', rpReportHide: 'Скрыть разбор', rpReportWait: 'Сервер ещё разбирает этот реплей.',
+  rpDeep: 'Подробный разбор на карте', rpDeepTip: 'Игра сама заново прокрутит матч на нашем сервере (около минуты плюс пара минут очереди) — потом на сайте весь матч на карте, каждый отряд', rpWatch: 'Смотреть матч на карте', rpWatchTip: 'Откроется сайт: все отряды матча посекундно, как их просчитала сама игра', rpSimTag: 'на карте', rpReport: 'Разбор матча', rpReportShow: 'Показать разбор', rpReportHide: 'Скрыть разбор', rpReportWait: 'Сервер ещё разбирает этот реплей.',
   rpe_auth: 'Сначала войдите через Steam.', rpe_no_file: 'Файла больше нет в папке реплеев.', rpe_not_replay: 'Это не реплей Dawn of War II.',
   rpe_too_big: 'Файл слишком большой для сервера (не больше 30 МБ).', rpe_too_many: 'Отсюда за последний час прислано слишком много реплеев — попробуйте позже.',
   rpe_full: 'Пул сейчас заполнен — попробуйте позже.', rpe_rejected: 'Пул не принял файл.', rpe_not_yours: 'Описание может менять только тот, кто загрузил реплей на сервер.',
@@ -72,7 +72,7 @@ Object.assign(T.es, {
   rpInPoolTip: 'Esta repetición está en el servidor, en Todas las repeticiones', rpShowPool: 'Verla en la colección', rpDownload: 'Descargar', rpDownloading: 'Descargando…',
   rpDownloaded: 'Guardada en las repeticiones del juego: {file}', rpHad: 'Ya está en las repeticiones del juego: {file}', rpWatchHint: 'En el juego: Repeticiones en el menú principal.',
   rpSignIn: 'Inicia sesión con Steam para subir repeticiones al servidor: allí apareces como su autor.', rpSignInBtn: 'Iniciar sesión',
-  rpWatch: 'Ver la partida en el mapa', rpWatchTip: 'Se abre la web: cada escuadra de la partida segundo a segundo, tal como la simuló el propio juego', rpSimTag: 'en el mapa', rpReport: 'Análisis de la partida', rpReportShow: 'Mostrar el análisis', rpReportHide: 'Ocultar el análisis', rpReportWait: 'El servidor aún está analizando esta repetición.',
+  rpDeep: 'Análisis detallado en el mapa', rpDeepTip: 'El propio juego vuelve a reproducir la partida en nuestro servidor (un minuto más unos minutos de cola); luego la web muestra cada escuadra en el mapa', rpWatch: 'Ver la partida en el mapa', rpWatchTip: 'Se abre la web: cada escuadra de la partida segundo a segundo, tal como la simuló el propio juego', rpSimTag: 'en el mapa', rpReport: 'Análisis de la partida', rpReportShow: 'Mostrar el análisis', rpReportHide: 'Ocultar el análisis', rpReportWait: 'El servidor aún está analizando esta repetición.',
   rpe_auth: 'Primero inicia sesión con Steam.', rpe_no_file: 'El archivo ya no está en la carpeta de repeticiones.', rpe_not_replay: 'No es una repetición de Dawn of War II.',
   rpe_too_big: 'El archivo es demasiado grande para el servidor (30 MB como máximo).', rpe_too_many: 'Se han enviado demasiadas repeticiones desde aquí en la última hora; inténtalo más tarde.',
   rpe_full: 'La colección está llena ahora mismo; inténtalo más tarde.', rpe_rejected: 'La colección no aceptó el archivo.', rpe_not_yours: 'Solo quien subió la repetición puede cambiar su descripción.',
@@ -96,7 +96,7 @@ Object.assign(T.fr, {
   rpInPoolTip: 'Cette rediffusion est sur le serveur, dans Toutes les rediffusions', rpShowPool: 'La voir dans la collection', rpDownload: 'Télécharger', rpDownloading: 'Téléchargement…',
   rpDownloaded: 'Enregistrée dans les rediffusions du jeu : {file}', rpHad: 'Déjà dans les rediffusions du jeu : {file}', rpWatchHint: 'Dans le jeu : Rediffusions dans le menu principal.',
   rpSignIn: 'Connectez-vous avec Steam pour envoyer des rediffusions sur le serveur : elles vous indiquent comme leur auteur.', rpSignInBtn: 'Se connecter',
-  rpWatch: 'Voir la partie sur la carte', rpWatchTip: 'Ouvre le site : chaque escouade de la partie seconde par seconde, telle que le jeu l\'a simulée', rpSimTag: 'sur la carte', rpReport: 'Analyse de la partie', rpReportShow: 'Afficher l\'analyse', rpReportHide: 'Masquer l\'analyse', rpReportWait: 'Le serveur analyse encore cette rediffusion.',
+  rpDeep: 'Analyse détaillée sur la carte', rpDeepTip: 'Le jeu lui-même rejoue la partie sur notre serveur (une minute plus quelques minutes de file) ; ensuite le site montre chaque escouade sur la carte', rpWatch: 'Voir la partie sur la carte', rpWatchTip: 'Ouvre le site : chaque escouade de la partie seconde par seconde, telle que le jeu l\'a simulée', rpSimTag: 'sur la carte', rpReport: 'Analyse de la partie', rpReportShow: 'Afficher l\'analyse', rpReportHide: 'Masquer l\'analyse', rpReportWait: 'Le serveur analyse encore cette rediffusion.',
   rpe_auth: 'Connectez-vous d\'abord avec Steam.', rpe_no_file: 'Le fichier n\'est plus dans le dossier des rediffusions.', rpe_not_replay: 'Ce n\'est pas une rediffusion de Dawn of War II.',
   rpe_too_big: 'Le fichier est trop gros pour le serveur (30 Mo au plus).', rpe_too_many: 'Trop de rediffusions envoyées d\'ici depuis une heure ; réessayez plus tard.',
   rpe_full: 'La collection est pleine pour le moment ; réessayez plus tard.', rpe_rejected: 'La collection n\'a pas accepté le fichier.', rpe_not_yours: 'Seul celui qui a envoyé la rediffusion sur le serveur peut changer sa description.',
@@ -120,7 +120,7 @@ Object.assign(T.de, {
   rpInPoolTip: 'Diese Wiederholung ist auf dem Server, unter Alle Wiederholungen', rpShowPool: 'In der Sammlung zeigen', rpDownload: 'Herunterladen', rpDownloading: 'Lade herunter…',
   rpDownloaded: 'In den Wiederholungen des Spiels gespeichert: {file}', rpHad: 'Schon in den Wiederholungen des Spiels: {file}', rpWatchHint: 'Im Spiel: Wiederholungen im Hauptmenü.',
   rpSignIn: 'Melde dich mit Steam an, um Wiederholungen auf den Server zu laden – dort stehst du als Autor.', rpSignInBtn: 'Anmelden',
-  rpWatch: 'Spiel auf der Karte ansehen', rpWatchTip: 'Öffnet die Website: jeder Trupp des Spiels Sekunde für Sekunde, so wie das Spiel selbst ihn simuliert hat', rpSimTag: 'auf der Karte', rpReport: 'Analyse des Spiels', rpReportShow: 'Analyse zeigen', rpReportHide: 'Analyse ausblenden', rpReportWait: 'Der Server analysiert diese Wiederholung noch.',
+  rpDeep: 'Detaillierte Analyse auf der Karte', rpDeepTip: 'Das Spiel selbst spielt die Partie auf unserem Server erneut ab (etwa eine Minute plus ein paar Minuten Warteschlange); danach zeigt die Website jeden Trupp auf der Karte', rpWatch: 'Spiel auf der Karte ansehen', rpWatchTip: 'Öffnet die Website: jeder Trupp des Spiels Sekunde für Sekunde, so wie das Spiel selbst ihn simuliert hat', rpSimTag: 'auf der Karte', rpReport: 'Analyse des Spiels', rpReportShow: 'Analyse zeigen', rpReportHide: 'Analyse ausblenden', rpReportWait: 'Der Server analysiert diese Wiederholung noch.',
   rpe_auth: 'Melde dich zuerst mit Steam an.', rpe_no_file: 'Die Datei ist nicht mehr im Wiederholungsordner.', rpe_not_replay: 'Das ist keine Wiederholung von Dawn of War II.',
   rpe_too_big: 'Die Datei ist zu groß für den Server (höchstens 30 MB).', rpe_too_many: 'In der letzten Stunde wurden von hier zu viele Wiederholungen gesendet – versuch es später.',
   rpe_full: 'Die Sammlung ist gerade voll – versuch es später.', rpe_rejected: 'Die Sammlung hat die Datei nicht angenommen.', rpe_not_yours: 'Nur wer die Wiederholung hochgeladen hat, kann ihre Beschreibung ändern.',
@@ -501,6 +501,9 @@ function rpDetail() {
   // 1.6.4 (owner 13.11.2026): the site's match player - every squad second by second from the game's own simulation
   const sim = !!pid && !!((RP.det && RP.det.pid === pid && RP.det.meta && RP.det.meta.sim) || ((!mine || x.remote) && x.sim));
   if (sim) acts += `<button class="btn gold small" id="rpSim" data-tip="${esc(t('rpWatchTip'))}">▶ ${esc(t('rpWatch'))}</button>`;
+  // 1.6.6: not run yet - the site puts it in the runner's queue (#sim) and shows the match when it is ready
+  else if (pid && ((RP.det && RP.det.pid === pid && RP.det.meta && RP.det.meta.sim_ok) || ((!mine || x.remote) && x.sim_ok)))
+    acts += `<button class="btn small" id="rpSim" data-tip="${esc(t('rpDeepTip'))}">▶ ${esc(t('rpDeep'))}</button>`;
   const rep = RP.det && RP.det.pid === pid ? (lang === 'ru' ? RP.det.report : RP.det.report_en) || '' : '';
   const cap = RP.det && RP.det.pid === pid ? (lang === 'ru' ? RP.det.caption : RP.det.caption_en) || '' : (x.caption || '');
   // the summary right under the map's name (it hung under the author's description with no heading)

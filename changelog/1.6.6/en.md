@@ -1,0 +1,1 @@
+- Replays: a replay with no match on the map yet gets a "Detailed analysis on the map" button - the game itself replays the match on our server, and a few minutes later the site shows the whole match on the map: every squad, fights, points (in their owner's colour), losses, chat. Works for Elite 3.2 and 3.2.1 replays between players.
