@@ -1680,7 +1680,7 @@ const compShown = c => !/(^|-)off$/i.test(String(c.latest || ''));
 // only - the player decides, nothing is unticked
 function compWarns(c) {
   if (!c.enabled) return [];
-  const all = (S && S.components || []).filter(compShown), b = compBase(c), nm = x => L(x.name) || x.id, out = [];
+  const all = (S && S.components || []).concat(S && S.os === 'macos' ? (S.components_preview || []) : []).filter(compShown), b = compBase(c), nm = x => L(x.name) || x.id, out = [];
   const ex = all.filter(x => x !== c && x.enabled && ((c.excludes || []).includes(compBase(x)) || (x.excludes || []).includes(b)));
   if (ex.length) out.push(t('addonExcl', { names: ex.map(nm).join(', ') }));
   const rq = (c.requires || []).map(id => all.find(x => compBase(x) === id)).filter(Boolean);
@@ -2094,7 +2094,8 @@ function render() {
   else if (notMain) $('verWarn').textContent = t('youPlay', { name: L(activeCh.name) }) + ' ' + t('notMain', { name: L(mainCh.name) });
 
   // add-ons: only the game server on the home screen (or what launcher.json marks "home"), all of them on the Add-ons tab
-  const comps = (S.components || []).filter(compShown);
+  // 1.6.9 (owner 14.11.2026): on macOS the Windows add-ons too, as a showcase (components_preview: shown, never installed)
+  const comps = (S.components || []).concat(S.os === 'macos' ? (S.components_preview || []) : []).filter(compShown);
   const pinned = comps.some(c => c.home) ? comps.filter(c => c.home)
     : comps.filter(c => c.id === 'relay');   // until launcher.json marks them
   $('compBox').classList.toggle('hidden', !pinned.length);

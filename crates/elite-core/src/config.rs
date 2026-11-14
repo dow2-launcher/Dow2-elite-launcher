@@ -60,6 +60,10 @@ pub struct LauncherConfig {
     /// `os` in `components`: launchers before the Mac support read only `components` and serde drops an unknown field of
     /// an entry, so an `os` there would not hide a Mac entry from them. `for_os` merges both lists for this system.
     pub components_macos: Vec<Component>,
+    /// macOS only (1.6.9, owner 14.11.2026): the add-ons of the other systems, to show the Add-ons page as Windows players see
+    /// it (the Mac launcher is a showcase while the Mac version of Elite waits). Never installed: not in `components`.
+    #[serde(skip)]
+    pub components_preview: Vec<Component>,
 }
 
 /// The vanilla game (owner 05.11.2026): DOW2.exe without -modname, the add-ons whose `games` name "vanilla" are copied into
@@ -91,8 +95,11 @@ impl LauncherConfig {
             c
         });
         let mut seen = std::collections::HashSet::new();
-        self.components = std::mem::take(&mut self.components).into_iter().chain(mac)
-            .filter(|c| c.for_os(os) && seen.insert(c.id.clone())).collect();
+        let (mine, other): (Vec<Component>, Vec<Component>) = std::mem::take(&mut self.components).into_iter().chain(mac).partition(|c| c.for_os(os));
+        self.components = mine.into_iter().filter(|c| seen.insert(c.id.clone())).collect();
+        if os.eq_ignore_ascii_case("macos") {
+            self.components_preview = other.into_iter().filter(|c| seen.insert(c.id.clone())).collect();
+        }
         self
     }
     /// Is the vanilla mode offered by this catalog?

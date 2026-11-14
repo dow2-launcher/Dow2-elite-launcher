@@ -1,0 +1,1 @@
+- macOS: the Add-ons page shows the same set Windows players see (a showcase: they are not installed on a Mac while the Mac version of Elite is paused) - it used to be empty.

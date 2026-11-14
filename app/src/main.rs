@@ -699,6 +699,30 @@ fn get_status(app: State<'_, App>) -> Value {
     let launcher_update = cfgd.launcher_update.as_ref().filter(|u| version_newer(&u.version, LAUNCHER_VERSION)).map(|u| {
         json!({"version": u.version, "text": u.text, "url": u.urls.get(os_name()).or_else(|| u.urls.get("all")).cloned().unwrap_or_default()})
     });
+    // the add-on cards; `preview`: a macOS showcase entry (components_preview) - shown, never installed
+    let comp_json = |c: &elite_core::config::Component, preview: bool| json!({
+            "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category, "order": c.order, "excludes": c.excludes, "requires": c.requires,
+            "vanilla_ok": c.for_game("vanilla"), "elite_ok": c.for_game("elite"),
+            "vanilla_installed": dir.as_ref().map(|d| update::Game::vanilla_component(d, &c.id).load_state().version).unwrap_or_default(),
+            "game_ok": mod_g.as_deref().is_none_or(|g| c.for_game(g)),
+            "enabled": !addons_off && mod_g.as_deref().is_none_or(|g| c.for_game(g))   // a version without add-ons (or not for this mod) wins
+                && (c.required || s.components.get(&c.id).copied().unwrap_or(c.default)),
+            "chosen": c.required || s.components.get(&c.id).copied().unwrap_or(c.default),
+            "required": c.required, "os": c.os,
+            "conflicts": if preview { Vec::new() } else { dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default() },
+            "preview": preview,
+            "installed": if preview { String::new() } else if os_name() == "macos" {
+                update::Game::component(elite_core::macos::addon_dir(&mac_addons_root(), &c.id), &c.id).load_state().version
+            } else { dir.as_ref().map(|d| update::Game::component(d, &c.id).load_state().version).unwrap_or_default() },
+            "options": c.opts().iter().map(|o| {
+                let k = format!("{}.{}", c.id, o.id);
+                json!({
+                    "id": o.id, "name": o.name, "group": o.group,
+                    "on": s.comp_options.get(&k).copied().unwrap_or(o.default),
+                    "choices": o.choices, "value": if o.choices.is_empty() { String::new() } else { o.ini_value(false, s.comp_values.get(&k)) },
+                })
+            }).collect::<Vec<_>>(),
+    });
     json!({
         "launcher_version": LAUNCHER_VERSION,
         "in_game_dir": launcher_in_game_dir(),
@@ -735,28 +759,8 @@ fn get_status(app: State<'_, App>) -> Value {
         "addons_blocked": addons_off,
         "addons_blocked_next": addons_off_next,
         "addon_game": mod_g,
-        "components": cfgd.components.iter().map(|c| json!({
-            "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category, "order": c.order, "excludes": c.excludes, "requires": c.requires,
-            "vanilla_ok": c.for_game("vanilla"), "elite_ok": c.for_game("elite"),
-            "vanilla_installed": dir.as_ref().map(|d| update::Game::vanilla_component(d, &c.id).load_state().version).unwrap_or_default(),
-            "game_ok": mod_g.as_deref().is_none_or(|g| c.for_game(g)),
-            "enabled": !addons_off && mod_g.as_deref().is_none_or(|g| c.for_game(g))   // a version without add-ons (or not for this mod) wins
-                && (c.required || s.components.get(&c.id).copied().unwrap_or(c.default)),
-            "chosen": c.required || s.components.get(&c.id).copied().unwrap_or(c.default),
-            "required": c.required, "os": c.os,
-            "conflicts": dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default(),
-            "installed": if os_name() == "macos" {
-                update::Game::component(elite_core::macos::addon_dir(&mac_addons_root(), &c.id), &c.id).load_state().version
-            } else { dir.as_ref().map(|d| update::Game::component(d, &c.id).load_state().version).unwrap_or_default() },
-            "options": c.opts().iter().map(|o| {
-                let k = format!("{}.{}", c.id, o.id);
-                json!({
-                    "id": o.id, "name": o.name, "group": o.group,
-                    "on": s.comp_options.get(&k).copied().unwrap_or(o.default),
-                    "choices": o.choices, "value": if o.choices.is_empty() { String::new() } else { o.ini_value(false, s.comp_values.get(&k)) },
-                })
-            }).collect::<Vec<_>>(),
-        })).collect::<Vec<_>>(),
+        "components": cfgd.components.iter().map(|c| comp_json(c, false)).collect::<Vec<_>>(),
+        "components_preview": cfgd.components_preview.iter().map(|c| comp_json(c, true)).collect::<Vec<_>>(),
         "usage_stats": s.usage_stats.unwrap_or(true),
         "mute_mention": s.mute_mention.unwrap_or(false),
         "close_quits": s.close_quits.unwrap_or(false),
