@@ -693,6 +693,8 @@ fn get_status(app: State<'_, App>) -> Value {
     let s = app.settings.lock().unwrap().clone();
     // 1.5.4: the installed version takes no add-ons (they are off, the ticks greyed out); `next`: the version picked does not
     let addons_off = dir.as_ref().is_some_and(|d| addons_blocked(d, &cfgd, &s));
+    // 1.6.5: a mod version with add-ons of its own game (IG Rework): the others are off and greyed for it
+    let mod_g = if vanilla_on(&cfgd, &s) { None } else { dir.as_ref().and_then(|d| copies_game(d, &cfgd, &s)) };
     let addons_off_next = !vanilla_on(&cfgd, &s) && channel_blocks(&cfgd, &channel);
     let launcher_update = cfgd.launcher_update.as_ref().filter(|u| version_newer(&u.version, LAUNCHER_VERSION)).map(|u| {
         json!({"version": u.version, "text": u.text, "url": u.urls.get(os_name()).or_else(|| u.urls.get("all")).cloned().unwrap_or_default()})
@@ -732,11 +734,14 @@ fn get_status(app: State<'_, App>) -> Value {
         "mode_sync": dir.as_ref().map(|d| mode_sync_needed(d, &cfgd, &s)).unwrap_or(false),
         "addons_blocked": addons_off,
         "addons_blocked_next": addons_off_next,
+        "addon_game": mod_g,
         "components": cfgd.components.iter().map(|c| json!({
             "id": c.id, "name": c.name, "description": c.description, "latest": c.version, "home": c.home, "category": c.category, "order": c.order, "excludes": c.excludes, "requires": c.requires,
             "vanilla_ok": c.for_game("vanilla"), "elite_ok": c.for_game("elite"),
             "vanilla_installed": dir.as_ref().map(|d| update::Game::vanilla_component(d, &c.id).load_state().version).unwrap_or_default(),
-            "enabled": !addons_off && (c.required || s.components.get(&c.id).copied().unwrap_or(c.default)),   // a version without add-ons wins
+            "game_ok": mod_g.as_deref().is_none_or(|g| c.for_game(g)),
+            "enabled": !addons_off && mod_g.as_deref().is_none_or(|g| c.for_game(g))   // a version without add-ons (or not for this mod) wins
+                && (c.required || s.components.get(&c.id).copied().unwrap_or(c.default)),
             "chosen": c.required || s.components.get(&c.id).copied().unwrap_or(c.default),
             "required": c.required, "os": c.os,
             "conflicts": dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default(),
@@ -1125,9 +1130,47 @@ fn drop_orphans(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
 // out of the game folder and of every launch config, Automatch's early winmm.dll too), the window greys the ticks out. The
 // player's ticks are not changed: back on a version with add-ons, the same sync installs what they chose.
 
-/// Is this channel one our add-ons do not go into?
+/// Is this channel one our add-ons do not go into? 1.6.5: a mod version with its own game (channel "game", IG Rework) takes
+/// the add-ons of that game as the vanilla game does - through the launcher's loader, so not where there is none (macOS).
 fn channel_blocks(cfg: &LauncherConfig, id: &str) -> bool {
-    cfg.channels.iter().find(|c| c.id == id).is_some_and(|c| !c.addons_allowed())
+    cfg.channels.iter().find(|c| c.id == id).is_some_and(|c| match c.addon_game() {
+        Some(_) => os_name() == "macos" || cfg.vanilla_loader().is_none(),
+        None => !c.addons_allowed(),
+    })
+}
+
+// ---------- 1.6.5: add-ons in another mod's version (owner 13.11.2026) ----------
+// grantovich's IG Rework is Elite 3.2 + his data with his own IgRework.exe, IgRework.launchconfig and IgRework_DLLs. Its exe
+// refuses to start the game when its launch config names a DLL that is not in IgRework_DLLs - up to 1.6.3 every ticked add-on
+// went into every *.launchconfig while its DLL stayed in Elite_DLLs, hence `"addons": false` (1.5.4). Now: launch configs name
+// a DLL only when their own folder has it (elite::set_injected_all), and a channel with "game" (e.g. "igrework") gets the
+// add-ons whose `games` list that game as copies in dow2-patches with the launcher's loader next to DOW2.exe - the vanilla
+// game's way (sync_vanilla); loader vloader-3+ loads that folder for any -modname that is not Elite. The rest are off for that version.
+
+/// A mod version: our add-ons' DLL names out of every launch config whose own DLL folder does not have them (IgRework.launchconfig;
+/// Elite.launchconfig keeps its add-ons for Elite). -> the add-on DLLs that went
+fn unlist_mod_injected(dir: &std::path::Path, cfg: &LauncherConfig) -> Vec<String> {
+    let main = update::Game::new(dir);
+    let mut out = Vec::new();
+    for c in cfg.components.iter().filter(|c| !c.inject.is_empty()) {
+        if let Ok(names) = elite::unlist_missing(dir, &c.inject) {
+            if !names.is_empty() { out.push(c.inject.clone()); }
+            for name in names { main.accept_local_edit(&name); }
+        }
+    }
+    out
+}
+
+/// The game of the installed version when it is another mod with its own add-ons ("igrework"), else None.
+fn mod_game(dir: &std::path::Path, cfg: &LauncherConfig) -> Option<String> {
+    let ch = update::Game::new(dir).load_state().channel;
+    cfg.channels.iter().find(|c| c.id == ch).and_then(|c| c.addon_game()).map(str::to_string)
+}
+/// The game whose add-on copies dow2-patches holds for Play: "vanilla", a mod's ("igrework"), or None (Elite: Elite_DLLs).
+fn copies_game(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Option<String> {
+    if vanilla_on(cfg, s) { return Some("vanilla".into()); }
+    if os_name() == "macos" || cfg.vanilla_loader().is_none() { return None; }
+    mod_game(dir, cfg)
 }
 /// Does the game Play starts from this folder take no add-ons (the installed version's channel, not the vanilla game)?
 fn addons_blocked(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> bool {
@@ -1138,6 +1181,9 @@ fn effective_settings(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings)
     let mut e = s.clone();
     if addons_blocked(dir, cfg, s) {
         for c in &cfg.components { e.components.insert(c.id.clone(), false); }
+    } else if let Some(g) = copies_game(dir, cfg, s).filter(|g| g != "vanilla") {
+        // 1.6.5: a mod version - the add-ons not made for its game are off (the player's ticks stay for Elite)
+        for c in cfg.components.iter().filter(|c| !c.for_game(&g)) { e.components.insert(c.id.clone(), false); }
     }
     e
 }
@@ -1361,8 +1407,9 @@ fn sync_components_with(dir: &std::path::Path, cfg: &LauncherConfig, s: &Setting
     if os_name() == "macos" {
         return sync_mac_addons(&mac_addons_root(), cfg, s, m, progress, load, true);
     }
-    if vanilla_on(cfg, s) {
-        return sync_vanilla(dir, cfg, s, m, progress, load);   // 1.4.11: Elite's files stay as they are
+    if let Some(g) = copies_game(dir, cfg, s) {
+        if g != "vanilla" { unlist_mod_injected(dir, cfg); }   // 1.6.5: none of our DLLs in the mod's launch config
+        return sync_vanilla(dir, cfg, s, m, progress, load, &g);   // 1.4.11: Elite's files stay as they are
     }
     hide_vanilla_loader(dir);            // Elite: no vanilla loader next to DOW2.exe (Automatch's early one comes back below)
     let s = &effective_settings(dir, cfg, s);   // 1.5.4: a version without add-ons - all of them off
@@ -1482,12 +1529,13 @@ fn put_aside_foreign_vanilla(dir: &std::path::Path) -> Vec<String> {
     moved
 }
 
-/// Vanilla copies that must not be there: of an add-on that is off, for Elite only, or gone from the catalog. -> what went
-fn drop_vanilla_extra(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Vec<String> {
+/// Vanilla copies that must not be there: of an add-on that is off, not for `game` (vanilla, or a mod's since 1.6.5), or gone
+/// from the catalog. -> what went
+fn drop_vanilla_extra(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, game: &str) -> Vec<String> {
     let mut gone = Vec::new();
     for id in update::Game::vanilla_ids(dir) {
         let keep = cfg.components.iter().find(|c| update::component_key(&c.id) == id)
-            .is_some_and(|c| c.for_game("vanilla") && comp_on(dir, c, s));
+            .is_some_and(|c| c.for_game(game) && comp_on(dir, c, s));
         if keep { continue; }
         let v = update::Game::vanilla_component(dir, &id);
         if let Ok(removed) = v.uninstall_keeping(|_| false) { gone.extend(removed.iter().map(|p| v.rel_path(p))); }
@@ -1496,8 +1544,9 @@ fn drop_vanilla_extra(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings)
 }
 
 /// The options of the vanilla copies: the same ini names, in dow2-patches (only options of the add-on's Elite_DLLs ini).
+/// 1.6.5: of every copy there (vanilla's or a mod version's - the folder holds one game's at a time).
 fn apply_vanilla_options(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) {
-    for c in cfg.components.iter().filter(|c| c.for_game("vanilla")) {
+    for c in &cfg.components {
         let v = update::Game::vanilla_component(dir, &c.id);
         if v.load_state().version.is_empty() { continue; }
         for o in c.opts() {
@@ -1510,13 +1559,14 @@ fn apply_vanilla_options(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settin
 }
 
 /// The vanilla game's add-ons and loader as the ticks and the catalog want them. Never touches Elite's files.
-fn sync_vanilla(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &Mirrors, progress: &mut dyn FnMut(&update::Progress), load: LoadManifest) -> Result<(), update::Error> {
+/// 1.6.5: `game` "vanilla", or a mod version's game ("igrework") - its add-ons the same way (copies in dow2-patches + loader).
+fn sync_vanilla(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &Mirrors, progress: &mut dyn FnMut(&update::Progress), load: LoadManifest, game: &str) -> Result<(), update::Error> {
     put_aside_old_copies(dir, cfg);      // hand copies in dow2-patches, the stand-alone loader: one copy of every patch
     drop_vanilla_leftovers(dir, cfg);
-    drop_vanilla_extra(dir, cfg, s);
+    drop_vanilla_extra(dir, cfg, s, game);
     put_aside_foreign_vanilla(dir);
     let opts = |id: &str| update::Options { verify_all: false, cache_limit: s.cache_mb.unwrap_or(DEFAULT_CACHE_MB) << 20, channel: id.to_string() };
-    for c in cfg.components.iter().filter(|c| c.for_game("vanilla") && comp_on(dir, c, s)) {
+    for c in cfg.components.iter().filter(|c| c.for_game(game) && comp_on(dir, c, s)) {
         let g = update::Game::component(dir, &c.id);
         let v = update::Game::vanilla_component(dir, &c.id);
         let man = update::vanilla_files(&load(&g, &c.version)?);
@@ -1543,9 +1593,10 @@ fn sync_vanilla(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &M
 fn mode_sync_needed(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> bool {
     if os_name() == "macos" { return false; }   // the same files for both games there; the start picks the dylibs
     let l = update::Game::vanilla_loader(dir);
-    if !vanilla_on(cfg, s) { return l.file_is_installed("winmm.dll"); }
+    let Some(game) = copies_game(dir, cfg, s) else { return l.file_is_installed("winmm.dll") };   // 1.6.5: or a mod version's
     if cfg.vanilla_loader() != Some(l.load_state().version.as_str()) || !l.file_is_installed("winmm.dll") { return true; }
-    let want: std::collections::HashMap<String, &str> = cfg.components.iter().filter(|c| c.for_game("vanilla") && comp_on(dir, c, s))
+    let s = &effective_settings(dir, cfg, s);
+    let want: std::collections::HashMap<String, &str> = cfg.components.iter().filter(|c| c.for_game(&game) && comp_on(dir, c, s))
         .map(|c| (update::component_key(&c.id), c.version.as_str())).collect();
     let have = update::Game::vanilla_ids(dir);
     if have.iter().any(|id| !want.contains_key(id)) { return true; }
@@ -1707,7 +1758,7 @@ async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Result<
                     if conf.is_empty() { String::new() } else { format!(", hand-installed copy: {}", conf.join(" ")) })
             }
             None => format!("{}: {}", c.id, c.version),
-        }).chain(std::iter::once(format!("game: {}{}", if vanilla_on(&cfg, &s) { "vanilla" } else { "elite" },
+        }).chain(std::iter::once(format!("game: {}{}", dir.as_ref().and_then(|d| copies_game(d, &cfg, &s)).unwrap_or_else(|| "elite".into()),
             dir.as_ref().map(|d| { let l = update::Game::vanilla_loader(d); let v = l.load_state().version;
                 if v.is_empty() { String::new() } else { format!(" (vanilla loader {v}{})", if l.file_is_installed("winmm.dll") { ", in place" } else { ", not in place" }) } }).unwrap_or_default())))
         .collect()
@@ -1998,11 +2049,14 @@ fn prepare_start(dir: &std::path::Path, cfg: &LauncherConfig, settings: &Setting
     // leftovers of their DLLs, and the ones gone from the catalog (drop_orphans) - nothing else in the game folder;
     // loader: the stand-alone dow2-patches package's winmm.dll. The leftovers first: drop_orphans forgets the names.
     let mut off = old;
-    if vanilla {
+    let copies = copies_game(&dir, &cfg, settings);
+    if let Some(game) = &copies {
         // 1.4.11: the vanilla game - only dow2-patches is checked, Elite's files stay as they are
         off.extend(drop_vanilla_leftovers(&dir, &cfg));
-        off.extend(drop_vanilla_extra(&dir, &cfg, settings));
+        off.extend(drop_vanilla_extra(&dir, &cfg, settings, game));
         off.extend(put_aside_foreign_vanilla(&dir));
+        // 1.6.5: a mod version (IG Rework) - none of our DLLs in its launch config, or its exe does not start the game
+        if game != "vanilla" { off.extend(unlist_mod_injected(&dir, &cfg)); }
     } else {
         // Elite: the vanilla loader out, Automatch's early winmm.dll back (both from the version cache, no network)
         if hide_vanilla_loader(&dir) { restore_root_files(&dir, &cfg, &settings); }
@@ -2014,9 +2068,10 @@ fn prepare_start(dir: &std::path::Path, cfg: &LauncherConfig, settings: &Setting
             if !off.iter().any(|x| x.to_ascii_lowercase().ends_with(&n.to_ascii_lowercase())) { off.push(n); }
         }
     }
-    let loader_missing = vanilla && !update::Game::vanilla_loader(&dir).file_is_installed("winmm.dll");
-    c_log(&format!("launch: {}{}", if vanilla { "vanilla" } else { "elite" }, if loader_missing { " (the vanilla loader is not in place - no add-ons)" } else { "" }));
-    json!({"off": off, "loader": is_patches_loader_file(&dir, "winmm.dll"), "vanilla": vanilla, "vanilla_loader_missing": loader_missing})
+    let loader_missing = copies.is_some() && !update::Game::vanilla_loader(&dir).file_is_installed("winmm.dll");
+    c_log(&format!("launch: {}{}", copies.as_deref().unwrap_or("elite"), if loader_missing { " (the vanilla loader is not in place - no add-ons)" } else { "" }));
+    json!({"off": off, "loader": is_patches_loader_file(&dir, "winmm.dll"), "vanilla": vanilla, "vanilla_loader_missing": loader_missing,
+           "game": copies.as_deref().unwrap_or("elite")})
 }
 
 /// 1.4.26 (owner 07.11.2026): the vanilla game starts without the intro movies, as Elite does (Elite.launchconfig
@@ -3501,6 +3556,73 @@ mod vanilla_tests {
     }
 
     #[test]
+    fn a_mod_version_gets_its_addons_as_copies() {
+        // 1.6.5: IG Rework (channel "game": "igrework") - the add-ons for its game as copies in dow2-patches + the loader, none of
+        // our DLLs in IgRework.launchconfig (IgRework.exe does not start the game when a name there is not in IgRework_DLLs)
+        if os_name() == "macos" { return; }
+        let d = std::env::temp_dir().join(format!("mod_version_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        std::fs::create_dir_all(&d).unwrap();
+        std::fs::write(d.join("DOW2.exe"), b"game").unwrap();
+        const IG_LC: &[u8] = b"IsRetribution=true\r\nInjectedFiles=CullspherePatch.dll, MiscFixes.dll\r\n";
+        let mut mans: std::collections::HashMap<String, Manifest> = Default::default();
+        for m in [
+            man(&d, "igrework-4", &[("Elite_DLLs/MiscFixes.dll", b"elite's own"), ("Elite.launchconfig", b"IsRetribution=true\nInjectedFiles=MiscFixes.dll\n"),
+                ("IgRework_DLLs/CullspherePatch.dll", b"ig cull"), ("IgRework_DLLs/MiscFixes.dll", b"ig misc"), ("IgRework.launchconfig", IG_LC), ("IgRework.exe", b"ig exe")]),
+            man(&d, "mmfind-0.50", &[("Elite_DLLs/MMFind.dll", b"mmfind"), ("Elite_DLLs/OwnLobby.dll", b"ownlobby"), ("winmm.dll", EARLY)]),
+            man(&d, "matchtimer-8", &[("Elite_DLLs/MatchTimer.dll", b"timer")]),
+            man(&d, "shellfix-1", &[("Elite_DLLs/ShellFix.dll", b"shell")]),
+            man(&d, "vloader-2", &[("winmm.dll", LOADER)]),
+        ] { mans.insert(m.version.clone(), m); }
+        let load = |_: &update::Game, v: &str| mans.get(v).cloned().ok_or_else(|| update::Error::Bad(format!("no {v}")));
+        let comp = |id: &str, ver: &str, dll: &str, def: bool, games: &[&str]| elite_core::config::Component {
+            id: id.into(), version: ver.into(), inject: dll.into(), default: def, games: games.iter().map(|g| g.to_string()).collect(), ..Default::default() };
+        let mut cfg: LauncherConfig = serde_json::from_str(r#"{"channels": [{"id": "stable", "version": "stable-1", "default": true},
+            {"id": "igrework", "version": "igrework-4", "exe": "IgRework.exe", "addons": false, "game": "igrework"}],
+            "vanilla": {"loader": "vloader-2"}}"#).unwrap();
+        let mut mt = comp("matchtimer_r2", "matchtimer-8", "MatchTimer.dll", true, &["elite", "vanilla", "igrework"]);
+        mt.options = vec![serde_json::from_str(r#"{"id":"style","ini":"Elite_DLLs/MatchTimer.ini","section":"MatchTimer","key":"Style","default":true}"#).unwrap()];
+        cfg.components = vec![comp("automatch", "mmfind-0.50", "MMFind.dll", true, &["elite", "vanilla"]), mt,
+                              comp("shellfix", "shellfix-1", "ShellFix.dll", true, &["elite"])];
+        let (m, mut nop) = (Mirrors::new(vec![]), |_: &update::Progress| {});
+        let s = Settings::default();
+        update::apply(&update::Game::new(&d), &m, &mans["igrework-4"], &update::Options { verify_all: false, cache_limit: 1 << 30, channel: "igrework".into() }, &mut nop).unwrap();
+        let ex = |f: &str| d.join(f).is_file();
+        let read = |f: &str| std::fs::read(d.join(f)).unwrap_or_default();
+        // what launchers up to 1.6.3 left: the add-ons in Elite_DLLs and their names in every launch config
+        for v in ["mmfind-0.50", "matchtimer-8"] {
+            let id = if v.starts_with("mmfind") { "automatch" } else { "matchtimer_r2" };
+            update::apply(&update::Game::component(&d, id), &m, &mans[v], &update::Options { verify_all: false, cache_limit: 1 << 30, channel: id.into() }, &mut nop).unwrap();
+        }
+        std::fs::write(d.join("IgRework.launchconfig"), "IsRetribution=true\r\nInjectedFiles=CullspherePatch.dll, MiscFixes.dll, MMFind.dll, MatchTimer.dll\r\n").unwrap();
+
+        assert_eq!(mod_game(&d, &cfg).as_deref(), Some("igrework"));
+        assert!(!channel_blocks(&cfg, "igrework") && !addons_blocked(&d, &cfg, &s));
+        let e = effective_settings(&d, &cfg, &s);
+        let on: Vec<&str> = cfg.components.iter().filter(|c| comp_on(&d, c, &e)).map(|c| c.id.as_str()).collect();
+        assert_eq!(on, ["matchtimer_r2"], "only the add-ons made for IG Rework");
+        assert!(mode_sync_needed(&d, &cfg, &s), "no loader yet");
+        sync_components_with(&d, &cfg, &s, &m, &mut nop, &load).unwrap();
+        assert_eq!(read("winmm.dll"), LOADER, "the launcher's loader, not Automatch's early one");
+        assert_eq!(read("dow2-patches/MatchTimer.dll"), b"timer");
+        assert!(!ex("dow2-patches/MMFind.dll") && !ex("dow2-patches/OwnLobby.dll") && !ex("dow2-patches/ShellFix.dll"));
+        assert_eq!(read("IgRework.launchconfig"), IG_LC, "grantovich's launch config as he made it");
+        assert!(String::from_utf8(read("dow2-patches/MatchTimer.ini")).unwrap().contains("Style=1"));
+        assert!(!mode_sync_needed(&d, &cfg, &s));
+        // Play: the mod's checks, nothing put back into its launch config
+        std::fs::write(d.join("IgRework.launchconfig"), "IsRetribution=true\r\nInjectedFiles=CullspherePatch.dll, MiscFixes.dll, MatchTimer.dll\r\n").unwrap();
+        let p = prepare_start(&d, &cfg, &s);
+        assert_eq!(p["game"], "igrework");
+        assert_eq!(p["vanilla"], false, "IgRework.exe starts it, not DOW2.exe");
+        assert_eq!(read("IgRework.launchconfig"), IG_LC, "{p}");
+        assert!(ex("dow2-patches/MatchTimer.dll") && read("winmm.dll") == LOADER);
+        // no loader in the catalog (or a Mac): the version takes no add-ons, as with "addons": false
+        cfg.vanilla = None;
+        assert!(channel_blocks(&cfg, "igrework") && copies_game(&d, &cfg, &s).is_none());
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
     fn vanilla_and_elite_back_and_forth() {
         if os_name() == "macos" { return; }   // the Mac's add-ons are dylibs in mac_addons: mac_addons_sync
         let d = std::env::temp_dir().join(format!("vanilla_mode_test_{}", std::process::id()));
@@ -3562,7 +3684,7 @@ mod vanilla_tests {
         assert!(old_copies(&d, &cfg).is_empty(), "the launcher's copies are no hand copies");
         assert!(cfg.components.iter().all(|c| found_conflicts(&d, c).is_empty()));
         assert!(put_aside_old_copies(&d, &cfg).is_empty() && ex("winmm.dll") && ex("dow2-patches/MMFind.dll"));
-        assert!(drop_vanilla_extra(&d, &cfg, &s).is_empty());
+        assert!(drop_vanilla_extra(&d, &cfg, &s, "vanilla").is_empty());
 
         // a tick off in vanilla: its copy goes, its Elite copy stays
         s.components.insert("matchtimer_r2".into(), false);
