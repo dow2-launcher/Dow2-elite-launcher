@@ -96,8 +96,9 @@
 .rp-flt{display:grid;grid-template-columns:minmax(0,max-content);justify-content:start;gap:6px;padding:0 6px 8px 0}   /* both lines as wide as the wider */
 .rp-f1,.rp-f2{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px;min-width:0}
 .rp-f1 .rp-q{flex:1 1 120px;width:120px;min-width:100px}
-.rp-f1 select{height:26px;font-size:12.5px}
-.rp-f1 .chk{font-size:12.5px}
+/* 1.6.7 (owner 14.11.2026): the version list as wide whatever versions it has ("unknown version" in Mine, not in All replays) -
+   the search and the list stand the same in both tabs; 148px = the longest label (es "versión desconocida") */
+.rp-f1 select{flex:none;width:148px;height:26px;font-size:12.5px}
 .rp-reset{font-size:12.5px;margin-left:4px}
 .rp-f2 .seg button{padding:3px 10px}
 .rp-races{gap:2px;margin-left:auto}   /* a wider first line: the races keep to the right edge, the two lines end together */
@@ -140,4 +141,4 @@
 @media (prefers-reduced-motion:reduce){.rp-mech{animation:none}}
 /* Reset in the header, by the (i): not pushed to the right as the header's other buttons */
 .rp-page .h>.rp-reset{order:0;margin-left:4px}
-.rp-f1 .rp-q input{text-overflow:ellipsis}   /* a narrow search (All replays has "Only mine" beside it): the hint cut with "…" */
+.rp-f1 .rp-q input{text-overflow:ellipsis}   /* a narrow window: the search's hint cut with "…" */

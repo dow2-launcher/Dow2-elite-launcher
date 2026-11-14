@@ -1,0 +1,2 @@
+- Replays: the filters look the same in My replays and All replays - "Only mine" is gone from All replays (your replays are in My replays), the search and the version list stand in the same places on both tabs.
+- A long Steam name no longer pushes the header out of the window: it is cut with "…" on the profile plate (and on "Sign in as …"), and the profile menu shows the whole name on up to two lines. In a narrow window the plate gets narrower too and the connection button stays in view.

@@ -11,7 +11,7 @@ Object.assign(T.en, {
   rpMineNote: 'The replays of the game on this computer (the Playback folder) and your replays on the server. Upload one to the server with one button - it shows in All replays, you are its author and can add a description.',
   rpPoolNote: 'Replays of all players: the ladder matches, the ones put in from the launcher and from the community Discord. Download puts the file into the game\'s replays.',
   rpSearch: 'Player, map, author, description', rpMode: 'Mode', rpAll: 'All', rpPlayers: 'Players', rpVersion: 'Version', rpRaces: 'Races',
-  rpRacesTip: 'Only matches with every race picked here', rpOnlyMine: 'Only mine', rpMore: 'Show more', rpShown: '{from}–{to} of {total}', rpPrev: 'Previous page', rpNext: 'Next page', rpPageN: 'Page {n}', rpReload: 'Refresh', rpOpenDir: 'Open the folder',
+  rpRacesTip: 'Only matches with every race picked here', rpMore: 'Show more', rpShown: '{from}–{to} of {total}', rpPrev: 'Previous page', rpNext: 'Next page', rpPageN: 'Page {n}', rpReload: 'Refresh', rpOpenDir: 'Open the folder',
   rpNone: 'No replays here yet.', rpNoneFilter: 'No replay fits the filters.', rpNoDir: 'The game\'s replay folder was not found.',
   rpPoolErr: 'The pool did not answer. Check the connection and press Refresh.', rpLoading: 'Loading…',
   rpPick: 'Pick a replay on the left to see it in detail.', rpVanilla: 'Vanilla', rpVerUnknown: 'unknown version', rpBroken: 'not a readable replay',
@@ -35,7 +35,7 @@ Object.assign(T.ru, {
   rpMineNote: 'Реплеи игры на этом компьютере (папка Playback) и ваши реплеи на сервере. Любой можно одной кнопкой загрузить на сервер — он появится во «Всех реплеях», вы будете его автором и сможете добавить описание.',
   rpPoolNote: 'Реплеи всех игроков: матчи ладдера, присланные из лаунчера и из Discord-сообществ. «Скачать» кладёт файл в реплеи игры.',
   rpSearch: 'Игрок, карта, автор, описание', rpMode: 'Режим', rpAll: 'Все', rpPlayers: 'Игроков', rpVersion: 'Версия', rpRaces: 'Расы',
-  rpRacesTip: 'Только матчи, где есть все выбранные расы', rpOnlyMine: 'Только мои', rpMore: 'Показать ещё', rpShown: '{from}–{to} из {total}', rpPrev: 'Предыдущая страница', rpNext: 'Следующая страница', rpPageN: 'Страница {n}', rpReload: 'Обновить', rpOpenDir: 'Открыть папку',
+  rpRacesTip: 'Только матчи, где есть все выбранные расы', rpMore: 'Показать ещё', rpShown: '{from}–{to} из {total}', rpPrev: 'Предыдущая страница', rpNext: 'Следующая страница', rpPageN: 'Страница {n}', rpReload: 'Обновить', rpOpenDir: 'Открыть папку',
   rpNone: 'Реплеев пока нет.', rpNoneFilter: 'Под фильтры ничего не подходит.', rpNoDir: 'Папка реплеев игры не найдена.',
   rpPoolErr: 'Пул не ответил. Проверьте соединение и нажмите «Обновить».', rpLoading: 'Загрузка…',
   rpPick: 'Выберите реплей слева, чтобы посмотреть подробно.', rpVanilla: 'Ваниль', rpVerUnknown: 'версия неизвестна', rpBroken: 'файл не читается как реплей',
@@ -59,7 +59,7 @@ Object.assign(T.es, {
   rpMineNote: 'Las repeticiones del juego en este equipo (la carpeta Playback) y tus repeticiones en el servidor. Cualquiera se sube al servidor con un botón: aparece en Todas las repeticiones, eres su autor y puedes añadir una descripción.',
   rpPoolNote: 'Repeticiones de todos los jugadores: partidas del ladder, las enviadas desde el launcher y desde el Discord de la comunidad. «Descargar» pone el archivo en las repeticiones del juego.',
   rpSearch: 'Jugador, mapa, autor, descripción', rpMode: 'Modo', rpAll: 'Todos', rpPlayers: 'Jugadores', rpVersion: 'Versión', rpRaces: 'Razas',
-  rpRacesTip: 'Solo partidas con todas las razas elegidas', rpOnlyMine: 'Solo las mías', rpMore: 'Mostrar más', rpShown: '{from}–{to} de {total}', rpPrev: 'Página anterior', rpNext: 'Página siguiente', rpPageN: 'Página {n}', rpReload: 'Actualizar', rpOpenDir: 'Abrir la carpeta',
+  rpRacesTip: 'Solo partidas con todas las razas elegidas', rpMore: 'Mostrar más', rpShown: '{from}–{to} de {total}', rpPrev: 'Página anterior', rpNext: 'Página siguiente', rpPageN: 'Página {n}', rpReload: 'Actualizar', rpOpenDir: 'Abrir la carpeta',
   rpNone: 'Aún no hay repeticiones.', rpNoneFilter: 'Ninguna repetición cumple los filtros.', rpNoDir: 'No se encontró la carpeta de repeticiones del juego.',
   rpPoolErr: 'La colección no respondió. Revisa la conexión y pulsa Actualizar.', rpLoading: 'Cargando…',
   rpPick: 'Elige una repetición a la izquierda para verla en detalle.', rpVanilla: 'Vanilla', rpVerUnknown: 'versión desconocida', rpBroken: 'no se puede leer como repetición',
@@ -83,7 +83,7 @@ Object.assign(T.fr, {
   rpMineNote: 'Les rediffusions du jeu sur cet ordinateur (le dossier Playback) et tes rediffusions sur le serveur. Un bouton en envoie une sur le serveur : elle apparaît dans Toutes les rediffusions, tu en es l\'auteur et tu peux ajouter une description.',
   rpPoolNote: 'Les rediffusions de tous les joueurs : parties du ladder, envois du launcher et du Discord de la communauté. « Télécharger » place le fichier dans les rediffusions du jeu.',
   rpSearch: 'Joueur, carte, auteur, description', rpMode: 'Mode', rpAll: 'Tous', rpPlayers: 'Joueurs', rpVersion: 'Version', rpRaces: 'Races',
-  rpRacesTip: 'Seulement les parties avec toutes les races choisies', rpOnlyMine: 'Seulement les miennes', rpMore: 'Afficher plus', rpShown: '{from}–{to} sur {total}', rpPrev: 'Page précédente', rpNext: 'Page suivante', rpPageN: 'Page {n}', rpReload: 'Actualiser', rpOpenDir: 'Ouvrir le dossier',
+  rpRacesTip: 'Seulement les parties avec toutes les races choisies', rpMore: 'Afficher plus', rpShown: '{from}–{to} sur {total}', rpPrev: 'Page précédente', rpNext: 'Page suivante', rpPageN: 'Page {n}', rpReload: 'Actualiser', rpOpenDir: 'Ouvrir le dossier',
   rpNone: 'Pas encore de rediffusion.', rpNoneFilter: 'Aucune rediffusion ne correspond aux filtres.', rpNoDir: 'Le dossier des rediffusions du jeu est introuvable.',
   rpPoolErr: 'La collection n\'a pas répondu. Vérifiez la connexion et cliquez sur Actualiser.', rpLoading: 'Chargement…',
   rpPick: 'Choisissez une rediffusion à gauche pour la voir en détail.', rpVanilla: 'Vanilla', rpVerUnknown: 'version inconnue', rpBroken: 'illisible comme rediffusion',
@@ -107,7 +107,7 @@ Object.assign(T.de, {
   rpMineNote: 'Die Wiederholungen des Spiels auf diesem Rechner (Ordner Playback) und deine Wiederholungen auf dem Server. Jede lädt ein Klick auf den Server – sie erscheint unter Alle Wiederholungen, du stehst als Autor und kannst eine Beschreibung ergänzen.',
   rpPoolNote: 'Wiederholungen aller Spieler: Ladder-Spiele, Einsendungen aus dem Launcher und aus dem Discord der Community. „Herunterladen“ legt die Datei zu den Wiederholungen des Spiels.',
   rpSearch: 'Spieler, Karte, Autor, Beschreibung', rpMode: 'Modus', rpAll: 'Alle', rpPlayers: 'Spieler', rpVersion: 'Version', rpRaces: 'Völker',
-  rpRacesTip: 'Nur Spiele mit allen gewählten Völkern', rpOnlyMine: 'Nur meine', rpMore: 'Mehr zeigen', rpShown: '{from}–{to} von {total}', rpPrev: 'Vorherige Seite', rpNext: 'Nächste Seite', rpPageN: 'Seite {n}', rpReload: 'Aktualisieren', rpOpenDir: 'Ordner öffnen',
+  rpRacesTip: 'Nur Spiele mit allen gewählten Völkern', rpMore: 'Mehr zeigen', rpShown: '{from}–{to} von {total}', rpPrev: 'Vorherige Seite', rpNext: 'Nächste Seite', rpPageN: 'Seite {n}', rpReload: 'Aktualisieren', rpOpenDir: 'Ordner öffnen',
   rpNone: 'Noch keine Wiederholungen.', rpNoneFilter: 'Keine Wiederholung passt zu den Filtern.', rpNoDir: 'Der Wiederholungsordner des Spiels wurde nicht gefunden.',
   rpPoolErr: 'Die Sammlung hat nicht geantwortet. Prüfe die Verbindung und klicke auf Aktualisieren.', rpLoading: 'Lädt…',
   rpPick: 'Wähle links eine Wiederholung, um sie genau anzusehen.', rpVanilla: 'Vanilla', rpVerUnknown: 'unbekannte Version', rpBroken: 'als Wiederholung nicht lesbar',
@@ -162,7 +162,7 @@ const RP = {
   det: null, versions: [], cat: null,
   got: new Set(),   // 1.6.3: pool replays downloaded here in this session (the own files are read again only on Mine)
   look: 'rows',     // 1.6.3: the list as rows with the map's picture, or as the Rooms tab's cards
-  f: { q: '', mode: 'all', players: 'all', version: 'all', races: [], onlyMine: false },
+  f: { q: '', mode: 'all', players: 'all', version: 'all', races: [] },
 };
 try { Object.assign(RP.f, JSON.parse(localStorage.getItem('replaysFilter') || '{}')); } catch (e) {}
 try { if (localStorage.getItem('replaysLook') === 'cards') RP.look = 'cards'; } catch (e) {}
@@ -170,6 +170,8 @@ if (!Array.isArray(RP.f.races)) RP.f.races = [];
 // 1.6.3 (owner 13.11.2026): DoW II has no 4v4, and "Players" went (the mode says it) - an old saved filter of them is dropped
 if (!['all', '1v1', '2v2', '3v3'].includes(RP.f.mode)) RP.f.mode = 'all';
 RP.f.players = 'all';
+// 1.6.7 (owner 14.11.2026): no "Only mine" in All replays (my replays are in Mine) - a saved one is dropped, the list is not left filtered
+delete RP.f.onlyMine;
 const rpSaveF = () => { try { localStorage.setItem('replaysFilter', JSON.stringify(RP.f)); } catch (e) {} };
 const rpSigned = () => !!(CH.me && CH.me.signed_in);
 const rpErr = e => { const k = 'rpe_' + (e && typeof e === 'object' ? e.error : e); return T.en[k] ? t(k) : (typeof errText === 'function' ? errText(String(e && e.error || e)) : String(e)); };
@@ -253,7 +255,7 @@ async function rpLoadPool(reset) {
   $('rpList').innerHTML = `<div class="note">${esc(t('rpLoading'))}</div>`;
   const f = RP.f;
   const q = { q: f.q, mode: f.mode === 'all' ? '' : f.mode, players: '', version: f.version === 'all' ? '' : f.version,
-              race: f.races.join(','), mine: f.onlyMine && rpSigned(), page: RP.pool.page, n: RP_PAGE };
+              race: f.races.join(','), page: RP.pool.page, n: RP_PAGE };
   try {
     const r = await invoke('replays_pool', { q });
     RP.pool.err = '';
@@ -268,14 +270,13 @@ async function rpLoadPool(reset) {
 // ---- filters ----
 // 1.6.3 (owner 13.11.2026): the filters take less room and stand over the list only - the search and the version on one line,
 // the modes next to the races on the other; "Reset" while one is on
-const rpActive = () => { const f = RP.f; return !!(f.q.trim() || f.mode !== 'all' || f.version !== 'all' || f.races.length || (f.onlyMine && RP.view === 'pool')); };
+const rpActive = () => { const f = RP.f; return !!(f.q.trim() || f.mode !== 'all' || f.version !== 'all' || f.races.length); };
 function rpFilters() {
   const f = RP.f, box = $('rpFlt'); if (!box) return;
   const vers = RP.view === 'mine' ? [...new Set(rpMineAll().map(x => x.version || 'unknown'))] : RP.versions.map(v => v.version);
   if (f.version !== 'all' && !vers.includes(f.version)) vers.unshift(f.version);
   box.innerHTML = `<div class="rp-f1"><span class="rp-q"><input type="search" id="rpQ" value="${esc(f.q)}" placeholder="${esc(t('rpSearch'))}" aria-label="${esc(t('rpSearch'))}"></span>`
     + `<select id="rpVer" aria-label="${esc(t('rpVersion'))}"><option value="all">${esc(t('rpAllVer'))}</option>${vers.map(v => `<option value="${esc(v)}"${f.version === v ? ' selected' : ''}>${esc(rpVer(v))}</option>`).join('')}</select>`
-    + (RP.view === 'pool' && rpSigned() ? `<label class="chk"><input type="checkbox" id="rpOnlyMine"${f.onlyMine ? ' checked' : ''}><span>${esc(t('rpOnlyMine'))}</span></label>` : '')
     + '</div>'
     + `<div class="rp-f2">${segf('mode', [['all', t('rpAll')], ['1v1', '1v1'], ['2v2', '2v2'], ['3v3', '3v3']], f.mode)}`
     + `<span class="rp-races" role="group" aria-label="${esc(t('rpRaces'))}">${RP_RACES.map(r => `<button class="rp-race${f.races.includes(r) ? ' on' : ''}" data-race="${r}" aria-pressed="${f.races.includes(r)}" data-tip="${esc(t('race_' + r))}" aria-label="${esc(t('race_' + r))}">${raceImg(r).replace(/ title="[^"]*"/, '')}</button>`).join('')}</span>`
@@ -287,13 +288,12 @@ function rpFilters() {
     const r = b.dataset.race; f.races = f.races.includes(r) ? f.races.filter(x => x !== r) : f.races.concat(r); changed();
   });
   $('rpVer').onchange = e => { f.version = e.target.value; changed(); };
-  $('rpReset').onclick = () => { Object.assign(f, { q: '', mode: 'all', players: 'all', version: 'all', races: [], onlyMine: false }); changed(); };
+  $('rpReset').onclick = () => { Object.assign(f, { q: '', mode: 'all', players: 'all', version: 'all', races: [] }); changed(); };
   let qt = 0;
   $('rpQ').oninput = e => {          // typing: the list follows, the box itself is not redrawn (the cursor stays)
     f.q = e.target.value; $('rpReset').classList.toggle('hidden', !rpActive()); clearTimeout(qt);
     qt = setTimeout(() => { rpSaveF(); if (RP.view === 'pool') rpLoadPool(true); else { RP.mine.page = 0; rpRender(); } }, 350);
   };
-  const om = $('rpOnlyMine'); if (om) om.onchange = e => { f.onlyMine = e.target.checked; changed(); };
 }
 // the own files are filtered here (the pool filters on the server)
 function rpMineFiltered() {
