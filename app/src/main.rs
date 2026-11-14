@@ -3300,7 +3300,7 @@ fn main() {
             livewatch::live_watch, livewatch::live_watch_probe, livewatch::live_watch_cancel,
             replays::replays_local, replays::replays_pool, replays::replays_versions, replays::replays_have, replays::replay_info, replays::replay_upload,
             replays::replay_describe, replays::replay_download, replays::replays_open_dir,
-            lroom::lroom_api, lroom::lroom_list, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
+            lroom::lroom_api, lroom::lroom_list, lroom::fame_get, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
             hotkeys_get, hotkeys_save, hotkeys_reset, ui_scale_get, ui_scale_set, uninstall_elite,
             c_status, c_login, c_login_local, c_login_cancel, c_logout, c_api, c_stream_up, net_status, net_check, mm_live, events_get,
             relic_probe, game_net_check, set_game_mode,

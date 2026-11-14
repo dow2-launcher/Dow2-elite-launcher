@@ -1,0 +1,2 @@
+- Hall of Fame: Settings > About > Hall of Fame - the players who helped the launcher most. On top is the one who helped most recently; up to five orders show the contribution compared with the others; click a name for what they did, by date, and what we changed thanks to it. The same list is on the site.
+- Replays: a replay with the detailed analysis has a "map" mark in the list - the match can be watched online on the map.

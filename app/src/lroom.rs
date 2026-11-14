@@ -74,6 +74,22 @@ pub async fn lroom_list(what: Option<String>, game: Option<String>) -> Result<Va
     }).await.map_err(|e| e.to_string())?
 }
 
+/// The Hall of Fame (owner 14.11.2026): the players who helped the launcher most, one list for the launcher and the site
+/// (/elite/fame.json on our hosts; edited there, no release needed).
+#[tauri::command]
+pub async fn fame_get() -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut last = "the server is not configured in this build".to_string();
+        for h in crate::fb_hosts() {
+            match crate::HTTP.get(&format!("{h}/elite/fame.json")).timeout(Duration::from_secs(10)).call() {
+                Ok(r) => return serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()),
+                Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
+            }
+        }
+        Err(last)
+    }).await.map_err(|e| e.to_string())?
+}
+
 /// Our game servers as this computer reaches them, by Relay.dll's rule: {pings: {ip: ms | -1}, raw: {ip: {ms, got, ok}}}.
 /// One node after another (the bursts must not overlap); ~2 s a node. Not while a match runs (the window asks only in the room).
 #[tauri::command]

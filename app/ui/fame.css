@@ -1,0 +1,23 @@
+/* the Hall of Fame window (fame.js) */
+.fame-modal .box{width:min(720px,92vw);max-width:none;max-height:86vh;display:flex;flex-direction:column}
+.fame-lead{margin:0 0 8px}
+.fame-list{overflow-y:auto;min-height:60px;padding-right:6px;display:flex;flex-direction:column;gap:6px}
+.fame-p{border:1px solid var(--ln);background:rgba(12,23,24,.72)}
+.fame-p[open]{border-color:var(--gd)}
+.fame-p summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:2px 10px;padding:8px 10px;align-items:start}
+.fame-p summary::-webkit-details-marker{display:none}
+.fame-n{font:700 17px var(--fh);color:var(--gd);text-align:center}
+.fame-h{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;min-width:0}
+.fame-h b{font:700 15px var(--fh);color:#f3ead8;overflow-wrap:anywhere}
+.fame-h em{font-style:normal;font-size:12px;color:var(--mu)}
+.fame-o{display:inline-flex;gap:1px}
+.fame-o svg{width:17px;height:20px}
+.fame-o svg.off{opacity:.2;filter:grayscale(1)}
+.fame-d{font-size:12px;color:var(--mu);white-space:nowrap;padding-top:2px}
+.fame-s{grid-column:2/4;font-size:13px;color:var(--sf)}
+.fame-p ul{list-style:none;margin:0;padding:4px 12px 10px 46px;border-top:1px solid var(--ln)}
+.fame-p li{padding:6px 0;border-bottom:1px dashed rgba(127,127,127,.2);font-size:13px;color:var(--tx)}
+.fame-p li:last-child{border-bottom:0}
+.fame-dt{font-size:12px;color:var(--gd)}
+.fame-c{color:#bfe3c0;margin-top:2px}
+.fame-c b{color:#7fdc8f;font-weight:600}
