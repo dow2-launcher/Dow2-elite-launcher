@@ -12,7 +12,7 @@
   document.body.append(pops, tip);
   let at = null, mx = -1, my = -1;
   const below = a => !!a.closest('header, .news-links, .tipdown, .rnav .rmine-x');
-  const leftAligned = a => a.matches('.room .rp, .on-p');
+  const leftAligned = a => a.matches('.room .rp, .on-p, .hl-team:not(.r) .hl-p');
   const maxW = a => a.closest('.plw') ? 320 : leftAligned(a) ? 240 : a.closest('.on-mh .lvw') ? 200 : 260;
   function place(a) {
     const txt = a.dataset.tip;

@@ -4,16 +4,19 @@
 // lobby: not shown. No map name and no "3/4" (the seats are in the teams). A click on a card opens the Lobbies tab, scrolls to
 // that lobby and lights it until the mouse comes to it (or to the tab's menu). The data: LR.list (the launcher's lobbies,
 // lroom.js) and RM.last (the game's, app.js roomsLoad - polled on Home too since 1.6.11).
-Object.assign(T.en, { hlAll: 'All ›', hlOpen: '{n} open', hlNone: 'No open lobbies right now', hlCard: '{name}: open in the Lobbies tab' });
-Object.assign(T.ru, { hlAll: 'Все ›', hlOpen: '{n} открыто', hlNone: 'Сейчас открытых лобби нет', hlCard: '{name}: открыть во вкладке «Лобби»' });
-Object.assign(T.es, { hlAll: 'Todas ›', hlOpen: '{n} abiertas', hlNone: 'Ahora no hay salas abiertas', hlCard: '{name}: abrir en la pestaña Salas' });
-Object.assign(T.fr, { hlAll: 'Tous ›', hlOpen: '{n} ouverts', hlNone: 'Aucun salon ouvert pour le moment', hlCard: '{name} : ouvrir dans l\'onglet Salons' });
-Object.assign(T.de, { hlAll: 'Alle ›', hlOpen: '{n} offen', hlNone: 'Gerade keine offenen Räume', hlCard: '{name}: im Tab Räume öffnen' });
+Object.assign(T.en, { hlAll: 'All ›', hlOpen: '{n} open', hlNone: 'No open lobbies right now', hlCard: '{name}: open in the Lobbies tab', hlTipR: 'rating {r}', hlTipH: '{h} h played' });
+Object.assign(T.ru, { hlAll: 'Все ›', hlOpen: '{n} открыто', hlNone: 'Сейчас открытых лобби нет', hlCard: '{name}: открыть во вкладке «Лобби»', hlTipR: 'рейтинг {r}', hlTipH: '{h} ч в игре' });
+Object.assign(T.es, { hlAll: 'Todas ›', hlOpen: '{n} abiertas', hlNone: 'Ahora no hay salas abiertas', hlCard: '{name}: abrir en la pestaña Salas', hlTipR: 'rating {r}', hlTipH: '{h} h jugadas' });
+Object.assign(T.fr, { hlAll: 'Tous ›', hlOpen: '{n} ouverts', hlNone: 'Aucun salon ouvert pour le moment', hlCard: '{name} : ouvrir dans l\'onglet Salons', hlTipR: 'classement {r}', hlTipH: '{h} h de jeu' });
+Object.assign(T.de, { hlAll: 'Alle ›', hlOpen: '{n} offen', hlNone: 'Gerade keine offenen Räume', hlCard: '{name}: im Tab Räume öffnen', hlTipR: 'Wertung {r}', hlTipH: '{h} Std. gespielt' });
 
 const HL = { lit: '', soon: 0 };
 const HL_EYE = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-// a player's row; the second team mirrored (as on the tab's cards)
-const hlRow = (pic, name, rating, host) => `<div class="rp hl-p${host ? ' host' : ''}">${pic}<span class="nm">${esc(name || '?')}</span>${rating ? `<span class="rt">${Number(rating) | 0}</span>` : ''}</div>`;
+// a player's row; the second team mirrored (as on the tab's cards). 1.6.13 (siritos fb 1210): the name's micro tooltip on Home
+// carries the rating too (a narrow card has no room for it) and the hours played when the server sends them (hours / playtime_h)
+const hlHours = p => { const h = p && (p.hours != null ? p.hours : p.playtime_h); return h != null && isFinite(h) && h > 0 ? Math.round(h) : 0; };
+const hlTip = (name, rating, hours) => [name || '?', rating ? t('hlTipR', { r: Number(rating) | 0 }) : '', hours ? t('hlTipH', { h: hours }) : ''].filter(Boolean).join(' · ');
+const hlRow = (pic, name, rating, host, hours) => `<div class="rp hl-p${host ? ' host' : ''}" data-tip="${esc(hlTip(name, rating, hours))}">${pic}<span class="nm">${esc(name || '?')}</span>${rating ? `<span class="rt">${Number(rating) | 0}</span>` : ''}</div>`;
 const hlFree = () => `<div class="rp hl-p free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`;
 const hlTeams = (a, b) => `<div class="hl-teams"><div class="hl-team">${a}</div><div class="hl-team r">${b}</div></div>`;
 function hlCard(o) {   // o: {kind, id, name, map, mm, lock, tags, teams, obs, acts, dim}
@@ -29,14 +32,15 @@ function hlLr(x) {
   const pic = p => !p.race || p.race === 'random' ? raceImg('random') : p.hero >= 0
     ? `<img src="${A}heroes/${esc(p.race)}_${p.hero | 0}.png" alt="" data-fb="${A}races/${esc(p.race)}.png">` : raceImg(p.race);
   const per = Math.max(1, Math.round((x.cap || 2) / 2)), sl = Array.isArray(x.slots) && x.slots.length ? x.slots : null;
-  const team = k => sl.slice(k * per, k * per + per).map(p => p ? hlRow(pic(p), p.name, p.rating, p.steam === x.owner) : hlFree()).join('');
+  const team = k => sl.slice(k * per, k * per + per).map(p => p ? hlRow(pic(p), p.name, p.rating, p.steam === x.owner, hlHours(p) || hlHours(onUser(p.steam))) : hlFree()).join('');
   const oc = x.obs_cap != null ? x.obs_cap : Math.max(0, 8 - (x.cap || 2)), on = (x.obs || []).length;
   const acts = mine ? `<span class="tag here">${esc(t('roomsHere'))}</span>` : free <= 0 ? `<span class="tag">${esc(t('lrFull'))}</span>`
     : (on < oc ? `<button class="hl-eye" data-lr-watch="${esc(x.id)}" data-tip="${esc(t('lrWatchJoin', { n: on, m: oc }))}" aria-label="${esc(t('lrWatchJoin', { n: on, m: oc }))}">${HL_EYE}</button>` : '')
       + `<button class="rjoin${vok ? ' go' : ''}" data-lr-join="${esc(x.id)}" data-tip="${esc(t('rJoinTip', { name: x.name }))}" aria-label="${esc(t('rJoinTip', { name: x.name }))}">${ico('enter')}</button>`;
   return hlCard({ kind: 'lr', id: x.id, name: x.name, map: x.map_name || x.map, mm: `${A}maps/${encodeURIComponent(x.map || '')}.png`, dim: !vok,
-    tags: `<span class="tag lr">${esc(t('rTagLr'))}</span>${x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : ''}<span class="tag">${esc(x.mode || '')}</span>`
-      + (!vok && x.game !== 'vanilla' && x.ver ? `<span class="tag ver">Elite ${esc(x.ver)}</span>` : ''),
+    // 1.6.13 (siritos fb 1210): on Home every mark at the top, by the mode - the version (always, not only another one) and the launcher's
+    tags: `<span class="tag">${esc(x.mode || '')}</span>` + (x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : `<span class="tag ver">Elite${x.ver ? ' ' + esc(x.ver) : ''}</span>`)
+      + `<span class="tag lr">${esc(t('rTagLr'))}</span>`,
     teams: sl ? hlTeams(team(0), team(1)) : `<div class="hl-names">${esc((x.names || []).join(', '))}</div>`,
     obs: (x.obs || []).map(o => o.name).join(', '), acts });
 }
@@ -50,15 +54,18 @@ function hlGame(r) {
   const pic = p => { if (!p.race) return raceImg('random'); const r = esc(p.race), h = p.hero != null ? '_' + (p.hero | 0) : null;
     return `<img${h != null ? '' : ' class="race"'} src="${esc(A)}${h != null ? 'heroes/' + r + h : 'races/' + r}.png" alt="" data-fb="${esc(A)}races/${r}.png">`; };
   const team = tm => { const ps = (r.players || []).filter(p => !isObs(p) && (p.team | 0) === tm);
-    return ps.map(p => hlRow(pic(p), p.name, p.rating, p.host)).join('') + Array(per ? Math.max(0, per - ps.length) : 0).fill(hlFree()).join(''); };
+    return ps.map(p => hlRow(pic(p), p.name, p.rating, p.host, hlHours(p) || hlHours(onUser(p.steam)))).join('') + Array(per ? Math.max(0, per - ps.length) : 0).fill(hlFree()).join(''); };
   const obsP = (r.players || []).filter(isObs), nObs = Math.max(r.observers | 0, obsP.length);
   const full = r.free != null ? r.free <= 0 : false, here = RM.mine && String(RM.mine.room) === String(r.id);
+  // 1.6.13 (siritos fb 1210): Join whether "Lobby join" is on or not (the click asks for it), the eye - into the lobby as an observer
   const acts = here ? `<span class="tag here">${esc(t('roomsHere'))}</span>`
-    : (r.game === 'elite' || r.game === 'vanilla') && roomJoinOn(r.game) && !r.password && !full && r.id
-      ? `<button class="rjoin go${meBusy() ? ' wait' : ''}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-tip="${esc(meBusy() ? t('roomsJoinBusy') : t('rJoinTip', { name: r.name || '' }))}" aria-label="${esc(t('roomsJoin'))}">${ico('enter')}</button>` : '';
+    : (r.game === 'elite' || r.game === 'vanilla') && roomJoinSys() && !r.password && r.id
+      ? roomObsBtn(r, 'hl-eye') + (!full ? `<button class="rjoin go${meBusy() ? ' wait' : ''}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-tip="${esc(meBusy() ? t('roomsJoinBusy') : t('rJoinTip', { name: r.name || '' }))}" aria-label="${esc(t('roomsJoin'))}">${ico('enter')}</button>` : '') : '';
   return hlCard({ kind: 'game', id: String(r.id || ''), name: r.name, map: r.map_title || String(r.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' '), mm: r.minimap ? A + r.minimap : '', lock: r.password, dim: !vok,
-    tags: (r.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : r.game === 'other' ? `<span class="tag oth">${esc(t('roomsOther'))}</span>` : '') + (r.mode ? `<span class="tag">${esc(r.mode)}</span>` : '')
-      + (r.game === 'elite' && !vok && r.exact && r.version ? `<span class="tag ver">Elite ${esc(r.version)}</span>` : ''),
+    // 1.6.13: the mode, then the version always (Elite x.y / vanilla / another mod), all at the top
+    tags: (r.mode ? `<span class="tag">${esc(r.mode)}</span>` : '')
+      + (r.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : r.game === 'other' ? `<span class="tag oth">${esc(t('roomsOther'))}</span>`
+        : r.game === 'elite' ? `<span class="tag ver">Elite${r.exact && r.version ? ' ' + esc(r.version) : ''}</span>` : ''),
     teams: hlTeams(team(0), team(1)), obs: obsP.length ? obsP.map(p => p.name).join(', ') + (nObs > obsP.length ? ` +${nObs - obsP.length}` : '') : nObs ? String(nObs) : '', acts });
 }
 function hlRender() {
@@ -76,11 +83,11 @@ function hlRender() {
   box.querySelectorAll('[data-lr-join]').forEach(b => b.onclick = e => { e.stopPropagation(); lrCall('join', { id: b.dataset.lrJoin }); });
   box.querySelectorAll('[data-lr-watch]').forEach(b => b.onclick = e => { e.stopPropagation(); lrCall('join', { id: b.dataset.lrWatch, as: 'obs' }); });
   box.querySelectorAll('[data-room]').forEach(b => b.onclick = e => { e.stopPropagation(); roomTry(b.dataset.room, b.dataset.name, b); });
+  box.querySelectorAll('[data-obs]').forEach(b => b.onclick = e => { e.stopPropagation(); roomObs(b.dataset.obs, b.dataset.name, b); });
   box.querySelectorAll('.hl-c').forEach(c => {
     c.onclick = () => hlGo(c.dataset.kind, c.dataset.id);
     c.onkeydown = e => { if (e.target === c && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); hlGo(c.dataset.kind, c.dataset.id); } };
   });
-  tipCut(box);
 }
 // the Lobbies tab with that lobby lit
 function hlGo(kind, id) {
