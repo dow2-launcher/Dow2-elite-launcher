@@ -1,0 +1,3 @@
+- The eye on a lobby card: while the host has no free observer seat it is crossed out and does not press; its tip on hover stays.
+- My replays: after Watch the replay no longer shows up a second time; the game's work files (temp.rec, the copy opened for Watch, a live match) are not listed.
+- Joining a lobby (as a player or an observer): not in the lobby 30 s after the connection started - the launcher cancels the join and says so at once.

@@ -650,11 +650,24 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
     if !conn.send(&cmd) { fail("game_closed"); return; }
     let end = Instant::now() + Duration::from_secs(180);
     let mut late: Option<Instant> = None;                       // after "failed" (timeout / cancelled): the game watches 15 s more
+    // 1.6.14 (siritos fb 1223: "Connecting, then an error, but it took long - a connect takes 15-30 s, let that be the limit"): from
+    // the game's own join call ("joining") to the lobby - an observer's seat included - at most JOIN_LIMIT; then the game is told to
+    // cancel and the window hears "timeout" (a late "in_lobby" is still passed on). RoomJoin 16 keeps the same limit itself (30 s);
+    // this is for the RoomJoin 15 players have (25 s for the room's answer, then up to 16 s more for an observer's seat).
+    const JOIN_LIMIT: Duration = Duration::from_secs(31);
+    let mut joining: Option<Instant> = None;
     loop {
         if !ours() { return; }                                  // a new Join: this one is over for the window
         if GEN.load(Ordering::SeqCst) != gen && late.is_none() { late = Some(Instant::now() + Duration::from_secs(17)); }   // cancelled: only a late in_lobby now
         if late.is_some_and(|t| Instant::now() >= t) { return; }
         if late.is_none() && Instant::now() >= end { fail("no_answer"); return; }
+        if late.is_none() && joining.is_some_and(|t| t.elapsed() >= JOIN_LIMIT) {
+            crate::c_log(&format!("rooms: join room {id}: not in the lobby {} s after the game's join call - cancelled", JOIN_LIMIT.as_secs()));
+            let _ = conn.send(&json!({"cmd": "cancel", "room": id}));
+            if GEN.load(Ordering::SeqCst) == gen { let _ = app.emit("room_join", json!({"ev": "failed", "room": id, "reason": "timeout", "text": ""})); }
+            late = Some(Instant::now() + Duration::from_secs(17));
+            continue;
+        }
         match conn.line(500) {
             Err(()) => { if late.is_none() { fail("game_closed"); } return; }
             Ok(None) => {}
@@ -668,6 +681,7 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
                     continue;
                 }
                 let reason = v["reason"].as_str().unwrap_or("").to_string();
+                if ev == "joining" && joining.is_none() { joining = Some(Instant::now()); }
                 tell(v);
                 if ev == "in_lobby" { return; }
                 if ev == "failed" {
