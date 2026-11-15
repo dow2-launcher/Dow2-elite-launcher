@@ -1,0 +1,5 @@
+- Lobby cards: the version marks are at the bottom again on the Lobbies tab - vanilla too, as Elite's (1.6.11 had moved "vanilla" into the title); on Home every mark is at the top, by the mode: the mode, the version (always), "launcher".
+- An eye on the cards of the game's lobbies: join as an observer (the add-on "Lobby join" 14+). It is dimmed while the host has no free observer seat, a click says so.
+- Replays: Watch opens the replay in the game (the add-on "Replay from the launcher"); a replay of the pool is downloaded first; a replay of another Elite build plays too, with a warning.
+- The buttons that need an add-on are always on: Join and the eye of the lobbies, Watch of a running match, Watch of a replay, Ready in the own lobby. The add-on off - a window offers to turn it on, and the launcher goes on with what was pressed; the game running - once it is closed. An add-on that cannot do it yet (not out, not for vanilla, an older version in the game) - the window says so.
+- Home: a player's name shows his rating in its tooltip; the lobby cards are as tall as a 3v3 lobby's at least, the teams in the middle.

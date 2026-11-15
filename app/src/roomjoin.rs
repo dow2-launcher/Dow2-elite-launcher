@@ -56,6 +56,8 @@ pub const RJ: PipeKind = PipeKind { prefix: "EliteRoomJoin", bridge: "rjbridge.e
 pub const MMF: PipeKind = PipeKind { prefix: "EliteMMFind", bridge: "mmbridge.exe" };
 /// 1.4.18: LiveReplay's pipe (watch a running match of our servers, livewatch.rs)
 pub const LR: PipeKind = PipeKind { prefix: "EliteLiveReplay", bridge: "lrbridge.exe" };
+/// 1.6.13: ReplayOpen's pipe (Watch on a replay of the Replays tab, replayopen.rs)
+pub const RO: PipeKind = PipeKind { prefix: "EliteReplayOpen", bridge: "robridge.exe" };
 
 /// Linux: the game folder of the last bridge (the launcher's own game), for the game's kind (game_kind_linux).
 #[cfg_attr(not(target_os = "linux"), allow(dead_code))]
@@ -546,19 +548,24 @@ fn probe(app: &AppHandle) -> Value {
 /// the front, send the join and pass every event on to the window ("room_join" events: {ev, room, reason, text, pid}) until
 /// the game says in_lobby / failed, the pipe closes, or 3 minutes pass. Returns at once; the events tell the rest.
 /// `leave` (1.4.10): the player said yes to leaving the lobby he is in for this one (RoomJoin 11 presses Back there first).
-#[tauri::command]
 /// `game` (1.4.11): "vanilla" for a vanilla lobby - only a vanilla game takes it; anything else - Elite.
-pub fn room_join(app: AppHandle, id: u64, name: String, wait: Option<u64>, leave: Option<bool>, game: Option<String>) -> Result<Value, String> {
+/// `seat` (1.6.13, siritos fb 1210): "obs" - into the lobby as an observer (RoomJoin 14+: `"as":"obs"`). The game's own
+/// version (its status line) decides: an older RoomJoin does not know "as" and would join as a player - then nothing is sent
+/// and the window hears `failed` / `old_addon` with what the game has and what it needs.
+#[tauri::command]
+pub fn room_join(app: AppHandle, id: u64, name: String, wait: Option<u64>, leave: Option<bool>, game: Option<String>, seat: Option<String>) -> Result<Value, String> {
     if id == 0 { return Err("no room id".into()); }
     let name: String = name.chars().filter(|c| !c.is_control()).take(64).collect();
     let gen = GEN.fetch_add(1, Ordering::SeqCst) + 1;
     let wait = Duration::from_secs(wait.unwrap_or(0).min(300));
     let leave = leave.unwrap_or(false);
     let want: &'static str = if game.as_deref() == Some("vanilla") { "vanilla" } else { "elite" };
+    let obs = seat.as_deref() == Some("obs");
     ROOM_NOW.store(id, Ordering::SeqCst);
-    crate::c_log(&format!("rooms: join room {id} ({name}, {want}){}, waiting up to {} s for the game", if leave { ", leaving the current lobby" } else { "" }, wait.as_secs()));
+    crate::c_log(&format!("rooms: join room {id} ({name}, {want}{}){}, waiting up to {} s for the game", if obs { ", as an observer" } else { "" },
+                          if leave { ", leaving the current lobby" } else { "" }, wait.as_secs()));
     if !cfg!(any(windows, target_os = "linux")) { return Err("not on this system".into()); }
-    std::thread::spawn(move || session(app, gen, id, name, wait, leave, want));
+    std::thread::spawn(move || session(app, gen, id, name, wait, leave, want, obs));
     Ok(json!({"started": true}))
 }
 
@@ -568,7 +575,17 @@ static CANCELLED_AT: AtomicU64 = AtomicU64::new(0);
 /// The room of the join that runs now (0: none) - a Cancel names it, so the game cancels only that one (review 05.11 M4).
 static ROOM_NOW: AtomicU64 = AtomicU64::new(0);
 
-fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leave: bool, want: &'static str) {
+/// RoomJoin's own version from its status line ("version": "15"; 0 when it says none - RoomJoin 13 and older for "as").
+pub(crate) fn status_version(s: &Value) -> f64 {
+    let v = s.get("version").or_else(|| s.get("ver"));
+    v.and_then(|v| v.as_str().map(str::to_string).or_else(|| v.as_f64().map(|n| n.to_string())))
+        .and_then(|t| t.trim().parse::<f64>().ok()).unwrap_or(0.0)
+}
+/// The first RoomJoin that seats an observer itself (`"as":"obs"`, 14.11.2026).
+const RJ_OBS: f64 = 14.0;
+
+#[allow(clippy::too_many_arguments)]
+fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leave: bool, want: &'static str, obs: bool) {
     // a late answer (after a timeout, or a Cancel of this very join) is told too - as long as no other Join started since
     let ours = || { let g = GEN.load(Ordering::SeqCst); g == gen || (g == gen + 1 && CANCELLED_AT.load(Ordering::SeqCst) == g) };
     let tell = |v: Value| { if GEN.load(Ordering::SeqCst) == gen { let _ = app.emit("room_join", v); } };
@@ -579,7 +596,7 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
     // the game with the pipe: the first one in the main menu if there are two, else the first one
     let t0 = Instant::now();
     let mut told_wait = false;
-    let mut conn = loop {
+    let found_game = loop {
         if GEN.load(Ordering::SeqCst) != gen { return; }
         let mut found = games(&app);
         // only the game the lobby is for (a game whose command line could not be read is taken as it is)
@@ -588,7 +605,7 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
         let wrong = n_all > found.len();
         if !found.is_empty() {
             let k = found.iter().position(|(_, s)| s["screen"] == "main").unwrap_or(0);
-            break found.swap_remove(k).0;
+            break found.swap_remove(k);
         }
         if wrong && wait.is_zero() { fail("wrong_game"); return; }
         if t0.elapsed() >= wait { fail(if wrong { "wrong_game" } else if crate::is_game_running() { "no_pipe" } else { "no_game" }); return; }
@@ -608,6 +625,16 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
         crate::c_log(&format!("rooms: join room {id}: the game came {} s after the Join and the lobby is gone - not sent", t0.elapsed().as_secs()));
         fail("closed"); return;
     }
+    let (mut conn, status) = found_game;
+    // 1.6.13: an observer only with a RoomJoin that knows "as" - an older one would sit the player down as a player
+    if obs && status_version(&status) < RJ_OBS {
+        let have = status.get("version").and_then(Value::as_str).unwrap_or("").to_string();
+        crate::c_log(&format!("rooms: join room {id} as an observer: the game has RoomJoin {}, it needs {RJ_OBS}+ - not sent", if have.is_empty() { "?" } else { have.as_str() }));
+        if GEN.load(Ordering::SeqCst) == gen {
+            let _ = app.emit("room_join", json!({"ev": "failed", "room": id, "reason": "old_addon", "have": have, "need": RJ_OBS.to_string(), "text": ""}));
+        }
+        return;
+    }
     let pid = conn.pid();
     #[cfg(windows)]
     let front = pid != 0 && win::to_front(pid);
@@ -619,6 +646,7 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
     if GEN.load(Ordering::SeqCst) != gen { crate::c_log(&format!("rooms: join room {id}: cancelled before it was sent")); return; }
     let mut cmd = json!({"cmd": "join", "room": id, "name": name});
     if leave { cmd["leave"] = json!(true); }
+    if obs { cmd["as"] = json!("obs"); }
     if !conn.send(&cmd) { fail("game_closed"); return; }
     let end = Instant::now() + Duration::from_secs(180);
     let mut late: Option<Instant> = None;                       // after "failed" (timeout / cancelled): the game watches 15 s more

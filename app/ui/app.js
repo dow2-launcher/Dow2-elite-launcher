@@ -2316,7 +2316,7 @@ listen('launcher_progress', e => {
 });
 listen('news', () => { if (S) reload(); });
 listen('game_running', e => { if (!S) return; S.game_running = e.payload; render(); if (!e.payload) refresh();
-  if (!e.payload && RJ.after) { const a = RJ.after; RJ.after = null; setTimeout(() => roomJoin(a.id, a.name, null, false, a.want), 1500); }   /* 1.4.11: the other game closed */ chHello(); if (!e.payload && FWD && FWD.skipped) setTimeout(relicProbe, 20000); });   // 1.4.5: the Relic check of the start waited for the game   // menu / game goes to the server when it changes, not on a timer
+  if (!e.payload && RJ.after) { const a = RJ.after; RJ.after = null; setTimeout(() => roomJoin(a.id, a.name, null, false, a.want, a.seat), 1500); }   /* 1.4.11: the other game closed */ chHello(); if (!e.payload && FWD && FWD.skipped) setTimeout(relicProbe, 20000); });   // 1.4.5: the Relic check of the start waited for the game   // menu / game goes to the server when it changes, not on a timer
 listen('progress', e => { netActive = false; prog = e.payload; if (S) { S.busy = true; renderProgress(prog); } });
 listen('update_done', async e => {
   await reload();
@@ -2422,7 +2422,23 @@ function roomVerOther(v) {
 // search, pressed Join - nothing happened, and no word why"): not disabled any more - dimmed, and a click says why
 function roomsJoinState() {
   const busy = meBusy();
-  document.querySelectorAll('#roomsList .rjoin').forEach(b => { b.classList.toggle('wait', busy); b.title = busy ? t('roomsJoinBusy') : t('roomsJoin'); });
+  document.querySelectorAll('#roomsList .rjoin[data-room]').forEach(b => { b.classList.toggle('wait', busy); b.title = busy ? t('roomsJoinBusy') : t('roomsJoin'); });
+}
+// 1.6.13: Join / the eye need a system RoomJoin runs on (Windows, Linux); the add-on itself is asked for on the click
+const roomJoinSys = () => !!S && (S.os === 'windows' || S.os === 'linux');
+// the eye of a game's lobby (siritos fb 1210): into the lobby as an observer - RoomJoin's "as":"obs". The ladder's obs_free (from
+// the game's own list): the open and empty observer seats; 0 - the host has none open (the game's default), the eye is dimmed
+// and a click says so; null / an older ladder - not known, the game itself says no_obs_slot then
+const roomObsFree = r => r.obs_free == null ? null : Number(r.obs_free) | 0;
+function roomObsBtn(r, cls) {
+  const n = roomObsFree(r), none = n === 0, tip = none ? t('rObsNone') : n ? t('rObsTip', { n }) : t('rObsTip0');
+  return `<button class="${cls} robs-b${none ? ' wait' : ''}" data-obs="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-tip="${esc(tip)}" aria-label="${esc(tip)}">${ico('eye')}</button>`;
+}
+// the eye pressed: no free seat - say so; else the same Join as a player, with "as":"obs"
+function roomObs(id, name, btn) {
+  const r = roomById(id);
+  if (r && roomObsFree(r) === 0) { rjModal(t('rObsAsk'), [t('rObsNone'), t('rObsNoneHint')]); return; }
+  return roomTry(id, name, btn, 'obs');
 }
 function roomCard(r) {
   const A = (RM.host || 'https://rts.fintebtc.de') + '/elite/assets/';
@@ -2455,18 +2471,22 @@ function roomCard(r) {
   const map = r.map_title || String(r.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
   const full = r.free != null ? r.free <= 0 : false;
   const here = RM.mine && String(RM.mine.room) === String(r.id);
+  // 1.6.13 (siritos fb 1210): Join is there whether "Lobby join" is on or not - a click on it asks for the add-on (needaddon.js);
+  // the eye next to it joins as an observer (RoomJoin 14+), dimmed while the host has no free observer seat
+  const canIn = (r.game === 'elite' || r.game === 'vanilla') && roomJoinSys() && !r.password && r.id;
   const join = here ? `<span class="tag here">${esc(t('roomsHere'))}</span>`
-    : (r.game === 'elite' || r.game === 'vanilla') && roomJoinOn(r.game) && !r.password && !full && r.id
-    ? `<button class="rjoin go${meBusy() ? ' wait' : ''}" data-tip="${esc(meBusy() ? t('roomsJoinBusy') : t('rJoinTip', { name: r.name || '' }))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-why="${esc(why)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '';
+    : canIn ? roomObsBtn(r, 'rjoin') + (!full
+    ? `<button class="rjoin go${meBusy() ? ' wait' : ''}" data-tip="${esc(meBusy() ? t('roomsJoinBusy') : t('rJoinTip', { name: r.name || '' }))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-why="${esc(why)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '') : '';
   // 1.5.0: the marks the Rooms tab's filters read (one list with the launcher's rooms, lroom.js rApplyFilter)
   const vok = r.game === 'elite' ? !why : r.game === 'vanilla' ? !!S.vanilla_offered : false;
   const dat = `data-kind="game" data-mode="${esc(r.mode || '')}" data-vok="${vok ? 1 : 0}" data-van="${r.game === 'vanilla' ? 1 : 0}" data-free="${!full && !r.password && (!cap || (r.players || []).filter(p => !isObs(p)).length < cap) ? 1 : 0}"`;
   return `<div class="room${vok ? '' : ' dim'}" ${dat} data-id="${esc(String(r.id || ''))}">${mmapHtml(r.minimap ? A + r.minimap : '', map)}<div class="rb">`
-    // 1.5.0 (D): the name, a lock, the mode; the teams; the host, vanilla / another mod, seats and Join at the bottom (a lobby
-    // in the game carries no mark - only the launcher's are marked)
-    + `<div class="rh">${r.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : ''}<span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${r.password ? `<span class="mu" title="${esc(t('roomsPw'))}">${ico('lock')}</span>` : ''}${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}</div>`
+    // 1.5.0 (D): the name, a lock, the mode; the teams; the version (Elite x.y / vanilla / another mod), seats, the eye and Join
+    // at the bottom (a lobby in the game carries no mark at the top - only the launcher's are marked)
+    + `<div class="rh"><span class="rn" title="${esc(r.name || '')}">${esc(r.name || '—')}</span>${r.password ? `<span class="mu" title="${esc(t('roomsPw'))}">${ico('lock')}</span>` : ''}${r.mode ? `<span class="tag">${esc(r.mode)}</span>` : ''}</div>`
     + `<div class="teams">${teams}</div>${obs}`
-    + `<div class="rfoot2">${r.game === 'elite' ? (r.exact && r.version ? `<span class="tag ver">Elite ${esc(r.version)}</span>` : '<span class="tag ver">Elite</span>') : r.game === 'vanilla' ? '' : tag}`
+    // 1.6.13 (siritos fb 1210): every version mark at the bottom - Elite's and vanilla (1.6.11 had moved vanilla into the title)
+    + `<div class="rfoot2">${r.game === 'elite' ? (r.exact && r.version ? `<span class="tag ver">Elite ${esc(r.version)}</span>` : '<span class="tag ver">Elite</span>') : tag}`
     + `${cap ? `<span class="tag rcount">${(r.players || []).filter(p => !isObs(p)).length}/${cap}</span>` : ''}${join}</div></div></div>`;
 }
 // 1.4.10 (siritos 05.11): the lobby I am in - no Join on it ("You are here"), and Join on another one says "leave it first"
@@ -2498,7 +2518,8 @@ async function roomsLoad() {
     box.innerHTML = R.map(roomCard).join('');
     box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
     // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
-    box.querySelectorAll('.rjoin').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));
+    box.querySelectorAll('.rjoin[data-room]').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));
+    box.querySelectorAll('.rjoin[data-obs]').forEach(b => b.onclick = () => roomObs(b.dataset.obs, b.dataset.name, b));
     tipCut(box);   // the room's game from the list
     box.querySelectorAll('.rp .nm[data-name], .robs .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));   // the stats (by name until the server sends SteamIDs), Steam when there; no "mention"
   } catch (e) { RM.err = true; box.innerHTML = ''; }
@@ -2541,14 +2562,14 @@ function rjModal(title, lines) {
 }
 const roomById = id => (RM.last || []).find(x => String(x.id) === String(id));
 const roomIHost = r => { const me = CH.me && CH.me.signed_in ? String(CH.me.steam || '') : ''; return !!(me && r && (r.players || []).some(p => p.host && String(p.steam || '') === me)); };
-// Join on a room's card: its version first (another one: say so, offer to switch), then the join
-async function roomTry(id, name, btn) {
+// Join on a room's card: its version first (another one: say so, offer to switch), then the join; seat 'obs' - as an observer
+async function roomTry(id, name, btn, seat) {
   if (!S || (S.os !== 'windows' && S.os !== 'linux')) { rjShow(t('rjOnlyWin'), 'err'); return; }
   if (meBusy()) { rjShow(t('roomsJoinBusy'), 'err'); roomsJoinState(); return; }
   const r = roomById(id);
   const v = r && r.game === 'elite' ? roomJoinWhy(r) : '';
   if (v) { roomVerOther(v); return; }                               // another version: say so, offer to switch
-  return roomJoin(id, (r && r.name) || name || '', btn, false, roomGame(r));
+  return roomJoin(id, (r && r.name) || name || '', btn, false, roomGame(r), seat);
 }
 // 1.4.11: the other game runs (Elite for a vanilla lobby or the other way round): the launcher never closes it - the player
 // closes it, then the right game starts and the join goes on (game_running below)
@@ -2556,20 +2577,21 @@ async function rjWrongGame(id, name, want) {
   const ok = await askBox(t('rjWrongAsk'), [t(want === 'vanilla' ? 'rjWrongVan' : 'rjWrongElite')],
     [{ label: t('rjWrongGo'), cls: 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
   if (!ok) return;
-  RJ.after = { id, name, want };
+  RJ.after = { id, name, want, seat: RJ.seat };
   rjShow(t('rjCloseGame', { game: want === 'vanilla' ? (L(S.vanilla?.name) || t('vanillaName')) : 'Elite', name }), '', true);
 }
-async function roomJoin(id, name, btn, leave, game) {
+async function roomJoin(id, name, btn, leave, game, seat) {
   if (!S || (S.os !== 'windows' && S.os !== 'linux')) { rjShow(t('rjOnlyWin'), 'err'); return; }
   if (meBusy()) { rjShow(t('roomsJoinBusy'), 'err'); roomsJoinState(); return; }
   const room = Number(id); if (!Number.isSafeInteger(room) || room <= 0) return;
   if (btn) btn.disabled = true;
   setTimeout(() => { if (btn) btn.disabled = false; }, 2000);   // a double click only: a second Join for the same room just goes on
-  RJ.room = String(room); RJ.name = name || ''; RJ.after = null;
+  RJ.room = String(room); RJ.name = name || ''; RJ.after = null; RJ.seat = seat === 'obs' ? 'obs' : '';
   const want = game === 'vanilla' ? 'vanilla' : game === 'elite' ? 'elite' : roomGame(roomById(id));
   RJ.want = want;
   if (want === 'vanilla' && !S.vanilla_offered) { rjShow(t('rjVanNo'), 'err'); return; }
-  if (!roomJoinOn(want)) { rjShow(t(want === 'vanilla' ? 'rjVanAddonOff' : 'rjAddonOff'), 'err'); return; }
+  // 1.6.13 (siritos fb 1210): "Lobby join" off - a window offers to turn it on and the join goes on (no "turn it on in Add-ons")
+  if (!roomJoinOn(want) && !await naNeed('roomjoin', RJ.seat ? 'na_roomjoin_obs' : 'na_roomjoin', want, () => roomJoin(id, name, null, leave, want, seat))) return;
   try {
     const p = await invoke('room_join_probe') || {};
     // the other game runs (its command line says): no join into it - close it first, then the right one starts
@@ -2601,7 +2623,7 @@ async function roomJoin(id, name, btn, leave, game) {
         doPlay(false);   // the add-ons synced first, then the game
       }
     }
-    await invoke('room_join', { id: room, name: RJ.name, wait, leave: !!leave, game: want });
+    await invoke('room_join', { id: room, name: RJ.name, wait, leave: !!leave, game: want, seat: RJ.seat || null });
   } catch (e) { rjShow(errText(e), 'err'); }
 }
 listen('room_join', e => {
@@ -2613,8 +2635,11 @@ listen('room_join', e => {
     case 'walking': rjShow(t('rjWalking'), '', true); break;
     case 'leaving': rjShow(t('rjLeaving', { name }), '', true); break;
     case 'joining': rjShow(t('rjJoining', { name }), '', true); break;
-    case 'in_lobby': rjShow(t('rjInLobby', { name }), 'ok'); RJ.here = { room: RJ.room, name, ts: Date.now() }; roomsLoad(); break;
+    case 'in_lobby': rjShow(t(v.as === 'obs' ? 'rjInLobbyObs' : 'rjInLobby', { name }), 'ok'); RJ.here = { room: RJ.room, name, ts: Date.now() }; roomsLoad(); break;
     case 'failed': {
+      // 1.6.13: an observer's join needs RoomJoin 14+ - the game has an older one (its status line): nothing was sent
+      if (v.reason === 'old_addon') { const a = { id: RJ.room, name, want: RJ.want, seat: RJ.seat }; rjShow(t('rjCancelled'), 'ok');
+        naOld('roomjoin', 'na_roomjoin_obs', v.need || '14', v.have, () => roomJoin(a.id, a.name, null, false, a.want, a.seat)); break; }
       if (v.reason === 'no_pipe') { rjShow(t('rjNoPipe'), 'err'); rjModal(t('rjFailedAsk'), [t('rjNoPipe')]); break; }
       if (v.reason === 'wrong_game') { rjWrongGame(RJ.room, name, RJ.want || 'elite'); break; }
       const why = T[lang]['rjWhy_' + v.reason] || T.en['rjWhy_' + v.reason] ? t('rjWhy_' + v.reason) : t('rjWhy_error');
@@ -2994,15 +3019,13 @@ async function liveWatch(id, game) {
   const c = lvComp();
   if (game === 'vanilla' && !S.vanilla_offered) { rjModal(t('lvAsk'), [t('rjVanNo')]); return; }
   try {
-    let p = await invoke('live_watch_probe') || {};
+    // 1.6.13 (siritos fb 1210): the add-on off - the same window as every button of an add-on (needaddon.js): turn it on and
+    // watch; the game running - once it is closed the launcher turns it on, starts the game and watches (LiveReplay 3 and 4 take
+    // the same "watch")
     if (!c || !c.enabled || (game === 'vanilla' && !c.vanilla_ok)) {
-      // the add-on is off: with the game closed the launcher turns it on (it comes with the start), else restart with it
-      if (!c || (game === 'vanilla' && !c.vanilla_ok) || p.running) { rjModal(t('lvAsk'), [t('lvAddonOff')]); return; }
-      const ok = await askBox(t('lvAsk'), [t('lvAddonAsk')], [{ label: t('lvTurnOn'), cls: 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
-      if (!ok) return;
-      await invoke('set_component', { id: c.id, on: true }); await reload().catch(() => {});
-      p = { running: false, games: [] };
+      if (!await naNeed('livereplay', 'na_livereplay', game, () => liveWatch(id, game))) return;
     }
+    const p = await invoke('live_watch_probe') || {};
     const mine = (p.games || []).filter(g => !g.kind || g.kind === game);
     if (p.running && !mine.length && (p.games || []).length) { rjModal(t('lvAsk'), [t('lvWrongGame')]); return; }
     let wait = 0;

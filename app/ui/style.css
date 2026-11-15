@@ -1769,8 +1769,10 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .hl-lock .ico{width:13px;height:13px}
 .hl-tags{display:flex;align-items:center;flex-wrap:wrap;gap:4px;min-width:0}
 .hl-tags .tag{flex:none;font-size:10.5px;line-height:15px;padding:0 4px}
-.hl-teams{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);padding-top:5px;border-top:1px dashed rgba(69,224,192,.2)}
-.hl-team{display:flex;flex-direction:column;gap:1px;min-width:0;padding-right:7px}
+/* 1.6.13 (siritos fb 1210): the teams' block as tall as a 3v3 lobby's (3 rows of 19 px, 2 gaps) on every card, the teams in its
+   middle - as the cards of the Lobbies tab (.room .teams) */
+.hl-teams{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:59px;padding-top:5px;border-top:1px dashed rgba(69,224,192,.2)}
+.hl-team{display:flex;flex-direction:column;justify-content:center;gap:1px;min-width:0;padding-right:7px}
 .hl-team.r{padding:0 0 0 7px;border-left:1px solid rgba(69,224,192,.18)}
 .hl-team.r .hl-p{flex-direction:row-reverse;text-align:right}
 .hl-p{display:flex;align-items:center;gap:5px;font-size:12px;line-height:19px;min-width:0}
@@ -1793,5 +1795,9 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .hl-eye{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;background:none;color:var(--gd);cursor:pointer}
 .hl-eye svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hl-eye:hover,.hl-eye:focus-visible{color:#eafff8;filter:drop-shadow(0 0 5px rgba(69,224,192,.7))}
+/* 1.6.13: the eye of a game's lobby while the host has no free observer seat - dimmed, the click says why */
+.hl-eye.wait{opacity:.45}
+.rcount+.robs-b,.robs-b+.rjoin{margin-left:0}
+.room .robs-b.wait{opacity:.45}
 .hl-none{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:8px 2px;color:var(--mu);font-size:13px}
 @media (prefers-reduced-motion:reduce){.hdr-info.unread .dot,.room.hl-lit::after,.eb-tm,.err-bar .ub-ico{animation:none}}

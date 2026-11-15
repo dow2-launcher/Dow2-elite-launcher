@@ -494,13 +494,14 @@ function rpDetail() {
       + `<div class="rp-descr"><h4>${esc(t('rpDescr'))}${canEdit ? ` <button class="btn ghost" id="rpEdit">${esc(t('rpDescrEdit'))}</button>` : ''}</h4>`
       + `<div id="rpDescrBox">${meta.descr ? `<p>${esc(meta.descr)}</p>` : `<p class="note">${esc(t('rpNoDescr'))}</p>`}</div></div></div>`;
   }
-  // 1.6.11 (owner 14.11.2026): every action the same plate, in a row of its own under the map: first Watch (the replay started
-  // from the launcher - not there yet: off, "soon"), then Download / Send to the server / Downloaded, then On the map (the site's
-  // match player). "On the server" is a mark next to the mode and the version, not an action
+  // 1.6.11 (owner 14.11.2026): every action the same plate, in a row of its own under the map: first Watch, then Download / Send
+  // to the server / Downloaded, then On the map (the site's match player). "On the server" is a mark next to the mode and the
+  // version, not an action. 1.6.13 (siritos fb 1210): Watch opens the replay in the game (ReplayOpen) - always on, the add-on
+  // is asked for on the click
   const PLAY = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor" stroke="none"/></svg>';
   const MAP = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>';
   const ab = (id, icon, label, tip, off) => `<button class="btn small rp-ab${off ? ' done' : ''}"${id ? ` id="${id}"` : ''}${tip ? ` data-tip="${esc(tip)}"` : ''}${off ? ' disabled' : ''}>${icon}<span>${esc(label)}</span></button>`;
-  let acts = `<button class="btn small rp-ab rp-soon" disabled data-tip="${esc(t('rpPlayTip'))}">${PLAY}<span>${esc(t('rpPlay'))}</span><em>${esc(t('rpSoon'))}</em></button>`, mark = '';
+  let acts = ab('rpPlayB', PLAY, t('rpPlay'), t('rpPlayTip2')), mark = '';
   if (x.remote) {
     mark = `<span class="tag rp-in" data-tip="${esc(t('rpRemoteTip'))}">${esc(t('rpInPool'))}</span>`;
     acts += rpGot(x.id) ? ab('', ico('done'), t('rpHave'), t('rpHaveTip'), true) : ab('rpDl', ico('down'), t('rpDownload'));
@@ -527,6 +528,7 @@ function rpDetail() {
   on('rpUp', () => rpUpload(x));
   on('rpLogin', () => { if (typeof chLogin === 'function') chLogin(); });
   on('rpDl', () => rpDownload(x));
+  on('rpPlayB', () => rpPlay(x, mine ? 'mine' : 'pool'));
   on('rpSrc', () => invoke('open_url', { url: meta.src_link }).catch(() => {}));
   on('rpSim', () => invoke('open_url', { url: `https://rts.fintebtc.de/replay/r/${pid}?lang=${lang === 'ru' ? 'ru' : 'en'}#sim` }).catch(() => {}));
   on('rpEdit', () => rpEditDescr(meta, pid));
@@ -575,6 +577,57 @@ async function rpDownload(x, btn) {
   rpRender();
 }
 
+// 1.6.13 (siritos fb 1210): Watch - the game opens the replay (the add-on ReplayOpen, replayopen.rs): a replay of the pool or
+// one of mine only on the server is downloaded into Playback first; the game not running - the launcher starts it (the add-ons
+// brought first) and sends the replay once its pipe is there. A vanilla replay opens in vanilla (ReplayOpen 1: Elite only - the
+// window says so); another Elite build plays too, the game says data_mismatch (it may go out of sync where the builds differ).
+const RPO = { file: '', name: '' };
+async function rpPlay(x, kind) {
+  if (!S || (S.os !== 'windows' && S.os !== 'linux')) { rjModal(t('rpPlayAsk'), [t('rjOnlyWin')]); return; }
+  const game = x.version === 'vanilla' ? 'vanilla' : 'elite';
+  if (game === 'vanilla' && !S.vanilla_offered) { rjModal(t('rpPlayAsk'), [t('rjVanNo')]); return; }
+  if (meBusy()) { rjModal(t('rpPlayAsk'), [t('lvBusy')]); return; }
+  if (!await naNeed('replayopen', 'na_replayopen', game, () => rpPlay(x, kind))) return;
+  const b = $('rpPlayB'); if (b) { b.disabled = true; setTimeout(() => { if (b.isConnected) b.disabled = false; }, 2500); }
+  try {
+    let file = kind === 'mine' && !x.remote ? x.file : '';
+    if (!file) {                                                    // the pool's: into Playback first (the same file is not written twice)
+      toast(t('rpDownloading'));
+      const r = await invoke('replay_download', { id: x.id, name: x.name || `${x.map}_${x.id}` });
+      if (!r || !r.ok || !r.file) { toast(rpErr(r), true); return; }
+      file = r.file; RP.got.add(x.id); RP.mine.items = [];
+    }
+    const p = await invoke('replay_open_probe') || {};
+    const mine = (p.games || []).filter(g => !g.kind || g.kind === game);
+    if (p.running && !mine.length && (p.games || []).length) { rjModal(t('rpPlayAsk'), [t('rpPlayWrong')]); return; }
+    let wait = 0;
+    if (!mine.length) {
+      if (p.running) wait = 90;                                     // just started (its add-ons come later), or without the add-on
+      else {
+        wait = 240;
+        if ((game === 'vanilla') !== VAN()) { try { S = await invoke('set_game_mode', { mode: game }); render(); } catch (e) { /* the chosen game then */ } }
+        doPlay(false);
+      }
+    }
+    RPO.file = file; RPO.name = rpMapName(x.map);
+    toast(t(mine.length ? 'rpPlaySent' : 'rpPlayStarting'));
+    const r = await invoke('replay_open', { file, game, wait });
+    if (r && r.started === false) toast(rpErr(r), true);
+  } catch (e) { toast(errText(e), true); }
+}
+listen('replay_open', e => {
+  const v = e.payload || {};
+  if (v.file && RPO.file && v.file !== RPO.file && !/launcher_replay\.rec$/i.test(v.file)) return;
+  if (v.ev === 'waiting_game') toast(t('lvWaitGame'));
+  else if (v.ev === 'accepted') toast(t('rpPlayAccepted'));
+  else if (v.ev === 'data_mismatch') toast(t('rpPlayMismatch'));
+  else if (v.ev === 'loading' || v.ev === 'playing') toast(t('rpPlayLoading'));
+  else if (v.ev === 'failed') {
+    const k = 'rpWhy_' + v.reason, why = T[lang][k] || T.en[k] ? t(k) : T.en['lvWhy_' + v.reason] ? t('lvWhy_' + v.reason) : (v.reason || '?');
+    if (v.reason !== 'cancelled') rjModal(t('rpPlayAsk'), [t('rpPlayFailed', { why })]);
+  }
+});
+
 function rpShowView(v, sel) {
   RP.view = v;
   document.querySelectorAll('#rpNav .rnb').forEach(b => b.classList.toggle('on', b.dataset.rp === v));
@@ -587,9 +640,49 @@ function rpShowView(v, sel) {
 document.querySelectorAll('#rpNav .rnb').forEach(b => b.onclick = () => rpShowView(b.dataset.rp));
 const rpTab = document.querySelector('.tab[data-view="replays"]');
 if (rpTab) rpTab.addEventListener('click', () => { if (!RP.loaded) { RP.loaded = true; rpFilters(); rpLoad(); } else if (RP.view === 'mine') rpLoadMine(); });
-// 1.6.11: Watch (the replay started from the launcher - soon), On the map, the report's band
-Object.assign(T.en, { rpPlay: 'Watch', rpPlayTip: 'Soon: the replay started right from the launcher', rpSoon: 'soon', rpOnMap: 'On the map', rpReportSub: 'the course of the match, the players\' table' });
-Object.assign(T.ru, { rpPlay: 'Смотреть', rpPlayTip: 'Скоро: запуск реплея прямо из лаунчера', rpSoon: 'скоро', rpOnMap: 'На карте', rpReportSub: 'ход матча, таблица игроков' });
-Object.assign(T.es, { rpPlay: 'Ver', rpPlayTip: 'Pronto: abrir la repetición directamente desde el launcher', rpSoon: 'pronto', rpOnMap: 'En el mapa', rpReportSub: 'el desarrollo de la partida, la tabla de jugadores' });
-Object.assign(T.fr, { rpPlay: 'Regarder', rpPlayTip: 'Bientôt : lancer le replay directement depuis le launcher', rpSoon: 'bientôt', rpOnMap: 'Sur la carte', rpReportSub: 'le déroulé de la partie, le tableau des joueurs' });
-Object.assign(T.de, { rpPlay: 'Ansehen', rpPlayTip: 'Bald: das Replay direkt aus dem Launcher starten', rpSoon: 'bald', rpOnMap: 'Auf der Karte', rpReportSub: 'der Spielverlauf, die Spielertabelle' });
+// 1.6.11: Watch, On the map, the report's band; 1.6.13: Watch opens the replay in the game (ReplayOpen)
+Object.assign(T.en, { rpPlay: 'Watch', rpOnMap: 'On the map', rpReportSub: 'the course of the match, the players\' table',
+  rpPlayTip2: 'Opens the replay in the game (the add-on “Replay from the launcher”)', rpPlayAsk: 'Watch the replay',
+  rpPlayWrong: 'Another game is running (Elite or vanilla): close it, then press Watch again.', rpPlaySent: 'The replay goes to the game…',
+  rpPlayStarting: 'Starting the game to open the replay…', rpPlayAccepted: 'The game took the replay: it opens from the main menu…',
+  rpPlayMismatch: 'This replay was recorded with another Elite build: it plays, but may go out of sync where the builds differ.',
+  rpPlayLoading: 'The replay is loading in the game', rpPlayFailed: 'The replay did not open: {why}',
+  rpWhy_not_found: 'the game did not find the file', rpWhy_bad_file: 'the file is not a replay', rpWhy_version: 'it was recorded with another version of the game itself',
+  rpWhy_data_mismatch: 'it was recorded with another Elite build', rpWhy_busy: 'the game is opening another replay', rpWhy_timeout: 'the game did not come to its main menu in time',
+  rpWhy_error: 'the game could not open it', rpWhy_wrong_game: 'another game is running', rpWhy_no_pipe: 'the game runs without the add-on “Replay from the launcher” - restart it' });
+Object.assign(T.ru, { rpPlay: 'Смотреть', rpOnMap: 'На карте', rpReportSub: 'ход матча, таблица игроков',
+  rpPlayTip2: 'Откроет реплей в игре (дополнение «Replay from the launcher»)', rpPlayAsk: 'Просмотр реплея',
+  rpPlayWrong: 'Запущена другая игра (Elite или ваниль): закройте её и нажмите «Смотреть» ещё раз.', rpPlaySent: 'Реплей уходит в игру…',
+  rpPlayStarting: 'Запускаю игру, чтобы открыть реплей…', rpPlayAccepted: 'Игра приняла реплей: откроет его из главного меню…',
+  rpPlayMismatch: 'Реплей записан на другой сборке Elite: он пойдёт, но там, где сборки отличаются, возможен рассинхрон.',
+  rpPlayLoading: 'Реплей загружается в игре', rpPlayFailed: 'Реплей не открылся: {why}',
+  rpWhy_not_found: 'игра не нашла файл', rpWhy_bad_file: 'это не реплей', rpWhy_version: 'он записан на другой версии самой игры',
+  rpWhy_data_mismatch: 'он записан на другой сборке Elite', rpWhy_busy: 'игра уже открывает другой реплей', rpWhy_timeout: 'игра не дошла до главного меню вовремя',
+  rpWhy_error: 'игре не удалось его открыть', rpWhy_wrong_game: 'запущена другая игра', rpWhy_no_pipe: 'игра запущена без дополнения «Replay from the launcher» — перезапустите её' });
+Object.assign(T.es, { rpPlay: 'Ver', rpOnMap: 'En el mapa', rpReportSub: 'el desarrollo de la partida, la tabla de jugadores',
+  rpPlayTip2: 'Abre la repetición en el juego (el complemento «Replay from the launcher»)', rpPlayAsk: 'Ver la repetición',
+  rpPlayWrong: 'Hay otro juego abierto (Elite o vanilla): ciérralo y vuelve a pulsar Ver.', rpPlaySent: 'La repetición va al juego…',
+  rpPlayStarting: 'Iniciando el juego para abrir la repetición…', rpPlayAccepted: 'El juego aceptó la repetición: la abre desde el menú principal…',
+  rpPlayMismatch: 'Esta repetición se grabó con otra versión de Elite: se reproduce, pero puede desincronizarse donde las versiones difieren.',
+  rpPlayLoading: 'La repetición se está cargando en el juego', rpPlayFailed: 'La repetición no se abrió: {why}',
+  rpWhy_not_found: 'el juego no encontró el archivo', rpWhy_bad_file: 'el archivo no es una repetición', rpWhy_version: 'se grabó con otra versión del propio juego',
+  rpWhy_data_mismatch: 'se grabó con otra versión de Elite', rpWhy_busy: 'el juego ya está abriendo otra repetición', rpWhy_timeout: 'el juego no llegó a tiempo a su menú principal',
+  rpWhy_error: 'el juego no pudo abrirla', rpWhy_wrong_game: 'hay otro juego abierto', rpWhy_no_pipe: 'el juego corre sin el complemento «Replay from the launcher»: reinícialo' });
+Object.assign(T.fr, { rpPlay: 'Regarder', rpOnMap: 'Sur la carte', rpReportSub: 'le déroulé de la partie, le tableau des joueurs',
+  rpPlayTip2: 'Ouvre le replay dans le jeu (le module « Replay from the launcher »)', rpPlayAsk: 'Regarder le replay',
+  rpPlayWrong: 'Un autre jeu est lancé (Elite ou vanilla) : fermez-le, puis appuyez de nouveau sur Regarder.', rpPlaySent: 'Le replay part vers le jeu…',
+  rpPlayStarting: 'Lancement du jeu pour ouvrir le replay…', rpPlayAccepted: 'Le jeu a pris le replay : il l\'ouvre depuis le menu principal…',
+  rpPlayMismatch: 'Ce replay a été enregistré avec une autre version d\'Elite : il se lance, mais peut se désynchroniser là où les versions diffèrent.',
+  rpPlayLoading: 'Le replay se charge dans le jeu', rpPlayFailed: 'Le replay ne s\'est pas ouvert : {why}',
+  rpWhy_not_found: 'le jeu n\'a pas trouvé le fichier', rpWhy_bad_file: 'le fichier n\'est pas un replay', rpWhy_version: 'il a été enregistré avec une autre version du jeu lui-même',
+  rpWhy_data_mismatch: 'il a été enregistré avec une autre version d\'Elite', rpWhy_busy: 'le jeu ouvre déjà un autre replay', rpWhy_timeout: 'le jeu n\'est pas arrivé à temps à son menu principal',
+  rpWhy_error: 'le jeu n\'a pas pu l\'ouvrir', rpWhy_wrong_game: 'un autre jeu est lancé', rpWhy_no_pipe: 'le jeu tourne sans le module « Replay from the launcher » : relancez-le' });
+Object.assign(T.de, { rpPlay: 'Ansehen', rpOnMap: 'Auf der Karte', rpReportSub: 'der Spielverlauf, die Spielertabelle',
+  rpPlayTip2: 'Öffnet das Replay im Spiel (das Add-on „Replay from the launcher“)', rpPlayAsk: 'Replay ansehen',
+  rpPlayWrong: 'Ein anderes Spiel läuft (Elite oder Vanilla): schließe es und drücke erneut Ansehen.', rpPlaySent: 'Das Replay geht ans Spiel…',
+  rpPlayStarting: 'Das Spiel wird gestartet, um das Replay zu öffnen…', rpPlayAccepted: 'Das Spiel hat das Replay übernommen: es öffnet es aus dem Hauptmenü…',
+  rpPlayMismatch: 'Dieses Replay wurde mit einer anderen Elite-Version aufgenommen: es läuft, kann aber dort asynchron werden, wo sich die Versionen unterscheiden.',
+  rpPlayLoading: 'Das Replay lädt im Spiel', rpPlayFailed: 'Das Replay hat sich nicht geöffnet: {why}',
+  rpWhy_not_found: 'das Spiel hat die Datei nicht gefunden', rpWhy_bad_file: 'die Datei ist kein Replay', rpWhy_version: 'es wurde mit einer anderen Version des Spiels selbst aufgenommen',
+  rpWhy_data_mismatch: 'es wurde mit einer anderen Elite-Version aufgenommen', rpWhy_busy: 'das Spiel öffnet schon ein anderes Replay', rpWhy_timeout: 'das Spiel kam nicht rechtzeitig ins Hauptmenü',
+  rpWhy_error: 'das Spiel konnte es nicht öffnen', rpWhy_wrong_game: 'ein anderes Spiel läuft', rpWhy_no_pipe: 'das Spiel läuft ohne das Add-on „Replay from the launcher“ - starte es neu' });

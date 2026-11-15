@@ -170,15 +170,16 @@ async function lrPings() {
 function lrCountdown() { lrPlay(); }   // 1.5.0: the countdown is on Play
 
 // ---------- can I play this room's match from here ----------
-function lrWhyNot(r) {
+// noAddon (1.6.13): without the add-on's reason - Ready stays on and asks for it (needaddon.js)
+const lrAmOff = () => { const am = (S && S.components || []).find(c => String(c.id).replace(/_(r\d+|off)$/, '') === 'automatch'); return !!am && !am.enabled; };
+function lrWhyNot(r, noAddon) {
   if (!S || (S.os !== 'windows' && S.os !== 'linux')) return t('lrWhyOs');
   if (r.game === 'vanilla') { if (!S.vanilla_offered) return t('lrWhyVan'); }
   else {
     const mine = S.installed_version;
     if (r.ver && /^\d/.test(mine || '') && !verSame(r.ver, mine)) return t('lrWhyVer', { v: r.ver, mine });
   }
-  const am = (S.components || []).find(c => String(c.id).replace(/_(r\d+|off)$/, '') === 'automatch');
-  if (am && !am.enabled) return t('lrWhyAddon');
+  if (!noAddon && lrAmOff()) return t('lrWhyAddon');
   return '';
 }
 
@@ -260,7 +261,8 @@ function lrSlot(r, s, i, cat) {
   // the game's step while starting / playing; a closed launcher; another version (the room's changed)
   const gs = r.state === 'launching' || r.state === 'playing' ? `<span class="lr-gs g-${esc(s.game || '')}">${esc(lrGameTxt(s.game))}</span>`
     : !s.here ? `<span class="lr-gs away">${esc(t('lrAway'))}</span>` : '';
-  const why = mine ? lrWhyNot(r) : '';
+  // 1.6.13 (siritos fb 1210): Automatch v2.0 off does not grey Ready out any more - the click offers to turn it on
+  const why = mine ? lrWhyNot(r, true) : '';
   const tip = mine ? (why || t(s.ready ? 'rdyMineOn' : 'rdyMine')) : t(s.ready ? 'lrIsReady' : 'lrWaiting');
   const sg = lrSig(r, s);
   const tick = `<span class="flw" data-tip="${esc(tip)}"><button class="rdy${s.ready ? ' on' : ''}${mine && open ? ' mine' : ''}${mine && why && !s.ready ? ' dis' : ''}${sg.flash ? ' flash' : ''}"`
@@ -443,8 +445,9 @@ function lrCardHtml(x) {
   const oc = x.obs_cap != null ? x.obs_cap : Math.max(0, 8 - (x.cap || 2)), on = (x.obs || []).length;
   const watch = !mine && open && on < oc ? `<button class="rjoin lr-watch" data-id="${esc(x.id)}" data-tip="${esc(t('lrWatchJoin', { n: on, m: oc }))}" aria-label="${esc(t('lrWatchJoin', { n: on, m: oc }))}">${ico('eye')}</button>` : '';
   // the room's game on every card: vanilla, or its Elite version (one look; a card of another version is dimmed)
-  // 1.6.11: vanilla at the start of the title (as the launcher's mark), the footer keeps Elite's version
-  const vt = x.game === 'vanilla' ? '' : `<span class="tag ver">Elite ${esc(x.ver || '')}</span>`;
+  // 1.6.13 (siritos fb 1210): the version at the bottom whichever it is - vanilla too (1.6.11 had put vanilla into the title, so
+  // the footer showed only Elite's); the launcher's mark stays at the top
+  const vt = x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : `<span class="tag ver">Elite ${esc(x.ver || '')}</span>`;
   // 1.5.3 (owner 10.11): the teams as on a game lobby's card; a ladder without the seats in its list - the names in a line
   const per = Math.max(1, Math.round((x.cap || 2) / 2)), sl = Array.isArray(x.slots) && x.slots.length ? x.slots : null;
   const pic = p => !p.race || p.race === 'random' ? raceImg('random') : p.hero >= 0
@@ -457,7 +460,7 @@ function lrCardHtml(x) {
     return `<div class="team"><div class="th"><span>${esc(t('rTeamShort', { n: k + 1 }))}</span>${avg ? `<span>${esc(t('rAvg', { r: avg }))}</span>` : ''}</div>${ps.map(row).join('')}</div>`; }).join('') : '';
   return `<div class="room lr-card${vok ? '' : ' dim'}" data-kind="lr" data-id="${esc(x.id)}" data-mode="${esc(x.mode)}" data-vok="${vok ? 1 : 0}" data-van="${x.game === 'vanilla' ? 1 : 0}" data-free="${free > 0 && open ? 1 : 0}">`
     + mmapHtml(`${A}maps/${encodeURIComponent(x.map)}.png`, x.map_name || x.map) + '<div class="rb">'
-    + `<div class="rh"><span class="tag lr">${esc(t('rTagLr'))}</span>${x.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>` : ''}<span class="rn" title="${esc(x.name)}">${esc(x.name)}</span><span class="tag">${esc(x.mode)}</span></div>`
+    + `<div class="rh"><span class="tag lr">${esc(t('rTagLr'))}</span><span class="rn" title="${esc(x.name)}">${esc(x.name)}</span><span class="tag">${esc(x.mode)}</span></div>`
     + (sl ? `<div class="teams">${teams}</div>` : `<div class="lr-names">${(x.names || []).map(esc).join(', ')}</div>`)
     + (on ? `<div class="robs" title="${esc(t('roomsObs'))}">${ico('eye')}${x.obs.map(o => `<span class="nm">${esc(o.name)}</span>`).join('<span class="sep">·</span>')}</div>` : '')
     + `<div class="rfoot2">${vt}<span class="tag rcount">${x.players}/${x.cap}</span>${watch}${act}</div></div></div>`;
@@ -591,7 +594,11 @@ function lrBind(r) {
     e.stopPropagation(); const st = b.dataset.inv; lrInvSent(r)[st] = Date.now(); LR.popForce = 1; lrRender();
     const res = await lrCall('invite', { steam: st }); if (res && res.ok !== false) toast(t('lrInvToast', { name: onUser(st).name || '' }));
   });
-  if ($('lrReadyTick')) $('lrReadyTick').onclick = () => { const me = r.slots.find(s => s && s.steam === lrMe()); lrCall('ready', { on: !(me && me.ready) }); };
+  if ($('lrReadyTick')) $('lrReadyTick').onclick = async () => {
+    const me = r.slots.find(s => s && s.steam === lrMe()), on = !(me && me.ready);
+    if (on && lrAmOff() && !await naNeed('automatch', 'na_automatch', r.game === 'vanilla' ? 'vanilla' : 'elite', () => lrCall('ready', { on: true }))) return;
+    lrCall('ready', { on });
+  };
   const hold = el => { if (!el) return; el.onmousedown = el.onkeydown = () => lrHold(true); };
   box.querySelectorAll('.ldd-b').forEach(b => b.onclick = e => { e.stopPropagation(); LR.drop = LR.drop === b.id ? null : b.id; LR.popForce = 1; lrRender(); });
   box.querySelectorAll('.ldd-i').forEach(b => b.onclick = e => {

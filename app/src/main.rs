@@ -15,6 +15,7 @@ mod roomjoin;
 mod lroom;
 mod replays;
 mod livewatch;
+mod replayopen;
 
 use elite_core::config::{version_newer, LauncherConfig};
 use elite_core::{elite, game, net::Mirrors, update, LAUNCHER_VERSION};
@@ -3302,6 +3303,7 @@ fn main() {
             fb_info, fb_set_name, fb_send, fb_thread, set_tray_labels, launcher_check, launcher_install, rooms_live,
             roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             livewatch::live_watch, livewatch::live_watch_probe, livewatch::live_watch_cancel,
+            replayopen::replay_open, replayopen::replay_open_probe, replayopen::replay_open_cancel,
             replays::replays_local, replays::replays_pool, replays::replays_versions, replays::replays_have, replays::replay_info, replays::replay_upload,
             replays::replay_describe, replays::replay_download, replays::replays_open_dir,
             lroom::lroom_api, lroom::lroom_list, lroom::fame_get, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
