@@ -1521,6 +1521,7 @@ const ICO = {
   info: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
   enter: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h5a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-5M10 17l5-5-5-5M15 12H3"/></svg>',
   eye: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>',
   door: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21h16M6 21V4h9v17M15 6h3v15M12 12h.01"/></svg>',
   plus: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
   crown: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/></svg>',
@@ -2427,17 +2428,18 @@ function roomsJoinState() {
 // 1.6.13: Join / the eye need a system RoomJoin runs on (Windows, Linux); the add-on itself is asked for on the click
 const roomJoinSys = () => !!S && (S.os === 'windows' || S.os === 'linux');
 // the eye of a game's lobby (siritos fb 1210): into the lobby as an observer - RoomJoin's "as":"obs". The ladder's obs_free (from
-// the game's own list): the open and empty observer seats; 0 - the host has none open (the game's default), the eye is dimmed
-// and a click says so; null / an older ladder - not known, the game itself says no_obs_slot then
+// the game's own list): the open and empty observer seats; null / an older ladder - not known, the game itself says no_obs_slot then.
+// 1.6.14 (siritos fb 1223): 0 - the host has none open (the game's default): the eye is crossed out and does not press (no window),
+// its tip on hover stays. Not the disabled attribute: a disabled button gets no hover in every WebView, the tip would be lost.
 const roomObsFree = r => r.obs_free == null ? null : Number(r.obs_free) | 0;
 function roomObsBtn(r, cls) {
   const n = roomObsFree(r), none = n === 0, tip = none ? t('rObsNone') : n ? t('rObsTip', { n }) : t('rObsTip0');
-  return `<button class="${cls} robs-b${none ? ' wait' : ''}" data-obs="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-tip="${esc(tip)}" aria-label="${esc(tip)}">${ico('eye')}</button>`;
+  return `<button class="${cls} robs-b${none ? ' off' : ''}" data-obs="${esc(String(r.id))}" data-name="${esc(r.name || '')}"${none ? ' aria-disabled="true"' : ''} data-tip="${esc(tip)}" aria-label="${esc(tip)}">${ico(none ? 'eyeOff' : 'eye')}</button>`;
 }
-// the eye pressed: no free seat - say so; else the same Join as a player, with "as":"obs"
+// the eye pressed: no free seat - nothing (the crossed-out eye and its tip say why); else the same Join as a player, with "as":"obs"
 function roomObs(id, name, btn) {
   const r = roomById(id);
-  if (r && roomObsFree(r) === 0) { rjModal(t('rObsAsk'), [t('rObsNone'), t('rObsNoneHint')]); return; }
+  if ((btn && btn.getAttribute('aria-disabled') === 'true') || (r && roomObsFree(r) === 0)) return;
   return roomTry(id, name, btn, 'obs');
 }
 function roomCard(r) {

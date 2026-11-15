@@ -51,9 +51,13 @@ fn blocking<F: FnOnce() -> Result<Value, String> + Send + 'static>(f: F) -> impl
     async move { tauri::async_runtime::spawn_blocking(f).await.map_err(|e| e.to_string())? }
 }
 fn pool_id(id: &str) -> bool { id.len() == 16 && id.bytes().all(|b| b.is_ascii_hexdigit()) }
+/// 1.6.14 (siritos fb 1223): the game's and the add-ons' work files in Playback are no replays of the player - never listed:
+/// temp.rec (the game records every match into it, overwritten by the next one), launcher_replay.rec (ReplayOpen's copy of the
+/// replay Watch opened - it showed as a second copy of that replay), live_watch.rec (LiveReplay's live match).
+fn work_file(name: &str) -> bool { matches!(name.to_ascii_lowercase().as_str(), "temp.rec" | "launcher_replay.rec" | "live_watch.rec") }
 /// A file of the Playback folder by its bare name (nothing outside the folder).
 fn own_file(name: &str) -> Option<PathBuf> {
-    if name.is_empty() || name.len() > 200 || name.contains(['/', '\\', ':']) || name.starts_with('.') || !name.to_ascii_lowercase().ends_with(".rec") { return None; }
+    if name.is_empty() || name.len() > 200 || name.contains(['/', '\\', ':']) || name.starts_with('.') || !name.to_ascii_lowercase().ends_with(".rec") || work_file(name) { return None; }
     let p = replay::playback_dir()?.join(name);
     p.is_file().then_some(p)
 }
@@ -67,7 +71,7 @@ pub async fn replays_local() -> Result<Value, String> {
         if let Ok(rd) = std::fs::read_dir(&dir) {
             for e in rd.flatten() {
                 let name = e.file_name().to_string_lossy().into_owned();
-                if !name.to_ascii_lowercase().ends_with(".rec") { continue; }
+                if !name.to_ascii_lowercase().ends_with(".rec") || work_file(&name) { continue; }
                 let Ok(m) = e.metadata() else { continue };
                 if !m.is_file() { continue; }
                 let t = m.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map_or(0, |x| x.as_secs());
@@ -193,6 +197,7 @@ pub async fn replay_download(id: String, name: Option<String>) -> Result<Value, 
                     // the same file is there already: nothing to write
                     if let Ok(rd) = std::fs::read_dir(&dir) {
                         for e in rd.flatten() {
+                            if work_file(&e.file_name().to_string_lossy()) { continue; }   // not ReplayOpen's copy: it is overwritten
                             if e.metadata().map_or(true, |m| m.len() != data.len() as u64) { continue; }
                             if std::fs::read(e.path()).map_or(false, |d| d == data) {
                                 return Ok(json!({"ok": true, "file": e.file_name().to_string_lossy(), "had": true}));

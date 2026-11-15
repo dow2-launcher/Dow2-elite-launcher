@@ -1795,9 +1795,13 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .hl-eye{display:grid;place-items:center;width:28px;height:28px;padding:0;border:0;background:none;color:var(--gd);cursor:pointer}
 .hl-eye svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .hl-eye:hover,.hl-eye:focus-visible{color:#eafff8;filter:drop-shadow(0 0 5px rgba(69,224,192,.7))}
-/* 1.6.13: the eye of a game's lobby while the host has no free observer seat - dimmed, the click says why */
-.hl-eye.wait{opacity:.45}
+/* 1.6.14 (siritos fb 1223): the eye of a game's lobby while the host has no free observer seat - crossed out, not pressable,
+   the tip on hover stays */
+.robs-b.off,.room .robs-b.off{opacity:.45;cursor:not-allowed}
+.robs-b.off:hover,.robs-b.off:focus-visible{filter:none}
+.rjoin.robs-b.off:hover{color:#dcefe9}
+.room .rjoin.robs-b.off:hover{color:var(--dim)}
+.hl-eye.off:hover,.hl-eye.off:focus-visible{color:var(--gd)}
 .rcount+.robs-b,.robs-b+.rjoin{margin-left:0}
-.room .robs-b.wait{opacity:.45}
 .hl-none{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:8px 2px;color:var(--mu);font-size:13px}
 @media (prefers-reduced-motion:reduce){.hdr-info.unread .dot,.room.hl-lit::after,.eb-tm,.err-bar .ub-ico{animation:none}}
