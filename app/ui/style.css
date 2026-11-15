@@ -898,7 +898,7 @@ footer .status{flex:1;min-width:0}
 .ag-panel .addon-gh .chev{width:7px;height:7px;border:solid var(--gd);border-width:0 1.5px 1.5px 0;transform:rotate(45deg);margin:0 2px 3px 4px}
 .ag-panel.shut .addon-gh{border-bottom:0}
 .ag-panel.shut .addon-gh .chev{transform:rotate(-45deg);margin-bottom:0}
-.arow{display:grid;grid-template-columns:18px minmax(0,1fr) auto;gap:10px;align-items:start;padding:8px 12px;border-bottom:1px solid rgba(30,90,82,.45);cursor:pointer;transition:background .15s}
+.arow{display:grid;grid-template-columns:18px minmax(0,1fr) fit-content(45%);gap:0 10px;align-items:start;padding:8px 12px;border-bottom:1px solid rgba(30,90,82,.45);cursor:pointer;transition:background .15s}
 .arow:last-child{border-bottom:0}
 .arow:hover{background:rgba(69,224,192,.06)}
 .arow.lock{cursor:default}
@@ -910,7 +910,15 @@ footer .status{flex:1;min-width:0}
 .arow.off .arow-n b{color:#9fb8b1}
 .arow .addon-desc{margin:2px 0 0;color:var(--sf);font-size:12.5px;line-height:1.4}
 .arow.off .addon-desc{color:var(--mu)}
-.arow-v{padding-top:3px;font:500 11.5px var(--fm);color:var(--mu);white-space:nowrap;text-align:right}
+.arow-v{padding-top:3px;font:500 11.5px var(--fm);color:var(--mu);text-align:right}
+/* 1.6.15 (l'Alerion fb 1253): the line on the right ("Works only in Elite: ..." in vanilla, "Version 9, version 48 comes with the
+   next update") was one unbreakable line of the auto column and squeezed the description to one word per line. Now it wraps
+   at 45% of the row, sits in the name's line only, and the description, notes and settings take the whole width under it */
+.arow-b{display:contents}
+.arow-b>*{grid-column:2/4;min-width:0}
+.arow-b>.arow-n{grid-column:2;grid-row:1}
+.arow>input[type=checkbox]{grid-row:1}
+.arow-v{grid-column:3;grid-row:1;overflow-wrap:anywhere}
 .arow .addon-opts{padding:6px 0 0;margin:0}
 .arow .addon-opt{color:var(--sf);font-size:12.5px}
 .arow .addon-sub{border-left-color:var(--ln2)}

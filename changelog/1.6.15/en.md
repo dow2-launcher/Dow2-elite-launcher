@@ -1,0 +1,1 @@
+- Add-ons tab: a long line on the right ("Works only in Elite…" in vanilla, a version with an update waiting) no longer squeezes the description to one word per line - the line wraps, the description takes the card's whole width.
