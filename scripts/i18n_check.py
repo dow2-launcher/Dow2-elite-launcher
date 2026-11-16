@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The launcher's translations check (CI, `version` job). Exit 1 on any problem.
 
-The UI texts live in the `T` dictionary (app/ui/app.js: `const T = { en: {...}, ru: {...}, ... }`) and in
+The UI texts live in the `T` dictionary (app/ui/i18n.js: `const T = { en: {...}, ru: {...}, ... }`) and in
 `Object.assign(T.<lang>, {...})` blocks of the other UI scripts. The checks:
 
   1. every key is in all the languages (en, ru, es, fr, de);
