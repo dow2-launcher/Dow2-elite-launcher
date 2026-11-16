@@ -1,0 +1,3 @@
+- The chat no longer stays empty on a line that cuts long connections to one of our servers: when the live connection to a server stops twice within 15 minutes, the launcher sets that server aside for 6 hours (kept over a restart) and moves the chat, Online and the lobbies to the next one. A server whose stream the connection test finds cut is set aside the same way. Each switch is written to community.log.
+- The check of our servers reads the first 64 KB of an answer (enough to see a stream that stops on the way) instead of the whole chat history, so a slow line no longer fails it for size alone.
+- Not in a lobby: the launcher no longer asks the server for "my lobby" on every window reload and every click on the Lobbies tab - the answer "no lobby" is remembered.

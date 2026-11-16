@@ -135,7 +135,7 @@ pub async fn c_api(app: AppHandle, path: String, body: Option<Value>) -> Result<
     });
     tauri::async_runtime::spawn_blocking(move || {
         let mut last = "the server is not configured in this build".to_string();
-        for h in fb_hosts() {
+        for h in chat_hosts() {
             let url = format!("{h}/ladder/api/c/{path}");
             let r = match &post {
                 Some(b) => HTTP.post(&url).timeout(Duration::from_secs(secs)).set("Content-Type", "application/json").send_string(b),
