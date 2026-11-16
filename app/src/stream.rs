@@ -9,6 +9,8 @@ use super::*;
 pub(crate) static STREAM_GEN: AtomicU64 = AtomicU64::new(0);   // +1 on sign-in / sign-out: the stream reconnects with the new token
 pub(crate) static STREAM_AFTER: LazyLock<Mutex<BTreeMap<String, u64>>> = LazyLock::new(|| Mutex::new(BTreeMap::new()));
 pub(crate) static STREAM_UP: AtomicBool = AtomicBool::new(false);
+/// The host the stream is up on ("" while down): the chat's history and the room calls go there first (main.rs chat_hosts).
+pub(crate) static STREAM_HOST: Mutex<String> = Mutex::new(String::new());
 
 /// Is the stream connected now? The window asks once at start: the stream may have come up before it listened.
 #[tauri::command]
@@ -64,8 +66,30 @@ pub(crate) fn host_addr(host: &str) -> Option<std::net::SocketAddr> {
     hp.to_socket_addrs().ok()?.next()
 }
 
-/// What the connection's thread hands to the stream's loop.
-pub(crate) enum Got { Peer(Option<std::net::SocketAddr>), Line(String), End(String), Fail(bool, String) }
+/// What the connection's thread hands to the stream's loop. End: why, and whether the read waited out its timeout (nothing came
+/// for the read timeout - the server pings every 20 s, so the way stopped carrying the stream).
+pub(crate) enum Got { Peer(Option<std::net::SocketAddr>), Line(String), End(String, bool), Fail(bool, String) }
+
+// 1.6.19 (Malum 16.11.2026, log bundle 20261116-205024): his line (a DPI) stops long connections to Germany after 2-5 minutes,
+// Moscow holds them for hours. After a restart the check picked Germany (its short answer passes) and the stream went down by
+// a read timeout every ~4 min and came back to the SAME host each time - the chat stood empty while it hung. Now a host whose
+// stream stops twice within CUT_WINDOW (a read timeout after it was up, or an answer that gives no event) is set aside
+// (reach.rs set_aside: after every host that answers, for hours, kept over a restart): the stream and every API call go to the
+// next host and community.log says so.
+pub(crate) const CUT_WINDOW: Duration = Duration::from_secs(15 * 60);
+/// The cuts of the stream's host in a row (another host, or a long stream, starts it again).
+#[derive(Default)]
+pub(crate) struct CutWatch { host: String, n: u32, first: Option<Instant> }
+impl CutWatch {
+    /// One more cut on `host`: true when it is the second within CUT_WINDOW - set it aside.
+    fn cut(&mut self, host: &str, now: Instant) -> bool {
+        let fresh = self.host != host || self.first.map_or(true, |f| now.saturating_duration_since(f) > CUT_WINDOW);
+        if fresh { self.host = host.to_string(); self.n = 0; self.first = Some(now); }
+        self.n += 1;
+        if self.n >= 2 { *self = CutWatch::default(); return true; }
+        false
+    }
+}
 
 /// One SSE frame at a time: lines in, (event, data) out at the blank line that ends an event. "retry:" and ": ping" lines and
 /// a frame without "event:" give nothing.
@@ -129,6 +153,10 @@ pub(crate) trait StreamSide: Send + Sync + 'static {
     fn clocks(&self) -> (std::time::SystemTime, Instant) { (std::time::SystemTime::now(), Instant::now()) }
     fn route(&self, peer: Option<std::net::SocketAddr>) -> Option<std::net::IpAddr> { route_src(peer) }
     fn stop(&self) -> bool { false }
+    /// The read timeout of the stream's connection (the server pings every 20 s).
+    fn read_timeout(&self) -> Duration { Duration::from_secs(60) }
+    /// The host's streams die on this line: set it aside (reach.rs); the order after it.
+    fn set_aside(&self, host: &str, why: &str) -> Vec<String> { reach::set_aside(reach::Pool::Api, host, why); self.hosts() }
 }
 pub(crate) struct AppStream(AppHandle);
 impl StreamSide for AppStream {
@@ -144,6 +172,7 @@ impl StreamSide for AppStream {
     }
     fn up(&self, up: bool, host: &str) {
         STREAM_UP.store(up, Ordering::Relaxed);
+        *STREAM_HOST.lock().unwrap() = if up { host.to_string() } else { String::new() };
         let _ = self.0.emit("c_stream", if up { json!({"up": true, "host": host}) } else { json!({"up": false}) });
     }
     fn log(&self, l: &str) { c_log(l) }
@@ -159,8 +188,9 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
     use std::sync::mpsc::{channel, RecvTimeoutError};
     // its own agent: a read may wait up to 60 s (the server pings every 20 s), and no overall timeout - in ureq 2 that
     // would cap the whole response and cut the stream
-    let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(10)).timeout_read(Duration::from_secs(60)).build();
+    let agent = ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(10)).timeout_read(side.read_timeout()).build();
     let (mut host_i, mut fails) = (0usize, 0usize);
+    let mut cuts = CutWatch::default();
     let (w0, m0) = side.clocks();
     let mut watch = WakeWatch::new(w0, m0);
     let mut slog = StreamLog::new(m0);
@@ -187,10 +217,13 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
                         for line in std::io::BufReader::new(r.into_reader()).lines() {
                             match line {
                                 Ok(l) => if tx.send(Got::Line(l)).is_err() { return; },
-                                Err(e) => { let _ = tx.send(Got::End(format!("read: {e}"))); return; }
+                                Err(e) => {
+                                    let stalled = matches!(e.kind(), std::io::ErrorKind::TimedOut | std::io::ErrorKind::WouldBlock) || e.to_string().contains("timed out");
+                                    let _ = tx.send(Got::End(format!("read: {e}"), stalled)); return;
+                                }
                             }
                         }
-                        let _ = tx.send(Got::End("closed by the server".into()));
+                        let _ = tx.send(Got::End("closed by the server".into(), false));
                     }
                     Err(ureq::Error::Status(503, _)) => { let _ = tx.send(Got::Fail(true, "503: the server is full".into())); }   // it asks for 30 s
                     Err(e) => {
@@ -203,7 +236,7 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
         slog.tries += 1;
         let mut sse = Sse::default();
         let (mut up_at, mut peer, mut src): (Option<Instant>, Option<std::net::SocketAddr>, Option<std::net::IpAddr>) = (None, None, None);
-        let (mut fail, mut busy, mut kick) = (false, false, false);
+        let (mut fail, mut busy, mut kick, mut stalled) = (false, false, false, false);
         let mut route_at = Instant::now();
         let why: String = loop {
             match rx.recv_timeout(Duration::from_millis(250)) {
@@ -216,7 +249,7 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
                     }
                     side.event(&ev, d);
                 },
-                Ok(Got::End(e)) => break e,
+                Ok(Got::End(e, st)) => { stalled = st; break e; }
                 Ok(Got::Fail(b, e)) => { fail = true; busy = b; break e; }
                 Err(RecvTimeoutError::Timeout) => {}
                 Err(RecvTimeoutError::Disconnected) => break "the connection's thread ended".into(),
@@ -234,9 +267,12 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
         };
         live.store(false, Ordering::SeqCst);
         drop(rx);
+        // a cut of this host's stream: up, then nothing for the read timeout; or an answer without any event
+        let cut = !kick && side.gen() == gen && !side.stop() && if up_at.is_some() { stalled } else { !fail };
         if let Some(t) = up_at {
             side.up(false, &host);
             side.log(&slog.down(&host, &why, t.elapsed(), side.clocks().1));
+            if !stalled && t.elapsed() >= CUT_WINDOW { cuts = CutWatch::default(); }   // a long stream ended normally: a new count
         } else if kick {
             side.log(&format!("stream {host}: {why} before the first event - again at once"));
         } else if side.gen() == gen {
@@ -248,6 +284,17 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
                 host_i = if side.hosts().first() != Some(&host) { 0 } else { host_i + 1 };
                 fails += 1;
             }
+        }
+        if cut && cuts.cut(&host, Instant::now()) {
+            let what = if up_at.is_some() { "nothing came for the read timeout" } else { "answered, but no event came" };
+            let order = side.set_aside(&host, &format!("the stream stopped twice in {} min ({what})", CUT_WINDOW.as_secs() / 60));
+            let next = order.iter().find(|h| **h != host).cloned();
+            side.log(&match &next {
+                Some(n) => format!("stream {host}: stopped twice within {} min ({what}) - set aside for {} h; the stream and the API go to {n}",
+                                   CUT_WINDOW.as_secs() / 60, reach::SET_ASIDE_SECS / 3600),
+                None => format!("stream {host}: stopped twice within {} min ({what}) - no other host to go to", CUT_WINDOW.as_secs() / 60),
+            });
+            host_i = 0;   // the new first one: the host set aside is after every host that answers
         }
         if side.gen() != gen { continue; }   // signed in / out: at once, with the new token
         if kick { let (w, m) = side.clocks(); watch = WakeWatch::new(w, m); continue; }   // woke up / new network: at once
@@ -325,12 +372,20 @@ mod stream_tests {
     use std::io::{Read, Write};
     use std::sync::atomic::AtomicUsize;
     struct Fake { host: String, log: Mutex<Vec<String>>, ups: Mutex<Vec<bool>>, events: Mutex<Vec<String>>, wall_off: AtomicU64,
-                  route: Mutex<Option<std::net::IpAddr>>, stop: AtomicBool }
+                  route: Mutex<Option<std::net::IpAddr>>, stop: AtomicBool,
+                  more: Mutex<Vec<String>>, aside: Mutex<Vec<String>>, up_on: Mutex<Vec<String>>, rt: Duration }
     impl StreamSide for Fake {
-        fn hosts(&self) -> Vec<String> { vec![self.host.clone()] }
+        // the hosts as reach.rs orders them: the ones set aside after the others
+        fn hosts(&self) -> Vec<String> {
+            let aside = self.aside.lock().unwrap().clone();
+            let all: Vec<String> = std::iter::once(self.host.clone()).chain(self.more.lock().unwrap().iter().cloned()).collect();
+            all.iter().filter(|h| !aside.contains(h)).chain(all.iter().filter(|h| aside.contains(h))).cloned().collect()
+        }
         fn who(&self) -> (String, &'static str) { (String::new(), "menu") }
         fn event(&self, ev: &str, _d: Value) { self.events.lock().unwrap().push(ev.to_string()); }
-        fn up(&self, up: bool, _host: &str) { self.ups.lock().unwrap().push(up); }
+        fn up(&self, up: bool, host: &str) { self.ups.lock().unwrap().push(up); if up { self.up_on.lock().unwrap().push(host.to_string()); } }
+        fn read_timeout(&self) -> Duration { self.rt }
+        fn set_aside(&self, host: &str, _why: &str) -> Vec<String> { self.aside.lock().unwrap().push(host.to_string()); self.hosts() }
         fn log(&self, l: &str) { self.log.lock().unwrap().push(l.to_string()); }
         fn gen(&self) -> u64 { 0 }
         // the wall clock moved by the test (a sleep as Linux sees it: the monotonic clock stood)
@@ -341,7 +396,11 @@ mod stream_tests {
         fn stop(&self) -> bool { self.stop.load(Ordering::SeqCst) }
     }
     /// stall: the headers, then nothing (a proxy holding the body); else stream.py's start and a ping every 500 ms
-    fn server(stall: bool) -> (String, Arc<AtomicUsize>) {
+    fn server(stall: bool) -> (String, Arc<AtomicUsize>) { server_as(if stall { Srv::Stall } else { Srv::Stream }) }
+    #[derive(Clone, Copy, PartialEq)]
+    enum Srv { Stream, Stall, Cut }
+    /// Cut: stream.py's start, then nothing - a DPI that stops a long connection after its first bytes (Malum 16.11.2026)
+    fn server_as(mode: Srv) -> (String, Arc<AtomicUsize>) {
         let l = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
         let url = format!("http://{}", l.local_addr().unwrap());
         let n = Arc::new(AtomicUsize::new(0));
@@ -353,16 +412,19 @@ mod stream_tests {
                 let mut buf = [0u8; 4096]; let _ = c.read(&mut buf);
                 let _ = c.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream; charset=utf-8\r\nCache-Control: no-store\r\n\r\n");
                 let _ = c.flush();
-                if stall { std::thread::sleep(Duration::from_secs(120)); return; }
+                if mode == Srv::Stall { std::thread::sleep(Duration::from_secs(120)); return; }
                 let _ = c.write_all(b"retry: 5000\n\nevent: online\ndata: {\"searching\":[],\"ingame\":[],\"launcher\":[],\"users\":{}}\n\n");
+                if mode == Srv::Cut { std::thread::sleep(Duration::from_secs(120)); return; }
                 loop { std::thread::sleep(Duration::from_millis(500)); if c.write_all(b": ping\n\n").is_err() { return; } }
             });
         });
         (url, n)
     }
-    fn fake(host: String) -> Arc<Fake> {
+    fn fake(host: String) -> Arc<Fake> { fake_with(host, vec![], Duration::from_secs(60)) }
+    fn fake_with(host: String, more: Vec<String>, rt: Duration) -> Arc<Fake> {
         Arc::new(Fake { host, log: Mutex::new(vec![]), ups: Mutex::new(vec![]), events: Mutex::new(vec![]), wall_off: AtomicU64::new(0),
-                        route: Mutex::new(Some("10.0.0.1".parse().unwrap())), stop: AtomicBool::new(false) })
+                        route: Mutex::new(Some("10.0.0.1".parse().unwrap())), stop: AtomicBool::new(false),
+                        more: Mutex::new(more), aside: Mutex::new(vec![]), up_on: Mutex::new(vec![]), rt })
     }
     fn wait(secs: u64, f: impl Fn() -> bool) -> bool {
         let end = Instant::now() + Duration::from_secs(secs);
@@ -416,6 +478,49 @@ mod stream_tests {
         let log = f.log.lock().unwrap().join("\n");
         assert!(log.contains("network changed (10.0.0.1 -> 192.168.1.7)"), "{log}");
         f.stop.store(true, Ordering::SeqCst);
+    }
+    #[test]
+    fn a_host_whose_stream_stops_twice_is_set_aside_and_the_stream_moves() {
+        // Malum 16.11.2026: Germany first in the order, its stream stops after its first bytes (read timeout), Moscow streams
+        let (de, n_de) = server_as(Srv::Cut);
+        let (ru, n_ru) = server_as(Srv::Stream);
+        let f = fake_with(de.clone(), vec![ru.clone()], Duration::from_secs(1));
+        let side: Arc<dyn StreamSide> = f.clone();
+        std::thread::spawn(move || stream_run(side));
+        assert!(wait(20, || f.up_on.lock().unwrap().contains(&ru)), "moved to the other host: {:?}\n{}", f.up_on.lock().unwrap(), f.log.lock().unwrap().join("\n"));
+        f.stop.store(true, Ordering::SeqCst);
+        assert_eq!(n_de.load(Ordering::SeqCst), 2, "two cuts, not more: the same host is not tried a third time");
+        assert_eq!(n_ru.load(Ordering::SeqCst), 1);
+        assert_eq!(*f.aside.lock().unwrap(), vec![de.clone()]);
+        let log = f.log.lock().unwrap().join("\n");
+        assert_eq!(log.matches(&format!("stream down {de}: read:")).count(), 2, "{log}");
+        assert!(log.contains(&format!("stream {de}: stopped twice within 15 min (nothing came for the read timeout) - set aside for 6 h; the stream and the API go to {ru}")), "{log}");
+        assert!(log.contains(&format!("stream up {ru}")), "{log}");
+    }
+    #[test]
+    fn an_answer_without_events_twice_sets_the_host_aside_too() {
+        let (de, n_de) = server_as(Srv::Stall);
+        let (ru, _) = server_as(Srv::Stream);
+        let f = fake_with(de.clone(), vec![ru.clone()], Duration::from_secs(1));
+        let side: Arc<dyn StreamSide> = f.clone();
+        std::thread::spawn(move || stream_run(side));
+        assert!(wait(20, || f.up_on.lock().unwrap().contains(&ru)), "{}", f.log.lock().unwrap().join("\n"));
+        // the first no-event try already rotates to the next host (as before 1.6.19); the mark comes with the second one
+        std::thread::sleep(Duration::from_secs(1));
+        f.stop.store(true, Ordering::SeqCst);
+        assert_eq!(n_de.load(Ordering::SeqCst), 1);
+        assert!(f.aside.lock().unwrap().is_empty(), "one stall is no reason yet");
+    }
+    #[test]
+    fn cuts_count_per_host_within_the_window() {
+        let t0 = Instant::now();
+        let mut c = CutWatch::default();
+        assert!(!c.cut("de", t0));
+        assert!(c.cut("de", t0 + Duration::from_secs(240)), "the second within 15 min");
+        assert!(!c.cut("de", t0 + Duration::from_secs(300)), "counted again from there");
+        assert!(!c.cut("de", t0 + Duration::from_secs(300) + CUT_WINDOW + Duration::from_secs(1)), "too long apart: a new first one");
+        assert!(!c.cut("ru", t0 + Duration::from_secs(2000)), "another host starts again");
+        assert!(!c.cut("de", t0 + Duration::from_secs(2010)));
     }
     #[test]
     fn route_of_the_loopback() {

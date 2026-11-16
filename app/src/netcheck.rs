@@ -111,6 +111,12 @@ pub async fn game_net_check(app: State<'_, App>) -> Result<Value, String> {
             r["state"].as_str().unwrap_or(""), r["bytes"].as_u64().map(|b| format!(" {b} B")).unwrap_or_default())).collect::<Vec<_>>().join(", "),
             lob_pick.map(|i| format!("{}:{}", lob[i]["host"].as_str().unwrap_or(""), lob[i]["port"])).unwrap_or("none (Relic)".into())));
         let rows: Vec<Value> = nodes.iter().zip(udp).zip(tcp).map(|((n, u), t)| json!({"ip": n.ip.to_string(), "name": n.name, "src": n.src, "udp": u, "tcp": t})).collect();
+        // 1.6.19: a stream cut on the way to an address (our lobby server's check, a node's TCP download) - our API host there is set
+        // aside: the chat's stream to it would die the same way (Malum 16.11.2026: "rts.fintebtc.de:47443 cut 36200 B")
+        let cut: Vec<std::net::IpAddr> = lob.iter().filter(|r| r["state"] == "cut")
+            .filter_map(|r| stream::host_addr(&format!("{}:{}", r["host"].as_str().unwrap_or(""), r["port"])).map(|a| a.ip()))
+            .chain(rows.iter().filter(|r| r["tcp"]["state"] == "cut").filter_map(|r| r["ip"].as_str()?.parse().ok())).collect();
+        api_set_aside_at(&cut, "game net check");
         let near = netgame::nearest(&rows);
         c_log(&format!("game net: {} node(s) ({}), port {port}: {}; nearest {}", rows.len(), if ladder.is_some() { "ladder list" } else { "built-in list" },
             rows.iter().map(|r| format!("{} {} {}/{} tcp {}", r["ip"].as_str().unwrap_or(""), r["udp"]["ms"].as_u64().map(|m| format!("{m}ms")).unwrap_or("-".into()),

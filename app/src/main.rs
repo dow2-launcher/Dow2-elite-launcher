@@ -502,6 +502,26 @@ static HTTP: LazyLock<ureq::Agent> = LazyLock::new(|| {
 fn fb_hosts() -> Vec<String> {
     reach::order(reach::Pool::Api, api_hosts())
 }
+/// 1.6.19: the chat's and the rooms' calls (c_api: the history, Online, say; lroom_api): the host the live stream is up on first
+/// (its long connection works from here; the window's history and the stream's events come from the same server), then fb_hosts.
+fn chat_hosts() -> Vec<String> {
+    let mut v = fb_hosts();
+    let up = stream::STREAM_HOST.lock().unwrap().clone();
+    if let Some(i) = v.iter().position(|h| !up.is_empty() && *h == up) { let h = v.remove(i); v.insert(0, h); }
+    v
+}
+/// 1.6.19: a connection test found the stream to these addresses cut on the way (DPI): our API hosts at them are set aside
+/// (reach.rs), the stream and the API go to another host. `what`: which test, for community.log.
+fn api_set_aside_at(ips: &[std::net::IpAddr], what: &str) {
+    if ips.is_empty() { return; }
+    for h in api_hosts() {
+        let Some(a) = stream::host_addr(&h) else { continue };
+        if ips.contains(&a.ip()) && reach::set_aside(reach::Pool::Api, &h, &format!("{what}: the stream to {} is cut on the way", a.ip())) {
+            c_log(&format!("{what}: the stream to {} ({h}) is cut on the way - set aside for {} h, the stream and the API go to {}", a.ip(),
+                reach::SET_ASIDE_SECS / 3600, fb_hosts().into_iter().find(|x| *x != h).unwrap_or_else(|| "no other host".into())));
+        }
+    }
+}
 
 /// community.log in the launcher's folder: every sign-in step and failed call (goes with "Send logs"); kept under 256 KB.
 fn c_log(msg: &str) {

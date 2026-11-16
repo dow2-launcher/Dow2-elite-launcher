@@ -94,8 +94,30 @@ async function lrCatalog(game) {
   if (LR.cat[game]) return LR.cat[game];
   try { const c = await invoke('lroom_list', { what: 'catalog', game }); LR.cat[game] = c; if (c.host) LR.host = c.host; return c; } catch (e) { return null; }
 }
+// 1.6.19 (Malum 16.11.2026: "lroom get: no_room" every 2-3 s in community.log, not in any lobby): every load of the window asked
+// the server for "my room" (lrLoad at once, again 4 s later, and once more when a reload brings the Lobbies tab back), and so did
+// every click that shows the Lobbies tab (the tab, a lobby on Home, Back to the lobby, a call's "To the lobby") - a window
+// reloaded again and again (F5 over an empty chat) asked dozens of times. The server's no_room is now remembered for this
+// account (sessionStorage: it lives through a reload) and nobody asks again until it is stale (10 min), the account changes
+// or a lobby of mine shows up (create / join / the stream) - then the mark goes.
+const LR_NOROOM_MS = 10 * 60000;
+function lrNoRoom(on) {
+  try {
+    if (on === undefined) { const m = JSON.parse(sessionStorage.getItem('lrNoRoom') || 'null'); return !!(m && m.steam === lrMe() && Date.now() - m.at < LR_NOROOM_MS); }
+    if (on) sessionStorage.setItem('lrNoRoom', JSON.stringify({ steam: lrMe(), at: Date.now() })); else sessionStorage.removeItem('lrNoRoom');
+  } catch (e) { /* no storage: LR.noRoom below still holds it for this page */ }
+  if (on !== undefined) LR.noRoom = on ? lrMe() + '@' + Date.now() : '';
+  return false;
+}
+const lrNoRoomKnown = () => lrNoRoom() || (!!LR.noRoom && LR.noRoom.split('@')[0] === lrMe() && Date.now() - +LR.noRoom.split('@')[1] < LR_NOROOM_MS);
+// the server says I am in no room (get / here / a call about my room): the local room goes, no more asking
+function lrGone() {
+  lrNoRoom(true);
+  if (LR.room && lrMine(LR.room)) { LR.room = null; lrRender(); }
+}
 async function lrCall(verb, body) {
   let r; try { r = await invoke('lroom_api', { verb, body: body || {} }); } catch (e) { toast(String(e), true); return null; }
+  if (r && r.ok === false && r.error === 'no_room' && verb !== 'join' && verb !== 'create') lrGone();   // join / create: the other lobby is gone, not mine
   // 1.5.12: removed from a room a moment ago - when he may come back (the ladder says how long, when it keeps him out at all)
   if (r && r.ok === false && verb !== 'here') { const k = r.error === 'kicked' && r.left > 0 ? 'e_kicked_t' : 'e_' + r.error; toast(t(k) !== k ? t(k, { left: lrMmss(r.left) }) : errText(r.error), true); }
   if (r && r.room) lrSet(r.room);
@@ -108,6 +130,7 @@ function lrSet(v) {
   }
   const mine = lrMine(v);
   if (mine) {
+    if (LR.noRoom || lrNoRoom()) lrNoRoom(false);                     // in a lobby now: a reload asks for it again
     const first = !LR.room || LR.room.id !== v.id;
     if (!LR.room || v.seq >= (LR.room.seq || 0) || first) LR.room = v;
     if (first) { LR.pingT = 0; lrCatalog(v.game).then(() => lrRender()); }
@@ -124,9 +147,13 @@ function lrSet(v) {
 }
 async function lrLoad() {
   try { const d = await invoke('lroom_list', {}); LR.list = d.rooms || []; if (d.host) LR.host = d.host; lrOnSoon(); } catch (e) { /* the last list */ }
-  if (lrMe() && !LR.room) {                                         // in a room from before (the launcher restarted): its view
+  // in a room from before (the launcher restarted): its view - asked once; no_room is remembered (lrNoRoom), one question at a time
+  if (lrMe() && !LR.room && !LR.asking && !lrNoRoomKnown()) {
+    LR.asking = true;
     const r = await invoke('lroom_api', { verb: 'get', body: {} }).catch(() => null);
-    if (r && r.ok && r.room) { LR.room = r.room; lcFeed(r.room); lrCatalog(r.room.game).then(() => lrRender()); lrLaunchCheck(); }   // a start under way goes on
+    LR.asking = false;
+    if (r && r.ok && r.room) { if (lrMine(r.room)) lrNoRoom(false); LR.room = r.room; lcFeed(r.room); lrCatalog(r.room.game).then(() => lrRender()); lrLaunchCheck(); }   // a start under way goes on
+    else if (r && r.ok === false && r.error === 'no_room') lrGone();
   }
   lrRender();
 }
@@ -148,8 +175,11 @@ setInterval(async () => {
   if (now - LR.here > 15000) {
     LR.here = now;
     const r = await invoke('lroom_api', { verb: 'here', body: {} }).catch(() => null);
-    if (r && r.ok === false && r.error === 'no_room') { LR.room = null; lrRender(); return; }
-    if (r && r.ok && LR.room && (r.seq !== LR.room.seq || !STREAM.up || (r.cseq || 0) > lcLast())) { const g = await invoke('lroom_api', { verb: 'get', body: {} }).catch(() => null); if (g && g.room) lrSet(g.room); }
+    if (r && r.ok === false && r.error === 'no_room') { LR.room = null; lrGone(); lrRender(); return; }
+    if (r && r.ok && LR.room && (r.seq !== LR.room.seq || !STREAM.up || (r.cseq || 0) > lcLast())) {
+      const g = await invoke('lroom_api', { verb: 'get', body: {} }).catch(() => null);
+      if (g && g.room) lrSet(g.room); else if (g && g.ok === false && g.error === 'no_room') lrGone();
+    }
   }
   if (LR.room && LR.room.state === 'lobby' && !LR.pinging && (!LR.pingT || now - LR.pingT > 120000) && !(S && S.game_running && LR.gameEv && LR.gameEv.ev === 'loading')) lrPings();
   if (LR.room && LR.room.state === 'countdown') lrCountdown();
@@ -611,7 +641,8 @@ function lrRender() {
 async function lrLeave() {
   const r = LR.room; if (!r) return;
   LR.room = null; LR.drop = null; LR.mapsOpen = false; LR.pop = null; lrRender();
-  await lrCall('leave'); invoke('lroom_launch_cancel', { room: r.id }).catch(() => {}); lrLoad();
+  const lv = await lrCall('leave'); if (lv && lv.ok) lrNoRoom(true);   // left: no need to ask the server for my room
+  invoke('lroom_launch_cancel', { room: r.id }).catch(() => {}); lrLoad();
 }
 // A drop-down of the room is being used: no redraw under it for a while (a redraw replaces the element and the pick is lost).
 // Not by focus: WebKitGTK (the Linux launcher, 06.11.2026) blurs the select when its popup opens and focuses it again after.

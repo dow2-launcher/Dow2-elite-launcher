@@ -31,7 +31,7 @@ fn call(token: &str, verb: &str, body: &Value) -> Result<Value, String> {
     b["token"] = json!(token);
     let b = b.to_string();
     let mut last = "the server is not configured in this build".to_string();
-    for h in crate::fb_hosts() {
+    for h in crate::chat_hosts() {
         match crate::HTTP.post(&format!("{h}/ladder/api/lroom/{verb}")).timeout(Duration::from_secs(15)).set("Content-Type", "application/json").send_string(&b) {
             Ok(r) => return serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()),
             Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
