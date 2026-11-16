@@ -41,9 +41,10 @@ SAME_AS_EN = {"win_vpc_hero", "race_ordo_malleus", "race_space_marines", "vanill
 # the codes our servers send that the page shows by a key (prefix + code); keep in step with the ladder (lroom.py)
 SERVER_CODES = {
     "e_": ["auth", "bad", "bad_map", "busy", "full", "kicked", "no_room", "not_ready", "obs", "obs_full", "owner", "state", "taken",
-           "too_many", "too_many_players", "too_soon", "unknown"],
+           "too_many", "too_many_players", "too_soon", "unknown", "empty", "too_fast", "premod", "banned"],
     "n_": ["cd_stop", "played", "gone", "left", "joined", "joined_obs", "unready", "changed", "conf", "kicked", "late", "version",
-           "race", "left_search", "game_failed", "match", "cancel"],
+           "race", "left_search", "game_failed", "match", "cancel", "to_obs"],
+    "lrSys_": ["open", "join", "join_obs", "leave", "gone", "kick", "to_obs", "to_seat", "host"],   # the lobby chat's own lines (1.6.17)
     "race_": ["random", "chaos_marines", "eldar", "imperial_guard", "ordo_malleus", "orks", "space_marines", "t_tau", "tyranids"],
     "win_": ["vpc", "annihilate", "annihilate_hero", "vpc_hero"],
     "start_": ["fixed", "random"],

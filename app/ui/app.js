@@ -1541,8 +1541,17 @@ const ico = name => (window.ART_ICONS || []).includes(name) ? `<img class="ico a
 // same library as the strips' sigils), sized as the line icons (.ico) and coloured by color. The line icons stay for the controls
 // (close, arrows, the check, plus, the list's look, reload, upload / download, sign out, Join, the observer's eye, the bell of a call,
 // the trash of Delete, the map of On the map) and the brands (Steam, Discord); the gear, the (i) by the version and the header's connection bars too. A lobby:
-// the gate of Cadia; the players' chat: the Officio Prefectus; the host: the chaplain's skull; a seat: Troops; invite: the banner; stats: a list with skulls for its bullets.
+// the gate of Cadia (and the players' chat, 1.6.17: the Officio Prefectus' wide emblem was too big there); the host: the chaplain's skull; a seat: Troops; invite: the banner; stats: a list with skulls for its bullets.
 const w40 = k => `<i class="ico sig s-${k}" aria-hidden="true"></i>`;
+// 1.6.17 (owner 16.11.2026): an empty list - a sigil in the block's middle over a title and a hint, no plate: Home's lobbies and
+// the Lobbies tab's open lobbies (Catachan's skull over blades, still: the interference looked out of place there), its running
+// matches (the swords, with the interference: glitch, style.css .gli)
+const zeroPane = (sig, title, hint, more, glitch) => `<div class="rp-none zero">${glitch
+  ? `<i class="gli zsig ${sig}" aria-hidden="true"><i class="sig"></i><b class="gl-s"><i class="sig"></i></b><i class="sig gl-b"></i></i>`
+  : `<i class="sig zsig ${sig}" aria-hidden="true"></i>`}`
+  + `<b>${esc(title)}</b>${hint ? `<span>${esc(hint)}</span>` : ''}${more || ''}</div>`;
+// nothing under the filters: the same middle of the block, the line in the pane's title size, no sigil
+const fltPane = () => `<div class="rp-none zero flt"><b>${esc(t('rNoneFilter'))}</b></div>`;
 Object.assign(ICO, { door: w40('gate'), crown: w40('host'), invite: w40('banner'), seat: w40('seat'), bars: w40('stats'), up: w40('up'),
   purge: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13M10 11v5.5M14 11v5.5"/></svg>' });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -3142,18 +3151,22 @@ Object.assign(T.fr, { lnkElite: 'Discord d\'Elite', lnkDiscord: 'Discord DoW2', 
 Object.assign(T.de, { lnkElite: 'Elite-Discord', lnkDiscord: 'Discord DoW2', lnkStats: 'Spielerstatistiken', lnkLadder: 'Ladder und Spielverlauf', chLang: 'Sprache der Nachrichten', chLangH: 'Nachrichten anzeigen', chOrigShort: 'Orig.', chAsWritten: 'wie geschrieben', chTranslated: 'übersetzt', logsShort: 'Logs' });
 // 1.6.11 (owner 14.11.2026): one players' tab (General) - RU / EN are the language of its messages (a menu, the original by
 // default: CH.lang), the developers' tab apart on the right
-const CH = { room: 'all', lang: 'all', msgs: {}, out: [], unread: {}, full: {}, me: null, prof: null, waiting: false, features: [], replyTo: null };
+const CH = { room: 'all', lang: 'all', msgs: {}, out: [], unread: {}, full: {}, me: null, prof: null, waiting: false, features: [], replyTo: null, lobby: false };
 try { CH.lang = localStorage.getItem('chLang') || 'all'; CH.room = localStorage.getItem('chRoom') === 'dev' ? 'dev' : CH.lang; } catch (e) {}
+// 1.6.17 (owner 16.11.2026): CH.lobby - the "Lobby" tab (my lobby's chat, lchat.js) right after General while I am in a lobby; the
+// language switch is General's and the Lobby's both
 function chShowRoom() {
-  document.querySelectorAll('.ch-tab').forEach(b => b.classList.toggle('on', (b.dataset.room === 'dev') === (CH.room === 'dev')));
+  document.querySelectorAll('.ch-tab').forEach(b => b.classList.toggle('on', b.dataset.room === 'lobby' ? !!CH.lobby : !CH.lobby && (b.dataset.room === 'dev') === (CH.room === 'dev')));
   $('chLangCur').textContent = CH.lang === 'all' ? t('chOrigShort') : CH.lang.toUpperCase();
   $('chLangBtn').classList.toggle('tr', CH.lang !== 'all');
-  $('chLangBtn').parentElement.classList.toggle('off', CH.room === 'dev');
+  $('chLangBtn').parentElement.classList.toggle('off', CH.room === 'dev' && !CH.lobby);
   document.querySelectorAll('#chLangMenu [data-lang]').forEach(b => { b.classList.toggle('on', b.dataset.lang === CH.lang); b.setAttribute('aria-checked', String(b.dataset.lang === CH.lang)); });
-  $('chatPane').classList.toggle('hidden', CH.room === 'dev');
-  $('devPane').classList.toggle('hidden', CH.room !== 'dev');
-  if (CH.room !== 'dev') { CH.chatRoom = CH.room; CH.unread[chKey(CH.room)] = 0; chRender(true); if (!CH.msgs[chKey(CH.room)]) chLoad(chKey(CH.room)); }
-  chUnread(); FB.open = CH.room === 'dev'; fbWatch();
+  $('chatPane').classList.toggle('hidden', CH.room === 'dev' || !!CH.lobby);
+  $('devPane').classList.toggle('hidden', CH.room !== 'dev' || !!CH.lobby);
+  $('lobbyPane').classList.toggle('hidden', !CH.lobby);
+  if (CH.room !== 'dev' && !CH.lobby) { CH.chatRoom = CH.room; CH.unread[chKey(CH.room)] = 0; chRender(true); if (!CH.msgs[chKey(CH.room)]) chLoad(chKey(CH.room)); }
+  if (typeof lcPaint === 'function') { lcPaint(true); if (CH.lobby) lcStick(LC.home); }   // the lobby's chat in the language picked
+  chUnread(); FB.open = CH.room === 'dev' && !CH.lobby; fbWatch();
   chReplyBar();   // 1.6.3: the Reply strip only over the chat's own input
 }
 // 1.5.0: the profile is a plate in the header (the online dot, the name, the 1v1 rating); a click opens its menu - the avatar,
@@ -3405,6 +3418,7 @@ function chUnread() {
   // tab while the developers' chat is open
   const at = CH.room === 'dev' ? (CH.chatRoom || CH.lang) : CH.room;
   document.querySelectorAll('.ch-tab').forEach(b => {
+    if (b.dataset.room === 'lobby') return;                       // the lobby's count: lchat.js lcSignals
     const r = b.dataset.room === 'chat' ? at : b.dataset.room;
     b.dataset.n = r === 'dev' ? '' : CH.feed ? (r === at ? (CH.unread.feed || '') : '') : (CH.unread[chKey(r)] || '');
   });
@@ -3465,7 +3479,7 @@ function chEvent(ev, d) {
     chFeedSeen([d]);
     const key = chKey(d.room);
     if (!chPut(key, [d], true)) return;
-    if (key !== chKey(CH.room) || CH.room === 'dev' || document.hidden) { CH.unread[key] = (CH.unread[key] || 0) + 1; chUnread(); }
+    if (key !== chKey(CH.room) || CH.room === 'dev' || CH.lobby || document.hidden) { CH.unread[key] = (CH.unread[key] || 0) + 1; chUnread(); }
     if (key === chKey(CH.room)) chRender();
   } else if (ev === 'msg_tr') {
     const m = (CH.msgs[chKey(CH.room)] || []).find(x => x.id === d.id);
@@ -3508,7 +3522,10 @@ async function chInit() {
   try { CH.out = JSON.parse(localStorage.getItem('chOut') || '[]').map(o => ({ ...o, tries: 0 })).filter(o => o.state !== 'sent' || Date.now() / 1000 - o.ts < 600); } catch (e) {}
   listen('c_ev', e => { const { e: ev, d } = e.payload; onEvent(ev, d); chEvent(ev, d); });
   listen('c_stream', e => { if (e.payload.host) LIVE.host = e.payload.host; streamState(e.payload.up); });
-  document.querySelectorAll('.ch-tab').forEach(b => b.onclick = () => { CH.room = b.dataset.room === 'dev' ? 'dev' : CH.lang; try { localStorage.setItem('chRoom', CH.room); } catch (e) {} chShowRoom(); });
+  document.querySelectorAll('.ch-tab').forEach(b => b.onclick = () => {
+    if (b.dataset.room === 'lobby') { CH.lobby = true; if (CH.room === 'dev') CH.room = CH.lang; chShowRoom(); return; }   // not kept: the lobby passes
+    CH.lobby = false; CH.room = b.dataset.room === 'dev' ? 'dev' : CH.lang; try { localStorage.setItem('chRoom', CH.room); } catch (e) {} chShowRoom();
+  });
   // the language of the messages: a menu by the players' tab
   const lb = $('chLangBtn'), lm = $('chLangMenu'), lmShow = on => { lm.classList.toggle('hidden', !on); lb.setAttribute('aria-expanded', String(on)); };
   lb.onclick = e => { e.stopPropagation(); lmShow(lm.classList.contains('hidden')); };
