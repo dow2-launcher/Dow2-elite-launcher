@@ -4,13 +4,13 @@
 // lobby: not shown. No map name and no "3/4" (the seats are in the teams). A click on a card opens the Lobbies tab, scrolls to
 // that lobby and lights it until the mouse comes to it (or to the tab's menu). The data: LR.list (the launcher's lobbies,
 // lroom.js) and RM.last (the game's, app.js roomsLoad - polled on Home too since 1.6.11).
-Object.assign(T.en, { hlAll: 'All ›', hlOpen: '{n} open', hlNone: 'No open lobbies right now', hlCard: '{name}: open in the Lobbies tab', hlTipR: 'rating {r}', hlTipH: '{h} h played' });
-Object.assign(T.ru, { hlAll: 'Все ›', hlOpen: '{n} открыто', hlNone: 'Сейчас открытых лобби нет', hlCard: '{name}: открыть во вкладке «Лобби»', hlTipR: 'рейтинг {r}', hlTipH: '{h} ч в игре' });
-Object.assign(T.es, { hlAll: 'Todas ›', hlOpen: '{n} abiertas', hlNone: 'Ahora no hay salas abiertas', hlCard: '{name}: abrir en la pestaña Salas', hlTipR: 'rating {r}', hlTipH: '{h} h jugadas' });
-Object.assign(T.fr, { hlAll: 'Tous ›', hlOpen: '{n} ouverts', hlNone: 'Aucun salon ouvert pour le moment', hlCard: '{name} : ouvrir dans l\'onglet Salons', hlTipR: 'classement {r}', hlTipH: '{h} h de jeu' });
-Object.assign(T.de, { hlAll: 'Alle ›', hlOpen: '{n} offen', hlNone: 'Gerade keine offenen Räume', hlCard: '{name}: im Tab Räume öffnen', hlTipR: 'Wertung {r}', hlTipH: '{h} Std. gespielt' });
+Object.assign(T.en, { hlAll: 'All ›', hlOpen: '{n} open', hlNone: 'No open lobbies right now', hlNoneHint: 'A new one shows up here as soon as somebody opens it', hlCard: '{name}: open in the Lobbies tab', hlTipR: 'rating {r}', hlTipH: '{h} h played' });
+Object.assign(T.ru, { hlAll: 'Все ›', hlOpen: '{n} открыто', hlNone: 'Сейчас открытых лобби нет', hlNoneHint: 'Как только кто-то откроет лобби, оно появится здесь', hlCard: '{name}: открыть во вкладке «Лобби»', hlTipR: 'рейтинг {r}', hlTipH: '{h} ч в игре' });
+Object.assign(T.es, { hlAll: 'Todas ›', hlOpen: '{n} abiertas', hlNone: 'Ahora no hay salas abiertas', hlNoneHint: 'En cuanto alguien abra una, aparecerá aquí', hlCard: '{name}: abrir en la pestaña Salas', hlTipR: 'rating {r}', hlTipH: '{h} h jugadas' });
+Object.assign(T.fr, { hlAll: 'Tous ›', hlOpen: '{n} ouverts', hlNone: 'Aucun salon ouvert pour le moment', hlNoneHint: 'Dès que quelqu\'un en ouvre un, il apparaît ici', hlCard: '{name} : ouvrir dans l\'onglet Salons', hlTipR: 'classement {r}', hlTipH: '{h} h de jeu' });
+Object.assign(T.de, { hlAll: 'Alle ›', hlOpen: '{n} offen', hlNone: 'Gerade keine offenen Räume', hlNoneHint: 'Sobald jemand einen öffnet, erscheint er hier', hlCard: '{name}: im Tab Räume öffnen', hlTipR: 'Wertung {r}', hlTipH: '{h} Std. gespielt' });
 
-const HL = { lit: '', soon: 0 };
+const HL = { lit: '', soon: 0, sig: 's-' + ['battle', 'battle2', 'battle3', 'battle4', 'battle5'][Math.floor(Math.random() * 5)] };
 const HL_EYE = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 // a player's row; the second team mirrored (as on the tab's cards). 1.6.13 (siritos fb 1210): the name's micro tooltip on Home
 // carries the rating too (a narrow card has no room for it) and the hours played when the server sends them (hours / playtime_h)
@@ -73,9 +73,12 @@ function hlRender() {
   const lrs = (LR.list || []).filter(x => x.state === 'lobby' || x.state === 'countdown'), games = RM.last || [];
   const n = lrs.length + games.length;
   $('hlN').textContent = n ? t('hlOpen', { n }) : '';
+  // 1.6.16 (owner 16.11.2026): no lobby - a sigil of battle in the block's middle with interference (as the Replays' empty pane),
+  // no plate, no Create button; one of five, picked at the start (sigils.css .s-battle...battle5)
+  box.classList.toggle('empty', !n);
   if (!n) {
-    box.innerHTML = `<div class="hl-none"><span>${esc(t('hlNone'))}</span><button class="btn mir small" id="hlNew">${esc(t('lrCreate'))}</button></div>`;
-    $('hlNew').onclick = () => { hlGo(); const c = $('rCreate'); if (c) c.click(); };
+    box.innerHTML = `<div class="rp-none hl-none"><i class="gli hl-battle ${HL.sig}" aria-hidden="true"><i class="sig"></i><b class="gl-s"><i class="sig"></i></b><i class="sig gl-b"></i></i>`
+      + `<b>${esc(t('hlNone'))}</b><span>${esc(t('hlNoneHint'))}</span></div>`;
     return;
   }
   box.innerHTML = lrs.map(hlLr).join('') + games.map(hlGame).join('');

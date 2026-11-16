@@ -218,6 +218,18 @@ pub async fn replay_download(id: String, name: Option<String>) -> Result<Value, 
     }).await
 }
 
+/// 1.6.16 (owner 16.11.2026): delete a replay of the Downloaded tab - a file of Playback by its bare name (own_file: nothing
+/// outside the folder, no work file of the game or the add-ons): {ok} or {ok: false, error: "no_file" | "<the OS's error>"}.
+#[tauri::command]
+pub async fn replay_delete(file: String) -> Result<Value, String> {
+    blocking(move || {
+        let Some(p) = own_file(&file) else { return Ok(json!({"ok": false, "error": "no_file"})) };
+        if let Err(e) = std::fs::remove_file(&p) { return Ok(json!({"ok": false, "error": e.to_string()})); }
+        crate::c_log(&format!("replays: {file} deleted from Playback"));
+        Ok(json!({"ok": true}))
+    }).await
+}
+
 /// Open the Playback folder.
 #[tauri::command]
 pub fn replays_open_dir(app: AppHandle) -> Result<Value, String> {

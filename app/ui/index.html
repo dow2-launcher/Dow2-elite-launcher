@@ -29,7 +29,7 @@
        an invitation into a launcher lobby the same way, under it -->
   <!-- 1.6.11 (owner 14.11.2026): errors as red strips on top, 30 s each (notes.js); the "launcher updated" strip once per version -->
   <div class="err-bars" id="errBars"></div>
-  <div class="ubar upd-done hidden" id="updDone" role="status"><i class="ub-ico sig" aria-hidden="true"></i><div class="ub-items"><div class="ub-it"><b id="updDoneT"></b><small id="updDoneS"></small></div></div><span class="bn-act"><button class="btn gold ub-btn" id="updDoneMore" data-t="updMore"></button><button class="x-btn" id="updDoneX" data-ta="closeX"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>
+  <div class="ubar upd-done hidden" id="updDone" role="status"><i class="ub-ico gli" aria-hidden="true"><i class="sig"></i><b class="gl-s"><i class="sig"></i></b><i class="sig gl-b"></i></i><div class="ub-items"><div class="ub-it"><b id="updDoneT"></b><small id="updDoneS"></small></div></div><span class="bn-act"><button class="btn gold ub-btn" id="updDoneMore" data-t="updMore"></button><button class="x-btn" id="updDoneX" data-ta="closeX"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>
   <div class="ubar hidden" id="updBar" role="status"><span class="ub-ico" aria-hidden="true"></span><div class="ub-items" id="updItems"></div><button class="btn gold ub-btn" id="updAll"></button></div>
   <div class="ubar inv hidden" id="invBar" role="alert"><span class="ub-ico" aria-hidden="true"></span><div class="ub-items" id="invItems"></div><span class="bn-act"><button class="btn small ghost" id="invNo"></button><button class="btn gold ub-btn" id="invYes"></button></span></div>
   <!-- 1.5.12 (owner 12.11): a ping (ready check / a call of the host) is a strip like the invitation; the order: updates, invitation, ping -->
@@ -55,8 +55,8 @@
       <div id="newsBox" class="panel fb">
         <!-- 1.6.11 (owner 14.11.2026): two groups - the players' rooms and the language of the messages (a menu, the original by
              default) on the left; the developers and the logs (they go to them) on the right -->
-        <div class="h ch-head"><div class="ch-tabs" id="chTabs"><button class="ch-tab on" data-room="chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9h15M4 15h15M10 4L8 20M16 4l-2 16"/></svg><span data-t="chAll"></span></button>
-          <div class="ch-lang"><button class="ch-lbtn" id="chLangBtn" data-ta="chLang" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span id="chLangCur"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="h ch-head"><div class="ch-tabs" id="chTabs"><button class="ch-tab on" data-room="chat"><i class="sig s-chat" aria-hidden="true"></i><span data-t="chAll"></span></button>
+          <div class="ch-lang"><button class="ch-lbtn" id="chLangBtn" data-ta="chLang" aria-haspopup="menu" aria-expanded="false"><i class="sig s-lang" aria-hidden="true"></i><span id="chLangCur"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
             <div class="me-box ch-lmenu hidden" id="chLangMenu" role="menu"><div class="ch-lmh" data-t="chLangH"></div><button role="menuitemradio" data-lang="all"><span data-t="chOrig"></span><small data-t="chAsWritten"></small></button><button role="menuitemradio" data-lang="ru"><span>Русский</span><small data-t="chTranslated"></small></button><button role="menuitemradio" data-lang="en"><span>English</span><small data-t="chTranslated"></small></button></div></div></div>
           <div class="ch-devg"><button class="ch-tab ch-dev" data-room="dev"><i class="sig" aria-hidden="true"></i><span data-t="chDev"></span></button><button class="btn small logs-btn" id="sendLogsHome" data-ta="sendLogs"><span data-t="logsShort"></span></button></div></div>
         <div class="ch-pane" id="chatPane">
@@ -97,8 +97,8 @@
     <div class="rwrap">
       <nav class="rnav" id="rNav">
         <div class="rtop" id="rTop"></div>
-        <button class="rnb on" data-r="open" id="rOpenBtn"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 21h16M6 21V4h9v17M15 6h3v15M12 12h.01"/></svg><span class="lbl" data-t="rOpen"></span><span class="n" id="rOpenN"></span></button>
-        <button class="rnb" data-r="live" id="rLiveBtn"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span class="lbl" data-t="rLive"></span><span class="n" id="rLiveN"></span></button>
+        <button class="rnb on" data-r="open" id="rOpenBtn"><i class="ico sig s-gate" aria-hidden="true"></i><span class="lbl" data-t="rOpen"></span><span class="n" id="rOpenN"></span></button>
+        <button class="rnb" data-r="live" id="rLiveBtn"><i class="ico sig s-live" aria-hidden="true"></i><span class="lbl" data-t="rLive"></span><span class="n" id="rLiveN"></span></button>
         <div class="rleg"><span><span class="tag lr" data-t="rTagLr"></span> <span data-t="rLegLr"></span></span><span data-t="rLegGame"></span></div>
       </nav>
       <div class="rmain">
@@ -123,12 +123,12 @@
   <main id="replays" class="view hidden">
     <div class="rwrap">
       <nav class="rnav" id="rpNav">
-        <button class="rnb on" data-rp="mine"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M10 9l5 3-5 3z"/></svg><span class="lbl" data-t="rpMine"></span><span class="n" id="rpMineN"></span></button>
-        <button class="rnb" data-rp="pool"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span class="lbl" data-t="rpPool"></span><span class="n" id="rpPoolN"></span></button>
+        <button class="rnb on" data-rp="mine"><i class="ico sig s-archive" aria-hidden="true"></i><span class="lbl" data-t="rpMine"></span><span class="n" id="rpMineN"></span></button>
+        <button class="rnb" data-rp="pool"><i class="ico sig s-pool" aria-hidden="true"></i><span class="lbl" data-t="rpPool"></span><span class="n" id="rpPoolN"></span></button>
       </nav>
       <div class="rmain">
         <section class="panel rpage rp-page">
-          <div class="h"><span id="rpTitle"></span><em id="rpCount"></em><span class="rp-info" id="rpInfo" tabindex="0" role="note">i</span><button class="link-btn rp-reset hidden" id="rpReset" data-t="rpReset"></button><div class="rp-hact" id="rpAct"></div></div>
+          <div class="h"><span id="rpTitle"></span><em id="rpCount"></em><span class="rp-info" id="rpInfo" tabindex="0" role="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg></span><button class="link-btn rp-reset hidden" id="rpReset" data-t="rpReset"></button><div class="rp-hact" id="rpAct"></div></div>
           <div class="note rp-note" id="rpNote"></div>
           <div class="rp-body"><div class="rp-lcol"><div class="rflt rp-flt" id="rpFlt"></div><div class="rp-list" id="rpList"></div><div class="rp-pager" id="rpPager"></div></div><div class="rp-det" id="rpDet"></div></div>
         </section>
@@ -144,7 +144,7 @@
 
   <main id="settings" class="view hidden">
     <div class="set-wrap">
-    <nav class="set-tabs"><button class="set-tab on" data-set="setMain"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1"/></svg><span data-t="setGeneral"></span></button><button class="set-tab" data-set="setNet"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span data-t="netTab"></span></button><button class="set-tab" data-set="hotkeys"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg><span data-t="hotkeys"></span></button><button class="set-tab" data-set="setFame"><i class="sig sig-crown" aria-hidden="true"></i><span data-t="fameTitle"></span></button></nav>
+    <nav class="set-tabs"><button class="set-tab on" data-set="setMain"><i class="sig s-tools" aria-hidden="true"></i><span data-t="setGeneral"></span></button><button class="set-tab" data-set="setNet"><i class="sig s-net" aria-hidden="true"></i><span data-t="netTab"></span></button><button class="set-tab" data-set="hotkeys"><i class="sig s-keys" aria-hidden="true"></i><span data-t="hotkeys"></span></button><button class="set-tab" data-set="setFame"><i class="sig sig-crown" aria-hidden="true"></i><span data-t="fameTitle"></span></button></nav>
     <!-- 1.5.0 (D): General in sections - Game and Launcher on the left, Maintenance and About on the right; a row is the name
          (with its note under it) on the left and the controls on the right -->
     <div class="set-col set-grid" id="setMain">

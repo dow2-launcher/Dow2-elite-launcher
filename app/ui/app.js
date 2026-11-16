@@ -1445,7 +1445,8 @@ try { new ResizeObserver(() => newsFolds()).observe(document.getElementById('new
 if (document.fonts) document.fonts.ready.then(() => newsFolds());
 // the footer links' icons, by where they lead: Discord, ModDB (the mod's news), our stats / ladder (a chart), else a link
 // 1.6.11: the useful links in Online's heading, in this order; launcher.json's own addresses win, ModDB is left out
-const ON_LINKS = [['elite', /discord\.gg\//i, 'https://discord.gg/elitemod', 'lnkElite'], ['discord', /discord\.com\/channels\//i, 'https://discord.com/channels/285867613953851393/1564310291255140352', 'lnkDiscord'],
+// 1.6.16 (owner 16.11.2026): Discord is the DoW II server itself (not its Elite Mode channel), the Elite one is the E
+const ON_LINKS = [['elite', /discord\.gg\//i, 'https://discord.gg/elitemod', 'lnkElite'], ['discord', /discord\.com\/channels\//i, 'https://discord.com/channels/285867613953851393', 'lnkDiscord'],
   ['stats', /\/stats\b/i, '/stats/', 'lnkStats'], ['ladder', /\/ladder\b/i, '/ladder/', 'lnkLadder']];
 function onLinks(cfgLinks) {
   const box = $('onLinks'); if (!box) return;
@@ -1458,10 +1459,10 @@ function linkIcon(url) {
   const u = String(url || '').toLowerCase();
   const svg = (body, fill) => `<svg viewBox="0 0 24 24" aria-hidden="true" class="${fill ? 'fill' : ''}">${body}</svg>`;
   if (u.includes('discord.gg/elitemod')) return '<b class="lnk-e" aria-hidden="true">E</b>';   // 1.6.11: the Elite Discord - its letter
-  if (/\/ladder\b/.test(u)) return svg('<path d="M7.5 4h9v5.5a4.5 4.5 0 0 1-9 0z"/><path d="M7.5 6H4.5a3 3 0 0 0 3.2 4M16.5 6h3a3 3 0 0 1-3.2 4"/><path d="M12 14v3.5M8.5 20.5h7M9.5 17.5h5"/>');
+  if (/\/ladder\b/.test(u)) return '<i class="sig s-cup" aria-hidden="true"></i>';   // 1.6.16: the 40k chalice (the Absolvers')
   if (u.includes('discord')) return svg('<path d="M19.6 5.3A17 17 0 0 0 15.4 4l-.5 1.1a15.7 15.7 0 0 0-5.8 0L8.6 4a17 17 0 0 0-4.2 1.3C1.7 9.3 1 13.2 1.3 17a17.2 17.2 0 0 0 5.2 2.6l1.1-1.8a11 11 0 0 1-1.7-.8l.4-.3a12.2 12.2 0 0 0 11.4 0l.4.3a11 11 0 0 1-1.7.8l1.1 1.8a17.2 17.2 0 0 0 5.2-2.6c.4-4.4-.6-8.3-3.1-11.7zM8.7 14.7c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1zm6.6 0c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1z"/>', true);
   if (u.includes('moddb')) return svg('<path d="M4 5h13a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V5z"/><path d="M19 9h1a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0"/><path d="M7 9h8M7 12h8M7 15h5"/>');
-  if (/\/(stats|ladder)\b/.test(u)) return svg('<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>');
+  if (/\/(stats|ladder)\b/.test(u)) return '<i class="sig s-stats" aria-hidden="true"></i>';   // 1.6.16: a list, skulls for its bullets
   return svg('<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>');
 }
 
@@ -1536,6 +1537,14 @@ const ICO = {
 // 1.5.0: an icon by name - the game's own (img/ui/icons/<name>.png, listed in img/ui/art.js by scripts/game-art) when it was
 // extracted, else the line icon above
 const ico = name => (window.ART_ICONS || []).includes(name) ? `<img class="ico art" src="img/ui/icons/${name}.png" alt="" aria-hidden="true">` : ICO[name] || '';
+// 1.6.16 (owner 16.11.2026): the icons in the Warhammer 40k style - the sigils of sigils.css (github.com/Certseeds/wh40k-icon, the
+// same library as the strips' sigils), sized as the line icons (.ico) and coloured by color. The line icons stay for the controls
+// (close, arrows, the check, plus, the list's look, reload, upload / download, sign out, Join, the observer's eye, the bell of a call,
+// the trash of Delete, the map of On the map) and the brands (Steam, Discord); the gear, the (i) by the version and the header's connection bars too. A lobby:
+// the gate of Cadia; the players' chat: the Officio Prefectus; the host: the chaplain's skull; a seat: Troops; invite: the banner; stats: a list with skulls for its bullets.
+const w40 = k => `<i class="ico sig s-${k}" aria-hidden="true"></i>`;
+Object.assign(ICO, { door: w40('gate'), crown: w40('host'), invite: w40('banner'), seat: w40('seat'), bars: w40('stats'), up: w40('up'),
+  purge: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13M10 11v5.5M14 11v5.5"/></svg>' });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const open = url => url && invoke('open_url', { url }).catch(e => toast(e, true));
 // Windows long-path prefix from canonicalize() is noise for the player: \\?\G:\Steam → G:\Steam
@@ -2531,9 +2540,11 @@ async function roomsLoad() {
 // running without the pipe = without the add-on (or an older one): restart it with the add-on on. Not running: Play, then the
 // launcher waits for the game's pipe. What the game says (accepted, walking, joining, in the lobby, why not) shows above the list.
 const RJ = { room: '', name: '', hide: 0, here: null };
+// 1.6.16 (owner 16.11.2026): an error of a join is a red strip on top as every error (notes.js errBar), not a line over the list
 function rjShow(text, kind, cancel) {
   const b = $('rjStatus'); if (!b) return;
   clearTimeout(RJ.hide);
+  if (kind === 'err' && typeof errBar === 'function') { b.classList.add('hidden'); errBar(text); return; }
   b.classList.remove('hidden', 'ok', 'err'); if (kind) b.classList.add(kind);
   $('rjText').textContent = text; $('rjCancel').classList.toggle('hidden', !cancel);
   if (kind) RJ.hide = setTimeout(() => b.classList.add('hidden'), kind === 'ok' ? 10000 : 30000);
@@ -2642,16 +2653,15 @@ listen('room_join', e => {
       // 1.6.13: an observer's join needs RoomJoin 14+ - the game has an older one (its status line): nothing was sent
       if (v.reason === 'old_addon') { const a = { id: RJ.room, name, want: RJ.want, seat: RJ.seat }; rjShow(t('rjCancelled'), 'ok');
         naOld('roomjoin', 'na_roomjoin_obs', v.need || '14', v.have, () => roomJoin(a.id, a.name, null, false, a.want, a.seat)); break; }
-      if (v.reason === 'no_pipe') { rjShow(t('rjNoPipe'), 'err'); rjModal(t('rjFailedAsk'), [t('rjNoPipe')]); break; }
+      if (v.reason === 'no_pipe') { rjShow(t('rjNoPipe'), 'err'); break; }
       if (v.reason === 'wrong_game') { rjWrongGame(RJ.room, name, RJ.want || 'elite'); break; }
       const why = T[lang]['rjWhy_' + v.reason] || T.en['rjWhy_' + v.reason] ? t('rjWhy_' + v.reason) : t('rjWhy_error');
       // 1.4.13: no answer from the room while our game servers carry the games - say which ticks to try without
       const relays = (S.components || []).filter(c => /^relay(_r\d+|_fwd)?$/.test(String(c.id)) && c.enabled && (!VAN() || c.vanilla_ok));
       const hint = (v.reason === 'timeout' || v.reason === 'no_answer') && relays.length ? ' ' + t('rjHintRelay', { list: relays.map(c => '«' + (L(c.name) || c.id) + '»').join(', ') }) : '';
       const msg = t('rjFailed', { name, why }) + (v.text ? ' (' + v.text + ')' : '');
+      // 1.6.16 (owner 16.11.2026): a failed join is the red strip on top (it was a small window and a line over the list)
       rjShow(msg + hint, v.reason === 'cancelled' ? 'ok' : 'err');
-      // 1.4.17 (owner 06.11.2026): a failed join is a small window, as siritos's questions are (the line keeps the progress)
-      if (v.reason !== 'cancelled') rjModal(t('rjFailedAsk'), [msg, hint.trim()]);
       break; }
   }
 });
@@ -3125,11 +3135,11 @@ fbInit();
 // ---------- players' chat, Steam sign-in and the player's card (ladder service /ladder/api/c/*) ----------
 // Rooms General / RU / EN (the server's all / ru / en) next to the developers' chat.
 // 1.6.11: the chat's header (the language menu, Logs) and Online's links - here, the first render needs them
-Object.assign(T.en, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord: the Elite Mode channel', lnkStats: 'Player stats', lnkLadder: 'Ladder and match history', chLang: 'Language of the messages', chLangH: 'Show the messages', chOrigShort: 'Orig.', chAsWritten: 'as written', chTranslated: 'translated', logsShort: 'Logs' });
-Object.assign(T.ru, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord: канал Elite Mode', lnkStats: 'Статистика игроков', lnkLadder: 'Ладдер и история матчей', chLang: 'Язык сообщений', chLangH: 'Показывать сообщения', chOrigShort: 'Ориг.', chAsWritten: 'как написали', chTranslated: 'перевод', logsShort: 'Логи' });
-Object.assign(T.es, { lnkElite: 'Discord de Elite', lnkDiscord: 'Discord: el canal Elite Mode', lnkStats: 'Estadísticas de jugadores', lnkLadder: 'Ladder e historial de partidas', chLang: 'Idioma de los mensajes', chLangH: 'Mostrar los mensajes', chOrigShort: 'Orig.', chAsWritten: 'tal como se escribió', chTranslated: 'traducido', logsShort: 'Registros' });
-Object.assign(T.fr, { lnkElite: 'Discord d\'Elite', lnkDiscord: 'Discord : le salon Elite Mode', lnkStats: 'Statistiques des joueurs', lnkLadder: 'Ladder et historique des parties', chLang: 'Langue des messages', chLangH: 'Afficher les messages', chOrigShort: 'Orig.', chAsWritten: 'tel qu\'écrit', chTranslated: 'traduit', logsShort: 'Journaux' });
-Object.assign(T.de, { lnkElite: 'Elite-Discord', lnkDiscord: 'Discord: der Kanal Elite Mode', lnkStats: 'Spielerstatistiken', lnkLadder: 'Ladder und Spielverlauf', chLang: 'Sprache der Nachrichten', chLangH: 'Nachrichten anzeigen', chOrigShort: 'Orig.', chAsWritten: 'wie geschrieben', chTranslated: 'übersetzt', logsShort: 'Logs' });
+Object.assign(T.en, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Player stats', lnkLadder: 'Ladder and match history', chLang: 'Language of the messages', chLangH: 'Show the messages', chOrigShort: 'Orig.', chAsWritten: 'as written', chTranslated: 'translated', logsShort: 'Logs' });
+Object.assign(T.ru, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Статистика игроков', lnkLadder: 'Ладдер и история матчей', chLang: 'Язык сообщений', chLangH: 'Показывать сообщения', chOrigShort: 'Ориг.', chAsWritten: 'как написали', chTranslated: 'перевод', logsShort: 'Логи' });
+Object.assign(T.es, { lnkElite: 'Discord de Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Estadísticas de jugadores', lnkLadder: 'Ladder e historial de partidas', chLang: 'Idioma de los mensajes', chLangH: 'Mostrar los mensajes', chOrigShort: 'Orig.', chAsWritten: 'tal como se escribió', chTranslated: 'traducido', logsShort: 'Registros' });
+Object.assign(T.fr, { lnkElite: 'Discord d\'Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Statistiques des joueurs', lnkLadder: 'Ladder et historique des parties', chLang: 'Langue des messages', chLangH: 'Afficher les messages', chOrigShort: 'Orig.', chAsWritten: 'tel qu\'écrit', chTranslated: 'traduit', logsShort: 'Journaux' });
+Object.assign(T.de, { lnkElite: 'Elite-Discord', lnkDiscord: 'Discord DoW2', lnkStats: 'Spielerstatistiken', lnkLadder: 'Ladder und Spielverlauf', chLang: 'Sprache der Nachrichten', chLangH: 'Nachrichten anzeigen', chOrigShort: 'Orig.', chAsWritten: 'wie geschrieben', chTranslated: 'übersetzt', logsShort: 'Logs' });
 // 1.6.11 (owner 14.11.2026): one players' tab (General) - RU / EN are the language of its messages (a menu, the original by
 // default: CH.lang), the developers' tab apart on the right
 const CH = { room: 'all', lang: 'all', msgs: {}, out: [], unread: {}, full: {}, me: null, prof: null, waiting: false, features: [], replyTo: null };

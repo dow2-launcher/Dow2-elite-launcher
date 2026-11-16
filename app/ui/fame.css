@@ -1,6 +1,9 @@
 /* the Hall of Fame tab of Settings (fame.js) */
 .fame-page{display:flex;flex-direction:column;min-height:0}
-.fame-page .fame-list{max-height:calc(100vh - 250px)}
+/* 1.6.16 (owner 16.11.2026): one scroll, the list's own - the panel takes the tab's height and the list the rest of it (its
+   max-height calc(100vh - 250px) was a guess: the tab's column scrolled too, by 40-90 px, at every window size) */
+#setFame>.fame-page{flex:1 1 auto;min-height:0}
+.fame-page .fame-list{flex:1 1 auto;min-height:60px}
 .fame-page .fame-lead{margin:6px 0 8px}
 .fame-foot{margin-top:10px}
 #setFame{max-width:860px}

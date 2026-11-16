@@ -52,7 +52,7 @@
 .rp-dtop .mmap .mm{display:block;width:100%;aspect-ratio:1;background:var(--mm,none) center/cover,#061011}
 .rp-dtop .mmap span{display:none}
 .rp-dh{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
-.rp-dh>b{font:700 19px var(--fh);color:#f3ead8}
+.rp-dh>b,.rp-dt>b{font:700 19px var(--fh);color:#f3ead8}
 .rp-tags{display:flex;gap:5px;flex-wrap:wrap}
 .rp-kvs{display:flex;flex-wrap:wrap;gap:2px 14px}
 .rp-kv{display:flex;gap:5px;font-size:12.5px}
@@ -165,3 +165,16 @@
 .rp-tw table{margin:0}
 .rp-tw th:first-child,.rp-tw td:first-child{position:sticky;left:0;z-index:1;background:#0a1718;box-shadow:1px 0 0 var(--ln)}
 .rp-tw td,.rp-tw th{font-variant-numeric:tabular-nums}
+/* 1.6.16 (owner 16.11.2026): the header's (i) as the version's in the window's header - a frameless line icon, lit on hover */
+.rp-info{width:24px;height:24px;border:0;border-radius:0;color:var(--mu)}
+.rp-info svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round}
+.rp-info:hover,.rp-info:focus-visible{color:#eafff8;filter:drop-shadow(0 0 5px rgba(69,224,192,.7))}
+/* "My replays" - the matches I played in; off (dimmed, its tip says why) without the Steam sign-in */
+.rp-f2 .rp-mine{flex:none;white-space:nowrap}
+.rp-f2 .rp-mine.off{opacity:.5;cursor:default}
+/* Delete a downloaded replay: a red trash can at the right of its name, frameless, lit on hover */
+.rp-dt{display:flex;align-items:flex-start;gap:8px;min-width:0}
+.rp-dt>b{flex:1;min-width:0}
+.rp-delb{flex:none;display:grid;place-items:center;width:30px;height:30px;margin:-4px -4px 0 0;padding:0;border:0;background:none;color:#e5503f;cursor:pointer}
+.rp-delb .ico{width:20px;height:20px;stroke-width:1.9}
+.rp-delb:hover,.rp-delb:focus-visible{color:#ff8f7d;filter:drop-shadow(0 0 6px rgba(255,80,60,.8));outline:none}
