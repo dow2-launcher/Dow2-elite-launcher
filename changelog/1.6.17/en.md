@@ -1,0 +1,6 @@
+- No open lobby on Home is always the Catachan sigil, still (1.6.16 picked one of five at random, with interference).
+- The Lobbies tab with no lobby: the same Catachan sigil and Create a lobby under it (Sign in when signed out); with no running match: the crossed swords with interference; everything hidden by the filters: "Nothing under these filters" big in the middle.
+- The players' chat tab: the Cadian gate again (the Officio Prefectus' wide emblem was too big there).
+- My lobby: the observers are a block under the teams, every seat the same height; a player moves into the observers with Go here on a free seat (not the host: the match is started from the host's game).
+- Lobby chat: a "Lobby chat" tab in the right column next to "Map and settings" - the general chat for the lobby's players and observers only (replies, @name by a click on a name, translation by the language switch), with lines about who came in, left or moved to the observers. New messages are counted on the tab, on the header's Lobbies and on Home.
+- Home: while you are in a lobby, the chat has a "Lobby" tab right after General; the language switch works for it too.

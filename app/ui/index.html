@@ -55,7 +55,7 @@
       <div id="newsBox" class="panel fb">
         <!-- 1.6.11 (owner 14.11.2026): two groups - the players' rooms and the language of the messages (a menu, the original by
              default) on the left; the developers and the logs (they go to them) on the right -->
-        <div class="h ch-head"><div class="ch-tabs" id="chTabs"><button class="ch-tab on" data-room="chat"><i class="sig s-chat" aria-hidden="true"></i><span data-t="chAll"></span></button>
+        <div class="h ch-head"><div class="ch-tabs" id="chTabs"><button class="ch-tab on" data-room="chat"><i class="sig s-gate" aria-hidden="true"></i><span data-t="chAll"></span></button><button class="ch-tab hidden" id="chLobbyTab" data-room="lobby"><i class="sig s-battle" aria-hidden="true"></i><span data-t="chLobby"></span></button>
           <div class="ch-lang"><button class="ch-lbtn" id="chLangBtn" data-ta="chLang" aria-haspopup="menu" aria-expanded="false"><i class="sig s-lang" aria-hidden="true"></i><span id="chLangCur"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
             <div class="me-box ch-lmenu hidden" id="chLangMenu" role="menu"><div class="ch-lmh" data-t="chLangH"></div><button role="menuitemradio" data-lang="all"><span data-t="chOrig"></span><small data-t="chAsWritten"></small></button><button role="menuitemradio" data-lang="ru"><span>Русский</span><small data-t="chTranslated"></small></button><button role="menuitemradio" data-lang="en"><span>English</span><small data-t="chTranslated"></small></button></div></div></div>
           <div class="ch-devg"><button class="ch-tab ch-dev" data-room="dev"><i class="sig" aria-hidden="true"></i><span data-t="chDev"></span></button><button class="btn small logs-btn" id="sendLogsHome" data-ta="sendLogs"><span data-t="logsShort"></span></button></div></div>
@@ -64,6 +64,7 @@
           <div class="ch-login hidden" id="chLoginRow"><span data-t="chSignInToWrite"></span><button class="btn gold small" id="chIn2" data-t="chLogin"></button></div>
           <div class="ch-rbar hidden" id="chReply" role="status"></div><div class="ch-send" id="chSendRow"><textarea id="chText" rows="2" maxlength="500" data-tp="chPlaceholder"></textarea><button class="btn-gold" id="chSend" data-t="fbSend"></button></div>
         </div>
+        <div class="ch-pane hidden" id="lobbyPane"></div>   <!-- 1.6.17: my lobby's chat (lchat.js), the tab "Lobby" -->
         <div class="dev-pane hidden" id="devPane">
         <div class="fb-who"><span data-t="fbName"></span> <input id="fbName" maxlength="48"><span class="fb-id" id="fbId"></span></div>
         <div id="fbMsgs" class="fb-msgs"></div>
@@ -112,7 +113,7 @@
           <div class="h"><span data-t="rLive"></span><em id="rLiveN2"></em></div>
           <div class="rflt" id="rLiveFlt"></div>
           <div class="note r-livenote" data-t="rLiveNote"></div>
-          <div class="rlist"><div class="rooms-grid" id="rLiveCards"></div></div>
+          <div class="rlist"><div class="rooms-grid" id="rLiveCards"></div><div class="r-zero hidden" id="rLiveZero"></div></div>
         </section>
         <div class="lr-room hidden" id="lrRoom" aria-live="polite"></div>
       </div>
@@ -238,8 +239,17 @@
 </div>
 <div class="pop hidden" id="pop" role="dialog"></div>
 <div class="toast hidden" id="toast"></div>
+<script src="i18n.js"></script>
 <script src="app.js"></script>
+<script src="rooms.js"></script>
+<script src="settings.js"></script>
+<script src="online.js"></script>
+<script src="feedback.js"></script>
+<script src="chat.js"></script>
+<script src="gameset.js"></script>
+<script src="boot.js"></script>
 <script src="needaddon.js"></script>
+<script src="lchat.js"></script>   <!-- before lroom.js: lroom.js asks for my room at once, its answer feeds lchat.js -->
 <script src="lroom.js"></script>
 <script src="replays.js"></script>
 <script src="fame.js"></script>

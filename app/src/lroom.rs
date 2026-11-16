@@ -20,9 +20,10 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, Manager};
 
-const VERBS: [&str; 19] = ["create", "join", "leave", "seat", "army", "ready", "conf", "kick", "pings", "here", "get", "ticket", "game", "cancel", "start", "stop",
+const VERBS: [&str; 20] = ["create", "join", "leave", "seat", "army", "ready", "conf", "kick", "pings", "here", "get", "ticket", "game", "cancel", "start", "stop",
     "invite", "ping",     // 1.5.3: an invitation, the ready check / a call of the host (lroom.py)
-    "ping_answer"];       // 1.5.12: the pinged player's answer (yes / no) - the room shows it next to his name
+    "ping_answer",        // 1.5.12: the pinged player's answer (yes / no) - the room shows it next to his name
+    "say"];               // 1.6.17: the lobby's chat (lchat.js); "seat" with slot "obs" - a player into the observers
 
 /// One room call: Ok(the server's answer) whatever it says, Err only when no host answered.
 fn call(token: &str, verb: &str, body: &Value) -> Result<Value, String> {

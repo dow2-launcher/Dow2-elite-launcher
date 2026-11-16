@@ -111,6 +111,7 @@ function lrSet(v) {
     const first = !LR.room || LR.room.id !== v.id;
     if (!LR.room || v.seq >= (LR.room.seq || 0) || first) LR.room = v;
     if (first) { LR.pingT = 0; lrCatalog(v.game).then(() => lrRender()); }
+    if (v.chat) lcFeed(v); else lcCatchUp(v.cseq);                  // 1.6.17: the lobby's chat (lchat.js) - its feed comes in the answers only
   } else if (LR.room && LR.room.id === v.id) LR.room = null;   // not in it any more (removed)
   const i = LR.list.findIndex(x => x.id === v.id), sum = { id: v.id, name: v.name, game: v.game, ver: v.ver, mode: v.mode, map: v.map, map_name: v.map_name, state: v.state,
     players: (v.slots || []).filter(Boolean).length, cap: (v.slots || []).length, names: (v.slots || []).filter(Boolean).map(s => s.name),
@@ -125,7 +126,7 @@ async function lrLoad() {
   try { const d = await invoke('lroom_list', {}); LR.list = d.rooms || []; if (d.host) LR.host = d.host; lrOnSoon(); } catch (e) { /* the last list */ }
   if (lrMe() && !LR.room) {                                         // in a room from before (the launcher restarted): its view
     const r = await invoke('lroom_api', { verb: 'get', body: {} }).catch(() => null);
-    if (r && r.ok && r.room) { LR.room = r.room; lrCatalog(r.room.game).then(() => lrRender()); lrLaunchCheck(); }   // a start under way goes on
+    if (r && r.ok && r.room) { LR.room = r.room; lcFeed(r.room); lrCatalog(r.room.game).then(() => lrRender()); lrLaunchCheck(); }   // a start under way goes on
   }
   lrRender();
 }
@@ -148,7 +149,7 @@ setInterval(async () => {
     LR.here = now;
     const r = await invoke('lroom_api', { verb: 'here', body: {} }).catch(() => null);
     if (r && r.ok === false && r.error === 'no_room') { LR.room = null; lrRender(); return; }
-    if (r && r.ok && LR.room && (r.seq !== LR.room.seq || !STREAM.up)) { const g = await invoke('lroom_api', { verb: 'get', body: {} }).catch(() => null); if (g && g.room) lrSet(g.room); }
+    if (r && r.ok && LR.room && (r.seq !== LR.room.seq || !STREAM.up || (r.cseq || 0) > lcLast())) { const g = await invoke('lroom_api', { verb: 'get', body: {} }).catch(() => null); if (g && g.room) lrSet(g.room); }
   }
   if (LR.room && LR.room.state === 'lobby' && !LR.pinging && (!LR.pingT || now - LR.pingT > 120000) && !(S && S.game_running && LR.gameEv && LR.gameEv.ev === 'loading')) lrPings();
   if (LR.room && LR.room.state === 'countdown') lrCountdown();
@@ -421,12 +422,25 @@ function lrRoomHtml(r) {
   }
   const vt = r.game === 'vanilla' ? `<span class="tag van">${esc(t('lrGameVan'))}</span>` : '';
   const ping = lrPingBtn(r, 'lr-ping');
-  const obs = (r.obs || []).length ? `<div class="lr-obsrow">${ico('eye')}<span class="k">${esc(t('lrObs'))} · ${r.obs.length}/${r.obs_cap != null ? r.obs_cap : Math.max(0, 8 - (r.slots || []).length)}</span>${r.obs.map(o => `<span class="o${o.steam === me ? ' me' : ''}">${avatar(o.avatar)}<span class="nm">${esc(o.name)}</span></span>`).join('')}</div>` : '';
+  // 1.6.17 (owner 16.11.2026): the observers - a block under the teams, every seat one height (taken, free, mine); a free seat is
+  // the move for a player ("Go here": his seat is freed; never the owner - the match is started from his game)
+  const ol = r.obs || [], ocap = r.obs_cap != null ? r.obs_cap : Math.max(0, 8 - (r.slots || []).length);
+  const mySeat = (r.slots || []).some(s => s && s.steam === me), canGo = mySeat && !owner && (r.state === 'lobby' || r.state === 'countdown');
+  let ocells = ol.map(o => `<div class="lr-oc${o.steam === me ? ' me' : ''}">${avatar(o.avatar)}<span class="nm" data-steam="${esc(o.steam)}" data-name="${esc(o.name)}">${esc(o.name)}</span>`
+    + `${o.steam === me ? `<em>${esc(t('lrObsYou'))}</em>` : ''}</div>`).join('');
+  for (let i = ol.length; i < ocap; i++) ocells += canGo
+    ? `<button class="lr-oc free go" data-tip="${esc(t('lrObsGoTip'))}"><i class="oe">${ico('eye')}</i><span class="nm">${esc(t('lrObsGo'))}</span></button>`
+    : `<div class="lr-oc free"${mySeat && owner ? ` data-tip="${esc(t('lrObsOwnerNo'))}"` : ''}><i class="oe">${ico('eye')}</i><span class="nm">${esc(t('lrObsFree'))}</span></div>`;
+  const obs = ocap ? `<div class="lr-team lr-obs"><div class="lr-sub">${esc(t('lrObs'))} <em>${ol.length}/${ocap}</em></div><div class="lr-og">${ocells}</div>`
+    + `${lrObsMe(r) ? `<div class="note lr-onote">${esc(t('lrObsMe'))}</div>` : ''}</div>` : '';
+  // the right column: "Map and settings" (the three blocks) | "Lobby chat" (lchat.js puts the chat in, lcSideBind)
+  const stabs = `<div class="lr-stabs" role="tablist"><button role="tab" class="lr-stab" data-s="conf">${esc(t('lrTabConf'))}</button>`
+    + `<button role="tab" class="lr-stab" data-s="chat"><span>${esc(t('lrTabChat'))}</span><b class="lr-cnt"></b></button></div>`;
   return `<div class="lr-head">${edit ? `<input id="lrNameIn" maxlength="48" value="${esc(r.name)}" aria-label="${esc(t('lrName'))}">` : `<span class="lr-title">${esc(r.name)}</span>`}`
     + `${modeSel}${vt}${ping}<button class="btn small" id="lrLeaveBtn">${esc(t('lrLeave'))}</button></div>`
     + (ev ? lrEvHtml(ev, evc, evk, !!evs) : '')
     + `<div class="lr-body"><div class="lr-teams">${team(0)}<div class="lr-vs">vs</div>${team(1)}${obs}</div>`
-    + `<div class="lr-side"><div class="lr-blk"><div class="lr-sub">${esc(t('lrMap'))}</div><div class="lr-mapbox"><div class="lr-mm" style="background-image:url('${A}maps/${encodeURIComponent(shownMap)}.png')"></div><div class="lr-mapcol">${mapSel}</div></div></div>`
+    + `<div class="lr-side">${stabs}<div class="lr-blk"><div class="lr-sub">${esc(t('lrMap'))}</div><div class="lr-mapbox"><div class="lr-mm" style="background-image:url('${A}maps/${encodeURIComponent(shownMap)}.png')"></div><div class="lr-mapcol">${mapSel}</div></div></div>`
     + `<div class="lr-blk">${optsHtml}</div><div class="lr-blk">${lrNet(r)}</div></div></div>`;
 }
 
@@ -490,9 +504,26 @@ function rApplyFilter() {
       && (RF.ver === 'all' || (RF.ver === 'van' ? d.van === '1' : d.vok === '1' && d.van !== '1')) && (!RF.free || d.free === '1');
     c.classList.toggle('hidden', !ok); if (ok) shown++;
   });
-  const total = cards.length;
-  $('rEmpty').classList.toggle('hidden', shown > 0);
-  $('rEmpty').textContent = total ? t('rNoneFilter') : (RM.err ? t('roomsErr') : t('rNone'));
+  const total = cards.length, e = $('rEmpty');
+  // 1.6.17 (owner 16.11.2026): no lobby at all - the sigil pane as on Home with Create a lobby under it (signed out: Sign in);
+  // nothing under the filters - the line big in the middle; the list did not come - a line as before. Drawn when its kind
+  // changes only: a redraw restarts the sigil's interference
+  const kind = shown ? '' : !total && !RM.err ? 'zero:' + (lrMe() ? 'in' : 'out') : total ? 'flt' : 'err';
+  e.classList.toggle('hidden', !kind); $('rCards').classList.toggle('hidden', !shown);
+  e.classList.toggle('note', kind === 'err'); e.classList.toggle('r-zero', kind === 'flt' || kind.startsWith('zero'));
+  if (kind && e.dataset.kind !== kind) {
+    e.dataset.kind = kind;
+    if (kind === 'err') e.textContent = t('roomsErr');
+    else if (kind === 'flt') e.innerHTML = fltPane();
+    else {
+      const b = lrMe() ? `<button class="btn gold r-zbtn" id="rZeroNew">${ico('plus')}<span>${esc(t('rCreate'))}</span></button>`
+        : `<button class="btn gold r-zbtn" id="rZeroIn">${ico('steam')}<span>${esc(t('chLogin'))}</span></button>`;
+      e.innerHTML = zeroPane('s-battle', t('rZeroT'), t('rZeroHint'), b);
+      if ($('rZeroNew')) $('rZeroNew').onclick = lrCreate;
+      if ($('rZeroIn')) $('rZeroIn').onclick = chLogin;
+    }
+  }
+  if (!kind) delete e.dataset.kind;
   $('roomsN').textContent = total ? String(total) : '';
   $('rOpenN').textContent = total ? String(total) : '';
 }
@@ -515,7 +546,15 @@ function rLiveRender() {
       + `<div class="rh">${lr ? `<span class="tag lr">${esc(t('rTagLr'))}</span>` : ''}<span class="rn">${esc(lr && lr.name ? lr.name : map)}</span><span class="tag">${esc(m.mode)}</span></div>`
       + `<div class="teams"><div class="team">${(m.team1 || []).map(pl).join('')}</div><div class="team">${(m.team2 || []).map(pl).join('')}</div></div>`
       + `<div class="rfoot2"><span class="rhost">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span>${act}</div></div></div>`;
-  }).join('') || `<div class="note">${esc(t('rLiveNone'))}</div>`;
+  }).join('');
+  // 1.6.17: no running match at all - the sigil pane (the swords) instead of the grid; all hidden by the filters - the filters' line
+  // big in the middle (drawn when its kind changes only)
+  const z = $('rLiveZero'), kind = ms.length ? '' : (LIVE.ingame || []).length ? 'flt' : 'zero';
+  if (z) {
+    z.classList.toggle('hidden', !kind); box.classList.toggle('hidden', !!kind);
+    if (kind && z.dataset.kind !== kind) { z.dataset.kind = kind; z.innerHTML = kind === 'flt' ? fltPane() : zeroPane('s-live', t('rLiveZeroT'), t('rLiveZeroHint'), '', true); }
+    if (!kind) delete z.dataset.kind;
+  }
   box.querySelectorAll('.lvw[data-m]').forEach(b => b.onclick = () => liveWatch(b.dataset.m, b.dataset.g === 'vanilla' ? 'vanilla' : 'elite'));
   box.querySelectorAll('.rp .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name));
   tipCut(box);
@@ -558,6 +597,7 @@ function lrRender() {
   list.querySelectorAll('.rp .nm[data-steam]').forEach(n => { if (n.dataset.steam) nickBind(n, n.dataset.steam, n.dataset.name); });
   tipCut(list);
   rApplyFilter(); rLiveRender(); lrPlay();
+  if (typeof lcSync === 'function') lcSync();                     // lchat.js: my lobby's chat (Home's tab, the counts)
   if (!(r && RV.view === 'mine')) { box.classList.add('hidden'); box.innerHTML = ''; LR.drop = null; LR.mapsOpen = false; LR.pop = null; if (window.popClear) popClear(); return; }
   if (((LR.pop && LR.mapsOpen) || LR.drop || Date.now() < (LR.holdUntil || 0)) && !LR.popForce) return;   // a drop-down / the map list in use
   LR.popForce = 0;
@@ -565,6 +605,7 @@ function lrRender() {
   box.innerHTML = lrRoomHtml(r); box.classList.remove('hidden'); LR.sigKey = lrSigKey(r);
   lrBind(r);
   if (focus === 'lrNameIn' && $('lrNameIn')) $('lrNameIn').focus();
+  else if (focus === 'lcText' && $('lcText')) $('lcText').focus();          // the lobby chat's input, moved back into the new column
 }
 // leave my lobby: the lobby's button, the cross in the panel, the block on Home
 async function lrLeave() {
@@ -608,6 +649,9 @@ function lrBind(r) {
     lrRender();
   });
   box.querySelectorAll('.lr-sit').forEach(b => b.onclick = () => lrCall('seat', { slot: +b.dataset.slot }));
+  box.querySelectorAll('.lr-oc.go').forEach(b => b.onclick = () => lrCall('seat', { slot: 'obs' }));          // 1.6.17: into the observers
+  box.querySelectorAll('.lr-oc .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));
+  lcSideBind(box.querySelector('.lr-side'));                                                                  // lchat.js
   box.querySelectorAll('.lr-kick').forEach(b => b.onclick = () => { delete lrInvSent(r)[b.dataset.kick]; lrCall('kick', { steam: b.dataset.kick }); });
   if ($('lrMapsBtn')) $('lrMapsBtn').onclick = () => { LR.mapsOpen = !LR.mapsOpen; LR.mapsEdit = null; LR.mapsFind = ''; LR.pop = LR.mapsOpen ? 1 : null; LR.popForce = 1; lrRender(); };
   if ($('lrMapsFind')) { $('lrMapsFind').oninput = e => { LR.mapsFind = e.target.value; LR.popForce = 1; lrRender(); const f = $('lrMapsFind'); if (f) { f.focus(); f.setSelectionRange(f.value.length, f.value.length); } }; }
@@ -939,7 +983,7 @@ async function lrJoinHome(id) {
 Object.assign(T.en, { lrSaving: 'Saving…', rOpen: 'Open lobbies', rLive: 'Running matches', rTagLr: 'launcher', rLegLr: 'a lobby in the launcher: the match on our servers, the start for everyone at once.',
    rLiveNote: 'Only the matches on our servers: from the launcher\'s lobbies and from Find a Game. Watch - the game opens the match as a replay, a few minutes behind.',
    rFltAll: 'All',   rFltVer: 'Version', rFltMine: 'Mine', rFltFree: 'free seats', rFltFrom: 'From', rFltFromLr: 'Launcher lobbies',
-  rNone: 'Nobody is setting up a game right now - create your lobby and everybody sees it here.', rNoneFilter: 'Nothing under these filters.', rLiveNone: 'No matches on our servers right now.',
+  rZeroT: 'No open lobbies right now', rZeroHint: 'Create your lobby - everybody sees it here.', rNoneFilter: 'Nothing under these filters.', rLiveZeroT: 'No matches right now', rLiveZeroHint: 'The matches on our servers show up here - you can watch them.',
   rJoinTip: 'Join the lobby “{name}”', rWatchTip: 'Watch this match in the game as a replay (a few minutes behind)', rHost: 'host {name}',
   rSignInNote: 'Without signing in you can look at the lists; to create a lobby or join one - sign in.', rStCd: 'counting down', rStWait: 'waiting for {n}', rStAll: 'all ready',
   rMineHost: 'Your lobby', rMineIn: 'You are in the lobby', rBack: 'Back to the lobby ›', rBackShort: 'Back ›', rInGame: 'You are in a game lobby', rInGameNote: 'it is open in the game itself', rCreate: 'Create a lobby',
@@ -951,7 +995,7 @@ Object.assign(T.en, { lrSaving: 'Saving…', rOpen: 'Open lobbies', rLive: 'Runn
 Object.assign(T.ru, { lrSaving: 'Сохраняю…', rOpen: 'Открытые лобби', rLive: 'Идущие матчи', rTagLr: 'лаунчер', rLegLr: 'лобби в лаунчере: матч на наших серверах, старт у всех сразу.',
    rLiveNote: 'Только матчи на наших серверах: из лобби лаунчера и из Find a Game. Смотреть — игра откроет матч как реплей, с отставанием на несколько минут.',
    rFltAll: 'Все',   rFltVer: 'Версия', rFltMine: 'Моя', rFltFree: 'есть места', rFltFrom: 'Откуда', rFltFromLr: 'Лобби лаунчера',
-  rNone: 'Сейчас никто не собирает игру — создайте своё лобби, и оно появится здесь у всех.', rNoneFilter: 'По этим фильтрам ничего нет.', rLiveNone: 'Сейчас на наших серверах матчей нет.',
+  rZeroT: 'Сейчас открытых лобби нет', rZeroHint: 'Создайте своё лобби — его увидят здесь все.', rNoneFilter: 'По этим фильтрам ничего нет.', rLiveZeroT: 'Сейчас матчей нет', rLiveZeroHint: 'Здесь появляются матчи на наших серверах — их можно смотреть.',
   rJoinTip: 'Войти в лобби «{name}»', rWatchTip: 'Смотреть этот матч в игре как реплей (с отставанием на несколько минут)', rHost: 'хост {name}',
   rSignInNote: 'Без входа можно смотреть списки; создать лобби или войти в него — после входа.', rStCd: 'идёт отсчёт', rStWait: 'ждём {n}', rStAll: 'все готовы',
   rMineHost: 'Ваше лобби', rMineIn: 'Вы в лобби', rBack: 'Вернуться в лобби ›', rBackShort: 'Вернуться ›', rInGame: 'Вы в лобби игры', rInGameNote: 'оно открыто в самой игре', rCreate: 'Создать лобби',
@@ -963,7 +1007,7 @@ Object.assign(T.ru, { lrSaving: 'Сохраняю…', rOpen: 'Открытые 
 Object.assign(T.es, { lrSaving: 'Guardando…', rOpen: 'Salas abiertas', rLive: 'Partidas en curso', rTagLr: 'launcher', rLegLr: 'sala del launcher: la partida en nuestros servidores, el inicio para todos a la vez.',
    rLiveNote: 'Solo partidas en nuestros servidores: de las salas del launcher y de Find a Game. Ver: el juego abre la partida como repetición, unos minutos por detrás.',
    rFltAll: 'Todas',   rFltVer: 'Versión', rFltMine: 'La mía', rFltFree: 'con plazas', rFltFrom: 'Origen', rFltFromLr: 'Salas del launcher',
-  rNone: 'Nadie está preparando una partida: crea tu sala y todos la verán aquí.', rNoneFilter: 'Nada con estos filtros.', rLiveNone: 'Ahora no hay partidas en nuestros servidores.',
+  rZeroT: 'Ahora no hay salas abiertas', rZeroHint: 'Crea tu sala: todos la verán aquí.', rNoneFilter: 'Nada con estos filtros.', rLiveZeroT: 'Ahora no hay partidas', rLiveZeroHint: 'Aquí aparecen las partidas de nuestros servidores: puedes verlas.',
   rJoinTip: 'Entrar en la sala «{name}»', rWatchTip: 'Ver esta partida en el juego como repetición (unos minutos por detrás)', rHost: 'anfitrión {name}',
   rSignInNote: 'Sin iniciar sesión puedes ver las listas; para crear o entrar en una sala, inicia sesión.', rStCd: 'cuenta atrás', rStWait: 'faltan {n}', rStAll: 'todos listos',
   rMineHost: 'Tu sala', rMineIn: 'Estás en la sala', rBack: 'Volver a la sala ›', rBackShort: 'Volver ›', rInGame: 'Estás en una sala del juego', rInGameNote: 'está abierta en el propio juego', rCreate: 'Crear sala',
@@ -975,7 +1019,7 @@ Object.assign(T.es, { lrSaving: 'Guardando…', rOpen: 'Salas abiertas', rLive: 
 Object.assign(T.fr, { lrSaving: 'Enregistrement…', rOpen: 'Salons ouverts', rLive: 'Parties en cours', rTagLr: 'launcher', rLegLr: 'salon du launcher : la partie sur nos serveurs, le départ pour tous en même temps.',
    rLiveNote: 'Seulement les parties sur nos serveurs : des salons du launcher et de Find a Game. Regarder : le jeu ouvre la partie en replay, quelques minutes de retard.',
    rFltAll: 'Tous',   rFltVer: 'Version', rFltMine: 'La mienne', rFltFree: 'places libres', rFltFrom: 'Origine', rFltFromLr: 'Salons du launcher',
-  rNone: 'Personne ne prépare de partie : créez votre salon et tout le monde le verra ici.', rNoneFilter: 'Rien avec ces filtres.', rLiveNone: 'Aucune partie sur nos serveurs en ce moment.',
+  rZeroT: 'Aucun salon ouvert pour le moment', rZeroHint: 'Crée ton salon : tout le monde le verra ici.', rNoneFilter: 'Rien avec ces filtres.', rLiveZeroT: 'Aucune partie en ce moment', rLiveZeroHint: 'Les parties de nos serveurs apparaissent ici : tu peux les regarder.',
   rJoinTip: 'Rejoindre le salon « {name} »', rWatchTip: 'Regarder cette partie dans le jeu en replay (quelques minutes de retard)', rHost: 'hôte {name}',
   rSignInNote: 'Sans connexion vous voyez les listes ; pour créer ou rejoindre un salon, connectez-vous.', rStCd: 'compte à rebours', rStWait: 'il manque {n}', rStAll: 'tous prêts',
   rMineHost: 'Votre salon', rMineIn: 'Vous êtes dans le salon', rBack: 'Retour au salon ›', rBackShort: 'Retour ›', rInGame: 'Vous êtes dans un salon du jeu', rInGameNote: 'il est ouvert dans le jeu', rCreate: 'Créer un salon',
@@ -987,7 +1031,7 @@ Object.assign(T.fr, { lrSaving: 'Enregistrement…', rOpen: 'Salons ouverts', rL
 Object.assign(T.de, { lrSaving: 'Speichern…', rOpen: 'Offene Lobbys', rLive: 'Laufende Matches', rTagLr: 'Launcher', rLegLr: 'Lobby im Launcher: das Match auf unseren Servern, Start für alle gleichzeitig.',
    rLiveNote: 'Nur Matches auf unseren Servern: aus Launcher-Lobbys und Find a Game. Zuschauen – das Spiel öffnet das Match als Replay, ein paar Minuten zurück.',
    rFltAll: 'Alle',   rFltVer: 'Version', rFltMine: 'Meine', rFltFree: 'freie Plätze', rFltFrom: 'Quelle', rFltFromLr: 'Launcher-Lobbys',
-  rNone: 'Gerade bereitet niemand ein Spiel vor – erstelle deine Lobby, alle sehen sie hier.', rNoneFilter: 'Nichts mit diesen Filtern.', rLiveNone: 'Gerade keine Matches auf unseren Servern.',
+  rZeroT: 'Gerade keine offenen Räume', rZeroHint: 'Erstelle deine Lobby – alle sehen sie hier.', rNoneFilter: 'Nichts mit diesen Filtern.', rLiveZeroT: 'Gerade keine Matches', rLiveZeroHint: 'Hier erscheinen die Matches auf unseren Servern – du kannst sie ansehen.',
   rJoinTip: 'Der Lobby „{name}“ beitreten', rWatchTip: 'Dieses Match im Spiel als Replay ansehen (ein paar Minuten zurück)', rHost: 'Host {name}',
   rSignInNote: 'Ohne Anmeldung kannst du die Listen sehen; zum Erstellen oder Beitreten anmelden.', rStCd: 'Countdown läuft', rStWait: 'warten auf {n}', rStAll: 'alle bereit',
   rMineHost: 'Deine Lobby', rMineIn: 'Du bist in der Lobby', rBack: 'Zurück zur Lobby ›', rBackShort: 'Zurück ›', rInGame: 'Du bist in einer Spiel-Lobby', rInGameNote: 'sie ist im Spiel selbst offen', rCreate: 'Lobby erstellen',

@@ -1388,14 +1388,6 @@ html{font-variant-numeric:lining-nums}
 .lr-head .lr-ping{margin-left:auto}
 .lr-head .lr-ping+#lrLeaveBtn{margin-left:0}
 .lr-ping .ico{width:15px;height:15px}
-/* the observers: under the teams in the lobby, a line in the block on Home */
-.lr-obsrow{display:flex;align-items:center;flex-wrap:wrap;gap:4px 10px;min-width:0;color:var(--mu);font-size:13px}
-.lr-obsrow{grid-column:1/-1;margin-top:10px;padding:8px 10px;border:1px dashed var(--ln2);background:rgba(0,0,0,.25)}
-.lr-obsrow>.ico{flex:none;width:16px;height:16px;color:var(--gd)}
-.lr-obsrow .k{font:600 10.5px var(--fb);letter-spacing:.6px;text-transform:uppercase}
-.lr-obsrow .o{display:inline-flex;align-items:center;gap:6px;min-width:0}
-.lr-obsrow .av{width:26px;height:26px;border-width:2px;border-image:var(--art-portrait) 12 / 2px}
-.lr-obsrow .nm{font-weight:600;color:#d8ece6;white-space:nowrap}
 /* Join as an observer (the eye) next to Join, both after the seats */
 .rfoot2 .lr-watch+.rjoin{margin-left:0}
 /* my lobby in the game's frame and its grimy fill, as the list of lobbies; the head a strip; Map / Match settings / Our servers
@@ -1828,17 +1820,80 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 /* Online's groups: the heading band over the whole width of the panel (the button kept its 100 % with the -14 px margins: it
    ended 28 px short of the right edge) */
 .bandp .on-gh{width:calc(100% + 28px)}
-/* Home without open lobbies: a sigil of battle in the block's middle (one of five, hlobby.js) flickering with interference (.gli),
-   as the Replays' Mechanicus cog - no plate, no frame */
+/* an empty list (app.js zeroPane): a sigil in the block's middle - no plate, no frame. Home's lobbies; 1.6.17 the Lobbies tab's
+   open lobbies (#rEmpty): Catachan's, still; its running matches (#rLiveZero): the swords flickering with interference (.gli), as
+   the Replays' Mechanicus cog */
 .hl-list.empty{align-items:center;justify-content:center}
-.hl-none.rp-none{padding:24px 16px}
-.hl-battle{--gl-t:7s;--gl-x:7px;width:118px;height:104px;color:#8fd1c2;opacity:.5;filter:drop-shadow(0 0 12px rgba(69,224,192,.3))}
+.rp-none.zero{padding:24px 16px}
+.zsig{--gl-t:7s;--gl-x:7px;width:118px;height:104px;color:#8fd1c2;opacity:.5;filter:drop-shadow(0 0 12px rgba(69,224,192,.3))}
+.r-empty.r-zero,.r-zero{height:100%;min-height:240px;display:flex;align-items:center;justify-content:center}
+.rp-none.zero .r-zbtn{margin-top:8px;min-width:200px;height:40px;gap:8px;font-size:16px}
+.rp-none.zero .r-zbtn .ico{width:16px;height:16px}
+.rp-none.zero .r-zbtn span{font:inherit;color:inherit}   /* not the pane's hint line (.rp-none span) */
+.rp-none.zero.flt b{font:700 21px var(--fh);color:#cfe3dc}
 /* the icons in the 40k style (app.js w40, sigils.css .s-<key>): masks coloured by color - sized where the line icons were */
 .sig.ico{display:inline-block;vertical-align:middle}
 .rnb>.ico.sig{width:20px;height:20px}
 .ch-tab>.sig{width:16px;height:16px}
-.ch-tab>.s-chat{width:40px;height:16px}   /* the Officio Prefectus' winged emblem: wide (3.2 : 1) */
 .ch-lbtn>.sig{width:19px;height:16px}
 .set-tab>.sig{width:19px;height:19px}
 .on-links .foot-link .sig{width:19px;height:19px}
 .lr-crown .ico.sig{width:15px;height:15px;position:relative;top:-2px}   /* the host's skull a little higher: level with the name's capitals */
+/* 1.6.17 (owner 16.11.2026): the observers - a block under the teams, every seat one height (taken, free, "Go here", mine) */
+.lr-room .lr-team.lr-obs{grid-column:1/-1;margin-top:14px}
+.lr-obs .lr-sub em{font:500 13px var(--fb);font-style:normal;color:var(--mu)}
+.lr-og{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));grid-auto-rows:44px;gap:6px}
+.lr-oc{box-sizing:border-box;display:flex;align-items:center;gap:8px;min-width:0;width:100%;height:44px;margin:0;padding:0 8px;border:1px solid var(--ln);background:rgba(0,0,0,.28);text-align:left}
+.lr-oc .av{width:30px;height:30px;flex:none;border-width:2px;border-image:var(--art-portrait) 12 / 2px}
+.lr-oc .nm{flex:1;min-width:0;font:600 14px var(--fb);color:#e4f3ed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lr-oc em{font-style:normal;font-size:12px;color:var(--gd)}
+.lr-oc.me{border-color:var(--gd);box-shadow:inset 0 0 0 1px rgba(69,224,192,.25)}
+.lr-oc.free{border-style:dashed;border-color:var(--ln2);background:rgba(0,0,0,.18)}
+.lr-oc.free .nm{font-weight:400;font-style:italic;color:var(--mu)}
+.lr-oc.free.go{cursor:pointer;border-color:rgba(69,224,192,.45)}
+.lr-oc.free.go .nm{font-style:normal;font-weight:600;color:var(--gd)}
+.lr-oc.free.go .oe{opacity:1}
+.lr-oc.free.go:hover,.lr-oc.free.go:focus-visible{border-color:var(--gd);background:rgba(69,224,192,.1);outline:none}
+.lr-oc.free.go:hover .nm{color:#eafff8}
+.lr-oc .oe{display:grid;place-items:center;width:30px;height:30px;flex:none;color:var(--gd);opacity:.6}
+.lr-oc .oe .ico{width:18px;height:18px}
+.lr-onote{margin-top:6px;font-size:12.5px}
+/* the right column: two tabs over it - "Map and settings" (its three blocks) | "Lobby chat" (lchat.js, the column's height). It starts
+   at the body's top edge (its padding given up) and the teams' headings come down to meet it: the line of "Team 1" runs at the
+   height where the first frame begins (owner 16.11.2026) */
+.lr-room .lr-body>.lr-side{margin-top:-10px}
+.lr-room .lr-body>.lr-teams{padding-top:18px}
+.lr-stabs{flex:none;display:flex;gap:2px}
+.lr-stab{flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:6px;height:30px;padding:0 8px;border:0;border-top:2px solid var(--ln2);background:linear-gradient(#24383b,#152325);font:600 13.5px var(--fb);color:#cfe3dc;white-space:nowrap}
+.lr-stab:hover{color:#fff}
+.lr-stab.on{background:linear-gradient(#35565a,#1f3436);color:#fff;border-color:var(--gd)}
+.lr-cnt{padding:0 6px;border-radius:8px;background:var(--gold);color:#16120c;font:700 11px/16px var(--fb)}
+.lr-cnt:empty{display:none}
+.lr-side.lr-onchat>.lr-blk{display:none}
+.lr-side:not(.lr-onchat)>.lc-chat{display:none}
+/* the lobby's chat (lchat.js): Home's chat panel (.panel - its frame, its darker fill), the general chat's rows, reply strip, input */
+.lr-side>.lc-chat{flex:1;min-height:240px;display:flex;flex-direction:column;padding:6px 10px;border:10px solid transparent;border-image:var(--art-frame) var(--art-frame-slice) / 10px;background:linear-gradient(rgba(5,10,11,.74),rgba(5,10,11,.74)),var(--art-panel) center/cover padding-box;background-clip:padding-box}
+.lc-body{position:relative;flex:1;min-height:0;display:flex}
+.lc-msgs{flex:1;min-height:0}
+.lc-msgs .w b.lc-host{color:var(--gd2)}
+.lc-ome{display:inline-grid;margin-right:4px;color:var(--gd)}
+.lc-ome .ico{width:13px;height:13px}
+.lc-pill{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);height:24px;padding:0 12px;border:1px solid var(--gd);border-radius:12px;background:var(--gdbg);color:var(--gd2);font:600 12px var(--fb);box-shadow:0 2px 8px #000}
+.lc-send{flex:none}
+#lobbyPane{gap:6px}
+/* the lobby's own lines (who came in, left, moved): quiet, the icon in the avatars' column, no day headings */
+.lc-sys{display:flex;align-items:center;gap:8px;min-width:0;padding:1px 0;font-size:12.5px;color:var(--mu)}
+.lc-sys .sx{flex:none;display:grid;place-items:center;width:36px}
+.lc-sys .ico{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lc-sys .sig.ico{width:15px;height:15px}
+.lc-sys.in .sx,.lc-sys.obs .sx{color:var(--gd)}
+.lc-sys.out .sx{color:#c9786c}
+.lc-sys .st{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lc-sys b{font-weight:600;color:#cfe3dc}
+.lc-sys .sw{flex:none;font-size:11.5px;color:var(--dim)}
+/* the new ones: a glow when the count grows; the header's "Lobbies" counts them on another page */
+@keyframes lcPing{0%{box-shadow:0 0 0 0 rgba(69,224,192,0)}25%{box-shadow:0 0 16px 3px rgba(69,224,192,.6)}100%{box-shadow:0 0 0 0 rgba(69,224,192,0)}}
+.lc-ping{animation:lcPing 1.6s ease-out}
+.tab .tab-n{display:inline-block;margin-left:6px;padding:0 6px;border-radius:9px;background:var(--gold);color:#16120c;font:700 11.5px/18px var(--fb);text-shadow:none;vertical-align:3px}
+.tab .tab-n:empty{display:none}
+@media (prefers-reduced-motion:reduce){.lc-ping{animation:none}}
