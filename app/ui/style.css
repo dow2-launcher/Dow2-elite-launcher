@@ -1698,7 +1698,7 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .news-item.is-new{box-shadow:inset 3px 0 0 #e2b86a;padding-left:10px}
 /* "launcher updated": the aquila of the High Lords of Terra, gold */
 .ubar.upd-done{background:linear-gradient(90deg,rgba(70,56,24,.55),rgba(40,34,18,.42) 55%,rgba(20,20,14,.3));border-bottom-color:rgba(226,184,106,.45)}
-.upd-done .ub-ico{--sig:var(--sig-terra);width:58px;height:30px;border:0;box-shadow:none;background-color:#e2c47c;filter:drop-shadow(0 0 6px rgba(226,184,106,.45))}
+.upd-done .ub-ico{--sig:var(--sig-terra);--gl-t:6s;--gl-x:6px;width:58px;height:30px;border:0;box-shadow:none;background:none;color:#e2c47c;filter:drop-shadow(0 0 6px rgba(226,184,106,.45))}
 .upd-done .ub-it b{flex:none;color:#f6ecd2}
 .upd-done .ub-it{min-width:0;flex:1}
 .upd-done .ub-it small{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1706,8 +1706,8 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 /* the errors: red strips on top, the skull in the star of Chaos; the seconds left and a line running out under the strip */
 .err-bars{display:flex;flex-direction:column;flex:none;position:relative;z-index:3}
 .ubar.err-bar{min-height:44px;background:linear-gradient(90deg,rgba(118,24,19,.72),rgba(78,16,13,.6) 55%,rgba(44,11,10,.5));border-top:1px solid rgba(255,140,120,.1);border-bottom:1px solid rgba(229,80,63,.6);color:#ffd9d1;box-shadow:0 2px 10px rgba(0,0,0,.4),inset 0 0 18px rgba(229,80,63,.12)}
-.err-bar .ub-ico{--sig:var(--sig-damned);width:28px;height:28px;border:0;box-shadow:none;background-color:#ff6a55;filter:drop-shadow(0 0 5px rgba(255,80,60,.75));animation:errsig 2.4s ease-in-out infinite}
-@keyframes errsig{50%{background-color:#ff8c78;filter:drop-shadow(0 0 10px rgba(255,80,60,1))}}
+.err-bar .ub-ico{--sig:var(--sig-damned);--gl-t:4s;--gl-x:5px;width:28px;height:28px;border:0;box-shadow:none;background:none;color:#ff6a55;filter:drop-shadow(0 0 5px rgba(255,80,60,.75));animation:errsig 2.4s ease-in-out infinite}
+@keyframes errsig{50%{color:#ff8c78;filter:drop-shadow(0 0 10px rgba(255,80,60,1))}}
 .err-bar .ub-it b{white-space:normal;color:#ffe3dc;font-weight:500}
 .eb-n{flex:none;font:500 12px var(--fb);color:#e39a8c;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
 .err-bar .x-btn{color:#e8a597}
@@ -1811,5 +1811,34 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .room .rjoin.robs-b.off:hover{color:var(--dim)}
 .hl-eye.off:hover,.hl-eye.off:focus-visible{color:var(--gd)}
 .rcount+.robs-b,.robs-b+.rjoin{margin-left:0}
-.hl-none{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:8px 2px;color:var(--mu);font-size:13px}
 @media (prefers-reduced-motion:reduce){.hdr-info.unread .dot,.room.hl-lit::after,.eb-tm,.err-bar .ub-ico{animation:none}}
+/* ================= 1.6.16 (owner 16.11.2026) ================= */
+/* interference on the sigils of the strips - the error's star of Chaos, the "launcher updated" aquila - as on the Replays' cog
+   (glSlice / glSweep above): a sigil is a mask, so the pieces are its children - .gl-s the slices (their red / teal fringe a
+   drop-shadow of .gl-s, outside the sigil's mask), .gl-b the bright band; the sigil itself flickers with them. --gl-t the period,
+   --gl-x the slices' shift (the strip's own rule) */
+.gli{position:relative;display:block;flex:none;--gl-t:5s;--gl-x:5px}
+.gli>.sig,.gli>.gl-s,.gli>.gl-s>.sig{position:absolute;inset:0;width:100%;height:100%}
+.gli>.gl-s{display:block;opacity:0;pointer-events:none;
+  filter:drop-shadow(calc(var(--gl-x) * -.45) 0 0 rgba(255,80,70,.75)) drop-shadow(calc(var(--gl-x) * .45) 0 0 rgba(69,224,192,.85));animation:glSlice var(--gl-t) steps(1,end) infinite}
+.gli>.gl-b{pointer-events:none;background:linear-gradient(transparent 0 42%,rgba(255,250,240,.95) 48%,rgba(255,250,240,.4) 52%,transparent 58% 100%) 0 100%/100% 300% no-repeat;animation:glSweep var(--gl-t) linear infinite}
+.gli>.sig:first-child{animation:glFlick var(--gl-t) steps(1,end) infinite}
+@keyframes glFlick{0%,88%{opacity:1}89%{opacity:.4}90%{opacity:1}92%{opacity:.5}94%{opacity:.9}96%,100%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.gli>.gl-s,.gli>.gl-b,.gli>.sig:first-child{animation:none}}
+/* Online's groups: the heading band over the whole width of the panel (the button kept its 100 % with the -14 px margins: it
+   ended 28 px short of the right edge) */
+.bandp .on-gh{width:calc(100% + 28px)}
+/* Home without open lobbies: a sigil of battle in the block's middle (one of five, hlobby.js) flickering with interference (.gli),
+   as the Replays' Mechanicus cog - no plate, no frame */
+.hl-list.empty{align-items:center;justify-content:center}
+.hl-none.rp-none{padding:24px 16px}
+.hl-battle{--gl-t:7s;--gl-x:7px;width:118px;height:104px;color:#8fd1c2;opacity:.5;filter:drop-shadow(0 0 12px rgba(69,224,192,.3))}
+/* the icons in the 40k style (app.js w40, sigils.css .s-<key>): masks coloured by color - sized where the line icons were */
+.sig.ico{display:inline-block;vertical-align:middle}
+.rnb>.ico.sig{width:20px;height:20px}
+.ch-tab>.sig{width:16px;height:16px}
+.ch-tab>.s-chat{width:40px;height:16px}   /* the Officio Prefectus' winged emblem: wide (3.2 : 1) */
+.ch-lbtn>.sig{width:19px;height:16px}
+.set-tab>.sig{width:19px;height:19px}
+.on-links .foot-link .sig{width:19px;height:19px}
+.lr-crown .ico.sig{width:15px;height:15px;position:relative;top:-2px}   /* the host's skull a little higher: level with the name's capitals */

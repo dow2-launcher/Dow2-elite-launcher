@@ -7,8 +7,8 @@
 // mmapHtml, lrAssets, lrCatalog, lrHeroName, segf, ico, toast).
 'use strict';
 Object.assign(T.en, {
-  replaysTab: 'Replays', rpMine: 'My replays', rpPool: 'All replays',
-  rpMineNote: 'The replays of the game on this computer (the Playback folder) and your replays on the server. Upload one to the server with one button - it shows in All replays, you are its author and can add a description.',
+  replaysTab: 'Replays', rpMine: 'Downloaded', rpPool: 'All replays',
+  rpMineNote: 'The replays on this computer - the game\'s Playback folder: the matches the game recorded and the ones downloaded here. Upload one to the server with one button - it shows in All replays, you are its author and can add a description.',
   rpPoolNote: 'Replays of all players: the ladder matches, the ones put in from the launcher and from the community Discord. Download puts the file into the game\'s replays.',
   rpSearch: 'Player, map, author, description', rpMode: 'Mode', rpAll: 'All', rpPlayers: 'Players', rpVersion: 'Version', rpRaces: 'Races',
   rpRacesTip: 'Only matches with every race picked here', rpMore: 'Show more', rpShown: '{from}–{to} of {total}', rpPrev: 'Previous page', rpNext: 'Next page', rpPageN: 'Page {n}', rpReload: 'Refresh', rpOpenDir: 'Open the folder',
@@ -31,8 +31,8 @@ Object.assign(T.en, {
   rpe_not_found: 'The replay is gone from the server.', rpe_no_dir: 'The game\'s replay folder was not found.', rpe_bad_id: 'Not a replay of the server.', rpe_sign_in: 'Sign in with Steam first.',
 });
 Object.assign(T.ru, {
-  replaysTab: 'Реплеи', rpMine: 'Мои реплеи', rpPool: 'Все реплеи',
-  rpMineNote: 'Реплеи игры на этом компьютере (папка Playback) и ваши реплеи на сервере. Любой можно одной кнопкой загрузить на сервер — он появится во «Всех реплеях», вы будете его автором и сможете добавить описание.',
+  replaysTab: 'Реплеи', rpMine: 'Скачанные', rpPool: 'Все реплеи',
+  rpMineNote: 'Реплеи на этом компьютере — папка Playback игры: записанные игрой матчи и скачанные сюда. Любой можно одной кнопкой загрузить на сервер — он появится во «Всех реплеях», вы будете его автором и сможете добавить описание.',
   rpPoolNote: 'Реплеи всех игроков: матчи ладдера, присланные из лаунчера и из Discord-сообществ. «Скачать» кладёт файл в реплеи игры.',
   rpSearch: 'Игрок, карта, автор, описание', rpMode: 'Режим', rpAll: 'Все', rpPlayers: 'Игроков', rpVersion: 'Версия', rpRaces: 'Расы',
   rpRacesTip: 'Только матчи, где есть все выбранные расы', rpMore: 'Показать ещё', rpShown: '{from}–{to} из {total}', rpPrev: 'Предыдущая страница', rpNext: 'Следующая страница', rpPageN: 'Страница {n}', rpReload: 'Обновить', rpOpenDir: 'Открыть папку',
@@ -55,8 +55,8 @@ Object.assign(T.ru, {
   rpe_not_found: 'Этого реплея больше нет на сервере.', rpe_no_dir: 'Папка реплеев игры не найдена.', rpe_bad_id: 'Это не реплей с сервера.', rpe_sign_in: 'Сначала войдите через Steam.',
 });
 Object.assign(T.es, {
-  replaysTab: 'Repeticiones', rpMine: 'Mis repeticiones', rpPool: 'Todas las repeticiones',
-  rpMineNote: 'Las repeticiones del juego en este equipo (la carpeta Playback) y tus repeticiones en el servidor. Cualquiera se sube al servidor con un botón: aparece en Todas las repeticiones, eres su autor y puedes añadir una descripción.',
+  replaysTab: 'Repeticiones', rpMine: 'Descargadas', rpPool: 'Todas las repeticiones',
+  rpMineNote: 'Las repeticiones de este equipo, la carpeta Playback del juego: las partidas que grabó el juego y las descargadas aquí. Cualquiera se sube al servidor con un botón: aparece en Todas las repeticiones, eres su autor y puedes añadir una descripción.',
   rpPoolNote: 'Repeticiones de todos los jugadores: partidas del ladder, las enviadas desde el launcher y desde el Discord de la comunidad. «Descargar» pone el archivo en las repeticiones del juego.',
   rpSearch: 'Jugador, mapa, autor, descripción', rpMode: 'Modo', rpAll: 'Todos', rpPlayers: 'Jugadores', rpVersion: 'Versión', rpRaces: 'Razas',
   rpRacesTip: 'Solo partidas con todas las razas elegidas', rpMore: 'Mostrar más', rpShown: '{from}–{to} de {total}', rpPrev: 'Página anterior', rpNext: 'Página siguiente', rpPageN: 'Página {n}', rpReload: 'Actualizar', rpOpenDir: 'Abrir la carpeta',
@@ -79,8 +79,8 @@ Object.assign(T.es, {
   rpe_not_found: 'La repetición ya no está en el servidor.', rpe_no_dir: 'No se encontró la carpeta de repeticiones del juego.', rpe_bad_id: 'No es una repetición del servidor.', rpe_sign_in: 'Primero inicia sesión con Steam.',
 });
 Object.assign(T.fr, {
-  replaysTab: 'Rediffusions', rpMine: 'Mes rediffusions', rpPool: 'Toutes les rediffusions',
-  rpMineNote: 'Les rediffusions du jeu sur cet ordinateur (le dossier Playback) et tes rediffusions sur le serveur. Un bouton en envoie une sur le serveur : elle apparaît dans Toutes les rediffusions, tu en es l\'auteur et tu peux ajouter une description.',
+  replaysTab: 'Rediffusions', rpMine: 'Téléchargées', rpPool: 'Toutes les rediffusions',
+  rpMineNote: 'Les rediffusions de cet ordinateur, le dossier Playback du jeu : les parties que le jeu a enregistrées et celles téléchargées ici. Un bouton en envoie une sur le serveur : elle apparaît dans Toutes les rediffusions, tu en es l\'auteur et tu peux ajouter une description.',
   rpPoolNote: 'Les rediffusions de tous les joueurs : parties du ladder, envois du launcher et du Discord de la communauté. « Télécharger » place le fichier dans les rediffusions du jeu.',
   rpSearch: 'Joueur, carte, auteur, description', rpMode: 'Mode', rpAll: 'Tous', rpPlayers: 'Joueurs', rpVersion: 'Version', rpRaces: 'Races',
   rpRacesTip: 'Seulement les parties avec toutes les races choisies', rpMore: 'Afficher plus', rpShown: '{from}–{to} sur {total}', rpPrev: 'Page précédente', rpNext: 'Page suivante', rpPageN: 'Page {n}', rpReload: 'Actualiser', rpOpenDir: 'Ouvrir le dossier',
@@ -103,8 +103,8 @@ Object.assign(T.fr, {
   rpe_not_found: 'La rediffusion n\'est plus sur le serveur.', rpe_no_dir: 'Le dossier des rediffusions du jeu est introuvable.', rpe_bad_id: 'Ce n\'est pas une rediffusion du serveur.', rpe_sign_in: 'Connectez-vous d\'abord avec Steam.',
 });
 Object.assign(T.de, {
-  replaysTab: 'Wiederholungen', rpMine: 'Meine Wiederholungen', rpPool: 'Alle Wiederholungen',
-  rpMineNote: 'Die Wiederholungen des Spiels auf diesem Rechner (Ordner Playback) und deine Wiederholungen auf dem Server. Jede lädt ein Klick auf den Server – sie erscheint unter Alle Wiederholungen, du stehst als Autor und kannst eine Beschreibung ergänzen.',
+  replaysTab: 'Wiederholungen', rpMine: 'Heruntergeladen', rpPool: 'Alle Wiederholungen',
+  rpMineNote: 'Die Wiederholungen auf diesem Rechner, der Ordner Playback des Spiels: die Spiele, die das Spiel aufgenommen hat, und die hier heruntergeladenen. Jede lädt ein Klick auf den Server – sie erscheint unter Alle Wiederholungen, du stehst als Autor und kannst eine Beschreibung ergänzen.',
   rpPoolNote: 'Wiederholungen aller Spieler: Ladder-Spiele, Einsendungen aus dem Launcher und aus dem Discord der Community. „Herunterladen“ legt die Datei zu den Wiederholungen des Spiels.',
   rpSearch: 'Spieler, Karte, Autor, Beschreibung', rpMode: 'Modus', rpAll: 'Alle', rpPlayers: 'Spieler', rpVersion: 'Version', rpRaces: 'Völker',
   rpRacesTip: 'Nur Spiele mit allen gewählten Völkern', rpMore: 'Mehr zeigen', rpShown: '{from}–{to} von {total}', rpPrev: 'Vorherige Seite', rpNext: 'Nächste Seite', rpPageN: 'Seite {n}', rpReload: 'Aktualisieren', rpOpenDir: 'Ordner öffnen',
@@ -130,20 +130,20 @@ Object.assign(T.de, {
 // 1.6.3 (owner 13.11.2026): the tab tidied - the filters over the list only, icons for the folder and Reload, the list as rows
 // with the map or as the Rooms tab's cards, Download / Downloaded instead of "Open in the pool", an empty pane while nothing is
 // chosen. The minutes are the Online list's onMin, today / yesterday the chat's chToday / chYesterday.
-Object.assign(T.en, { rpRemoteTip: 'Your replay on the server - it is not on this computer. Download it into the game\'s replays.', rpNothing: 'Nothing selected', rpNothingHint: 'Pick a replay in the list on the left.', rpHave: 'Downloaded',
-  rpHaveTip: 'Already in the game\'s replays: open it in the game, Replays menu.', rpReset: 'Reset', rpMy: 'mine', rpAllVer: 'All versions',
+Object.assign(T.en, { rpNothing: 'Nothing selected', rpNothingHint: 'Pick a replay in the list on the left.', rpHave: 'Downloaded',
+  rpHaveTip: 'Already in the game\'s replays: open it in the game, Replays menu.', rpReset: 'Reset filters', rpMy: 'mine', rpAllVer: 'All versions',
   rpLookList: 'List', rpLookCards: 'Cards', rpActions: 'Actions', rpInfo: 'About this list' });
-Object.assign(T.ru, { rpRemoteTip: 'Ваш реплей на сервере — на этом компьютере его нет. Скачайте его в реплеи игры.', rpNothing: 'Ничего не выбрано', rpNothingHint: 'Выберите реплей в списке слева.', rpHave: 'Скачан',
-  rpHaveTip: 'Уже в реплеях игры: откройте его в игре, меню «Повторы».', rpReset: 'Сбросить', rpMy: 'моё', rpAllVer: 'Все версии',
+Object.assign(T.ru, { rpNothing: 'Ничего не выбрано', rpNothingHint: 'Выберите реплей в списке слева.', rpHave: 'Скачан',
+  rpHaveTip: 'Уже в реплеях игры: откройте его в игре, меню «Повторы».', rpReset: 'Сбросить фильтры', rpMy: 'моё', rpAllVer: 'Все версии',
   rpLookList: 'Списком', rpLookCards: 'Карточками', rpActions: 'Действий', rpInfo: 'Об этом списке' });
-Object.assign(T.es, { rpRemoteTip: 'Tu repetición en el servidor: no está en este equipo. Descárgala en las repeticiones del juego.', rpNothing: 'Nada seleccionado', rpNothingHint: 'Elige una repetición en la lista de la izquierda.', rpHave: 'Descargada',
-  rpHaveTip: 'Ya está en las repeticiones del juego: ábrela en el juego, menú Repeticiones.', rpReset: 'Restablecer', rpMy: 'mía', rpAllVer: 'Todas las versiones',
+Object.assign(T.es, { rpNothing: 'Nada seleccionado', rpNothingHint: 'Elige una repetición en la lista de la izquierda.', rpHave: 'Descargada',
+  rpHaveTip: 'Ya está en las repeticiones del juego: ábrela en el juego, menú Repeticiones.', rpReset: 'Restablecer filtros', rpMy: 'mía', rpAllVer: 'Todas las versiones',
   rpLookList: 'Lista', rpLookCards: 'Tarjetas', rpActions: 'Acciones', rpInfo: 'Sobre esta lista' });
-Object.assign(T.fr, { rpRemoteTip: 'Ta rediffusion sur le serveur : elle n\'est pas sur cet ordinateur. Télécharge-la dans les rediffusions du jeu.', rpNothing: 'Rien de sélectionné', rpNothingHint: 'Choisis une rediffusion dans la liste à gauche.', rpHave: 'Téléchargée',
-  rpHaveTip: 'Déjà dans les rediffusions du jeu : ouvre-la dans le jeu, menu Rediffusions.', rpReset: 'Réinitialiser', rpMy: 'à moi', rpAllVer: 'Toutes les versions',
+Object.assign(T.fr, { rpNothing: 'Rien de sélectionné', rpNothingHint: 'Choisis une rediffusion dans la liste à gauche.', rpHave: 'Téléchargée',
+  rpHaveTip: 'Déjà dans les rediffusions du jeu : ouvre-la dans le jeu, menu Rediffusions.', rpReset: 'Réinitialiser les filtres', rpMy: 'à moi', rpAllVer: 'Toutes les versions',
   rpLookList: 'Liste', rpLookCards: 'Cartes', rpActions: 'Actions', rpInfo: 'À propos de cette liste' });
-Object.assign(T.de, { rpRemoteTip: 'Deine Wiederholung auf dem Server – nicht auf diesem Rechner. Lade sie in die Wiederholungen des Spiels.', rpNothing: 'Nichts ausgewählt', rpNothingHint: 'Wähle links in der Liste eine Wiederholung.', rpHave: 'Heruntergeladen',
-  rpHaveTip: 'Schon in den Wiederholungen des Spiels: im Spiel unter Wiederholungen öffnen.', rpReset: 'Zurücksetzen', rpMy: 'meine', rpAllVer: 'Alle Versionen',
+Object.assign(T.de, { rpNothing: 'Nichts ausgewählt', rpNothingHint: 'Wähle links in der Liste eine Wiederholung.', rpHave: 'Heruntergeladen',
+  rpHaveTip: 'Schon in den Wiederholungen des Spiels: im Spiel unter Wiederholungen öffnen.', rpReset: 'Filter zurücksetzen', rpMy: 'meine', rpAllVer: 'Alle Versionen',
   rpLookList: 'Liste', rpLookCards: 'Karten', rpActions: 'Aktionen', rpInfo: 'Über diese Liste' });
 Object.assign(ICO, {
   folder: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
@@ -154,15 +154,36 @@ Object.assign(ICO, {
   done: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
 });
 
+// 1.6.16 (owner 16.11.2026): "My replays" became Downloaded (the files of this computer: my replays on the server that are not here
+// went), the filter "My replays" on both tabs = the matches I played in (my Relic profile id: the server finds it by my SteamID,
+// replay/app.py "played" -> me_pid; the own files are filtered here by it), Delete - a red trash can by the replay's name, "Reset
+// filters", the replays' icons from the Mechanicus (as their empty pane's cog): Downloaded the Legio Cybernetica, All replays the Logis
+Object.assign(T.en, { rpOnlyMine: 'My replays', rpOnlyMineTip: 'Only the matches you played in (your Steam account)', rpOnlyMineIn: 'Sign in with Steam to see the matches you played in', rpNoPid: 'Your profile in the game is not known yet - play a match online and it shows up', rpMyTip: 'You uploaded this replay to the server',
+  rpDelete: 'Delete', rpDeleteTip: 'Delete the replay\'s file from this computer', rpDelAsk: 'Delete the replay?', rpDelText: 'The file {file} is deleted from the game\'s replays folder.',
+  rpDelSrv: 'Its copy on the server stays in All replays.', rpDeleted: 'Replay deleted: {file}' });
+Object.assign(T.ru, { rpOnlyMine: 'Мои реплеи', rpOnlyMineTip: 'Только матчи, где вы играли (по вашему Steam)', rpOnlyMineIn: 'Войдите через Steam, чтобы видеть матчи, где вы играли', rpNoPid: 'Ваш профиль в игре пока не найден — сыграйте матч по сети, и он появится', rpMyTip: 'Вы загрузили этот реплей на сервер',
+  rpDelete: 'Удалить', rpDeleteTip: 'Удалить файл реплея с этого компьютера', rpDelAsk: 'Удалить реплей?', rpDelText: 'Файл {file} будет удалён из папки реплеев игры.',
+  rpDelSrv: 'Его копия на сервере останется во «Всех реплеях».', rpDeleted: 'Реплей удалён: {file}' });
+Object.assign(T.es, { rpOnlyMine: 'Mis repeticiones', rpOnlyMineTip: 'Solo las partidas en las que jugaste (tu cuenta de Steam)', rpOnlyMineIn: 'Inicia sesión con Steam para ver las partidas en las que jugaste', rpNoPid: 'Tu perfil en el juego aún no se conoce: juega una partida en línea y aparecerá', rpMyTip: 'Subiste esta repetición al servidor',
+  rpDelete: 'Eliminar', rpDeleteTip: 'Eliminar el archivo de la repetición de este equipo', rpDelAsk: '¿Eliminar la repetición?', rpDelText: 'El archivo {file} se elimina de la carpeta de repeticiones del juego.',
+  rpDelSrv: 'Su copia en el servidor sigue en Todas las repeticiones.', rpDeleted: 'Repetición eliminada: {file}' });
+Object.assign(T.fr, { rpOnlyMine: 'Mes rediffusions', rpOnlyMineTip: 'Seulement les parties où tu as joué (ton compte Steam)', rpOnlyMineIn: 'Connecte-toi avec Steam pour voir les parties où tu as joué', rpNoPid: 'Ton profil dans le jeu n\'est pas encore connu : joue une partie en ligne et il apparaîtra', rpMyTip: 'Tu as envoyé cette rediffusion sur le serveur',
+  rpDelete: 'Supprimer', rpDeleteTip: 'Supprimer le fichier de la rediffusion de cet ordinateur', rpDelAsk: 'Supprimer la rediffusion ?', rpDelText: 'Le fichier {file} est supprimé du dossier des rediffusions du jeu.',
+  rpDelSrv: 'Sa copie sur le serveur reste dans Toutes les rediffusions.', rpDeleted: 'Rediffusion supprimée : {file}' });
+Object.assign(T.de, { rpOnlyMine: 'Meine Wiederholungen', rpOnlyMineTip: 'Nur die Spiele, in denen du gespielt hast (dein Steam-Konto)', rpOnlyMineIn: 'Melde dich mit Steam an, um die Spiele zu sehen, in denen du gespielt hast', rpNoPid: 'Dein Profil im Spiel ist noch nicht bekannt - spiel ein Online-Spiel, dann erscheint es', rpMyTip: 'Du hast diese Wiederholung auf den Server geladen',
+  rpDelete: 'Löschen', rpDeleteTip: 'Die Datei der Wiederholung von diesem Rechner löschen', rpDelAsk: 'Wiederholung löschen?', rpDelText: 'Die Datei {file} wird aus dem Wiederholungsordner des Spiels gelöscht.',
+  rpDelSrv: 'Seine Kopie auf dem Server bleibt unter Alle Wiederholungen.', rpDeleted: 'Wiederholung gelöscht: {file}' });
+
 // ---- state ----
 const RP = {
   view: 'mine', loaded: false,
-  mine: { items: [], dir: '', err: '', have: {}, sel: '', page: 0, pool: [] },   // pool: my replays on the server (1.6.3)
+  mine: { items: [], dir: '', err: '', have: {}, sel: '', page: 0 },
   pool: { items: [], total: 0, page: 0, err: '', sel: '', loading: false },
   det: null, versions: [], cat: null,
   got: new Set(),   // 1.6.3: pool replays downloaded here in this session (the own files are read again only on Mine)
   look: 'rows',     // 1.6.3: the list as rows with the map's picture, or as the Rooms tab's cards
-  f: { q: '', mode: 'all', players: 'all', version: 'all', races: [] },
+  f: { q: '', mode: 'all', players: 'all', version: 'all', races: [], played: false },   // played: "My replays" (1.6.16)
+  myPid: undefined,   // my Relic profile id (the server's me_pid; null: not known), for the own files
 };
 try { Object.assign(RP.f, JSON.parse(localStorage.getItem('replaysFilter') || '{}')); } catch (e) {}
 try { if (localStorage.getItem('replaysLook') === 'cards') RP.look = 'cards'; } catch (e) {}
@@ -172,6 +193,7 @@ if (!['all', '1v1', '2v2', '3v3'].includes(RP.f.mode)) RP.f.mode = 'all';
 RP.f.players = 'all';
 // 1.6.7 (owner 14.11.2026): no "Only mine" in All replays (my replays are in Mine) - a saved one is dropped, the list is not left filtered
 delete RP.f.onlyMine;
+RP.f.played = RP.f.played === true; delete RP.f.mine;
 const rpSaveF = () => { try { localStorage.setItem('replaysFilter', JSON.stringify(RP.f)); } catch (e) {} };
 const rpSigned = () => !!(CH.me && CH.me.signed_in);
 const rpErr = e => { const k = 'rpe_' + (e && typeof e === 'object' ? e.error : e); return T.en[k] ? t(k) : (typeof errText === 'function' ? errText(String(e && e.error || e)) : String(e)); };
@@ -224,30 +246,13 @@ async function rpLoadMine(quiet) {
   } catch (e) { RP.mine.err = String(e); RP.mine.items = []; }
   $('rpMineN').textContent = rpMineAll().length ? String(rpMineAll().length) : '';
   if (!quiet || RP.view === 'mine') rpRender();
+  if (RP.f.played) rpMyPid();
   const ids = RP.mine.items.map(x => x.id).filter(Boolean);
-  const have = ids.length ? invoke('replays_have', { ids }).then(h => { if (h && typeof h === 'object') { RP.mine.have = h; rpRender(); } }).catch(() => {}) : Promise.resolve();
-  have.then(rpLoadMyPool);
+  if (ids.length) invoke('replays_have', { ids }).then(h => { if (h && typeof h === 'object') { RP.mine.have = h; rpRender(); } }).catch(() => {});
 }
-// 1.6.3 (owner 13.11.2026): my replays on the server that are not on this computer (uploaded from another one, or deleted here)
-// are in Mine too, with Download - not to be searched for in the pool. Pages of 100 (the server's most), up to 500.
-async function rpLoadMyPool() {
-  if (!rpSigned()) { RP.mine.pool = []; return; }
-  const all = [];
-  for (let page = 0; page < 5; page++) {
-    let r; try { r = await invoke('replays_pool', { q: { mine: true, page, n: 100 } }); } catch (e) { break; }
-    const it = (r && r.items) || []; all.push(...it);
-    if (it.length < 100 || all.length >= (r.total || 0)) break;
-  }
-  RP.mine.pool = all;
-  $('rpMineN').textContent = rpMineAll().length ? String(rpMineAll().length) : '';
-  rpRender();
-}
-// Mine = the own files + my server replays not here (file "srv:<id>", remote), the newest first
-const rpRemote = () => (RP.mine.pool || []).filter(x => !rpGot(x.id)).map(x => Object.assign({}, x, { remote: true, file: 'srv:' + x.id, mtime: x.uploaded }));
-function rpMineAll() {
-  const r = rpRemote(); if (!r.length) return RP.mine.items;
-  return RP.mine.items.concat(r).sort((a, b) => (b.mtime || 0) - (a.mtime || 0));
-}
+// Downloaded = the files of this computer, the newest first (1.6.16: my replays on the server that are not here - the filter
+// "My replays" of All replays; 1.6.3-1.6.15 listed them here too)
+const rpMineAll = () => RP.mine.items;
 async function rpLoadPool(reset) {
   if (RP.pool.loading) return;
   RP.pool.loading = true;
@@ -255,12 +260,13 @@ async function rpLoadPool(reset) {
   $('rpList').innerHTML = `<div class="note">${esc(t('rpLoading'))}</div>`;
   const f = RP.f;
   const q = { q: f.q, mode: f.mode === 'all' ? '' : f.mode, players: '', version: f.version === 'all' ? '' : f.version,
-              race: f.races.join(','), page: RP.pool.page, n: RP_PAGE };
+              race: f.races.join(','), page: RP.pool.page, n: RP_PAGE, played: !!f.played && rpSigned() };
   try {
     const r = await invoke('replays_pool', { q });
     RP.pool.err = '';
     RP.pool.items = r.items || [];
     RP.pool.total = r.total || 0;
+    if (r && 'me_pid' in r) RP.myPid = r.me_pid;
   } catch (e) { RP.pool.err = String(e); if (reset) RP.pool.items = []; }
   RP.pool.loading = false;
   $('rpPoolN').textContent = RP.pool.total ? String(RP.pool.total) : '';
@@ -270,7 +276,7 @@ async function rpLoadPool(reset) {
 // ---- filters ----
 // 1.6.3 (owner 13.11.2026): the filters take less room and stand over the list only - the search and the version on one line,
 // the modes next to the races on the other; "Reset" while one is on
-const rpActive = () => { const f = RP.f; return !!(f.q.trim() || f.mode !== 'all' || f.version !== 'all' || f.races.length); };
+const rpActive = () => { const f = RP.f; return !!(f.q.trim() || f.mode !== 'all' || f.version !== 'all' || f.races.length || f.played); };
 function rpFilters() {
   const f = RP.f, box = $('rpFlt'); if (!box) return;
   const vers = RP.view === 'mine' ? [...new Set(rpMineAll().map(x => x.version || 'unknown'))] : RP.versions.map(v => v.version);
@@ -280,6 +286,8 @@ function rpFilters() {
     + '</div>'
     + `<div class="rp-f2">${segf('mode', [['all', t('rpAll')], ['1v1', '1v1'], ['2v2', '2v2'], ['3v3', '3v3']], f.mode)}`
     + `<span class="rp-races" role="group" aria-label="${esc(t('rpRaces'))}">${RP_RACES.map(r => `<button class="rp-race${f.races.includes(r) ? ' on' : ''}" data-race="${r}" aria-pressed="${f.races.includes(r)}" data-tip="${esc(t('race_' + r))}" aria-label="${esc(t('race_' + r))}">${raceImg(r).replace(/ title="[^"]*"/, '')}</button>`).join('')}</span>`
+    // 1.6.16 (owner 16.11.2026): "My replays" - the matches I played in, both tabs, signed in
+    + `<label class="chk rp-mine${rpSigned() ? '' : ' off'}" data-tip="${esc(t(rpSigned() ? 'rpOnlyMineTip' : 'rpOnlyMineIn'))}"><input type="checkbox" id="rpMineF"${f.played && rpSigned() ? ' checked' : ''}${rpSigned() ? '' : ' disabled'}><span>${esc(t('rpOnlyMine'))}</span></label>`
     + '</div>';
   $('rpReset').classList.toggle('hidden', !rpActive());   // 1.6.3: Reset in the header, by the (i) - the two lines of the filters stay as wide
   const changed = () => { rpSaveF(); rpFilters(); if (RP.view === 'pool') rpLoadPool(true); else { RP.mine.page = 0; rpRender(); } };
@@ -288,17 +296,26 @@ function rpFilters() {
     const r = b.dataset.race; f.races = f.races.includes(r) ? f.races.filter(x => x !== r) : f.races.concat(r); changed();
   });
   $('rpVer').onchange = e => { f.version = e.target.value; changed(); };
-  $('rpReset').onclick = () => { Object.assign(f, { q: '', mode: 'all', players: 'all', version: 'all', races: [] }); changed(); };
+  $('rpMineF').onchange = e => { f.played = e.target.checked; changed(); if (f.played && RP.view === 'mine') rpMyPid(); };
+  $('rpReset').onclick = () => { Object.assign(f, { q: '', mode: 'all', players: 'all', version: 'all', races: [], played: false }); changed(); };
   let qt = 0;
   $('rpQ').oninput = e => {          // typing: the list follows, the box itself is not redrawn (the cursor stays)
     f.q = e.target.value; $('rpReset').classList.toggle('hidden', !rpActive()); clearTimeout(qt);
     qt = setTimeout(() => { rpSaveF(); if (RP.view === 'pool') rpLoadPool(true); else { RP.mine.page = 0; rpRender(); } }, 350);
   };
 }
-// the own files are filtered here (the pool filters on the server)
+// my Relic profile id for the own files' "My replays": the server's answer to "played" (one item asked for)
+let rpPidAsk = null;
+function rpMyPid() {
+  if (RP.myPid !== undefined || !rpSigned() || rpPidAsk) return;
+  rpPidAsk = invoke('replays_pool', { q: { played: true, n: 1 } }).then(r => { if (r && 'me_pid' in r) { RP.myPid = r.me_pid; rpRender(); } })
+    .catch(() => {}).finally(() => { rpPidAsk = null; });
+}
+// the own files are filtered here (the pool filters on the server); "My replays": a player of the file has my profile id
 function rpMineFiltered() {
-  const f = RP.f, q = f.q.trim().toLowerCase();
+  const f = RP.f, q = f.q.trim().toLowerCase(), played = f.played && rpSigned();
   return rpMineAll().filter(x => {
+    if (played && !(x.players || []).some(p => RP.myPid && p.profile === RP.myPid)) return false;
     if (x.broken) return !q && f.mode === 'all' && f.version === 'all' && !f.races.length;
     const races = new Set((x.players || []).map(p => rpRace(p.race)));
     if (f.mode !== 'all' && x.mode !== f.mode) return false;
@@ -325,7 +342,7 @@ const rpDay = v => { const d = typeof v === 'number' ? new Date(v * 1000) : new 
 const rpGot = id => RP.got.has(id) || Object.values(RP.mine.have || {}).includes(id);
 // the action of a row / a card, on its right: Download or Downloaded (the pool); Send to the pool or "in the pool" (mine)
 function rpAct(x, kind) {
-  if (kind === 'pool' || x.remote) return rpGot(x.id)
+  if (kind === 'pool') return rpGot(x.id)
     ? `<span class="rp-got" data-tip="${esc(t('rpHaveTip'))}" role="img" aria-label="${esc(t('rpHave'))}">${ico('done')}</span>`
     : `<button class="rjoin go" data-dl="${esc(x.id)}" data-tip="${esc(t('rpDownload'))}" aria-label="${esc(t('rpDownload'))}">${ico('down')}</button>`;
   if (RP.mine.have[x.id]) return `<span class="tag rp-in" data-tip="${esc(t('rpInPoolTip'))}">${esc(t('rpInPool'))}</span>`;
@@ -342,8 +359,7 @@ function rpRow(x, kind) {
   if (x.broken) return `<div class="rp-row broken${sel ? ' on' : ''}" ${a}><span class="mmap"><i class="mm"></i></span><div class="rp-mid"><div class="rp-r1"><b>${esc(x.file)}</b></div><div class="rp-r2 note">${esc(t('rpBroken'))}</div></div></div>`;
   const when = rpWhen(kind === 'mine' ? x.mtime : x.uploaded) + (kind === 'pool' && x.author ? ' · ' + x.author : '');
   const tags = `<span class="tag">${esc(x.mode || '?')}</span><span class="tag rp-v">${esc(rpVer(x.version))}</span>`
-    + (kind === 'pool' && x.mine ? `<span class="tag rp-my">${esc(t('rpMy'))}</span>` : '')
-    + (x.remote ? `<span class="tag rp-in" data-tip="${esc(t('rpRemoteTip'))}">${esc(t('rpInPool'))}</span>` : '')
+    + (kind === 'pool' && x.mine ? `<span class="tag rp-my" data-tip="${esc(t('rpMyTip'))}">${esc(t('rpMy'))}</span>` : '')
     + (x.sim ? `<span class="tag rp-sim" data-tip="${esc(t('rpSimTip'))}">${RP_SIM_ICO}</span>` : '')
     + (x.views ? `<span class="rp-views" data-tip="${esc(t('rpViewsTip'))}">${RP_EYE}${esc(String(x.views))}</span>` : '');
   if (RP.look === 'cards') {   // the Rooms tab's card: the map on the left, the teams, the foot with the action
@@ -352,7 +368,7 @@ function rpRow(x, kind) {
     return `<div class="room rp-card${sel ? ' on' : ''}" ${a}>${rpMapImg(x.map)}<div class="rb">`
       + `<div class="rh"><span class="rn">${esc(rpMin(x.duration))} · ${esc(rpWhen(kind === 'mine' ? x.mtime : x.uploaded))}</span>${tags}</div>`
       + `<div class="teams">${teams}</div>`
-      + `<div class="rfoot2"><span class="rhost">${esc(kind === 'pool' || x.remote ? [x.author, x.descr].filter(Boolean).join(' · ') : x.file)}</span>${rpAct(x, kind)}</div></div></div>`;
+      + `<div class="rfoot2"><span class="rhost">${esc(kind === 'pool' ? [x.author, x.descr].filter(Boolean).join(' · ') : x.file)}</span>${rpAct(x, kind)}</div></div></div>`;
   }
   const teams = rpTeams(x.players).map(tm => `<span class="rp-tm">${tm.map(p => `<span class="rp-p">${raceImg(rpRace(p.race))}<span class="nm">${esc(p.name || '?')}</span></span>`).join('')}</span>`).join('<i class="rp-vs">vs</i>');
   return `<div class="rp-row${sel ? ' on' : ''}" ${a}>${rpMapImg(x.map)}<div class="rp-mid">`
@@ -382,14 +398,14 @@ function rpRender() {
     html = RP.mine.err === 'no_dir' ? `<div class="note">${esc(t('rpNoDir'))}</div>`
       : RP.mine.err ? `<div class="note">${esc(rpErr(RP.mine.err))}</div>`
       : items.length ? items.slice(RP.mine.page * RP_PAGE, (RP.mine.page + 1) * RP_PAGE).map(x => rpRow(x, 'mine')).join('')
-      : `<div class="note">${esc(t(rpMineAll().length ? 'rpNoneFilter' : 'rpNone'))}</div>`;
+      : `<div class="note">${esc(RP.f.played && rpSigned() && RP.myPid === null ? t('rpNoPid') : t(rpMineAll().length ? 'rpNoneFilter' : 'rpNone'))}</div>`;
     if (RP.mine.page * RP_PAGE >= items.length && RP.mine.page) { RP.mine.page = 0; return rpRender(); }
   } else {
     items = RP.pool.items;
     $('rpCount').textContent = RP.pool.total ? String(RP.pool.total) : '';
     html = RP.pool.err && !items.length ? `<div class="note">${esc(t('rpPoolErr'))}</div>`
       : items.length ? items.map(x => rpRow(x, 'pool')).join('')
-      : `<div class="note">${esc(t(rpActive() ? 'rpNoneFilter' : 'rpNone'))}</div>`;
+      : `<div class="note">${esc(RP.f.played && rpSigned() && RP.myPid === null ? t('rpNoPid') : t(rpActive() ? 'rpNoneFilter' : 'rpNone'))}</div>`;
   }
   const top = list.scrollTop;
   list.classList.toggle('cards', RP.look === 'cards');
@@ -435,7 +451,7 @@ function rpSelect(id) {
   RP.det = null;
   rpRender();
   const it = RP.view === 'mine' ? rpMineAll().find(x => x.file === id) || {} : null;
-  const pid = it ? (it.remote ? it.id : RP.mine.have[it.id]) : id;
+  const pid = it ? RP.mine.have[it.id] : id;
   if (pid) invoke('replay_info', { id: pid }).then(r => { if (r && r.meta) { RP.det = Object.assign(r, { pid }); rpDetail(); } }).catch(() => {});
 }
 
@@ -475,9 +491,12 @@ function rpDetail() {
   // 1.6.3 (owner 13.11.2026): nothing chosen - the game's striped plate with the Mechanicus' cog in the middle
   box.classList.toggle('empty', !x);
   if (!x) { box.innerHTML = `<div class="rp-none"><i class="rp-mech" aria-hidden="true"></i><b>${esc(t('rpNothing'))}</b><span>${esc(t('rpNothingHint'))}</span></div>`; return; }
-  if (x.broken) { box.innerHTML = `<div class="rp-dh"><b>${esc(x.file)}</b></div><div class="note">${esc(t('rpBroken'))}</div>`; return; }
-  const pid = mine && !x.remote ? RP.mine.have[x.id] : x.id;
-  const meta = RP.det && RP.det.pid === pid ? RP.det.meta : (mine && !x.remote ? null : x);
+  // 1.6.16 (owner 16.11.2026): Delete - a red icon by the name of a downloaded replay (a file that is no replay too)
+  const del = mine ? `<button class="rp-delb" id="rpDel" data-tip="${esc(t('rpDeleteTip'))}" aria-label="${esc(t('rpDelete'))}">${ico('purge')}</button>` : '';
+  if (x.broken) { box.innerHTML = `<div class="rp-dh"><div class="rp-dt"><b>${esc(x.file)}</b>${del}</div></div><div class="note">${esc(t('rpBroken'))}</div>`;
+    $('rpDel').onclick = () => rpDelete(x); return; }
+  const pid = mine ? RP.mine.have[x.id] : x.id;
+  const meta = RP.det && RP.det.pid === pid ? RP.det.meta : (mine ? null : x);
   const kv = (k, v) => v ? `<div class="rp-kv"><span>${esc(t(k))}</span><b>${esc(v)}</b></div>` : '';
   const teams = rpTeams(x.players).map((tm, i) => `<div class="rp-team"><h4>${esc(t('rpTeam', { n: i + 1 }))}</h4>${tm.map(p => {
     const hero = rpHero(p.race, p.hero);
@@ -502,24 +521,21 @@ function rpDetail() {
   const MAP = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>';
   const ab = (id, icon, label, tip, off) => `<button class="btn small rp-ab${off ? ' done' : ''}"${id ? ` id="${id}"` : ''}${tip ? ` data-tip="${esc(tip)}"` : ''}${off ? ' disabled' : ''}>${icon}<span>${esc(label)}</span></button>`;
   let acts = ab('rpPlayB', PLAY, t('rpPlay'), t('rpPlayTip2')), mark = '';
-  if (x.remote) {
-    mark = `<span class="tag rp-in" data-tip="${esc(t('rpRemoteTip'))}">${esc(t('rpInPool'))}</span>`;
-    acts += rpGot(x.id) ? ab('', ico('done'), t('rpHave'), t('rpHaveTip'), true) : ab('rpDl', ico('down'), t('rpDownload'));
-  } else if (mine) {
+  if (mine) {
     if (pid) mark = `<span class="tag rp-in" data-tip="${esc(t('rpInPoolTip'))}">${esc(t('rpInPool'))}</span>`;
     else acts += rpSigned() ? ab('rpUp', ico('upload'), t('rpUpload')) : ab('rpLogin', ico('upload'), t('rpSignInBtn'), t('rpSignIn'));
   } else acts += rpGot(x.id) ? ab('', ico('done'), t('rpHave'), t('rpHaveTip'), true) : ab('rpDl', ico('down'), t('rpDownload'));
   // 1.6.4: the site's match player - every squad second by second from the game's own simulation; 1.6.6: not run yet - the site
   // puts it in the runner's queue (#sim) and shows the match when it is ready
-  const sim = !!pid && !!((RP.det && RP.det.pid === pid && RP.det.meta && RP.det.meta.sim) || ((!mine || x.remote) && x.sim));
+  const sim = !!pid && !!((RP.det && RP.det.pid === pid && RP.det.meta && RP.det.meta.sim) || (!mine && x.sim));
   if (sim) acts += ab('rpSim', MAP, t('rpOnMap'), t('rpWatchTip'));
-  else if (pid && ((RP.det && RP.det.pid === pid && RP.det.meta && RP.det.meta.sim_ok) || ((!mine || x.remote) && x.sim_ok))) acts += ab('rpSim', MAP, t('rpOnMap'), t('rpDeepTip'));
+  else if (pid && ((RP.det && RP.det.pid === pid && RP.det.meta && RP.det.meta.sim_ok) || (!mine && x.sim_ok))) acts += ab('rpSim', MAP, t('rpOnMap'), t('rpDeepTip'));
   const rep = RP.det && RP.det.pid === pid ? (lang === 'ru' ? RP.det.report : RP.det.report_en) || '' : '';
   const cap = RP.det && RP.det.pid === pid ? (lang === 'ru' ? RP.det.caption : RP.det.caption_en) || '' : (x.caption || '');
   // the summary right under the map's name; the report a disclosure at the bottom - a band as the Add-ons' group headings
-  box.innerHTML = `<div class="rp-dtop">${rpMapImg(x.map)}<div class="rp-dh"><b>${esc(rpMapName(x.map))}</b>${cap ? `<div class="rp-sub">${esc(cap)}</div>` : ''}`
+  box.innerHTML = `<div class="rp-dtop">${rpMapImg(x.map)}<div class="rp-dh"><div class="rp-dt"><b>${esc(rpMapName(x.map))}</b>${del}</div>${cap ? `<div class="rp-sub">${esc(cap)}</div>` : ''}`
     + `<div class="rp-tags"><span class="tag">${esc(x.mode || '?')}</span><span class="tag rp-v">${esc(rpVer(x.version))}</span>${mark}</div>`
-    + `<div class="rp-kvs">${kv('rpLen', rpMin(x.duration))}${kv('rpRecorded', rpDay(x.recorded))}${mine && !x.remote ? kv('rpActions', x.actions ? String(x.actions) : '') : ''}</div></div></div>`
+    + `<div class="rp-kvs">${kv('rpLen', rpMin(x.duration))}${kv('rpRecorded', rpDay(x.recorded))}${mine ? kv('rpActions', x.actions ? String(x.actions) : '') : ''}</div></div></div>`
     + `<div class="rp-acts">${acts}</div>`
     + `<div class="rp-teams">${teams}</div>${obs}${pool}`
     + (pid ? (rep ? `<div class="rp-sec rp-repsec"><button class="rp-band" id="rpRepT" aria-expanded="false"><span>${esc(t('rpReport'))}</span><small>${esc(t('rpReportSub'))}</small><b class="chev"></b></button><div class="rp-rep hidden" id="rpRep">${rpMd(rep)}</div></div>`
@@ -528,6 +544,7 @@ function rpDetail() {
   on('rpUp', () => rpUpload(x));
   on('rpLogin', () => { if (typeof chLogin === 'function') chLogin(); });
   on('rpDl', () => rpDownload(x));
+  on('rpDel', () => rpDelete(x));
   on('rpPlayB', () => rpPlay(x, mine ? 'mine' : 'pool'));
   on('rpSrc', () => invoke('open_url', { url: meta.src_link }).catch(() => {}));
   on('rpSim', () => invoke('open_url', { url: `https://rts.fintebtc.de/replay/r/${pid}?lang=${lang === 'ru' ? 'ru' : 'en'}#sim` }).catch(() => {}));
@@ -577,6 +594,23 @@ async function rpDownload(x, btn) {
   rpRender();
 }
 
+// 1.6.16 (owner 16.11.2026): delete a downloaded replay - asked first (Delete on the left, Cancel on the right); the server's copy stays
+async function rpDelete(x) {
+  const pid = RP.mine.have[x.id];
+  const ok = await askBox(t('rpDelAsk'), [t('rpDelText', { file: x.file }), pid ? t('rpDelSrv') : ''],
+    [{ label: t('rpDelete'), cls: 'red', val: 1 }, { label: t('rpCancel'), val: 0 }]);
+  if (!ok) return;
+  try {
+    const r = await invoke('replay_delete', { file: x.file });
+    if (!r || !r.ok) { toast(rpErr(r), true); if (r && r.error === 'no_file') rpLoadMine(true); return; }
+    RP.mine.items = RP.mine.items.filter(i => i.file !== x.file);
+    if (RP.mine.sel === x.file) { RP.mine.sel = ''; RP.det = null; }
+    $('rpMineN').textContent = RP.mine.items.length ? String(RP.mine.items.length) : '';
+    toast(t('rpDeleted', { file: x.file }));
+    rpFilters(); rpRender();
+  } catch (e) { toast(String(e), true); }
+}
+
 // 1.6.13 (siritos fb 1210): Watch - the game opens the replay (the add-on ReplayOpen, replayopen.rs): a replay of the pool or
 // one of mine only on the server is downloaded into Playback first; the game not running - the launcher starts it (the add-ons
 // brought first) and sends the replay once its pipe is there. A vanilla replay opens in vanilla (ReplayOpen 1: Elite only - the
@@ -590,7 +624,7 @@ async function rpPlay(x, kind) {
   if (!await naNeed('replayopen', 'na_replayopen', game, () => rpPlay(x, kind))) return;
   const b = $('rpPlayB'); if (b) { b.disabled = true; setTimeout(() => { if (b.isConnected) b.disabled = false; }, 2500); }
   try {
-    let file = kind === 'mine' && !x.remote ? x.file : '';
+    let file = kind === 'mine' ? x.file : '';
     if (!file) {                                                    // the pool's: into Playback first (the same file is not written twice)
       toast(t('rpDownloading'));
       const r = await invoke('replay_download', { id: x.id, name: x.name || `${x.map}_${x.id}` });
@@ -633,6 +667,7 @@ function rpShowView(v, sel) {
   document.querySelectorAll('#rpNav .rnb').forEach(b => b.classList.toggle('on', b.dataset.rp === v));
   if (sel) RP.pool.sel = sel;
   rpFilters();
+  if (v === 'mine' && RP.f.played) rpMyPid();
   if (v === 'mine' && !RP.mine.items.length) rpLoadMine();
   else if (v === 'pool' && !RP.pool.items.length) rpLoadPool(true).then(() => { if (sel) rpSelect(sel); });
   else { rpRender(); if (sel) rpSelect(sel); }

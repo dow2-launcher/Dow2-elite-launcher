@@ -37,7 +37,7 @@ PH = re.compile(r"\{(\w+)\}")
 NATIVE_NAMES = {"Русский"}
 # texts that are the same as the English ones on purpose (names, the players' terms)
 SAME_AS_EN = {"win_vpc_hero", "race_ordo_malleus", "race_space_marines", "vanillaName", "netTry", "gnStreamOk", "gnTcpOk",
-              "ntTcpOk", "addonChgVer", "gnUdpMs", "uiScale", "playCd"}
+              "ntTcpOk", "addonChgVer", "gnUdpMs", "uiScale", "playCd", "lnkDiscord"}
 # the codes our servers send that the page shows by a key (prefix + code); keep in step with the ladder (lroom.py)
 SERVER_CODES = {
     "e_": ["auth", "bad", "bad_map", "busy", "full", "kicked", "no_room", "not_ready", "obs", "obs_full", "owner", "state", "taken",

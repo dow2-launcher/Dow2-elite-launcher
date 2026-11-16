@@ -1,0 +1,5 @@
+- The icons in the Warhammer 40k style: the lobbies and the players' chat, the running matches, the host, a seat, invite, the replays (from the Mechanicus), the settings' tabs, the stats and the ladder; the strips of an error and of "launcher updated" flicker with interference. Join, the observer's eye, the bell of a call and the connection bars in the header stay as they were.
+- Home: no open lobby - a sigil of battle with interference in the middle (one of five, no Create button). Online: the groups' headings over the whole width; the Discord icon leads to the DoW2 Discord, the Elite Discord is the E.
+- A failed join of a lobby is a red strip on top like every error (not a window and a line over the list).
+- Replays: My replays became Downloaded (the files of this computer), Delete is a red trash can by the replay's name; the filter "My replays" on both tabs shows the matches you played in; "Reset filters"; the list's (i) as the version's.
+- Settings, Hall of Fame: one scroll - the list's own (the tab scrolled too, and the link to the site was below the window).

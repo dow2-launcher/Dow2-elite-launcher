@@ -63,6 +63,8 @@ $('updDoneX').onclick = () => $('updDone').classList.add('hidden');
 $('updDoneMore').onclick = e => { e.stopPropagation(); $('updDone').classList.add('hidden'); newsShow(true); };
 
 // ---------- errors: red strips on top ----------
+// 1.6.16 (owner 16.11.2026): the sigil with interference (style.css .gli) - the same pieces as the "launcher updated" aquila's
+const GLI = '<i class="sig"></i><b class="gl-s"><i class="sig"></i></b><i class="sig gl-b"></i>';
 const ERR_X = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 function errBar(msg) {
   const box = $('errBars'); if (!box) return;
@@ -70,7 +72,7 @@ function errBar(msg) {
   [...box.children].forEach(b => { if (b.dataset.msg === text) b.remove(); });   // the same error again: one strip, its timer anew
   const el = document.createElement('div');
   el.className = 'ubar err-bar'; el.setAttribute('role', 'alert'); el.dataset.msg = text;
-  el.innerHTML = `<i class="ub-ico sig" aria-hidden="true"></i><div class="ub-items"><div class="ub-it"><b>${esc(text)}</b></div></div><span class="eb-n"></span>`
+  el.innerHTML = `<i class="ub-ico gli" aria-hidden="true">${GLI}</i><div class="ub-items"><div class="ub-it"><b>${esc(text)}</b></div></div><span class="eb-n"></span>`
     + `<span class="bn-act"><button class="btn small ghost eb-logs">${esc(t('sendLogs'))}</button><button class="x-btn eb-x" title="${esc(t('closeX'))}" aria-label="${esc(t('closeX'))}">${ERR_X}</button></span><i class="eb-tm" aria-hidden="true"></i>`;
   box.prepend(el);
   while (box.children.length > 3) box.lastElementChild.remove();
