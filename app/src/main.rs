@@ -39,19 +39,9 @@ mod feedback;
 mod community;
 mod stream;
 mod feeds;
-pub(crate) use netcheck::*;
-pub(crate) use prefs::*;
-pub(crate) use gameproc::*;
-pub(crate) use selfupdate::*;
-pub(crate) use addons::*;
-pub(crate) use vanilla::*;
-pub(crate) use install::*;
-pub(crate) use logs::*;
-pub(crate) use launch::*;
-pub(crate) use feedback::*;
-pub(crate) use community::*;
-pub(crate) use stream::*;
-pub(crate) use feeds::*;
+// every module's items reachable crate-wide (crate::X), as when they were all in this file; some are used on one OS only
+#[allow(unused_imports)]
+pub(crate) use self::{netcheck::*, prefs::*, gameproc::*, selfupdate::*, addons::*, vanilla::*, install::*, logs::*, launch::*, feedback::*, community::*, stream::*, feeds::*};
 
 use elite_core::config::{version_newer, LauncherConfig};
 use elite_core::{elite, game, net::Mirrors, update, LAUNCHER_VERSION};

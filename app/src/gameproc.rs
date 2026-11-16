@@ -6,7 +6,7 @@ use super::*;
 /// 1.3.12: the process list is read here (Toolhelp snapshot). Before, a tasklist.exe was started every 3 s: a new process
 /// each time, checked by the antivirus - players noticed the game stutter with the launcher open (01.11.2026).
 #[cfg(windows)]
-mod procs {
+pub(crate) mod procs {   // logs.rs reads the OEM code page of Windows' tools with procs::oem_text
     #[repr(C)]
     pub struct Entry { pub size: u32, pub usage: u32, pub pid: u32, pub heap: usize, pub module: u32, pub threads: u32,
                        pub parent: u32, pub prio: i32, pub flags: u32, pub exe: [u16; 260] }
