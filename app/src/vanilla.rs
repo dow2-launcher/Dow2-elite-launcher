@@ -12,14 +12,19 @@ use super::*;
 // decides by the command line (a mod start loads only Elite_DLLs' early add-ons, like Automatch's), so a game started past
 // the launcher never loads the vanilla copies into Elite.
 
-/// Is the vanilla game offered: the catalog names its loader; not on macOS (the native game loads no Windows DLLs).
+/// Is the vanilla game offered: the catalog names its loader. macOS (Feral's native game): always - no loader there, the Mac
+/// add-ons are dylibs (crossplay_fix) the launcher hands to the game itself.
 pub(crate) fn vanilla_offered(cfg: &LauncherConfig) -> bool {
-    // macOS: no loader there (the Mac add-ons are dylibs, crossplay_fix loads in both games) - the catalog's vanilla entry is enough
-    if os_name() == "macos" { cfg.vanilla.is_some() } else { cfg.vanilla_loader().is_some() }
+    os_name() == "macos" || cfg.vanilla_loader().is_some()
 }
-/// Does Play start the vanilla game?
+/// Does Play start the vanilla game? macOS (owner 16.11.2026): the native vanilla game is the only one there - Elite's
+/// Windows DLLs do not load in Feral's game, so the Mac plays vanilla with the Windows players through crossplay_fix.
 pub(crate) fn vanilla_on(cfg: &LauncherConfig, s: &Settings) -> bool {
-    s.game_mode == "vanilla" && vanilla_offered(cfg)
+    mac_vanilla_only(os_name()) || (s.game_mode == "vanilla" && vanilla_offered(cfg))
+}
+/// The systems where vanilla is the only game the launcher starts (no Elite versions offered).
+pub(crate) fn mac_vanilla_only(os: &str) -> bool {
+    os == "macos"
 }
 
 /// The files the launcher put into dow2-patches for the vanilla game and nobody changed since (lower case game folder paths).
@@ -148,7 +153,8 @@ pub(crate) fn sync_vanilla(dir: &std::path::Path, cfg: &LauncherConfig, s: &Sett
 /// Does the game folder differ from what the chosen game wants (Play syncs first then)? Vanilla: the loader or a vanilla copy
 /// missing, old or extra. Elite: the vanilla loader still next to DOW2.exe.
 pub(crate) fn mode_sync_needed(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> bool {
-    if os_name() == "macos" { return false; }   // the same files for both games there; the start picks the dylibs
+    // macOS: no game files to bring; only the Mac add-ons (crossplay_fix) - installed and up to date before Play
+    if os_name() == "macos" { return mac_addons_sync_needed(&mac_addons_root(), cfg, s); }
     let l = update::Game::vanilla_loader(dir);
     let Some(game) = copies_game(dir, cfg, s) else { return l.file_is_installed("winmm.dll") };   // 1.6.5: or a mod version's
     if cfg.vanilla_loader() != Some(l.load_state().version.as_str()) || !l.file_is_installed("winmm.dll") { return true; }
@@ -225,7 +231,10 @@ mod vanilla_tests {
         let old = macos::addon_dir(&addons, "gone_mac");
         let om = man(&old, "gone-1", &[("Gone.dylib", b"g")]);
         update::apply(&update::Game::component(&old, "gone_mac"), &m, &om, &update::Options { verify_all: false, cache_limit: 1 << 30, channel: "x".into() }, &mut nop).unwrap();
+        // 16.11.2026: nothing installed yet - Play syncs first (1.6.17 never did in vanilla, the Mac got no crossplay_fix)
+        assert!(mac_addons_sync_needed(&addons, &cfg, &s));
         sync_mac_addons(&addons, &cfg, &s, &m, &mut nop, &load, false).unwrap();
+        assert!(!mac_addons_sync_needed(&addons, &cfg, &s));
         let cp = macos::addon_dir(&addons, "crossplay_mac").join("crossplay_fix.dylib");
         assert!(cp.is_file() && macos::addon_dir(&addons, "chat_mac").join("ChatHide.dylib").is_file() && !old.join("Gone.dylib").exists());
         assert_eq!(mac_on_ids(&cfg, &s, false), ["crossplay_mac", "chat_mac"]);
@@ -233,10 +242,20 @@ mod vanilla_tests {
         assert_eq!(macos::dylibs_of(&addons, &mac_on_ids(&cfg, &s, true)), std::slice::from_ref(&cp));
         // the signature changed the file: the next sync puts the published one back from the cache (and signs it again)
         std::fs::write(&cp, b"cp signed").unwrap();
+        assert!(!mac_addons_sync_needed(&addons, &cfg, &s), "a signed dylib is not a reason to sync before every Play");
         sync_mac_addons(&addons, &cfg, &s, &m, &mut nop, &load, false).unwrap();
         assert_eq!(std::fs::read(&cp).unwrap(), b"cp");
-        s.components.insert("chat_mac".into(), false);
+        std::fs::remove_file(&cp).unwrap();
+        assert!(mac_addons_sync_needed(&addons, &cfg, &s), "crossplay_fix gone");
         sync_mac_addons(&addons, &cfg, &s, &m, &mut nop, &load, false).unwrap();
+        assert!(cp.is_file());
+        s.components.insert("chat_mac".into(), false);
+        assert!(mac_addons_sync_needed(&addons, &cfg, &s), "an add-on unticked is still installed");
+        sync_mac_addons(&addons, &cfg, &s, &m, &mut nop, &load, false).unwrap();
+        assert!(!mac_addons_sync_needed(&addons, &cfg, &s));
+        let mut cfg2 = cfg.clone();
+        cfg2.components[0].version = "crossplay_mac-27".into();
+        assert!(mac_addons_sync_needed(&addons, &cfg2, &s), "a newer crossplay_fix in the catalog");
         assert!(!macos::addon_dir(&addons, "chat_mac").join("ChatHide.dylib").exists() && cp.is_file());
         assert!(cfg.components.iter().all(|c| c.id != "automatch"), "Windows/Linux add-ons are not offered on a Mac");
         let _ = std::fs::remove_dir_all(&root);

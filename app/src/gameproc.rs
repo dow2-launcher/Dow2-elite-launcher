@@ -62,6 +62,18 @@ pub(crate) fn is_game_running() -> bool {
     }
 }
 
+/// macOS: is the Steam client running (steam_osx, started by Steam.app)? The game signs in through it. Elsewhere: false (not
+/// asked there).
+pub(crate) fn steam_running() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        let pg = |a: &[&str]| std::process::Command::new("pgrep").args(a).output().map(|o| o.status.success()).unwrap_or(false);
+        pg(&["-x", elite_core::macos::STEAM_PROCESS]) || pg(&["-f", "Steam.AppBundle/Steam/Contents/MacOS/"])
+    }
+    #[cfg(not(target_os = "macos"))]
+    { false }
+}
+
 pub(crate) fn ensure_game_closed(app: &App) -> Result<(), String> {
     if app.game_running.load(Ordering::Relaxed) {
         return Err("the game is running: close it to change add-ons or update".into());
