@@ -666,7 +666,10 @@ function render() {
     setup.classList.add('hidden');
   } else if (!S.game_found) {
     const g = cfg.game || {};
-    setup.innerHTML = `<div class="setup-h"><h2>${esc(t('noGame'))}</h2><button class="btn small ghost" id="setupHide">${esc(t('setupHide'))}</button></div><p>${esc(L(g.requirements) || t('noGameText'))}</p><div class="row">
+    // 16.11.2026, macOS: the native game (Feral) is what the launcher starts there - not the catalog's "the macOS port is not
+    // supported" - and a line of what it found of Steam and the game
+    const req = S.os === 'macos' ? t('macNoGameText') : (L(g.requirements) || t('noGameText'));
+    setup.innerHTML = `<div class="setup-h"><h2>${esc(t('noGame'))}</h2><button class="btn small ghost" id="setupHide">${esc(t('setupHide'))}</button></div><p>${esc(req)}</p>${S.os === 'macos' ? `<p>${esc(macFound())}</p>` : ''}<div class="row">
       ${S.steam_found ? '' : `<button class="btn red" id="getSteam">${esc(t('getSteam'))}</button>`}
       <button class="btn gold" id="getGame">${esc(t('getGame'))}</button>
       <button class="btn" id="pick">${esc(t('browse'))}</button><button class="btn ghost" id="rescan">${esc(t('rescan'))}</button></div>`;
@@ -678,7 +681,8 @@ function render() {
   } else setup.classList.add('hidden');
 
   // versions: a picker next to Play at the bottom; the main one marked, the installed one ticked, any other one switches in one click
-  const chans = cfg.channels || [];
+  // 16.11.2026: macOS - only the native vanilla game (Elite's Windows DLLs do not load in Feral's game), no Elite versions
+  const chans = S.os === 'macos' ? [] : (cfg.channels || []);
   const activeCh = chans.find(c => c.version === S.installed_version && c.id === S.installed_channel) || chans.find(c => c.version === S.installed_version);
   const mainCh = chans.find(c => c.id === S.main_channel);
   const locked = S.busy || S.game_running || !S.game_found || !S.config_loaded;
@@ -740,7 +744,7 @@ function render() {
 
   // a newer version of the installed one: offered at the bottom of the home screen's right column, never forced
   const target = channelOf(S.installed_channel) || channelOf(S.channel);
-  const showUpd = !!(S.game_found && target && S.installed_version && target.version !== S.installed_version && !S.busy && !S.game_running && !S.last_error);
+  const showUpd = !!(S.os !== 'macos' && S.game_found && target && S.installed_version && target.version !== S.installed_version && !S.busy && !S.game_running && !S.last_error);
   if (showUpd) {
     const cost = (S.costs || {})[target.version];
     UPD.elite = { b: (L(cfg.update_text) || t('switchTo', { name: '{name}' })).replace('{name}', L(target.name)).replace('{version}', target.version),
@@ -767,6 +771,8 @@ function render() {
 
   // settings
   $('gameDir').textContent = winPath(S.game_dir) || '—';
+  $('macFound').classList.toggle('hidden', S.os !== 'macos');
+  if (S.os === 'macos') $('macFound').textContent = macFound();
   $('lang').value = S.lang || '';
   $('lang').options[0].textContent = t('langDefault', { name: LANG_NAMES[sysLang()] });   // "Default (English)": what the system gives
   $('cache').value = String(S.cache_mb);
@@ -854,6 +860,12 @@ async function refresh() {
     try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); } catch (e) { /* will retry next refresh */ }
   }
   return changes;
+}
+// 16.11.2026, macOS: "Steam: found · DoW2 (Feral 1.0.3): found at …" - what the launcher found (Browse picks the folder by hand)
+function macFound() {
+  const m = S.mac || {};
+  return [t(m.steam || S.steam_found ? 'macSteamOk' : 'macSteamNo'),
+    S.game_found ? t('macGameOk', { v: m.version || '?', path: S.game_dir || '' }) : t('macGameNo')].join(' · ');
 }
 async function pickDir() { try { S = await invoke('pick_game_dir'); render(); } catch (e) { toast(e, true); } }
 

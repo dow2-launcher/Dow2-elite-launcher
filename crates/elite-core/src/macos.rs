@@ -30,6 +30,69 @@ pub fn mac_app(dir: &Path) -> Option<PathBuf> {
     apps.into_iter().next()
 }
 
+/// The Mac Steam client's process (Steam.app starts ~/Library/Application Support/Steam/Steam.AppBundle/Steam/Contents/MacOS/steam_osx).
+pub const STEAM_PROCESS: &str = "steam_osx";
+
+/// The Mac Steam client's data folder: steamapps (the default library), config/loginusers.vdf, libraryfolders.vdf.
+pub fn steam_root(home: &Path) -> PathBuf {
+    home.join("Library/Application Support/Steam")
+}
+
+/// Where Steam.app may be: /Applications and ~/Applications (the caller gives the folders, the tests their own).
+pub fn steam_app(app_dirs: &[PathBuf]) -> Option<PathBuf> {
+    app_dirs.iter().map(|d| d.join("Steam.app")).find(|p| p.join("Contents").is_dir())
+}
+
+/// The usual folders of applications on a Mac.
+pub fn app_dirs(home: &Path) -> Vec<PathBuf> {
+    vec![PathBuf::from("/Applications"), home.join("Applications")]
+}
+
+/// What the launcher found of Steam and the game on a Mac (the status line of the window and the logs).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Found {
+    /// ~/Library/Application Support/Steam when it has steamapps (Steam ran at least once).
+    pub steam_root: Option<PathBuf>,
+    /// Steam.app (the client is installed, maybe never started).
+    pub steam_app: Option<PathBuf>,
+    /// The default library and the ones in libraryfolders.vdf (other disks).
+    pub libraries: Vec<PathBuf>,
+    /// The game folder (DOW2.module and the .app) in one of the libraries.
+    pub game: Option<PathBuf>,
+    /// The game's .app and its version (CFBundleShortVersionString).
+    pub app: Option<PathBuf>,
+    pub version: String,
+}
+
+impl Found {
+    pub fn steam(&self) -> bool { self.steam_root.is_some() || self.steam_app.is_some() }
+}
+
+/// Look for Steam and the game `folder` (steamapps/common/<folder>) in the Mac's Steam libraries, as the Steam client keeps them.
+pub fn detect(home: &Path, app_dirs: &[PathBuf], folder: &str) -> Found {
+    let root = steam_root(home);
+    let steam_root = root.join("steamapps").is_dir().then_some(root);
+    let libraries = crate::game::steam_libraries_in(steam_root.iter().cloned().collect());
+    let game = crate::game::find_game_in(&libraries, folder, is_game_dir);
+    let app = game.as_deref().and_then(mac_app);
+    let version = app.as_deref().and_then(game_version).unwrap_or_default();
+    Found { steam_root, steam_app: steam_app(app_dirs), libraries, game, app, version }
+}
+
+/// The folder the player picked by hand -> the game folder: the folder itself, the folder of a picked .app, or the game
+/// inside a picked Steam library / its steamapps / steamapps/common.
+pub fn resolve_picked(p: &Path, folder: &str) -> Option<PathBuf> {
+    let mut tries = vec![p.to_path_buf()];
+    if p.extension().is_some_and(|x| x.eq_ignore_ascii_case("app")) {
+        if let Some(d) = p.parent() { tries.push(d.to_path_buf()); }
+    }
+    for sub in ["steamapps/common", "common", ""] {
+        let base = if sub.is_empty() { p.to_path_buf() } else { p.join(sub) };
+        tries.push(base.join(folder));
+    }
+    tries.into_iter().find(|d| is_game_dir(d))
+}
+
 /// `<key>K</key><string>V</string>` of an XML Info.plist (Feral's is XML).
 pub fn plist_string(xml: &str, key: &str) -> Option<String> {
     let at = xml.find(&format!("<key>{key}</key>"))?;
@@ -254,6 +317,13 @@ mod tests {
         let root = std::env::temp_dir().join(format!("elite_mac_{name}_{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         let dir = root.join("Dawn of War II - Retribution");
+        make_game(&dir, ver);
+        dir
+    }
+
+    /// The Mac game in `dir` as the depots put it there (checked against depot 56543, Mac 1.0.3): the data of the common
+    /// depot (DOW2.module, GameAssets) and the .app next to them, its binary in Contents/MacOS, no DOW2.exe.
+    fn make_game(dir: &Path, ver: &str) {
         let app = dir.join(APP_NAME).join("Contents");
         fs::create_dir_all(app.join("MacOS")).unwrap();
         fs::create_dir_all(app.join("Frameworks")).unwrap();
@@ -261,7 +331,77 @@ mod tests {
         fs::write(app.join("MacOS").join(PROCESS_NAME), b"\xcf\xfa\xed\xfe").unwrap();
         fs::create_dir_all(dir.join("GameAssets")).unwrap();
         fs::write(dir.join(MARKER), b"[global]").unwrap();
-        dir
+    }
+
+    #[test]
+    fn detects_steam_and_the_game() {
+        const FOLDER: &str = "Dawn of War II - Retribution";
+        let root = std::env::temp_dir().join(format!("elite_mac_detect_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&root);
+        let home = root.join("Users/p");
+        fs::create_dir_all(&home).unwrap();
+        let apps = vec![root.join("Applications"), home.join("Applications")];
+        // no Steam at all: nothing found, nothing to look in
+        let f = detect(&home, &apps, FOLDER);
+        assert!(!f.steam() && f.libraries.is_empty() && f.game.is_none() && f.app.is_none());
+        // Steam.app installed, never started (no steamapps yet): Steam found, no library
+        fs::create_dir_all(home.join("Applications/Steam.app/Contents/MacOS")).unwrap();
+        let f = detect(&home, &apps, FOLDER);
+        assert!(f.steam() && f.steam_root.is_none() && f.libraries.is_empty() && f.game.is_none());
+        assert_eq!(f.steam_app, Some(home.join("Applications/Steam.app")));
+        // Steam ran: its default library, the game not installed
+        let steam = steam_root(&home);
+        fs::create_dir_all(steam.join("steamapps/common")).unwrap();
+        let f = detect(&home, &apps, FOLDER);
+        assert_eq!((f.steam_root.as_ref(), f.libraries.clone(), f.game.is_none()), (Some(&steam), vec![steam.clone()], true));
+        // the game in a second library (another disk) listed in libraryfolders.vdf; a listed library that is gone is skipped
+        let lib2 = root.join("Volumes/Games/SteamLibrary");
+        let g2 = lib2.join("steamapps/common").join(FOLDER);
+        make_game(&g2, "1.0.3");
+        let vdf = format!(r#""libraryfolders"
+{{
+	"0"
+	{{
+		"path"		"{}"
+		"apps"
+		{{
+		}}
+	}}
+	"1"
+	{{
+		"path"		"{}"
+		"apps"
+		{{
+			"56400"		"12345"
+		}}
+	}}
+	"2"
+	{{
+		"path"		"{}"
+	}}
+}}
+"#, steam.display(), lib2.display(), root.join("Volumes/Unplugged").display());
+        fs::write(steam.join("steamapps/libraryfolders.vdf"), vdf).unwrap();
+        let f = detect(&home, &apps, FOLDER);
+        assert_eq!(f.libraries, vec![steam.clone(), lib2.clone()]);
+        assert_eq!(f.game.as_ref(), Some(&g2));
+        assert_eq!(f.app, Some(g2.join(APP_NAME)));
+        assert_eq!(f.version, "1.0.3");
+        // a half-installed copy (no .app yet) in the default library does not hide the real one
+        let g1 = steam.join("steamapps/common").join(FOLDER);
+        fs::create_dir_all(&g1).unwrap();
+        fs::write(g1.join(MARKER), b"").unwrap();
+        assert_eq!(detect(&home, &apps, FOLDER).game.as_ref(), Some(&g2));
+        // the game in the default library too: that one first
+        make_game(&g1, "1.0.3");
+        assert_eq!(detect(&home, &apps, FOLDER).game.as_ref(), Some(&g1));
+        // the folder picked by hand: the game folder, its .app, a library, its steamapps or common
+        for p in [g2.clone(), g2.join(APP_NAME), lib2.clone(), lib2.join("steamapps"), lib2.join("steamapps/common")] {
+            assert_eq!(resolve_picked(&p, FOLDER).as_ref(), Some(&g2), "{}", p.display());
+        }
+        assert_eq!(resolve_picked(&root.join("Volumes"), FOLDER), None);
+        assert_eq!(resolve_picked(&g2.join("GameAssets"), FOLDER), None);
+        let _ = fs::remove_dir_all(&root);
     }
 
     #[test]

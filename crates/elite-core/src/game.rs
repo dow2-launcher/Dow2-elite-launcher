@@ -44,7 +44,7 @@ pub fn steam_roots() -> Vec<PathBuf> {
             v.push(home.join(p));
         }
         #[cfg(target_os = "macos")]
-        v.push(home.join("Library/Application Support/Steam"));
+        v.push(crate::macos::steam_root(&home));
         let _ = &home;
     }
     let mut out: Vec<PathBuf> = Vec::new();
@@ -61,8 +61,14 @@ pub fn steam_roots() -> Vec<PathBuf> {
 
 /// All Steam library folders (the main one + those listed in libraryfolders.vdf).
 pub fn steam_libraries() -> Vec<PathBuf> {
+    steam_libraries_in(steam_roots())
+}
+
+/// The libraries of the Steam folders `roots`: each root, then the folders its steamapps/libraryfolders.vdf lists ("path"
+/// lines; a library on another disk) that have a steamapps folder. Testable with any folders.
+pub fn steam_libraries_in(roots: Vec<PathBuf>) -> Vec<PathBuf> {
     let mut libs = Vec::new();
-    for root in steam_roots() {
+    for root in roots {
         if !libs.contains(&root) {
             libs.push(root.clone());
         }
@@ -81,6 +87,11 @@ pub fn steam_libraries() -> Vec<PathBuf> {
         }
     }
     libs
+}
+
+/// The game folder steamapps/common/<folder> in the first of `libs` where `is_game` says so.
+pub fn find_game_in(libs: &[PathBuf], folder: &str, is_game: impl Fn(&Path) -> bool) -> Option<PathBuf> {
+    libs.iter().map(|l| l.join("steamapps").join("common").join(folder)).find(|d| is_game(d))
 }
 
 /// Where the game keeps Documents\My Games: on macOS - Feral's VFS; the add-on "Documents fix" moved it (1.5.9: the game may not
@@ -105,14 +116,17 @@ pub fn documents_dir() -> Option<PathBuf> {
 }
 
 pub fn find_game(folder: &str, marker: &str) -> Option<PathBuf> {
-    steam_libraries()
-        .into_iter()
-        .map(|l| l.join("steamapps").join("common").join(folder))
-        .find(|d| is_game_dir(d, marker))
+    find_game_in(&steam_libraries(), folder, |d| is_game_dir(d, marker))
 }
 
+/// Steam is installed: a Steam folder with steamapps; on macOS also Steam.app alone (installed, never started yet).
 pub fn steam_installed() -> bool {
-    !steam_roots().is_empty()
+    if !steam_roots().is_empty() { return true; }
+    #[cfg(target_os = "macos")]
+    if let Some(home) = dirs::home_dir() {
+        return crate::macos::steam_app(&crate::macos::app_dirs(&home)).is_some();
+    }
+    false
 }
 
 
