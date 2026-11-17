@@ -45,11 +45,10 @@ pub async fn pick_game_dir(app: AppHandle) -> Result<Value, String> {
     let picked = app.dialog().file().blocking_pick_folder();
     let st = app.state::<App>();
     if let Some(p) = picked.and_then(|p| p.into_path().ok()) {
-        let marker = st.config.lock().unwrap().clone().unwrap_or_default().game.marker;
-        // macOS: the game's .app picked instead of its folder - the folder with DOW2.module next to it
-        let p = if cfg!(target_os = "macos") && p.extension().is_some_and(|x| x.eq_ignore_ascii_case("app")) && !game::is_game_dir(&p, &marker) {
-            p.parent().map(|d| d.to_path_buf()).unwrap_or(p)
-        } else { p };
+        let g = st.config.lock().unwrap().clone().unwrap_or_default().game;
+        let marker = g.marker;
+        // macOS: the game's .app, a Steam library, its steamapps or common picked instead of the game folder - the game there
+        let p = if cfg!(target_os = "macos") { elite_core::macos::resolve_picked(&p, &g.folder).unwrap_or(p) } else { p };
         if !game::is_game_dir(&p, &marker) {
             return Err(format!("{} not found in this folder", game::marker_shown(&marker)));
         }

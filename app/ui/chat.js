@@ -4,11 +4,11 @@
 // ---------- players' chat, Steam sign-in and the player's card (ladder service /ladder/api/c/*) ----------
 // Rooms General / RU / EN (the server's all / ru / en) next to the developers' chat.
 // 1.6.11: the chat's header (the language menu, Logs) and Online's links - here, the first render needs them
-Object.assign(T.en, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Player stats', lnkLadder: 'Ladder and match history', chLang: 'Language of the messages', chLangH: 'Show the messages', chOrigShort: 'Orig.', chAsWritten: 'as written', chTranslated: 'translated', logsShort: 'Logs' });
-Object.assign(T.ru, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Статистика игроков', lnkLadder: 'Ладдер и история матчей', chLang: 'Язык сообщений', chLangH: 'Показывать сообщения', chOrigShort: 'Ориг.', chAsWritten: 'как написали', chTranslated: 'перевод', logsShort: 'Логи' });
-Object.assign(T.es, { lnkElite: 'Discord de Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Estadísticas de jugadores', lnkLadder: 'Ladder e historial de partidas', chLang: 'Idioma de los mensajes', chLangH: 'Mostrar los mensajes', chOrigShort: 'Orig.', chAsWritten: 'tal como se escribió', chTranslated: 'traducido', logsShort: 'Registros' });
-Object.assign(T.fr, { lnkElite: 'Discord d\'Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Statistiques des joueurs', lnkLadder: 'Ladder et historique des parties', chLang: 'Langue des messages', chLangH: 'Afficher les messages', chOrigShort: 'Orig.', chAsWritten: 'tel qu\'écrit', chTranslated: 'traduit', logsShort: 'Journaux' });
-Object.assign(T.de, { lnkElite: 'Elite-Discord', lnkDiscord: 'Discord DoW2', lnkStats: 'Spielerstatistiken', lnkLadder: 'Ladder und Spielverlauf', chLang: 'Sprache der Nachrichten', chLangH: 'Nachrichten anzeigen', chOrigShort: 'Orig.', chAsWritten: 'wie geschrieben', chTranslated: 'übersetzt', logsShort: 'Logs' });
+Object.assign(T.en, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Player stats', lnkLadder: 'Ladder: the Elite rating table', chLang: 'Language of the messages', chLangH: 'Show the messages', chOrigShort: 'Orig.', chAsWritten: 'as written', chTranslated: 'translated', logsShort: 'Logs' });
+Object.assign(T.ru, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Статистика игроков', lnkLadder: 'Ладдер: таблица рейтинга Elite', chLang: 'Язык сообщений', chLangH: 'Показывать сообщения', chOrigShort: 'Ориг.', chAsWritten: 'как написали', chTranslated: 'перевод', logsShort: 'Логи' });
+Object.assign(T.es, { lnkElite: 'Discord de Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Estadísticas de jugadores', lnkLadder: 'Ladder: tabla del rating Elite', chLang: 'Idioma de los mensajes', chLangH: 'Mostrar los mensajes', chOrigShort: 'Orig.', chAsWritten: 'tal como se escribió', chTranslated: 'traducido', logsShort: 'Registros' });
+Object.assign(T.fr, { lnkElite: 'Discord d\'Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Statistiques des joueurs', lnkLadder: 'Ladder : tableau du classement Elite', chLang: 'Langue des messages', chLangH: 'Afficher les messages', chOrigShort: 'Orig.', chAsWritten: 'tel qu\'écrit', chTranslated: 'traduit', logsShort: 'Journaux' });
+Object.assign(T.de, { lnkElite: 'Elite-Discord', lnkDiscord: 'Discord DoW2', lnkStats: 'Spielerstatistiken', lnkLadder: 'Ladder: Tabelle der Elite-Wertung', chLang: 'Sprache der Nachrichten', chLangH: 'Nachrichten anzeigen', chOrigShort: 'Orig.', chAsWritten: 'wie geschrieben', chTranslated: 'übersetzt', logsShort: 'Logs' });
 // 1.6.11 (owner 14.11.2026): one players' tab (General) - RU / EN are the language of its messages (a menu, the original by
 // default: CH.lang), the developers' tab apart on the right
 const CH = { room: 'all', lang: 'all', msgs: {}, out: [], unread: {}, full: {}, me: null, prof: null, waiting: false, features: [], replyTo: null, lobby: false };
@@ -29,27 +29,64 @@ function chShowRoom() {
   chUnread(); FB.open = CH.room === 'dev' && !CH.lobby; fbWatch();
   chReplyBar();   // 1.6.3: the Reply strip only over the chat's own input
 }
-// 1.5.0: the profile is a plate in the header (the online dot, the name, the 1v1 rating); a click opens its menu - the avatar,
-// the name with the sign-out icon on its line, the rating and the season's games, my stats, my Steam profile. Signed out - the
-// Steam button in the header; waiting for the browser - a line and Cancel.
+// 1.5.0: the profile is a plate in the header (the online dot, the name); a click opens its menu - the avatar, the name with the
+// sign-out icon on its line, my stats, my Steam profile. Signed out - the Steam button in the header; waiting for the browser - a
+// line and Cancel.
+// 1.6.20 (owner 17.11.2026, before the Elite rating): no rating on the plate (three of them, which one?); in the menu under the
+// name the rating system's tick (Elite / Relic, rating.js - no settings page for it), under the line the picked system whole:
+// Elite - every mode with its number and place, the calibration as 2/5, a dash without games (the statistics are the site's);
+// Relic - its one number. My stats and Steam side by side; my badges of the Elite table's top three by my name.
+function chMeRatings(me) {
+  if (!rtElite()) {
+    const r = (CH.prof || {}).rating || (LIVE.users[me.steam] || {}).rating;
+    return `<div class="me-rts"><div class="me-rh"><span>${esc(t('rtRelic'))}</span></div>`
+      + `<div class="me-rr relic"><span class="v">${r ? Number(r) | 0 : '—'}</span><small>${esc(t('rtRelicNote'))}</small></div></div>`;
+  }
+  // 1.6.20 (owner 17.11.2026): an (i) by the season - the page about the rating and its (pre)season (rating.js rtInfoUrl)
+  const head = `<div class="me-rh"><span>${esc(t('rtElite'))}${RT.own ? ' · ' + esc(rtSeasonName()) : ''}`
+    + `<button class="me-ri" id="meInfo" data-tip="${esc(t('rtInfoT'))}" aria-label="${esc(t('rtInfoT'))}">${ico('info')}</button></span>`
+    + `<button class="link-btn" id="meTable" data-tip="${esc(t('rtTableT'))}">${esc(t('rtTable'))}</button></div>`;
+  if (!RT.own) return `<div class="me-rts">${head}<div class="me-rr off">${esc(t(RT.err ? 'rtOff' : 'rtWait'))}</div></div>`;
+  const k = RT.own.cal_games || 5;
+  // a mode: its number and my place; in calibration skulls and "2/5"; no games - a dash. No games / wins otherwise (owner
+  // 17.11.2026: the statistics are the site's - "Table ›" and My stats)
+  const rows = RT_MODES.map(m => {
+    const e = rtOwn(me.steam, m);
+    // 1.6.20 (SirItos): a mode's row opens my page on the site in that mode (rating.js data-rtp)
+    const go = ` data-rtp="${esc(me.steam)}" data-rtm="${m}" data-tip="${esc(t('rtMineT'))}"`;
+    if (e && e.c != null) return `<div class="me-rr go"${go}><b>${m}</b><span class="v">${e.c}</span><span class="pl">${esc(t('rtPlace', { n: e.rank }))}</span><span class="g"></span></div>`;
+    // SirItos 17.11.2026: the calibration as skulls (played bright) and k/5 - the words in the tip
+    if (e && e.cal > 0) { const g = Math.min(e.g || 0, k);
+      return `<div class="me-rr cal go" data-rtp="${esc(me.steam)}" data-rtm="${m}" data-tip="${esc(t('rtCal', { g, k }) + '\n' + t('rtMineT'))}"><b>${m}</b><span class="c"><span class="csks" aria-hidden="true">${Array.from({ length: k }, (_, i) => `<i class="csk${i < g ? ' on' : ''}"></i>`).join('')}</span>${g}/${k}</span><span class="g"></span></div>`; }
+    return `<div class="me-rr none"><b>${m}</b><span class="v">—</span><span class="pl"></span><span class="g"></span></div>`;
+  }).join('');
+  // 1.6.20 (SirItos 17.11.2026): under the modes - the rules ("Table ›" is in the head; a mode's row opens my page - no "My matches",
+  // the match history is not the launcher's business)
+  const links = `<div class="me-rl"><button class="link-btn" id="meRules" data-tip="${esc(t('rtRulesT'))}">${esc(t('rtRules'))}</button></div>`;
+  return `<div class="me-rts">${head}${rows}${links}</div>`;
+}
 function chMe() {
   diagNameFromProfile();
   const me = CH.me && CH.me.signed_in ? CH.me : null, plate = $('mePlate'), box = $('meBox');
   $('hdrMe').classList.toggle('hidden', !CH.me || CH.me.configured === false);
   if (me) {
-    const p = CH.prof || {}, st = p.stats;
-    const rating = p.rating || (LIVE.users[me.steam] || {}).rating;
-    const games = !st ? '' : st.games ? `<div class="me-st" title="${esc(st.wins + ' – ' + st.losses)}">${esc(t('prGames', { n: st.games, pct: Math.round(100 * st.wins / st.games) }))}</div>`
-      : `<div class="me-st">${esc(t('prNoGames'))}</div>`;
     plate.innerHTML = `<button class="me-chip" id="meChip" aria-haspopup="menu" aria-expanded="${!box.classList.contains('hidden')}"><i class="me-dot"></i>`
-      + `<span class="me-nr"><span class="me-n">${esc(me.name || me.steam)}</span>${rating ? `<span class="me-r">${Number(rating) | 0}</span>` : ''}</span><b class="chev"></b></button>`;
+      + `<span class="me-nr"><span class="me-n">${esc(me.name || me.steam)}</span>${rtBadge(me.steam)}</span><b class="chev"></b></button>`;
     box.innerHTML = `<div class="me-head">${avatar(me.avatar, 'me-av')}<div class="me-info"><div class="me-top"><span class="me-name${String(me.name || me.steam).length > 14 ? ' long' : ''}">${esc(me.name || me.steam)}</span>`
-      + `<button class="me-out" id="chOut" data-tip="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}">${ico('out')}</button></div>`
-      + (rating ? `<div class="me-rt">${esc(t('meRating', { r: Number(rating) | 0 }))}</div>` : '') + '</div></div>' + games
-      + `<button class="me-item" id="meStats" role="menuitem">${ico('bars')}<span>${esc(t('myStats'))}</span></button>`
-      + `<button class="me-item" id="meSteam" role="menuitem">${ico('steam')}<span>${esc(t('nickSteam'))}</span></button>`;
+      + `${rtBadge(me.steam)}<button class="me-out" id="chOut" data-tip="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}">${ico('out')}</button></div>`
+      + `<label class="chk me-sys" data-tip="${esc(t('rtUseT'))}"><input type="checkbox" id="meSys"${rtElite() ? ' checked' : ''}><span>${esc(t('rtUse'))}</span></label></div></div>`
+      + chMeRatings(me)
+      + `<div class="me-acts"><button class="me-item" id="meStats" role="menuitem">${ico('bars')}<span>${esc(t('myStats'))}</span></button>`
+      + `<button class="me-item" id="meSteam" role="menuitem">${ico('steam')}<span>${esc(t('nickSteam'))}</span></button></div>`;
     $('meChip').onclick = e => { e.stopPropagation(); box.classList.toggle('hidden'); $('meChip').setAttribute('aria-expanded', String(!box.classList.contains('hidden'))); };
     $('chOut').onclick = () => { box.classList.add('hidden'); chLogout(); };
+    // the menu stays open, its block redrawn - after the click is through (a redraw inside it would take the clicked tick out of
+    // the page, and the click outside the menu below would close it)
+    $('meSys').onchange = e => { const on = e.target.checked; setTimeout(() => rtSet(on ? 'elite' : 'relic')); };
+    if ($('meInfo')) $('meInfo').onclick = () => { box.classList.add('hidden'); open(rtInfoUrl()); };
+    // 1.6.20 (SirItos): "Table ›" - the site's table in the mode I hold a place in (else 1v1); the rules (rating.js)
+    if ($('meTable')) $('meTable').onclick = () => { box.classList.add('hidden'); open(rtTableUrl(RT_MODES.find(m => (rtOwn(me.steam, m) || {}).rank) || '1v1')); };
+    if ($('meRules')) $('meRules').onclick = () => { box.classList.add('hidden'); open(rtRulesUrl()); };
     $('meStats').onclick = () => { box.classList.add('hidden'); open((LIVE.host || 'https://dow2.fintebtc.de') + '/stats/?q=' + encodeURIComponent(me.steam) + '&lang=' + encodeURIComponent(lang)); };
     $('meSteam').onclick = () => { box.classList.add('hidden'); open('https://steamcommunity.com/profiles/' + me.steam); };
   } else {
@@ -238,7 +275,7 @@ function chRender(force, older) {
     const toMe = mine && m.reply && !m.reply.deleted && String(m.reply.steam) === String(mine) && m.steam !== mine;
     const rpl = replyOn && m.id && m.steam !== mine && !extra ? `<button class="rpl" data-reply="${esc(String(m.id))}" title="${esc(t('chReply'))}" aria-label="${esc(t('chReply'))}">${CH_ARROW}</button>` : '';
     return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${toMe ? 'tome' : ''} ${extra}"${m.id ? ` data-id="${esc(String(m.id))}"` : ''}><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">` + avatar(m.avatar) + `</span>`
-      + `<div><div class="w"><b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}">${esc(m.name)}</b><span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}${tail}</div>`
+      + `<div><div class="w"><b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}"${rtTipAttr(m.steam, m.name)}>${esc(m.name)}</b>${rtBadge(m.steam)}<span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}${tail}</div>`
       + quote(m.reply)
       + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${mention(esc(text))}</div></div></div>`;
   };
@@ -387,7 +424,13 @@ async function chInit() {
     CH.lobby = false; CH.room = b.dataset.room === 'dev' ? 'dev' : CH.lang; try { localStorage.setItem('chRoom', CH.room); } catch (e) {} chShowRoom();
   });
   // the language of the messages: a menu by the players' tab
-  const lb = $('chLangBtn'), lm = $('chLangMenu'), lmShow = on => { lm.classList.toggle('hidden', !on); lb.setAttribute('aria-expanded', String(on)); };
+  // 1.6.20: the tabs' row scrolls sideways in a narrow window, the menu is fixed and placed under its button when it opens
+  const lb = $('chLangBtn'), lm = $('chLangMenu'), lmShow = on => {
+    lm.classList.toggle('hidden', !on); lb.setAttribute('aria-expanded', String(on));
+    if (on) { const r = lb.getBoundingClientRect(); lm.style.left = Math.max(8, Math.min(innerWidth - lm.offsetWidth - 8, r.left - 6)) + 'px'; lm.style.top = (r.bottom + 6) + 'px'; }
+  };
+  $('chTabs').parentElement.addEventListener('scroll', () => lmShow(false), { passive: true });
+  addEventListener('resize', () => lmShow(false));
   lb.onclick = e => { e.stopPropagation(); lmShow(lm.classList.contains('hidden')); };
   lm.querySelectorAll('[data-lang]').forEach(b => b.onclick = e => {
     e.stopPropagation(); lmShow(false); CH.lang = b.dataset.lang;

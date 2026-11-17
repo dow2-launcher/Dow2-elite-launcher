@@ -202,7 +202,7 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
         let host = hosts[host_i % hosts.len()].clone();
         let (token, state) = side.who();
         let after = STREAM_AFTER.lock().unwrap().iter().map(|(k, v)| format!("{k}:{v}")).collect::<Vec<_>>().join(",");
-        let mut req = agent.get(&format!("{host}/ladder/api/c/stream?after={after}")).set("Accept", "text/event-stream").set("X-State", state);
+        let mut req = agent.get(&format!("{host}/ladder/api/c/stream?after={after}")).set("Accept", "text/event-stream").set("Accept-Encoding", "identity").set("X-State", state);   // 1.6.20: ureq takes gzip now - a packed SSE would wait for a proxy's buffer
         if !token.is_empty() { req = req.set("X-Token", &token); }   // in a header, never in the address
         // the connection in its own thread: after a wake the loop leaves it at once instead of waiting out its read (60 s);
         // a left one ends by itself at its next line (nobody listens) or its read timeout, and touches nothing after that

@@ -13,9 +13,12 @@
   let at = null, mx = -1, my = -1;
   const below = a => !!a.closest('header, .news-links, .tipdown, .rnav .rmine-x');
   const leftAligned = a => a.matches('.room .rp, .on-p, .hl-team:not(.r) .hl-p');
-  const maxW = a => a.closest('.plw') ? 320 : leftAligned(a) ? 240 : a.closest('.on-mh .lvw') ? 200 : 260;
+  const maxW = a => a.closest('.plw') || a.dataset.ptip != null ? 320 : leftAligned(a) ? 240 : a.closest('.on-mh .lvw') ? 200 : 260;
+  // 1.6.20: a player's tip (data-ptip = his SteamID) is written when it shows - the rating system picked now, the table as it is
+  // now (rating.js rtTipOf); it wins over a plain data-tip on the same element (tipCut's whole name)
+  const tipText = a => a.dataset.ptip != null && window.rtTipOf ? window.rtTipOf(a) : a.dataset.tip;
   function place(a) {
-    const txt = a.dataset.tip;
+    const txt = tipText(a);
     if (!txt) { hide(); return; }
     let side = below(a) ? 'below' : 'above';
     if (a.closest('.rnav') && !a.closest('.rmine-x')) { if (innerWidth > 1000) { hide(); return; } side = 'right'; }   // wide: the labels are there
@@ -36,7 +39,7 @@
     tip.dataset.side = side;
   }
   function hide() { at = null; tip.hidden = true; }
-  const tipOf = el => (el && el.closest ? el.closest('[data-tip]') : null);
+  const tipOf = el => (el && el.closest ? el.closest('[data-tip],[data-ptip]') : null);
   document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; }, { passive: true, capture: true });
   document.addEventListener('mouseover', e => { const a = tipOf(e.target); if (a === at) return; if (a) { at = a; place(a); } else hide(); }, true);
   document.documentElement.addEventListener('mouseleave', hide);
@@ -53,7 +56,7 @@
   setInterval(() => {
     if (!at) return;
     if (!at.isConnected) { const a = mx >= 0 ? tipOf(document.elementFromPoint(mx, my)) : null; if (a) { at = a; place(a); } else hide(); }
-    else if (tip.textContent !== at.dataset.tip) place(at);
+    else if (tip.textContent !== tipText(at)) place(at);
   }, 250);
   window.tipHide = hide;
 

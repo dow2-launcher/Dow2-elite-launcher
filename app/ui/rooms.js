@@ -74,6 +74,9 @@ function roomObsBtn(r, cls) {
   const n = roomObsFree(r), none = n === 0, tip = none ? t('rObsNone') : n ? t('rObsTip', { n }) : t('rObsTip0');
   return `<button class="${cls} robs-b${none ? ' off' : ''}" data-obs="${esc(String(r.id))}" data-name="${esc(r.name || '')}"${none ? ' aria-disabled="true"' : ''} data-tip="${esc(tip)}" aria-label="${esc(tip)}">${ico(none ? 'eyeOff' : 'eye')}</button>`;
 }
+// 1.6.20 (owner 17.11.2026): Join of a lobby with no free seat - there, dimmed, not pressable (aria-disabled: a disabled button
+// gets no hover in every WebView and its tip would be lost); the tip says the lobby is full
+const roomFullBtn = cls => `<button class="${cls} full" aria-disabled="true" tabindex="-1" data-tip="${esc(t('lrFullTip'))}" aria-label="${esc(t('lrFullTip'))}">${ico('enter')}</button>`;
 // the eye pressed: no free seat - nothing (the crossed-out eye and its tip say why); else the same Join as a player, with "as":"obs"
 function roomObs(id, name, btn) {
   const r = roomById(id);
@@ -89,18 +92,20 @@ function roomCard(r) {
   const cap = r.cap || (((r.map || '').match(/^(\d)p_/) || [])[1] | 0) || 0;
   const per = cap ? Math.max(1, Math.round(cap / 2)) : 0;
   // no race in the slot (Relic's slot info has 255 there: Random, or not picked yet): the "?" of the searching list (03.11.2026)
-  const pl = p => `<div class="rp${p.host ? ' host' : ''}">`
+  // 1.6.20: the rating of the picked system (rating.js) - Relic's, or Elite's of the lobby's mode; the player's tip on the row
+  const pl = p => `<div class="rp${p.host ? ' host' : ''}"${rtTipAttr(p.steam, p.name, p.rating, hlHours(p))}>`
     + (p.race ? `<img${p.hero != null ? '' : ' class="race"'} src="${esc(A)}${p.hero != null ? 'heroes/' + esc(p.race) + '_' + (p.hero | 0) : 'races/' + esc(p.race)}.png" alt="" data-fb="${esc(A)}races/${esc(p.race)}.png">`
        : raceImg('random'))
-    + `${roomFlag(p.country)}<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>${p.rating ? `<span class="rt">${p.rating}</span>` : ''}</div>`;
+    + `${roomFlag(p.country)}${rtName(`<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`, p.steam)}${rtCell(p.steam, r.mode, p.rating)}</div>`;
   // observers (03.11.2026, siritos: a slot of their own with its own icon, under the teams): the players the server marks as
   // observers or puts in no team, else only Relic's count of them
   const isObs = p => p.observer || !(p.team === 0 || p.team === 1 || p.team == null);
   const obsP = (r.players || []).filter(isObs), nObs = Math.max(r.observers | 0, obsP.length);
   const teams = [0, 1].map(tm => {
     const ps = (r.players || []).filter(p => !isObs(p) && (p.team | 0) === tm);
-    // 1.5.0 (D): the team's heading with its average 1v1 rating; an open seat as a row (an empty race square)
-    const rts = ps.map(p => p.rating).filter(Boolean), avg = rts.length ? Math.round(rts.reduce((x, y) => x + y, 0) / rts.length) : 0;
+    // 1.5.0 (D): the team's heading with its average rating (1.6.20: of the picked system and the lobby's mode, as its rows); an
+    // open seat as a row (an empty race square)
+    const avg = rtAvg(ps.map(p => ({ steam: p.steam, mode: r.mode, relic: p.rating })));
     return `<div class="team"><div class="th"><span>${esc(t('rTeamShort', { n: tm + 1 }))}</span>${avg ? `<span>${esc(t('rAvg', { r: avg }))}</span>` : ''}</div>${ps.map(pl).join('')}`
       + `${Array(per ? Math.max(0, per - ps.length) : 0).fill(`<div class="rp free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`).join('')}</div>`;
   }).join('');
@@ -114,9 +119,11 @@ function roomCard(r) {
   // 1.6.13 (siritos fb 1210): Join is there whether "Lobby join" is on or not - a click on it asks for the add-on (needaddon.js);
   // the eye next to it joins as an observer (RoomJoin 14+), dimmed while the host has no free observer seat
   const canIn = (r.game === 'elite' || r.game === 'vanilla') && roomJoinSys() && !r.password && r.id;
+  // 1.6.20 (owner 17.11.2026): a full lobby keeps its Join - dimmed, not pressable, its tip says why (roomFullBtn)
   const join = here ? `<span class="tag here">${esc(t('roomsHere'))}</span>`
     : canIn ? roomObsBtn(r, 'rjoin') + (!full
-    ? `<button class="rjoin go${meBusy() ? ' wait' : ''}" data-tip="${esc(meBusy() ? t('roomsJoinBusy') : t('rJoinTip', { name: r.name || '' }))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-why="${esc(why)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg></button>` : '') : '';
+    ? `<button class="rjoin go${meBusy() ? ' wait' : ''}" data-tip="${esc(meBusy() ? t('roomsJoinBusy') : t('rJoinTip', { name: r.name || '' }))}" aria-label="${esc(t('roomsJoin'))}" data-room="${esc(String(r.id))}" data-name="${esc(r.name || '')}" data-why="${esc(why)}">${ico('enter')}</button>`
+    : roomFullBtn('rjoin')) : '';
   // 1.5.0: the marks the Rooms tab's filters read (one list with the launcher's rooms, lroom.js rApplyFilter)
   const vok = r.game === 'elite' ? !why : r.game === 'vanilla' ? !!S.vanilla_offered : false;
   const dat = `data-kind="game" data-mode="${esc(r.mode || '')}" data-vok="${vok ? 1 : 0}" data-van="${r.game === 'vanilla' ? 1 : 0}" data-free="${!full && !r.password && (!cap || (r.players || []).filter(p => !isObs(p)).length < cap) ? 1 : 0}"`;
@@ -155,15 +162,20 @@ async function roomsLoad() {
     const R = d.rooms || [];
     RM.last = R; RM.mine = roomMine(R);
     RM.err = false;
-    box.innerHTML = R.map(roomCard).join('');
-    box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
-    // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
-    box.querySelectorAll('.rjoin[data-room]').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));
-    box.querySelectorAll('.rjoin[data-obs]').forEach(b => b.onclick = () => roomObs(b.dataset.obs, b.dataset.name, b));
-    tipCut(box);   // the room's game from the list
-    box.querySelectorAll('.rp .nm[data-name], .robs .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));   // the stats (by name until the server sends SteamIDs), Steam when there; no "mention"
+    roomsPaint();
   } catch (e) { RM.err = true; box.innerHTML = ''; }
   if (typeof rApplyFilter === 'function') rApplyFilter();
+}
+// the list drawn from the last answer (1.6.20: also when the rating system or the Elite table changes, rating.js)
+function roomsPaint() {
+  const box = $('roomsList'); if (!box || RM.err || !RM.last) return;
+  box.innerHTML = RM.last.map(roomCard).join('');
+  box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
+  // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
+  box.querySelectorAll('.rjoin[data-room]').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));
+  box.querySelectorAll('.rjoin[data-obs]').forEach(b => b.onclick = () => roomObs(b.dataset.obs, b.dataset.name, b));
+  tipCut(box);   // the room's game from the list
+  box.querySelectorAll('.rp .nm[data-name], .robs .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));   // the stats (by name until the server sends SteamIDs), Steam when there; no "mention"
 }
 // 1.4.9: Join talks to RoomJoin.dll (RoomJoin 9) in the game over its pipe (roomjoin.rs) - no request file any more. The game
 // running without the pipe = without the add-on (or an older one): restart it with the add-on on. Not running: Play, then the

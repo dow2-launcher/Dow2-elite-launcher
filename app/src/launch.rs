@@ -35,6 +35,8 @@ pub(crate) fn prepare_start(dir: &std::path::Path, cfg: &LauncherConfig, setting
     let (dir, cfg) = (dir.to_path_buf(), cfg.clone());
     let settings = &effective_settings(&dir, &cfg, settings);   // 1.5.4: a version without add-ons - all of them off
     let vanilla = vanilla_on(&cfg, settings);
+    // 1.6.20: the rating the in-game add-ons show, as the profile menu has it (Elite_DLLs / dow2-patches LobbyStats.ini)
+    write_rating_ini(&dir, &settings.rating_sys);
     // macOS (Feral's native game): no Windows DLLs, winmm loader or Elite.exe there - nothing of the checks below applies;
     // our Mac patches are dylibs in mac_addons (see `launch`)
     if os_name() == "macos" {
@@ -109,6 +111,12 @@ pub(crate) fn launch_cmd(cfg: &LauncherConfig, installed: &update::State, os: &s
             }
             _ if is_steam_applaunch(&cmd) => {
                 for a in VANILLA_ARGS { if !cmd.args.iter().any(|x| x.eq_ignore_ascii_case(a)) { cmd.args.push(a.to_string()); } }
+            }
+            // macOS: normally the launcher starts Feral's game itself with crossplay_fix (mac_launch); this is the fallback
+            // through Steam. launch.macos of the catalogs before 16.11.2026 named the CrossOver Elite.exe - not a native start
+            "macos" if !cmd.args.iter().any(|a| a.starts_with("steam://")) => {
+                cmd.program = "open".into();
+                cmd.args = vec![format!("steam://rungameid/{}", cfg.game.steam_appid)];
             }
             _ => {}
         }
@@ -212,18 +220,19 @@ pub(crate) fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool,
 }
 
 /// macOS (Feral's native game): the launcher runs the .app's binary itself - not through open/sh/Steam, which drop
-/// DYLD_INSERT_LIBRARIES - with crossplay_fix (+ the other dylibs of mac_addons) and `-modname Elite -nomovies`.
-/// Ok = started (the guard tells the player what was not as it should be); Err(guard + the reason) = no crossplay_fix:
-/// the caller starts the game the old way (launch.macos, steam://rungameid) without our patches.
+/// DYLD_INSERT_LIBRARIES - with crossplay_fix (+ the other dylibs of mac_addons on for this game), steam_appid.txt next to
+/// the binary (else the game restarts itself through Steam and loses the dylibs) and the Steam client running (the game
+/// signs in through it; 16.11.2026: the launcher starts Steam itself and the game when Steam is up). The game's own output
+/// goes to mac_game.log in the launcher's folder (Send logs takes it).
+/// Ok = started (the guard tells the player what was not as it should be); Err(guard + the reason) = no crossplay_fix or
+/// no game binary: the caller starts the game the old way (`open steam://rungameid/56400`) without our patches.
 #[cfg(target_os = "macos")]
 pub(crate) fn mac_launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool, mut guard: Value) -> Result<Value, Value> {
     use elite_core::macos;
     let home = dirs::home_dir().unwrap_or_default();
     let addons = macos::addons_dir(&home);
     let appid = cfg.game.steam_appid;
-    let steam = std::process::Command::new("pgrep").args(["-x", "steam_osx"]).output().map(|o| o.status.success()).unwrap_or(false);
     let mut warn: Vec<String> = Vec::new();
-    if !steam { warn.push("no_steam".into()); }
     let ids: Vec<String> = serde_json::from_value(guard["mac_addons"].clone()).unwrap_or_default();
     let (l, w) = match macos::plan_with(dir, vanilla, macos::dylibs_of(&addons, &ids), appid) {
         Ok(v) => v,
@@ -239,27 +248,85 @@ pub(crate) fn mac_launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: b
         if let macos::Warn::GameVersion(v) = x { warn.push("game_version".into()); guard["mac_game_version"] = json!(v); }
     }
     if let Err(e) = macos::write_steam_appid(&l.cwd, appid) { c_log(&format!("launch: cannot write steam_appid.txt: {e}")); }
-    c_log(&format!("launch: {}{} (in {}; {})", l.program.display(), l.args.iter().map(|a| format!(" {a}")).collect::<String>(), l.cwd.display(),
-                   l.env.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join(" ")));
-    let mut c = std::process::Command::new(&l.program);
-    c.args(&l.args).current_dir(&l.cwd).envs(l.env.iter().map(|(k, v)| (k.as_str(), v.as_str())));
-    guard["mac_warn"] = json!(warn);
-    match c.spawn() {
-        Ok(mut child) => {
-            std::thread::spawn(move || {
-                let t0 = std::time::Instant::now();
-                let st = child.wait();
-                c_log(&format!("launch: the game ended after {} s ({})", t0.elapsed().as_secs(), st.map(|s| s.to_string()).unwrap_or_else(|e| e.to_string())));
-            });
-            Ok(guard)
+    let steam_up = steam_running();
+    if !steam_up {
+        if game::steam_installed() { warn.push("steam_starting".into()); } else { warn.push("no_steam".into()); }
+    }
+    c_log(&format!("launch: {}{} (in {}; {}){}", l.program.display(), l.args.iter().map(|a| format!(" {a}")).collect::<String>(), l.cwd.display(),
+                   l.env.iter().map(|(k, v)| format!("{k}={v}")).collect::<Vec<_>>().join(" "), if steam_up { "" } else { " - Steam is not running" }));
+    let glog = data_dir().join("mac_game.log");
+    let spawn = move || -> std::io::Result<std::process::Child> {
+        let mut c = std::process::Command::new(&l.program);
+        c.args(&l.args).current_dir(&l.cwd).envs(l.env.iter().map(|(k, v)| (k.as_str(), v.as_str())));
+        if let Ok(f) = std::fs::File::create(&glog) {
+            if let Ok(f2) = f.try_clone() { c.stdout(f).stderr(f2); }
         }
+        c.spawn()
+    };
+    let watch = |mut child: std::process::Child| {
+        std::thread::spawn(move || {
+            let t0 = std::time::Instant::now();
+            let st = child.wait();
+            let secs = t0.elapsed().as_secs();
+            let tail = std::fs::read_to_string(data_dir().join("mac_game.log")).unwrap_or_default();
+            let tail: Vec<&str> = tail.lines().filter(|l| !l.trim().is_empty()).collect();
+            let tail = tail[tail.len().saturating_sub(8)..].join(" | ");
+            let st = st.map(|s| s.to_string()).unwrap_or_else(|e| e.to_string());
+            if secs < 60 { c_log(&format!("launch: the game ended after {secs} s ({st}) - it did not run; mac_game.log: {}", tail.chars().take(1500).collect::<String>())); }
+            else { c_log(&format!("launch: the game ended after {secs} s ({st})")); }
+        });
+    };
+    guard["mac_warn"] = json!(warn);
+    if !steam_up {
+        // Steam first, the game when it is up: in the background - Play (a command on the window's thread) must not wait
+        std::thread::spawn(move || {
+            start_steam_mac();
+            match spawn() {
+                Ok(child) => watch(child),
+                Err(e) => { c_log(&format!("launch: cannot start the game: {e}")); roomjoin::note_launch_failed(); }
+            }
+        });
+        return Ok(guard);
+    }
+    match spawn() {
+        Ok(child) => { watch(child); Ok(guard) }
         Err(e) => {
-            c_log(&format!("launch: cannot start {}: {e} - through Steam", l.program.display()));
+            c_log(&format!("launch: cannot start the game directly: {e} - through Steam"));
             warn.push("direct_failed".into());
             guard["mac_warn"] = json!(warn);
             Err(guard)
         }
     }
+}
+
+/// macOS: start the Steam client (Steam.app, in the background) and wait until it is up and has had a moment to sign in:
+/// up to 60 s for steam_osx, then 10 s more.
+#[cfg(target_os = "macos")]
+pub(crate) fn start_steam_mac() {
+    c_log("launch: Steam is not running - starting it");
+    let ok = std::process::Command::new("open").args(["-g", "-a", "Steam"]).status().map(|s| s.success()).unwrap_or(false)
+        || std::process::Command::new("open").args(["-g", "steam://open/main"]).status().map(|s| s.success()).unwrap_or(false);
+    if !ok { c_log("launch: cannot start Steam (open -a Steam failed)"); return; }
+    for _ in 0..120 {
+        std::thread::sleep(std::time::Duration::from_millis(500));
+        if steam_running() { c_log("launch: Steam is up"); std::thread::sleep(std::time::Duration::from_secs(10)); return; }
+    }
+    c_log("launch: Steam did not come up in 60 s - starting the game anyway");
+}
+
+/// macOS: the window's status line (16.11.2026) - Steam found (Steam.app or its folder) and running, the game's folder and
+/// version (the dylibs are for SUPPORTED_VERSION), crossplay_fix installed. Also written into Send logs.
+pub(crate) fn mac_status(dir: Option<&std::path::Path>, cfg: &LauncherConfig) -> Value {
+    use elite_core::macos;
+    let home = dirs::home_dir().unwrap_or_default();
+    let f = macos::detect(&home, &macos::app_dirs(&home), &cfg.game.folder);
+    let app = dir.and_then(macos::mac_app);
+    let crossplay = cfg.components.iter().filter(|c| c.for_os("macos") && c.id.starts_with("crossplay"))
+        .map(|c| update::Game::component(macos::addon_dir(&mac_addons_root(), &c.id), &c.id).load_state().version)
+        .find(|v| !v.is_empty()).unwrap_or_default();
+    json!({"steam": f.steam(), "steam_running": steam_running(), "steam_root": f.steam_root, "steam_app": f.steam_app,
+           "libraries": f.libraries, "found": f.game, "app": app, "version": app.as_deref().and_then(macos::game_version).unwrap_or_default(),
+           "supported": macos::SUPPORTED_VERSION, "crossplay": crossplay})
 }
 
 /// Linux: DoW2's Steam login goes through the Steam client, which must be running before the game starts under Proton.
@@ -298,6 +365,18 @@ mod launch_cmd_tests {
         // a catalog that already says -nomovies does not get it twice
         let mut c2 = cfg.clone(); c2.launch.linux.args.push("-nomovies".into());
         assert_eq!(line(&launch_cmd(&c2, &st, "linux", true)), "steam -applaunch 56400 -nomovies");
+    }
+
+    #[test]
+    fn mac_vanilla_falls_back_to_steam() {
+        let (mut cfg, st) = (cfg(), update::State::default());
+        // the catalog's old launch.macos (CrossOver: open Elite.exe) is no native start: the game through Steam instead
+        cfg.launch.macos = LaunchCmd { program: "open".into(), args: vec!["{game}/Elite.exe".into()], ..Default::default() };
+        assert_eq!(line(&launch_cmd(&cfg, &st, "macos", true)), "open steam://rungameid/56400");
+        // a catalog's own Steam start stays
+        cfg.launch.macos = LaunchCmd { program: "open".into(), args: vec!["steam://run/56400".into()], ..Default::default() };
+        assert_eq!(line(&launch_cmd(&cfg, &st, "macos", true)), "open steam://run/56400");
+        assert!(mac_vanilla_only("macos") && !mac_vanilla_only("windows") && !mac_vanilla_only("linux"));
     }
 
     #[test]

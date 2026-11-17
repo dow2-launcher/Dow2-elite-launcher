@@ -30,6 +30,8 @@
   <!-- 1.6.11 (owner 14.11.2026): errors as red strips on top, 30 s each (notes.js); the "launcher updated" strip once per version -->
   <div class="err-bars" id="errBars"></div>
   <div class="ubar upd-done hidden" id="updDone" role="status"><i class="ub-ico gli" aria-hidden="true"><i class="sig"></i><b class="gl-s"><i class="sig"></i></b><i class="sig gl-b"></i></i><div class="ub-items"><div class="ub-it"><b id="updDoneT"></b><small id="updDoneS"></small></div></div><span class="bn-act"><button class="btn gold ub-btn" id="updDoneMore" data-t="updMore"></button><button class="x-btn" id="updDoneX" data-ta="closeX"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>
+  <!-- 1.6.20 (owner 17.11.2026): an incoming message (/elite/notice.json, notes.js) - the strip of "launcher updated", after it -->
+  <div class="ubar upd-done ntc hidden" id="ntcBar" role="status"><i class="ub-ico gli" aria-hidden="true"><i class="sig"></i><b class="gl-s"><i class="sig"></i></b><i class="sig gl-b"></i></i><div class="ub-items"><div class="ub-it"><b data-t="ntcLabel"></b><small id="ntcS"></small></div></div><span class="bn-act"><button class="btn gold ub-btn" id="ntcMore" data-t="updMore"></button><button class="x-btn" id="ntcX" data-ta="closeX"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span></div>
   <div class="ubar hidden" id="updBar" role="status"><span class="ub-ico" aria-hidden="true"></span><div class="ub-items" id="updItems"></div><button class="btn gold ub-btn" id="updAll"></button></div>
   <div class="ubar inv hidden" id="invBar" role="alert"><span class="ub-ico" aria-hidden="true"></span><div class="ub-items" id="invItems"></div><span class="bn-act"><button class="btn small ghost" id="invNo"></button><button class="btn gold ub-btn" id="invYes"></button></span></div>
   <!-- 1.5.12 (owner 12.11): a ping (ready check / a call of the host) is a strip like the invitation; the order: updates, invitation, ping -->
@@ -151,7 +153,7 @@
     <div class="set-col set-grid" id="setMain">
     <div class="set-stack">
     <section class="panel settings sec"><h3 data-t="secGame"></h3>
-      <div class="fr wide"><div><span data-t="gameFolder"></span></div><div class="row"><div class="path" id="gameDir"></div><button class="btn small" id="browse" data-t="browse"></button><button class="btn small ghost" id="openDir" data-t="open"></button></div></div>
+      <div class="fr wide"><div><span data-t="gameFolder"></span><small class="hidden" id="macFound"></small></div><div class="row"><div class="path" id="gameDir"></div><button class="btn small" id="browse" data-t="browse"></button><button class="btn small ghost" id="openDir" data-t="open"></button></div></div>
       <div class="fr"><div><span data-t="cache"></span><small data-t="cacheNote"></small></div><div class="row"><select id="cache"><option value="0">0</option><option value="2048">2 GB</option><option value="6144">6 GB</option><option value="12288">12 GB</option></select></div></div>
       <div class="fr"><div><span data-t="uiScale"></span><small data-t="uiScaleNote"></small></div><div class="row"><input type="range" id="uiScale" min="75" max="200" step="5" value="100"><span class="about-v" id="uiScaleVal">100%</span><button class="btn small" id="uiScaleSet" data-t="uiScaleSet"></button></div></div>
     </section>
@@ -244,6 +246,7 @@
 <script src="rooms.js"></script>
 <script src="settings.js"></script>
 <script src="online.js"></script>
+<script src="rating.js"></script>   <!-- 1.6.20: the rating system picked (Relic / Elite), the Elite table, the player tips -->
 <script src="feedback.js"></script>
 <script src="chat.js"></script>
 <script src="gameset.js"></script>

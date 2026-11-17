@@ -115,6 +115,9 @@ struct Settings {
     lan_share: Option<bool>,
     /// Hotkeys the player changed: "scope:name" -> "Control+A" ("grid:AB_key_1" for Grid Hotkeys); see elite_core::hotkeys.
     hotkeys: BTreeMap<String, String>,
+    /// 1.6.20: the rating the player picked in the profile menu ("elite" / anything else = Relic), for the in-game add-ons
+    /// (addons::write_rating_ini); the window keeps it in localStorage.ratingSys and sends it here at the start and on a change
+    rating_sys: String,
     /// Community (chat, who is online): the session token from the Steam sign-in and the profile it belongs to.
     c_token: String,
     c_steam: String,
@@ -357,6 +360,8 @@ fn get_status(app: State<'_, App>) -> Value {
         "config": cfg,
         "config_loaded": cfg.is_some(),
         "steam_found": game::steam_installed(),
+        // 16.11.2026: macOS - Steam and Feral's game as found (the status line), else null
+        "mac": if os_name() == "macos" { mac_status(dir.as_deref(), &cfgd) } else { Value::Null },
         "game_dir": dir,
         "game_found": dir.is_some(),
         "installed_version": installed.version,
@@ -682,14 +687,14 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            get_status, refresh, set_channel, switch_to, logs::send_logs, addons::set_comp_option, set_setting, addons::set_component, addons::clean_junk, install::pick_game_dir, open_url, addons::set_comp_value, install::open_game_dir, install::start_update, install::cancel_update, launch::play,
+            get_status, refresh, set_channel, switch_to, logs::send_logs, addons::set_comp_option, set_setting, addons::set_component, addons::rating_sys_set, addons::clean_junk, install::pick_game_dir, open_url, addons::set_comp_value, install::open_game_dir, install::start_update, install::cancel_update, launch::play,
             feedback::fb_info, feedback::fb_set_name, feedback::fb_send, feedback::fb_thread, set_tray_labels, selfupdate::launcher_check, selfupdate::launcher_install, feeds::rooms_live,
             roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             livewatch::live_watch, livewatch::live_watch_probe, livewatch::live_watch_cancel,
             replayopen::replay_open, replayopen::replay_open_probe, replayopen::replay_open_cancel,
             replays::replays_local, replays::replays_pool, replays::replays_versions, replays::replays_have, replays::replay_info, replays::replay_upload,
             replays::replay_describe, replays::replay_download, replays::replay_delete, replays::replays_open_dir,
-            lroom::lroom_api, lroom::lroom_list, lroom::fame_get, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
+            lroom::lroom_api, lroom::lroom_list, lroom::fame_get, lroom::own_get, lroom::notice_get, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
             prefs::hotkeys_get, prefs::hotkeys_save, prefs::hotkeys_reset, prefs::ui_scale_get, prefs::ui_scale_set, install::uninstall_elite,
             community::c_status, community::c_login, community::c_login_local, community::c_login_cancel, community::c_logout, community::c_api, stream::c_stream_up, netcheck::net_status, netcheck::net_check, feeds::mm_live, feeds::events_get,
             netcheck::relic_probe, netcheck::game_net_check, vanilla::set_game_mode,

@@ -109,7 +109,7 @@ function lcRows(r) {
       : `<div class="rq" data-goto="${esc(String(m.reply.id))}" role="button" tabindex="0" title="${esc(t('chQuoteGo'))}"><b>${esc(m.reply.name || '')}</b><i>${esc(lcQuote(m.reply))}</i></div>`) : '';
     return `<div class="ch-m ${m.steam === me ? 'mine' : ''} ${toMe ? 'tome' : ''}" data-id="${esc(String(m.id))}"><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">${avatar(m.avatar)}</span>`
       + `<div><div class="w">${m.obs ? `<i class="lc-ome" data-tip="${esc(t('lrChatObs'))}">${ico('eye')}</i>` : ''}`
-      + `<b class="${r && m.steam === r.owner ? 'lc-host' : ''}" data-name="${esc(m.name || '')}" data-steam="${esc(m.steam)}">${esc(m.name || '')}</b>`
+      + `<b class="${r && m.steam === r.owner ? 'lc-host' : ''}" data-name="${esc(m.name || '')}" data-steam="${esc(m.steam)}"${rtTipAttr(m.steam, m.name)}>${esc(m.name || '')}</b>${rtBadge(m.steam)}`
       + `<span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}</div>${q}`
       + `<div class="tx ${tr ? 'tr' : ''}"${tr ? ` title="${esc(t('chOrig') + ': ' + lcOrig(m))}"` : ''}>${mention(esc(text))}</div></div></div>`;
   }).join('');

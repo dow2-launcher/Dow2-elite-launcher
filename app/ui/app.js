@@ -41,18 +41,23 @@ if (document.fonts) document.fonts.ready.then(() => newsFolds());
 // 1.6.16 (owner 16.11.2026): Discord is the DoW II server itself (not its Elite Mode channel), the Elite one is the E
 const ON_LINKS = [['elite', /discord\.gg\//i, 'https://discord.gg/elitemod', 'lnkElite'], ['discord', /discord\.com\/channels\//i, 'https://discord.com/channels/285867613953851393', 'lnkDiscord'],
   ['stats', /\/stats\b/i, '/stats/', 'lnkStats'], ['ladder', /\/ladder\b/i, '/ladder/', 'lnkLadder']];
+// 1.6.20 (SirItos 17.11.2026): "Ladder" leads to the Elite rating's table - /ladder/ shows it first (the games are a tab of that page),
+// one link, not a second one for /ladder/table; no "match history" in its tip. Our pages open in the launcher's language: the
+// ladder speaks ru / en, the stats every language (unknown - English)
+const onLinkUrl = u => /^https:\/\/[^/]+\/(ladder|stats)\b/.test(u) && !/[?&]lang=/.test(u)
+  ? u.replace(/(#.*)?$/, m => (u.includes('?') ? '&' : '?') + 'lang=' + (/\/ladder\b/.test(u) ? (lang === 'ru' ? 'ru' : 'en') : lang) + m) : u;
 function onLinks(cfgLinks) {
   const box = $('onLinks'); if (!box) return;
   const host = (LIVE.host || 'https://rts.fintebtc.de').replace(/\/$/, '');
   const ls = ON_LINKS.map(([, re, def, tip]) => ({ url: ((cfgLinks || []).find(l => re.test(l.url || '')) || {}).url || (def[0] === '/' ? host + def : def), tip: t(tip) }));
   box.innerHTML = ls.map((l, i) => `<button class="foot-link" data-i="${i}" data-tip="${esc(l.tip)}" aria-label="${esc(l.tip)}">${linkIcon(l.url)}</button>`).join('');
-  box.querySelectorAll('button').forEach(b => b.onclick = () => open(ls[+b.dataset.i].url));
+  box.querySelectorAll('button').forEach(b => b.onclick = () => open(onLinkUrl(ls[+b.dataset.i].url)));
 }
 function linkIcon(url) {
   const u = String(url || '').toLowerCase();
   const svg = (body, fill) => `<svg viewBox="0 0 24 24" aria-hidden="true" class="${fill ? 'fill' : ''}">${body}</svg>`;
   if (u.includes('discord.gg/elitemod')) return '<b class="lnk-e" aria-hidden="true">E</b>';   // 1.6.11: the Elite Discord - its letter
-  if (/\/ladder\b/.test(u)) return '<i class="sig s-cup" aria-hidden="true"></i>';   // 1.6.16: the 40k chalice (the Absolvers')
+  if (/\/ladder\b/.test(u)) return '<i class="sig s-cup" aria-hidden="true"></i>';   // the ladder = the Elite rating's table: the 40k chalice (the Absolvers')
   if (u.includes('discord')) return svg('<path d="M19.6 5.3A17 17 0 0 0 15.4 4l-.5 1.1a15.7 15.7 0 0 0-5.8 0L8.6 4a17 17 0 0 0-4.2 1.3C1.7 9.3 1 13.2 1.3 17a17.2 17.2 0 0 0 5.2 2.6l1.1-1.8a11 11 0 0 1-1.7-.8l.4-.3a12.2 12.2 0 0 0 11.4 0l.4.3a11 11 0 0 1-1.7.8l1.1 1.8a17.2 17.2 0 0 0 5.2-2.6c.4-4.4-.6-8.3-3.1-11.7zM8.7 14.7c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1zm6.6 0c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1z"/>', true);
   if (u.includes('moddb')) return svg('<path d="M4 5h13a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V5z"/><path d="M19 9h1a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0"/><path d="M7 9h8M7 12h8M7 15h5"/>');
   if (/\/(stats|ladder)\b/.test(u)) return '<i class="sig s-stats" aria-hidden="true"></i>';   // 1.6.16: a list, skulls for its bullets
@@ -137,11 +142,9 @@ const ico = name => (window.ART_ICONS || []).includes(name) ? `<img class="ico a
 // the gate of Cadia (and the players' chat, 1.6.17: the Officio Prefectus' wide emblem was too big there); the host: the chaplain's skull; a seat: Troops; invite: the banner; stats: a list with skulls for its bullets.
 const w40 = k => `<i class="ico sig s-${k}" aria-hidden="true"></i>`;
 // 1.6.17 (owner 16.11.2026): an empty list - a sigil in the block's middle over a title and a hint, no plate: Home's lobbies and
-// the Lobbies tab's open lobbies (Catachan's skull over blades, still: the interference looked out of place there), its running
-// matches (the swords, with the interference: glitch, style.css .gli)
-const zeroPane = (sig, title, hint, more, glitch) => `<div class="rp-none zero">${glitch
-  ? `<i class="gli zsig ${sig}" aria-hidden="true"><i class="sig"></i><b class="gl-s"><i class="sig"></i></b><i class="sig gl-b"></i></i>`
-  : `<i class="sig zsig ${sig}" aria-hidden="true"></i>`}`
+// the Lobbies tab's open lobbies (Catachan's skull over blades), its running matches (the swords). 1.6.20 (owner 17.11.2026): all
+// of them still - the interference is for what comes "on the screen" (the strips under the header), it looked out of place here
+const zeroPane = (sig, title, hint, more) => `<div class="rp-none zero"><i class="sig zsig ${sig}" aria-hidden="true"></i>`
   + `<b>${esc(title)}</b>${hint ? `<span>${esc(hint)}</span>` : ''}${more || ''}</div>`;
 // nothing under the filters: the same middle of the block, the line in the pane's title size, no sigil
 const fltPane = () => `<div class="rp-none zero flt"><b>${esc(t('rNoneFilter'))}</b></div>`;
@@ -209,6 +212,7 @@ const ERR_TXT = [
   [/^you cannot write in the chat$/, 'chErrBanned'],
   [/^too fast$/, 'chErrFast'],
   [/^(blocked|rejected)$/, 'chErrModeration'],
+  [/^(size|status code 413)$/, 'fbTooBig'],   // 1.6.20: fb/send refused the pictures (feedback.rs: a refusal is not sent to the next mirror)
 ];
 // the servers' Russian texts (shown as they are in Russian, by their key in the other languages)
 const SRV_TEXT_RU = { 'Не отправлено: сообщение не прошло модерацию': 'chErrModeration', 'Сообщение не отправлено: не прошло модерацию': 'fbModeration' };
@@ -659,14 +663,19 @@ function render() {
   $('gameBanner').classList.toggle('hidden', S.game_found || !setupHidden);
   if (!S.game_found && setupHidden) {
     const g = cfg.game || {};
-    $('gameBannerText').innerHTML = `<b>${esc(t('noGame'))}</b> — ${esc(L(g.requirements) || t('noGameText'))}`;
+    // 17.11.2026, macOS: never the catalog's "GOG and the macOS port are not supported" (the owner's 1.6.19 showed it) -
+    // what is missing there: the Mac Steam and/or the native game
+    $('gameBannerText').innerHTML = `<b>${esc(t('noGame'))}</b> — ${esc(S.os === 'macos' ? macFound() : (L(g.requirements) || t('noGameText')))}`;
     $('gameBannerMore').textContent = t('setupMore'); $('gameBannerBuy').textContent = t('getGame');
     $('gameBannerMore').onclick = () => { try { localStorage.removeItem('setupHidden'); } catch (e) {} render(); };
     $('gameBannerBuy').onclick = () => open(g.store_url || 'steam://store/56400');
     setup.classList.add('hidden');
   } else if (!S.game_found) {
     const g = cfg.game || {};
-    setup.innerHTML = `<div class="setup-h"><h2>${esc(t('noGame'))}</h2><button class="btn small ghost" id="setupHide">${esc(t('setupHide'))}</button></div><p>${esc(L(g.requirements) || t('noGameText'))}</p><div class="row">
+    // 16.11.2026, macOS: the native game (Feral) is what the launcher starts there - not the catalog's "the macOS port is not
+    // supported" - and a line of what it found of Steam and the game
+    const req = S.os === 'macos' ? t('macNoGameText') : (L(g.requirements) || t('noGameText'));
+    setup.innerHTML = `<div class="setup-h"><h2>${esc(t('noGame'))}</h2><button class="btn small ghost" id="setupHide">${esc(t('setupHide'))}</button></div><p>${esc(req)}</p>${S.os === 'macos' ? `<p>${esc(macFound())}</p>` : ''}<div class="row">
       ${S.steam_found ? '' : `<button class="btn red" id="getSteam">${esc(t('getSteam'))}</button>`}
       <button class="btn gold" id="getGame">${esc(t('getGame'))}</button>
       <button class="btn" id="pick">${esc(t('browse'))}</button><button class="btn ghost" id="rescan">${esc(t('rescan'))}</button></div>`;
@@ -678,7 +687,8 @@ function render() {
   } else setup.classList.add('hidden');
 
   // versions: a picker next to Play at the bottom; the main one marked, the installed one ticked, any other one switches in one click
-  const chans = cfg.channels || [];
+  // 16.11.2026: macOS - only the native vanilla game (Elite's Windows DLLs do not load in Feral's game), no Elite versions
+  const chans = S.os === 'macos' ? [] : (cfg.channels || []);
   const activeCh = chans.find(c => c.version === S.installed_version && c.id === S.installed_channel) || chans.find(c => c.version === S.installed_version);
   const mainCh = chans.find(c => c.id === S.main_channel);
   const locked = S.busy || S.game_running || !S.game_found || !S.config_loaded;
@@ -740,7 +750,7 @@ function render() {
 
   // a newer version of the installed one: offered at the bottom of the home screen's right column, never forced
   const target = channelOf(S.installed_channel) || channelOf(S.channel);
-  const showUpd = !!(S.game_found && target && S.installed_version && target.version !== S.installed_version && !S.busy && !S.game_running && !S.last_error);
+  const showUpd = !!(S.os !== 'macos' && S.game_found && target && S.installed_version && target.version !== S.installed_version && !S.busy && !S.game_running && !S.last_error);
   if (showUpd) {
     const cost = (S.costs || {})[target.version];
     UPD.elite = { b: (L(cfg.update_text) || t('switchTo', { name: '{name}' })).replace('{name}', L(target.name)).replace('{version}', target.version),
@@ -758,7 +768,8 @@ function render() {
       : S.last_error ? esc(winPath(errText(S.last_error)))
       : VAN() ? esc(t('readyVanilla'))
       : S.installed_version ? esc(t('ready', { v: activeCh ? L(activeCh.name).replace(/^Elite\s+/i, '') : S.installed_version })) : (S.config_loaded ? '' : esc(t('connecting')));
-    const hint = VAN() ? '' : L(cfg.launch?.[S.os]?.hint);   // the launch hint is about starting Elite
+    // the launch hint is about starting Elite; never on a Mac (17.11.2026: launch.macos's hint was CrossOver's)
+    const hint = VAN() || S.os === 'macos' ? '' : L(cfg.launch?.[S.os]?.hint);
     $('statusMeta').textContent = [hint, winPath(S.game_dir)].filter(Boolean).join(' · ');
     // all is well (ready, no launch hint): the line steps aside for the links (siritos 02.11: "Elite 3.2 is ready" and the
     // game folder are not news); any download, check or error writes the line again and it comes back (CSS :has)
@@ -767,6 +778,8 @@ function render() {
 
   // settings
   $('gameDir').textContent = winPath(S.game_dir) || '—';
+  $('macFound').classList.toggle('hidden', S.os !== 'macos');
+  if (S.os === 'macos') $('macFound').textContent = macFound();
   $('lang').value = S.lang || '';
   $('lang').options[0].textContent = t('langDefault', { name: LANG_NAMES[sysLang()] });   // "Default (English)": what the system gives
   $('cache').value = String(S.cache_mb);
@@ -854,6 +867,12 @@ async function refresh() {
     try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); } catch (e) { /* will retry next refresh */ }
   }
   return changes;
+}
+// 16.11.2026, macOS: "Steam: found · DoW2 (Feral 1.0.3): found at …" - what the launcher found (Browse picks the folder by hand)
+function macFound() {
+  const m = S.mac || {};
+  return [t(m.steam || S.steam_found ? 'macSteamOk' : 'macSteamNo'),
+    S.game_found ? t('macGameOk', { v: m.version || '?', path: S.game_dir || '' }) : t('macGameNo')].join(' · ');
 }
 async function pickDir() { try { S = await invoke('pick_game_dir'); render(); } catch (e) { toast(e, true); } }
 

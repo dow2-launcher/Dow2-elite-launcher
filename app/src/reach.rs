@@ -101,13 +101,15 @@ pub fn snapshot(pool: Pool) -> (Vec<Probe>, bool) {
 }
 
 /// A real request to `base` failed (no connection, timeout, a gateway error): it goes to the end and the pool is checked
-/// again in the background. Nothing happens for a host that is already at the end.
+/// again in the background (also for a host that is already at the end - it stays there).
 pub fn lost(pool: Pool, base: &str) {
     {
         let mut r = RANK[pool.i()].lock().unwrap();
         match r.list.iter().position(|p| key(&p.base) == key(base)) {
             Some(j) if r.list[j].ms.is_some() => { let mut p = r.list.remove(j); p.ms = None; p.err = "lost".into(); r.list.push(p); }
-            Some(_) => return,
+            // 1.6.20 (Malum): a host already at the end (failed before, or set aside) is still checked again soon - a bare
+            // return left the pool's order as it was until the next periodic check
+            Some(_) => {}
             None => r.list.push(Probe { base: base.to_string(), ms: None, err: "lost".into(), ..Default::default() }),
         }
     }
@@ -176,7 +178,8 @@ fn probe(pool: Pool, base: &str) -> Probe {
         .try_proxy_from_env(true)
         .build();
     let t = Instant::now();
-    let res = agent.get(&probe_url(pool, base)).call().map_err(|e| e.to_string()).and_then(|r| probe_body(r.into_reader()).map(|_| ()));
+    // 1.6.20: ureq takes gzip now (Cargo.toml) - the check asks for the raw bytes, it measures the stream, not a packed answer
+    let res = agent.get(&probe_url(pool, base)).set("Accept-Encoding", "identity").call().map_err(|e| e.to_string()).and_then(|r| probe_body(r.into_reader()).map(|_| ()));
     match res {
         Ok(()) => Probe { base: base.to_string(), ms: Some(t.elapsed().as_millis().min(u32::MAX as u128) as u32), err: String::new(), ..Default::default() },
         Err(e) => Probe { base: base.to_string(), ms: None, err: e.chars().take(120).collect(), ..Default::default() },

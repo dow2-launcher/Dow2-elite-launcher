@@ -123,6 +123,18 @@ async function lrCall(verb, body) {
   if (r && r.room) lrSet(r.room);
   return r;
 }
+// 1.6.20 (owner 17.11.2026): a start of my lobby that failed on the way - somebody not in the search in time, another version of
+// the game, the match not formed, a game that could not search, somebody who left the search - is an error as every other one: the
+// red strip on top (notes.js errBar, its "Send logs"), once per event; not the lobby's own line (LR.evGone). A note older than
+// 90 s (a lobby opened later) is not told again.
+const LR_ERR_NOTE = /^(late|version|match|left_search|game_failed)$/;
+function lrErrNote(v) {
+  const n = v && v.note; if (!n || !LR_ERR_NOTE.test(n.k || '')) return;
+  const key = v.id + ':' + (n.t || 0) + ':' + n.k;
+  if (LR.evGone.has(key)) return;
+  LR.evGone.add(key);
+  if ((Date.now() + (LR.skew || 0)) / 1000 - (n.t || 0) < 90 && typeof errBar === 'function') errBar(lrNoteTxt(n));
+}
 function lrSet(v) {
   if (v.now) LR.skew = v.now - Date.now();
   if (LR.room && LR.room.id === v.id && LR.room.state === 'launching' && v.state === 'lobby' && LR.launched) {
@@ -135,6 +147,7 @@ function lrSet(v) {
     if (!LR.room || v.seq >= (LR.room.seq || 0) || first) LR.room = v;
     if (first) { LR.pingT = 0; lrCatalog(v.game).then(() => lrRender()); }
     if (v.chat) lcFeed(v); else lcCatchUp(v.cseq);                  // 1.6.17: the lobby's chat (lchat.js) - its feed comes in the answers only
+    lrErrNote(v);
   } else if (LR.room && LR.room.id === v.id) LR.room = null;   // not in it any more (removed)
   const i = LR.list.findIndex(x => x.id === v.id), sum = { id: v.id, name: v.name, game: v.game, ver: v.ver, mode: v.mode, map: v.map, map_name: v.map_name, state: v.state,
     players: (v.slots || []).filter(Boolean).length, cap: (v.slots || []).length, names: (v.slots || []).filter(Boolean).map(s => s.name),
@@ -298,8 +311,8 @@ function lrSlot(r, s, i, cat) {
   const sg = lrSig(r, s);
   const tick = `<span class="flw" data-tip="${esc(tip)}"><button class="rdy${s.ready ? ' on' : ''}${mine && open ? ' mine' : ''}${mine && why && !s.ready ? ' dis' : ''}${sg.flash ? ' flash' : ''}"`
     + `${mine && open ? ' id="lrReadyTick"' : ' tabindex="-1"'} aria-label="${esc(tip)}" aria-pressed="${!!s.ready}"${!(mine && open) || (why && !s.ready) ? ' disabled' : ''}></button></span>`;
-  return `<div class="lr-slot${mine ? ' me' : ''}${s.ready ? ' ready' : ''}${sg.cls}"><span class="av-w">${avatar(s.avatar)}${sg.av}</span><div class="lr-who"><span class="lr-line"><span class="nm" data-steam="${esc(s.steam)}" data-name="${esc(s.name)}">${esc(s.name)}</span>`
-    + `${s.owner ? `<span class="lr-crown" title="${esc(t('lrOwner'))}" aria-label="${esc(t('lrOwner'))}">${ico('crown')}</span>` : ''}${s.rating ? `<span class="rt">${Number(s.rating) | 0}</span>` : ''}`
+  return `<div class="lr-slot${mine ? ' me' : ''}${s.ready ? ' ready' : ''}${sg.cls}"><span class="av-w">${avatar(s.avatar)}${sg.av}</span><div class="lr-who"><span class="lr-line"><span class="nm" data-steam="${esc(s.steam)}" data-name="${esc(s.name)}"${rtTipAttr(s.steam, s.name, s.rating)}>${esc(s.name)}</span>`
+    + `${s.owner ? `<span class="lr-crown" title="${esc(t('lrOwner'))}" aria-label="${esc(t('lrOwner'))}">${ico('crown')}</span>` : ''}${rtBadge(s.steam)}${rtCell(s.steam, r.mode, s.rating)}`
     + `${s.spoil ? `<span class="tag bad">${esc(t('lrSpoil', { n: s.spoil }))}</span>` : ''}</span><span class="lr-armyrow">${army}</span></div>`
     + `${gs}${sg.row}${owner && !mine && open ? `<button class="lr-kick" data-kick="${esc(s.steam)}" data-tip="${esc(t('lrKick'))}" aria-label="${esc(t('lrKick'))}">${ico('x')}</button>` : ''}${tick}</div>`;
 }
@@ -341,7 +354,7 @@ function lrInvMenu(r) {
   const people = (LIVE.launcher || []).filter(p => p && p.state !== 'game' && !inRoom.has(String(p.steam)) && onUser(p.steam).name && (!f || onUser(p.steam).name.toLowerCase().includes(f)))
     .sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''));
   const row = p => { const u = onUser(p.steam), at = sent[p.steam] || 0, was = Date.now() - at < INV_MARK;   // "✓ invited" for 5 s
-    return `<button class="ii${was ? ' sent' : ''}" data-inv="${esc(p.steam)}"${was ? ` data-at="${at}"` : ''}>${avatar(u.avatar)}<span class="nm">${esc(u.name)}</span>${onRt(u.rating)}`
+    return `<button class="ii${was ? ' sent' : ''}" data-inv="${esc(p.steam)}"${was ? ` data-at="${at}"` : ''}>${avatar(u.avatar)}${rtName(`<span class="nm">${esc(u.name)}</span>`, p.steam)}${onRt(p.steam, r.mode)}`
       + `<span class="ii-st">${esc(was ? '✓ ' + t('lrInvSent') : t('lrInvite'))}</span></button>`; };
   const g = (k, ps) => ps.length ? `<div class="ii-g"><span>${esc(t(k))}</span><span>${ps.length}</span></div>${ps.map(row).join('')}` : '';
   const list = g('lrInvMenu', people);
@@ -366,7 +379,8 @@ function lrNet(r) {
     return `<td class="${cls.trim()}"${title ? ` title="${esc(title)}"` : ''}>${esc(txt)}${nq ? `<small class="nq-tag">${esc(t('nqRoomTag'))}</small>` : ''}</td>`;
   };
   const sum = net.why === 'ok' ? t('lrNetPick', { node: lrNodeName(net, net.pick), ms: net.worst }) : net.why === 'none' ? t('lrNetNone') : t('lrNetMeasuring');
-  const body = rows.map(row => `<tr><th>${esc(name(row.steam))}</th>${nodes.map(n => cell(row, n.ip)).join('')}</tr>`).join('');
+  // 1.6.20: a long name cut with "…" (whole in its tip): with four servers it pushed the table past the column
+  const body = rows.map(row => `<tr><th data-tip="${esc(name(row.steam))}"><span class="nn">${esc(name(row.steam))}</span></th>${nodes.map(n => cell(row, n.ip)).join('')}</tr>`).join('');
   return `<div class="lr-net"><div class="lr-sub">${esc(t('lrNet'))}<button class="btn-line lr-reping"${LR.pinging ? ' disabled' : ''}>${esc(LR.pinging ? t('lrNetMeasuring') : t('lrNetAgain'))}</button></div>`
     + `<table><thead><tr><th></th>${nodes.map(n => `<th class="${n.ip === net.pick ? 'pick' : ''}">${esc(lrNodeName(net, n.ip))}</th>`).join('')}</tr></thead><tbody>`
     + body
@@ -456,7 +470,7 @@ function lrRoomHtml(r) {
   // the move for a player ("Go here": his seat is freed; never the owner - the match is started from his game)
   const ol = r.obs || [], ocap = r.obs_cap != null ? r.obs_cap : Math.max(0, 8 - (r.slots || []).length);
   const mySeat = (r.slots || []).some(s => s && s.steam === me), canGo = mySeat && !owner && (r.state === 'lobby' || r.state === 'countdown');
-  let ocells = ol.map(o => `<div class="lr-oc${o.steam === me ? ' me' : ''}">${avatar(o.avatar)}<span class="nm" data-steam="${esc(o.steam)}" data-name="${esc(o.name)}">${esc(o.name)}</span>`
+  let ocells = ol.map(o => `<div class="lr-oc${o.steam === me ? ' me' : ''}"${rtTipAttr(o.steam, o.name, onUser(o.steam).rating)}>${avatar(o.avatar)}<span class="nm" data-steam="${esc(o.steam)}" data-name="${esc(o.name)}">${esc(o.name)}</span>${rtBadge(o.steam)}`
     + `${o.steam === me ? `<em>${esc(t('lrObsYou'))}</em>` : ''}</div>`).join('');
   for (let i = ol.length; i < ocap; i++) ocells += canGo
     ? `<button class="lr-oc free go" data-tip="${esc(t('lrObsGoTip'))}"><i class="oe">${ico('eye')}</i><span class="nm">${esc(t('lrObsGo'))}</span></button>`
@@ -483,7 +497,7 @@ function lrCardHtml(x) {
   const vok = x.game === 'vanilla' ? !!(S && S.vanilla_offered) : !x.ver || !S || !/^\d/.test(S.installed_version || '') || verSame(x.ver, S.installed_version);
   const act = mine ? `<span class="tag here">${esc(t('roomsHere'))}</span>`
     : !open ? `<span class="tag playing">${esc(t('lrPlaying'))}</span>`
-    : free <= 0 ? `<span class="tag">${esc(t('lrFull'))}</span>`
+    : free <= 0 ? roomFullBtn('rjoin')   // 1.6.20 (owner 17.11.2026): there, dimmed, not pressable
     : `<button class="rjoin lr-join${vok ? ' go' : ''}" data-id="${esc(x.id)}" data-tip="${esc(t('rJoinTip', { name: x.name }))}" aria-label="${esc(t('rJoinTip', { name: x.name }))}">${ico('enter')}</button>`;
   // 1.5.3 (owner 10.11): observers - our automatch takes 8 - 2 x the team (3v3: 2, 2v2: 4, 1v1: 6); the lobby's go into its match
   const oc = x.obs_cap != null ? x.obs_cap : Math.max(0, 8 - (x.cap || 2)), on = (x.obs || []).length;
@@ -496,11 +510,12 @@ function lrCardHtml(x) {
   const per = Math.max(1, Math.round((x.cap || 2) / 2)), sl = Array.isArray(x.slots) && x.slots.length ? x.slots : null;
   const pic = p => !p.race || p.race === 'random' ? raceImg('random') : p.hero >= 0
     ? `<img src="${A}heroes/${esc(p.race)}_${p.hero | 0}.png" alt="" data-fb="${A}races/${esc(p.race)}.png">` : raceImg(p.race);
-  const row = p => p ? `<div class="rp${p.steam === x.owner ? ' host' : ''}">${pic(p)}<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`
-    + `${p.ready ? `<span class="rk" title="${esc(t('lrIsReady'))}"></span>` : ''}${p.rating ? `<span class="rt">${Number(p.rating) | 0}</span>` : ''}</div>`
+  // 1.6.20: the rating of the picked system and the lobby's mode (rating.js), the player's tip, the warboss / nobs
+  const row = p => p ? `<div class="rp${p.steam === x.owner ? ' host' : ''}"${rtTipAttr(p.steam, p.name, p.rating)}>${pic(p)}${rtName(`<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`, p.steam)}`
+    + `${p.ready ? `<span class="rk" title="${esc(t('lrIsReady'))}"></span>` : ''}${rtCell(p.steam, x.mode, p.rating)}</div>`
     : `<div class="rp free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`;
-  const teams = sl ? [0, 1].map(k => { const ps = sl.slice(k * per, k * per + per), rts = ps.filter(Boolean).map(p => p.rating).filter(Boolean);
-    const avg = rts.length ? Math.round(rts.reduce((a, b) => a + b, 0) / rts.length) : 0;
+  const teams = sl ? [0, 1].map(k => { const ps = sl.slice(k * per, k * per + per);
+    const avg = rtAvg(ps.filter(Boolean).map(p => ({ steam: p.steam, mode: x.mode, relic: p.rating })));
     return `<div class="team"><div class="th"><span>${esc(t('rTeamShort', { n: k + 1 }))}</span>${avg ? `<span>${esc(t('rAvg', { r: avg }))}</span>` : ''}</div>${ps.map(row).join('')}</div>`; }).join('') : '';
   return `<div class="room lr-card${vok ? '' : ' dim'}" data-kind="lr" data-id="${esc(x.id)}" data-mode="${esc(x.mode)}" data-vok="${vok ? 1 : 0}" data-van="${x.game === 'vanilla' ? 1 : 0}" data-free="${free > 0 && open ? 1 : 0}">`
     + mmapHtml(`${A}maps/${encodeURIComponent(x.map)}.png`, x.map_name || x.map) + '<div class="rb">'
@@ -568,13 +583,15 @@ function rLiveRender() {
   const A = lrAssets();
   const ms = (LIVE.ingame || []).map(m => ({ m, lr: lrMatchOf(m) }))
     .filter(({ m, lr }) => (RF.from === 'all' || (RF.from === 'lr') === !!lr) && (RF.lmode === 'all' || m.mode === RF.lmode));
-  const pl = x => `<div class="rp">${raceImg(x.race)}<span class="nm" data-steam="${esc(x.steam)}" data-name="${esc(onUser(x.steam).name || '')}">${esc(onUser(x.steam).name || 'Player')}</span>${onUser(x.steam).rating ? `<span class="rt">${Number(onUser(x.steam).rating) | 0}</span>` : ''}</div>`;
+  // 1.6.20: the rating of the picked system and the match's mode (rating.js), the player's tip, the warboss / nobs
+  const pl = mode => x => `<div class="rp"${rtTipAttr(x.steam, onUser(x.steam).name, onUser(x.steam).rating)}>${raceImg(x.race)}`
+    + `${rtName(`<span class="nm" data-steam="${esc(x.steam)}" data-name="${esc(onUser(x.steam).name || '')}">${esc(onUser(x.steam).name || 'Player')}</span>`, x.steam)}${rtCell(x.steam, mode, onUser(x.steam).rating)}</div>`;
   box.innerHTML = ms.map(({ m, lr }) => {
     const map = String(m.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
     const act = m.live ? `<button class="rjoin lvw go" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('rWatchTip'))}" aria-label="${esc(t('rWatchTip'))}">${ico('eye')}</button>` : '';
     return `<div class="room live-card">${mmapHtml(`${A}maps/${encodeURIComponent(m.map || '')}.png`, map)}<div class="rb">`
       + `<div class="rh">${lr ? `<span class="tag lr">${esc(t('rTagLr'))}</span>` : ''}<span class="rn">${esc(lr && lr.name ? lr.name : map)}</span><span class="tag">${esc(m.mode)}</span></div>`
-      + `<div class="teams"><div class="team">${(m.team1 || []).map(pl).join('')}</div><div class="team">${(m.team2 || []).map(pl).join('')}</div></div>`
+      + `<div class="teams"><div class="team">${(m.team1 || []).map(pl(m.mode)).join('')}</div><div class="team">${(m.team2 || []).map(pl(m.mode)).join('')}</div></div>`
       + `<div class="rfoot2"><span class="rhost">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span>${act}</div></div></div>`;
   }).join('');
   // 1.6.17: no running match at all - the sigil pane (the swords) instead of the grid; all hidden by the filters - the filters' line
@@ -582,7 +599,7 @@ function rLiveRender() {
   const z = $('rLiveZero'), kind = ms.length ? '' : (LIVE.ingame || []).length ? 'flt' : 'zero';
   if (z) {
     z.classList.toggle('hidden', !kind); box.classList.toggle('hidden', !!kind);
-    if (kind && z.dataset.kind !== kind) { z.dataset.kind = kind; z.innerHTML = kind === 'flt' ? fltPane() : zeroPane('s-live', t('rLiveZeroT'), t('rLiveZeroHint'), '', true); }
+    if (kind && z.dataset.kind !== kind) { z.dataset.kind = kind; z.innerHTML = kind === 'flt' ? fltPane() : zeroPane('s-live', t('rLiveZeroT'), t('rLiveZeroHint')); }
     if (!kind) delete z.dataset.kind;
   }
   box.querySelectorAll('.lvw[data-m]').forEach(b => b.onclick = () => liveWatch(b.dataset.m, b.dataset.g === 'vanilla' ? 'vanilla' : 'elite'));
