@@ -81,10 +81,23 @@ fn file_ci(d: &std::path::Path, name: &str) -> Option<std::path::PathBuf> {
     if p.is_file() { return Some(p); }
     std::fs::read_dir(d).ok()?.flatten().find(|e| e.file_name().to_string_lossy().eq_ignore_ascii_case(name)).map(|e| e.path())
 }
+/// The add-ons' ini files are written by one writer at a time: the sync of the add-ons (sync_components_with) holds it for its
+/// whole run, the Server= lists below take it too (reviewer 17.11.2026: no write into a file the sync is putting in place).
+pub(crate) static INI_LOCK: Mutex<()> = Mutex::new(());
 /// Write the hosts (the active one first) into every add-on's `Server=` of Elite_DLLs and of our vanilla dow2-patches - only where its
-/// DLL is, only over a value of our hosts. At every game start (the DLLs read it once, at the game's start) and when the active
-/// host changes. -> the files written.
+/// DLL is, only over a value of our hosts. Before every game start (the DLLs read it once, at the game's start; waits for a sync
+/// that runs). -> the files written.
 pub(crate) fn write_server_inis(dir: &std::path::Path, hosts: &[String]) -> Vec<String> {
+    let _w = INI_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    server_inis(dir, hosts)
+}
+/// The same when the active host changes (main.rs, the hosts' worker): only when no sync runs now (None) - the next game start
+/// writes it anyway.
+pub(crate) fn try_write_server_inis(dir: &std::path::Path, hosts: &[String]) -> Option<Vec<String>> {
+    let _w = match INI_LOCK.try_lock() { Ok(g) => g, Err(std::sync::TryLockError::Poisoned(e)) => e.into_inner(), Err(_) => return None };
+    Some(server_inis(dir, hosts))
+}
+fn server_inis(dir: &std::path::Path, hosts: &[String]) -> Vec<String> {
     let mut known: Vec<String> = reach::SITE_HOSTS.iter().map(|h| h.to_string()).collect();
     known.extend(hosts.iter().filter_map(|h| addon_host(h)));
     let mut wrote = Vec::new();
@@ -676,6 +689,7 @@ pub(crate) fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &S
 /// A version's manifest (update::load_manifest; the tests give their own).
 pub(crate) type LoadManifest<'a> = &'a dyn Fn(&update::Game, &str) -> Result<elite_core::manifest::Manifest, update::Error>;
 pub(crate) fn sync_components_with(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &Mirrors, progress: &mut dyn FnMut(&update::Progress), load: LoadManifest) -> Result<(), update::Error> {
+    let _ini = INI_LOCK.lock().unwrap_or_else(|e| e.into_inner());   // 1.6.22: no Server= write into a file being put in place
     if os_name() == "macos" {
         return sync_mac_addons(&mac_addons_root(), cfg, s, m, progress, load, true);
     }

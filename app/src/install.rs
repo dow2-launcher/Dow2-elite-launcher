@@ -115,7 +115,6 @@ pub fn start_update(app: AppHandle, repair: bool, components_only: Option<bool>)
         .and_then(|sum| sync_components(&dir, &cfg, &s, &m, &mut emit).map(|_| sum));
         compute_costs(&app2);
         let st = app2.state::<App>();
-        if r.is_ok() { remember_mirror(&st, m.current_base()); }
         // 1.6.22: no note after the run - every failure on the way was told to the shared pool as it happened (reach::Store)
         st.busy.store(false, Ordering::SeqCst);
         let payload = match r {

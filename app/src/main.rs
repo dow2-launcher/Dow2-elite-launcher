@@ -90,8 +90,6 @@ struct Settings {
     comp_values: BTreeMap<String, String>,
     /// Channel the player switched away from — the quick "back to …" button.
     prev_channel: Option<String>,
-    /// Mirror that worked last time — tried first (R2 is blocked in some countries, our server in others).
-    last_mirror: String,
     /// The order of our hosts from the last check (reach.rs): used at the start until this run's check is done. 1.6.22: one
     /// list for everything (net_data, the files' list before it, is dropped).
     net_hosts: Vec<reach::Probe>,
@@ -209,12 +207,6 @@ fn load_settings() -> Settings {
     std::fs::read(data_dir().join("settings.json")).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default()
 }
 
-/// Remember the mirror that just worked (tried first next time).
-fn remember_mirror(st: &App, worked: String) {
-    if worked.is_empty() { return; }
-    let mut s = st.settings.lock().unwrap();
-    if s.last_mirror != worked { s.last_mirror = worked; save_settings(&s); }
-}
 
 fn save_settings(s: &Settings) {
     let _ = std::fs::write(data_dir().join("settings.json"), serde_json::to_vec_pretty(s).unwrap());
@@ -386,13 +378,12 @@ async fn refresh(app: AppHandle) -> Result<Value, String> {
     let res = tauri::async_runtime::spawn_blocking(move || {
         let mut m = mirrors(&s, cached.as_ref());
         m.on_status = Some(Box::new(move |msg| { let _ = appn.emit("net", msg); }));
-        update::fetch_config(&m).map(|r| (r, m.current_base()))
+        update::fetch_config(&m)
     })
     .await
     .map_err(|e| e.to_string())?;
     match res {
-        Ok(((cfg, raw, sig), worked)) => {
-            remember_mirror(&st, worked);
+        Ok((cfg, raw, sig)) => {
             let _ = std::fs::write(data_dir().join("launcher.json"), raw);
             let _ = std::fs::write(data_dir().join("launcher.json.sig"), sig);
             note_config(&cfg);
@@ -494,6 +485,46 @@ fn api_set_aside_at(ips: &[std::net::IpAddr], what: &str) {
     }
 }
 
+/// What the shared host pool (reach.rs) tells the launcher; handled by host_worker, never in the pool's callback.
+enum HostEv { Order(Vec<reach::Probe>), Switch(String, String, String) }
+static HOST_EV: std::sync::OnceLock<Mutex<std::sync::mpsc::Sender<HostEv>>> = std::sync::OnceLock::new();
+fn host_ev(e: HostEv) { if let Some(tx) = HOST_EV.get() { let _ = tx.lock().unwrap_or_else(|e| e.into_inner()).send(e); } }
+/// The hosts' worker (one thread): the order into the settings and the window, a change of the active host into community.log, the
+/// window and - while no game runs and no sync writes them - the add-ons' Server= lists.
+fn host_worker(app: AppHandle, rx: std::sync::mpsc::Receiver<HostEv>) {
+    while let Ok(first) = rx.recv() {
+        let mut evs = vec![first];
+        evs.extend(rx.try_iter());
+        let order = evs.iter().rev().find_map(|e| if let HostEv::Order(l) = e { Some(l.clone()) } else { None });   // the newest order only
+        for e in evs {
+            let HostEv::Switch(from, to, why) = e else { continue };
+            c_log(&format!("mirror: active host {} -> {} ({why})", if from.is_empty() { "none" } else { &from }, if to.is_empty() { "none" } else { &to }));
+            let _ = app.emit("host_active", json!({"host": to, "site": reach::site_base()}));
+            // the in-game add-ons read their Server= at the game's start: the next start goes to the new host too (launch.rs writes it
+            // before every start as well)
+            let st = app.state::<App>();
+            if st.game_running.load(Ordering::SeqCst) || is_game_running() { continue; }
+            if let Some(d) = game_dir(&st) {
+                match addons::try_write_server_inis(&d, &reach::api_hosts()) {
+                    Some(w) if !w.is_empty() => c_log(&format!("mirror: the add-ons' Server= now {to} ({})", w.join(", "))),
+                    _ => {}
+                }
+            }
+        }
+        if let Some(list) = order {
+            let st = app.state::<App>();
+            {
+                let mut s = st.settings.lock().unwrap();
+                if s.net_hosts.len() != list.len() || serde_json::to_value(&s.net_hosts).ok() != serde_json::to_value(&list).ok() {
+                    s.net_hosts = list;
+                    save_settings(&s);
+                }
+            }
+            let _ = app.emit("net_rank", net_status_json());
+        }
+    }
+}
+
 /// community.log in the launcher's folder: every sign-in step and failed call (goes with "Send logs"); kept under 256 KB.
 fn c_log(msg: &str) {
     let p = data_dir().join("community.log");
@@ -563,34 +594,21 @@ fn main() {
             // starts now (no ICMP - one HTTPS answer per host); again every 10 minutes and when a host stops answering; the order is
             // kept for the next start. One line in community.log per change of the active host; the window builds its links and
             // pictures on it ("host_active")
-            let hn = app.handle().clone();
-            reach::on_checked(move |list| {
-                let st = hn.state::<App>();
-                {
-                    let mut s = st.settings.lock().unwrap();
-                    if s.net_hosts.len() != list.len() || serde_json::to_value(&s.net_hosts).ok() != serde_json::to_value(list).ok() {
-                        s.net_hosts = list.to_vec();
-                        save_settings(&s);
-                    }
-                }
-                let _ = hn.emit("net_rank", net_status_json());
-            });
+            // the pool's callbacks come from any thread (a download, the stream, a request, a check) - they only hand the event to
+            // the hosts' worker, which saves, logs, tells the window and writes the add-ons' Server= (reviewer 17.11.2026: no lock
+            // and no disk in a callback - the first one came while the config's lock was held and game_dir took it again)
+            let (tx, rx) = std::sync::mpsc::channel::<HostEv>();
+            let _ = HOST_EV.set(Mutex::new(tx));
             let hw = app.handle().clone();
-            reach::on_switch(move |from, to, why| {
-                c_log(&format!("mirror: active host {} -> {} ({why})", if from.is_empty() { "none" } else { from }, if to.is_empty() { "none" } else { to }));
-                let _ = hw.emit("host_active", json!({"host": to, "site": reach::site_base()}));
-                // the in-game add-ons read their Server= at the game's start: the next start goes to the new host too (launch.rs
-                // writes it before every start as well)
-                if let Some(d) = game_dir(&hw.state::<App>()) {
-                    let wrote = addons::write_server_inis(&d, &reach::api_hosts());
-                    if !wrote.is_empty() { c_log(&format!("mirror: the add-ons' Server= now {to} ({})", wrote.join(", "))); }
-                }
-            });
+            std::thread::spawn(move || host_worker(hw, rx));
+            reach::on_checked(|list| host_ev(HostEv::Order(list.to_vec())));
+            reach::on_switch(|from, to, why| host_ev(HostEv::Switch(from.to_string(), to.to_string(), why.to_string())));
             {
                 let st = app.state::<App>();
                 let s = st.settings.lock().unwrap().clone();
+                let cfg = st.config.lock().unwrap().clone();   // no lock held over the pool's calls
                 reach::seed(if s.net_hosts.is_empty() { s.net_api.clone() } else { s.net_hosts.clone() });
-                configure_hosts(Some(&s), st.config.lock().unwrap().as_ref());
+                configure_hosts(Some(&s), cfg.as_ref());
             }
             reach::check_soon(0);
             reach::start_recheck();
@@ -601,6 +619,7 @@ fn main() {
             std::thread::spawn(move || loop {
                 std::thread::sleep(Duration::from_secs(3));
                 let now = is_game_running();
+                reach::GAME_RUNNING.store(now, Ordering::SeqCst);   // no periodic check of our hosts during a match
                 if hg.state::<App>().game_running.swap(now, Ordering::SeqCst) != now {
                     let _ = hg.emit("game_running", now);
                 }
