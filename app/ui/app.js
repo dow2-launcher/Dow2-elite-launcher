@@ -40,19 +40,21 @@ if (document.fonts) document.fonts.ready.then(() => newsFolds());
 // 1.6.11: the useful links in Online's heading, in this order; launcher.json's own addresses win, ModDB is left out
 // 1.6.16 (owner 16.11.2026): Discord is the DoW II server itself (not its Elite Mode channel), the Elite one is the E
 const ON_LINKS = [['elite', /discord\.gg\//i, 'https://discord.gg/elitemod', 'lnkElite'], ['discord', /discord\.com\/channels\//i, 'https://discord.com/channels/285867613953851393', 'lnkDiscord'],
-  ['stats', /\/stats\b/i, '/stats/', 'lnkStats'], ['ladder', /\/ladder\b/i, '/ladder/', 'lnkLadder']];
+  ['stats', /\/stats\b/i, '/stats/', 'lnkStats'], ['ladder', /\/ladder\b(?!\/table)/i, '/ladder/', 'lnkLadder'],
+  ['table', /\/ladder\/table\b/i, '/ladder/table', 'lnkTable']];   // 1.6.20 (SirItos): the Elite rating's table (rating.js rtTableUrl)
 function onLinks(cfgLinks) {
   const box = $('onLinks'); if (!box) return;
   const host = (LIVE.host || 'https://rts.fintebtc.de').replace(/\/$/, '');
   const ls = ON_LINKS.map(([, re, def, tip]) => ({ url: ((cfgLinks || []).find(l => re.test(l.url || '')) || {}).url || (def[0] === '/' ? host + def : def), tip: t(tip) }));
   box.innerHTML = ls.map((l, i) => `<button class="foot-link" data-i="${i}" data-tip="${esc(l.tip)}" aria-label="${esc(l.tip)}">${linkIcon(l.url)}</button>`).join('');
-  box.querySelectorAll('button').forEach(b => b.onclick = () => open(ls[+b.dataset.i].url));
+  box.querySelectorAll('button').forEach(b => b.onclick = () => open(ON_LINKS[+b.dataset.i][0] === 'table' && typeof rtTableUrl === 'function' ? rtTableUrl() : ls[+b.dataset.i].url));
 }
 function linkIcon(url) {
   const u = String(url || '').toLowerCase();
   const svg = (body, fill) => `<svg viewBox="0 0 24 24" aria-hidden="true" class="${fill ? 'fill' : ''}">${body}</svg>`;
   if (u.includes('discord.gg/elitemod')) return '<b class="lnk-e" aria-hidden="true">E</b>';   // 1.6.11: the Elite Discord - its letter
-  if (/\/ladder\b/.test(u)) return '<i class="sig s-cup" aria-hidden="true"></i>';   // 1.6.16: the 40k chalice (the Absolvers')
+  if (/\/ladder\/table\b/.test(u)) return '<i class="sig s-cup" aria-hidden="true"></i>';   // 1.6.20: the rating's table - the 40k chalice (the Absolvers')
+  if (/\/ladder\b/.test(u)) return '<i class="sig s-stats" aria-hidden="true"></i>';   // the ladder's games: a list (was the chalice until 1.6.20)
   if (u.includes('discord')) return svg('<path d="M19.6 5.3A17 17 0 0 0 15.4 4l-.5 1.1a15.7 15.7 0 0 0-5.8 0L8.6 4a17 17 0 0 0-4.2 1.3C1.7 9.3 1 13.2 1.3 17a17.2 17.2 0 0 0 5.2 2.6l1.1-1.8a11 11 0 0 1-1.7-.8l.4-.3a12.2 12.2 0 0 0 11.4 0l.4.3a11 11 0 0 1-1.7.8l1.1 1.8a17.2 17.2 0 0 0 5.2-2.6c.4-4.4-.6-8.3-3.1-11.7zM8.7 14.7c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1zm6.6 0c-1 0-1.9-1-1.9-2.1s.8-2.1 1.9-2.1 1.9 1 1.9 2.1-.8 2.1-1.9 2.1z"/>', true);
   if (u.includes('moddb')) return svg('<path d="M4 5h13a2 2 0 0 1 2 2v12H6a2 2 0 0 1-2-2V5z"/><path d="M19 9h1a1 1 0 0 1 1 1v8a1 1 0 0 1-2 0"/><path d="M7 9h8M7 12h8M7 15h5"/>');
   if (/\/(stats|ladder)\b/.test(u)) return '<i class="sig s-stats" aria-hidden="true"></i>';   // 1.6.16: a list, skulls for its bullets

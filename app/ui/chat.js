@@ -52,11 +52,16 @@ function chMeRatings(me) {
   // 17.11.2026: the statistics are the site's - "Table ›" and My stats)
   const rows = RT_MODES.map(m => {
     const e = rtOwn(me.steam, m);
-    if (e && e.c != null) return `<div class="me-rr"><b>${m}</b><span class="v">${e.c}</span><span class="pl">${esc(t('rtPlace', { n: e.rank }))}</span><span class="g"></span></div>`;
-    if (e && e.cal > 0) return `<div class="me-rr cal"><b>${m}</b><span class="c">${esc(t('rtCal', { g: e.g || 0, k }))}</span><span class="g"></span></div>`;
+    // 1.6.20 (SirItos): a mode's row opens my page on the site in that mode (rating.js data-rtp)
+    const go = ` data-rtp="${esc(me.steam)}" data-rtm="${m}" data-tip="${esc(t('rtMineT'))}"`;
+    if (e && e.c != null) return `<div class="me-rr go"${go}><b>${m}</b><span class="v">${e.c}</span><span class="pl">${esc(t('rtPlace', { n: e.rank }))}</span><span class="g"></span></div>`;
+    if (e && e.cal > 0) return `<div class="me-rr cal go"${go}><b>${m}</b><span class="c">${esc(t('rtCal', { g: e.g || 0, k }))}</span><span class="g"></span></div>`;
     return `<div class="me-rr none"><b>${m}</b><span class="v">—</span><span class="pl"></span><span class="g"></span></div>`;
   }).join('');
-  return `<div class="me-rts">${head}${rows}</div>`;
+  // 1.6.20 (SirItos 17.11.2026): under the modes - my page on the site and the rules ("Table ›" is in the head)
+  const links = `<div class="me-rl"><button class="link-btn" id="meMine" data-tip="${esc(t('rtMineT'))}">${esc(t('rtMine'))}</button>`
+    + `<button class="link-btn" id="meRules" data-tip="${esc(t('rtRulesT'))}">${esc(t('rtRules'))}</button></div>`;
+  return `<div class="me-rts">${head}${rows}${links}</div>`;
 }
 function chMe() {
   diagNameFromProfile();
@@ -77,7 +82,10 @@ function chMe() {
     // the page, and the click outside the menu below would close it)
     $('meSys').onchange = e => { const on = e.target.checked; setTimeout(() => rtSet(on ? 'elite' : 'relic')); };
     if ($('meInfo')) $('meInfo').onclick = () => { box.classList.add('hidden'); open(rtInfoUrl()); };
-    if ($('meTable')) $('meTable').onclick = () => { box.classList.add('hidden'); open((LIVE.host || 'https://dow2.fintebtc.de') + '/ladder/?lang=' + encodeURIComponent(lang) + '#elite:' + encodeURIComponent(me.steam)); };
+    // 1.6.20 (SirItos): "Table ›" - the site's table in the mode I hold a place in (else 1v1); my matches, the rules (rating.js)
+    if ($('meTable')) $('meTable').onclick = () => { box.classList.add('hidden'); open(rtTableUrl(RT_MODES.find(m => (rtOwn(me.steam, m) || {}).rank) || '1v1')); };
+    if ($('meMine')) $('meMine').onclick = () => { box.classList.add('hidden'); open(rtPlayerUrl(me.steam)); };
+    if ($('meRules')) $('meRules').onclick = () => { box.classList.add('hidden'); open(rtRulesUrl()); };
     $('meStats').onclick = () => { box.classList.add('hidden'); open((LIVE.host || 'https://dow2.fintebtc.de') + '/stats/?q=' + encodeURIComponent(me.steam) + '&lang=' + encodeURIComponent(lang)); };
     $('meSteam').onclick = () => { box.classList.add('hidden'); open('https://steamcommunity.com/profiles/' + me.steam); };
   } else {

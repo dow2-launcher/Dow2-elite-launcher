@@ -69,10 +69,9 @@ pub async fn nettest_run(app: AppHandle, st: State<'_, App>, mode: String, vpn: 
         res["list"] = json!(if ladder.is_some() { "ladder" } else { "builtin" });
         if !res["cancelled"].as_bool().unwrap_or(false) {
             save(&res);
-            // 1.6.19: the nodes the line cuts streams to (DPI): our API host at one of them is set aside (the chat's stream would die too)
-            let cut: Vec<std::net::IpAddr> = res["hints"].as_array().into_iter().flatten().filter(|h| h["code"] == "stream_cut")
-                .flat_map(|h| h["nodes"].as_array().cloned().unwrap_or_default()).filter_map(|n| n.as_str()?.parse().ok()).collect();
-            crate::api_set_aside_at(&cut, "connection test");
+            // 1.6.20 (Malum): the test's "stream_cut" is the game's UDP (a burst of small packets stopped on the way) - it says nothing
+            // about HTTPS to the same address, so our API host there is no longer set aside for it (1.6.19 did, and the chat lost a
+            // working host for hours). A cut TCP stream still sets it aside: netcheck.rs (the lobby server's check, a node's TCP download)
             // 1.4.24 (owner 06.11.2026): the run goes to the ladder silently (only the node numbers, no logs) - it keeps per player
             // how each node does for him and stops using a node that is bad for him; the answer = his marks for the window
             if !tok.is_empty() { if let Some(a) = nq_call(&tok, "test", &nt::quality_rows(&res)) { if a["ok"] == true { res["nq_marks"] = a["marks"].clone(); } } }
