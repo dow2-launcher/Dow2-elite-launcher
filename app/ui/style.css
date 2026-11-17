@@ -336,6 +336,7 @@ input[type=checkbox]:not([role=switch]):disabled{opacity:.45;cursor:default}
 .fb-who input{background:#0e0c09;border:1px solid var(--line);padding:4px 8px;flex:1;max-width:260px;user-select:text}
 .fb-id{margin-left:auto;font-size:11px;color:#8a7d62}
 .fb-msgs{flex:1;min-height:80px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px;user-select:text}
+.fb-more{align-self:center;font-size:12px;margin:2px 0 4px}
 .fb-m{max-width:85%;background:#120f0b;border:1px solid var(--line);padding:6px 10px;white-space:pre-wrap;word-wrap:break-word;font-size:14px}
 .fb-m.dev{align-self:flex-start;border-color:#2f5a24;background:#141c11}
 .fb-m.me{align-self:flex-end}
@@ -1997,3 +1998,11 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .hl-p .rt-b.m3v3:not(.r1){width:9px}
 .room .team+.team .nmw,.hl-team.r .nmw{flex-direction:row-reverse}
 @media (max-width:1000px){.lr-net th,.lr-net td{padding:3px 3px}}
+/* 1.6.20 (SirItos): the Elite number / dash opens the player's page on the site, a top-3 badge the mode's table, a profile row my page */
+.rt.go,.rt-b.go,.me-rr.go{cursor:pointer}
+.rt.el.go:hover{text-decoration:underline;color:#eafff8}
+.rt-b.go:hover{transform:scale(1.15)}
+.me-rr.go:hover b{color:var(--gd)}
+.me-rl{display:flex;justify-content:space-between;gap:10px;margin-top:4px}
+.me-rl .link-btn{padding:0;border:0;background:none;font:600 12px var(--fb);color:var(--gd);cursor:pointer}
+.me-rl .link-btn:hover{color:#eafff8}
