@@ -137,11 +137,9 @@ const ico = name => (window.ART_ICONS || []).includes(name) ? `<img class="ico a
 // the gate of Cadia (and the players' chat, 1.6.17: the Officio Prefectus' wide emblem was too big there); the host: the chaplain's skull; a seat: Troops; invite: the banner; stats: a list with skulls for its bullets.
 const w40 = k => `<i class="ico sig s-${k}" aria-hidden="true"></i>`;
 // 1.6.17 (owner 16.11.2026): an empty list - a sigil in the block's middle over a title and a hint, no plate: Home's lobbies and
-// the Lobbies tab's open lobbies (Catachan's skull over blades, still: the interference looked out of place there), its running
-// matches (the swords, with the interference: glitch, style.css .gli)
-const zeroPane = (sig, title, hint, more, glitch) => `<div class="rp-none zero">${glitch
-  ? `<i class="gli zsig ${sig}" aria-hidden="true"><i class="sig"></i><b class="gl-s"><i class="sig"></i></b><i class="sig gl-b"></i></i>`
-  : `<i class="sig zsig ${sig}" aria-hidden="true"></i>`}`
+// the Lobbies tab's open lobbies (Catachan's skull over blades), its running matches (the swords). 1.6.20 (owner 17.11.2026): all
+// of them still - the interference is for what comes "on the screen" (the strips under the header), it looked out of place here
+const zeroPane = (sig, title, hint, more) => `<div class="rp-none zero"><i class="sig zsig ${sig}" aria-hidden="true"></i>`
   + `<b>${esc(title)}</b>${hint ? `<span>${esc(hint)}</span>` : ''}${more || ''}</div>`;
 // nothing under the filters: the same middle of the block, the line in the pane's title size, no sigil
 const fltPane = () => `<div class="rp-none zero flt"><b>${esc(t('rNoneFilter'))}</b></div>`;

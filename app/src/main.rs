@@ -689,7 +689,7 @@ fn main() {
             replayopen::replay_open, replayopen::replay_open_probe, replayopen::replay_open_cancel,
             replays::replays_local, replays::replays_pool, replays::replays_versions, replays::replays_have, replays::replay_info, replays::replay_upload,
             replays::replay_describe, replays::replay_download, replays::replay_delete, replays::replays_open_dir,
-            lroom::lroom_api, lroom::lroom_list, lroom::fame_get, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
+            lroom::lroom_api, lroom::lroom_list, lroom::fame_get, lroom::own_get, lroom::notice_get, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
             prefs::hotkeys_get, prefs::hotkeys_save, prefs::hotkeys_reset, prefs::ui_scale_get, prefs::ui_scale_set, install::uninstall_elite,
             community::c_status, community::c_login, community::c_login_local, community::c_login_cancel, community::c_logout, community::c_api, stream::c_stream_up, netcheck::net_status, netcheck::net_check, feeds::mm_live, feeds::events_get,
             netcheck::relic_probe, netcheck::game_net_check, vanilla::set_game_mode,

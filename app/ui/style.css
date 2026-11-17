@@ -1409,7 +1409,7 @@ html{font-variant-numeric:lining-nums}
 [data-tip]:hover::after,[data-tip].tipon::after{content:none!important}
 [data-tip]>button:disabled,[data-tip]>.btn:disabled{pointer-events:none}
 .tiplayer{position:fixed;left:0;top:0;z-index:1000;width:max-content;max-width:260px;padding:6px 10px;background:rgba(4,10,11,.97);border:1px solid var(--ln2);
-  box-shadow:0 8px 20px rgba(0,0,0,.65);font:500 12.5px/1.35 var(--fb);color:#e4f3ed;white-space:normal;text-align:left;pointer-events:none;animation:tipIn .12s ease-out}
+  box-shadow:0 8px 20px rgba(0,0,0,.65);font:500 12.5px/1.35 var(--fb);color:#e4f3ed;white-space:pre-line;text-align:left;pointer-events:none;animation:tipIn .12s ease-out}
 .tiplayer[hidden]{display:none}
 @keyframes tipIn{from{opacity:0}}
 .poplayer{position:fixed;left:0;top:0;width:0;height:0;z-index:900}
@@ -1821,8 +1821,8 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
    ended 28 px short of the right edge) */
 .bandp .on-gh{width:calc(100% + 28px)}
 /* an empty list (app.js zeroPane): a sigil in the block's middle - no plate, no frame. Home's lobbies; 1.6.17 the Lobbies tab's
-   open lobbies (#rEmpty): Catachan's, still; its running matches (#rLiveZero): the swords flickering with interference (.gli), as
-   the Replays' Mechanicus cog */
+   open lobbies (#rEmpty): Catachan's; its running matches (#rLiveZero): the swords - all still since 1.6.20 (owner 17.11.2026:
+   the interference is for the strips that come "on the screen") */
 .hl-list.empty{align-items:center;justify-content:center}
 .rp-none.zero{padding:24px 16px}
 .zsig{--gl-t:7s;--gl-x:7px;width:118px;height:104px;color:#8fd1c2;opacity:.5;filter:drop-shadow(0 0 12px rgba(69,224,192,.3))}
@@ -1897,3 +1897,103 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .tab .tab-n{display:inline-block;margin-left:6px;padding:0 6px;border-radius:9px;background:var(--gold);color:#16120c;font:700 11.5px/18px var(--fb);text-shadow:none;vertical-align:3px}
 .tab .tab-n:empty{display:none}
 @media (prefers-reduced-motion:reduce){.lc-ping{animation:none}}
+/* ---------- 1.6.20 (owner 17.11.2026): before the Elite rating's preseason ---------- */
+/* the (i) by the version: the size of the version's digits and their middle (it sat 3 px under them) */
+.hdr-info{width:20px;height:20px;transform:translateY(-1px)}
+.hdr-info svg{width:14px;height:14px}
+.hdr-info .dot{top:0;right:0}
+/* the own lobby: the right column a little wider - a long name and four servers in the ping table grew a scroll bar under it;
+   a name there is cut with "…" (its row's tip has it whole) */
+.lr-body{grid-template-columns:minmax(0,1fr) 392px}
+@media (max-width:1000px){.lr-body{grid-template-columns:minmax(0,1fr) 316px}}
+@media (min-width:1700px){.lr-body{grid-template-columns:minmax(0,1fr) 440px}}
+/* the names' column takes what the servers' columns leave (they keep their numbers whole): the name box adds nothing to the
+   table's least width (width 0) and fills its cell, cut with "…" - the table is never wider than its block (1.6.19: 372 px in 352,
+   the last server under the frame); the whole name in the cell's tip */
+.lr-net table{width:100%;table-layout:auto}
+.lr-net tbody th{width:100%;max-width:none}
+.lr-net tbody th .nn{display:block;width:0;min-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* Home's chat: its tabs (General, Lobby, the language, Developers, Logs) scroll sideways when the window is too narrow for them,
+   no tab over another; the language's menu is placed by its button (fixed: the scrolling row would cut it) */
+.ch-head{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.ch-head::-webkit-scrollbar{height:4px}
+.ch-head .ch-tabs{flex:1 0 auto}
+.ch-head .ch-tab,.ch-head .ch-lang,.ch-head .ch-devg,.ch-head .ch-devg>*{flex:none;white-space:nowrap}
+.ch-lmenu{position:fixed;top:auto;left:auto;right:auto}
+/* the lobby cards' eye: an icon without a frame, as Home's (a highlight on hover only) */
+.rjoin.lr-watch,.rjoin.robs-b{border:0;background:none;box-shadow:none;color:var(--gd);filter:none}
+.rjoin.lr-watch:hover,.rjoin.robs-b:not(.off):hover,.rjoin.lr-watch:focus-visible,.rjoin.robs-b:not(.off):focus-visible{color:#eafff8;filter:drop-shadow(0 0 5px rgba(69,224,192,.7))}
+.rjoin.robs-b.off,.rjoin.robs-b.off:hover{color:var(--gd);filter:none}
+/* Join of a full lobby: there, dimmed, not pressable */
+.rjoin.full,.rjoin.full:hover,.rjoin.full:focus-visible{opacity:.4;filter:grayscale(.6);cursor:not-allowed;color:#9fb8b2}
+/* the rating: Elite's number in the Elite colour; none - the dash of .rt.none, as Relic's */
+.rt.el{color:#9fe3cf}
+/* the Elite table's top three of each mode by the name (rating.js rtBadge), sigils.css --sig-r<mode><a|b> (owner's picks
+   17.11.2026): 1v1 the Space Marines - the Reclusiam for the first, the Crux Terminatus for the Veterans; 2v2 the Imperial Guard -
+   the Astra Militarum's winged skull for the Lord General, the Officio Prefectus for the Commissars (both wide: lower, longer);
+   3v3 the Orks - the horned skull for the Warboss, Gork's head for the Nobs. 1st gold, 2nd silver, 3rd bronze */
+.rt-b{flex:none;display:inline-block;width:15px;height:15px;margin:0 1px;vertical-align:-2px;background:currentColor;
+  -webkit-mask:var(--sig) center/contain no-repeat;mask:var(--sig) center/contain no-repeat;cursor:help}
+.rt-b.r1{color:#e9c46a;filter:drop-shadow(0 0 3px rgba(233,196,106,.55))}
+.rt-b.r2{color:#c9d3d1}
+.rt-b.r3{color:#c98a55}
+.rt-b.m1v1.r1{--sig:var(--sig-r1a);width:16px;height:16px}
+.rt-b.m1v1:not(.r1){--sig:var(--sig-r1b)}
+.rt-b.m2v2.r1{--sig:var(--sig-r2a);width:34px;height:12px;vertical-align:0}
+.rt-b.m2v2:not(.r1){--sig:var(--sig-r2b);width:34px;height:11px;vertical-align:0}
+.rt-b.m3v3.r1{--sig:var(--sig-r3a);width:18px}
+.rt-b.m3v3:not(.r1){--sig:var(--sig-r3b);width:11px}
+.me-chip .rt-b{align-self:center}
+/* the profile's menu: wider; under the name the rating system's tick; under the line the picked system; stats and Steam in a row */
+#meBox{width:340px}
+.me-sys{margin-top:5px;font:500 13px var(--fb);color:var(--sf);cursor:pointer;width:max-content;max-width:100%}
+.me-sys:hover{color:#eafff8}
+.me-rts{display:flex;flex-direction:column;gap:3px;padding:8px 12px 8px;border-bottom:1px solid var(--ln)}
+.me-rh{display:flex;align-items:center;gap:8px;min-height:18px;margin-bottom:2px;font:700 11px/1 var(--fb);letter-spacing:.6px;text-transform:uppercase;color:var(--mu)}
+.me-rh>span{flex:1;min-width:0;display:flex;align-items:center;gap:2px}
+/* the (i) by the season: frameless, a highlight on hover (the header's (i)) */
+.me-ri{flex:none;display:grid;place-items:center;width:16px;height:16px;margin:-2px 0 -2px 4px;padding:0;border:0;background:none;color:var(--mu);cursor:pointer}
+.me-ri .ico,.me-ri svg{width:12px;height:12px}
+.me-ri:hover,.me-ri:focus-visible{color:#eafff8;filter:drop-shadow(0 0 5px rgba(69,224,192,.7))}
+.me-rh .link-btn{flex:none;padding:0;border:0;background:none;font:600 12px var(--fb);letter-spacing:0;text-transform:none;color:var(--gd);cursor:pointer}
+.me-rh .link-btn:hover{color:#eafff8}
+/* one line height and one size for the row (owner 17.11.2026: the number was bigger than the mode and the rest) - the number
+   stands out by its colour and weight only */
+.me-rr{display:grid;grid-template-columns:30px 40px minmax(0,1fr) auto;align-items:center;gap:8px;min-height:22px;font:500 13px/1.3 var(--fb);color:var(--sf)}
+.me-rr>b{font:600 13px/1.3 var(--fb);color:var(--mu)}
+.me-rr .v{font:700 13px/1.3 var(--fb);color:#eafff8;font-variant-numeric:tabular-nums}
+.me-rr .pl{justify-self:end;color:var(--gold2);white-space:nowrap}   /* the place at the right edge (owner 17.11.2026), the number stays */
+.me-rr .g{justify-self:end;color:var(--mu);white-space:nowrap}
+.me-rr.cal .c{grid-column:2 / span 2;justify-self:start;white-space:nowrap;color:#e8d8ae}
+.me-rr.none .v{color:var(--mu);font-weight:500}
+.me-rr.relic{grid-template-columns:auto 1fr;align-items:center}
+.me-rr.relic small{font-size:11.5px;line-height:1.3;color:var(--mu)}
+.me-rr.off{display:block;font-size:12.5px;color:var(--mu)}
+.me-acts{display:flex;gap:4px;padding:6px 6px 0}
+.me-acts .me-item{flex:1;width:auto;justify-content:center;gap:8px;padding:8px 6px;font-size:13.5px;white-space:nowrap}
+/* the incoming message (notes.js): the strip of "launcher updated", its text in two lines; the window with the whole of it */
+.upd-done.ntc .ub-it{align-items:center}
+.upd-done.ntc .ub-it small{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.35;font-size:12.5px;color:#cbbf9f}
+.ntc-m .box{max-width:620px}
+.ntc-full{max-height:60vh;overflow:auto;margin-top:14px;padding-right:6px;font-size:14px;color:#d6eee7}   /* under the box's ornament band */
+.ntc-full p{margin:0 0 10px;line-height:1.45}
+.ntc-full ul{margin:0 0 10px;padding-left:20px;line-height:1.45}
+.ntc-full li{margin:2px 0}
+.ntc-full b{color:#f6ecd2}
+.ntc-full a{color:var(--gd);text-decoration:underline;text-underline-offset:2px}
+.ntc-full .rt-b{margin:0 2px;vertical-align:-3px}
+.ntc-full a:hover{color:#eafff8}
+/* a name with its badge (rating.js rtName) where the name takes the row's free width: the badge right after the name */
+/* the name first: a badge that does not fit whole goes to a second line, which is not shown (no half badges); a name longer than
+   the row takes it alone, cut with "…" */
+.nmw{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-content:flex-start;align-items:center;column-gap:3px;row-gap:12px;height:20px;overflow:hidden}
+.nmw>.nm{flex:0 1 auto!important;min-width:0;max-width:100%}
+.hl-p .nmw{height:19px}
+/* Home's narrow cards: the badges smaller (the Guard's wide ones most) */
+.hl-p .rt-b{width:12px;height:12px}
+.hl-p .rt-b.m1v1.r1{width:13px;height:13px}
+.hl-p .rt-b.m2v2{width:26px;height:9px}
+.hl-p .rt-b.m3v3.r1{width:14px}
+.hl-p .rt-b.m3v3:not(.r1){width:9px}
+.room .team+.team .nmw,.hl-team.r .nmw{flex-direction:row-reverse}
+@media (max-width:1000px){.lr-net th,.lr-net td{padding:3px 3px}}

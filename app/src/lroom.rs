@@ -75,6 +75,40 @@ pub async fn lroom_list(what: Option<String>, game: Option<String>) -> Result<Va
     }).await.map_err(|e| e.to_string())?
 }
 
+/// 1.6.20 (owner 17.11.2026): the Elite rating of every player of the current (pre)season, all modes, in one answer
+/// (/ladder/api/own/all): the window shows it wherever it lists a player - Online, the lobbies, the tips - when the player picked it.
+#[tauri::command]
+pub async fn own_get() -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut last = "the server is not configured in this build".to_string();
+        for h in crate::fb_hosts() {
+            match crate::HTTP.get(&format!("{h}/ladder/api/own/all")).timeout(Duration::from_secs(10)).call() {
+                Ok(r) => return serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()),
+                Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
+            }
+        }
+        Err(last)
+    }).await.map_err(|e| e.to_string())?
+}
+
+/// 1.6.20 (owner 17.11.2026): a message to the players - /elite/notice.json on our hosts ({id, <lang>: {title, short, full}}), edited
+/// there like the Hall of Fame (no release needed); the window shows it once per id, after the "launcher updated" strip (notes.js).
+/// No file there (404) - null, nothing to show.
+#[tauri::command]
+pub async fn notice_get() -> Result<Value, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        let mut last = "the server is not configured in this build".to_string();
+        for h in crate::fb_hosts() {
+            match crate::HTTP.get(&format!("{h}/elite/notice.json")).timeout(Duration::from_secs(10)).call() {
+                Ok(r) => return Ok(serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).unwrap_or(Value::Null)),
+                Err(ureq::Error::Status(404, _)) => return Ok(Value::Null),
+                Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
+            }
+        }
+        Err(last)
+    }).await.map_err(|e| e.to_string())?
+}
+
 /// The Hall of Fame (owner 14.11.2026): the players who helped the launcher most, one list for the launcher and the site
 /// (/elite/fame.json on our hosts; edited there, no release needed).
 #[tauri::command]

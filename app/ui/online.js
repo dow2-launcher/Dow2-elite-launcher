@@ -18,8 +18,9 @@ const raceImg = r => {
   if (r === 'random') return `<span class="race race-rnd" role="img" aria-label="${esc(t('race_random'))}" title="${esc(t('race_random'))}">?</span>`;
   return RACES.includes(r) ? `<img class="race" src="races/${r}.png" alt="${esc(t('race_' + r))}" title="${esc(t('race_' + r))}">` : '<span class="race"></span>';
 };
-// the 1v1 rating; none yet (no ladder games this season) - a dash, so the dots after it stay in one column
-const onRt = r => r ? `<span class="rt">${Number(r) | 0}</span>` : `<span class="rt none" title="${esc(t('prNoGames'))}">—</span>`;
+// 1.6.20: the rating of the system picked (rating.js): Relic's number, or Elite's of the mode (Online: 1v1, a match: its mode);
+// none - a dash, so the dots after it stay in one column
+const onRt = (steam, mode) => rtCell(steam, mode, onUser(steam).rating);
 const onUser = s => LIVE.users[s] || {};
 const onWho = s => `<button class="nm" data-steam="${esc(s)}" data-name="${esc(onUser(s).name || '')}">${esc(onUser(s).name || 'Player')}</button>`;
 // the server sends unix times and its own clock with every snapshot: minutes count right even when the PC clock is off
@@ -93,22 +94,24 @@ function onRender() {
     if (ON.err) html += `<div class="on-stale">${esc(t('onOffline'))}</div>`;   // the last list stays, marked as old
     if (!look.length && !matches.length && !inL.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
     // looking for a game: avatar, name, race, mode (spectators marked); no time (owner 03.11.2026: not needed)
-    if (look.length) html += group('look', t('onSearching'), look.length, look.map(p => `<div class="on-p">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${raceImg(p.race)}`
+    // 1.6.20: every row of a player carries his tip (rating.js: the picked system whole) and, with Elite, the warboss / nob by the name
+    const row = (s, cls) => `<div class="on-p${cls || ''}"${rtTipAttr(s, onUser(s).name, onUser(s).rating)}>${avatar(onUser(s).avatar)}${onWho(s)}${rtBadge(s)}`;
+    if (look.length) html += group('look', t('onSearching'), look.length, look.map(p => `${row(p.steam)}${raceImg(p.race)}`
       + `<span class="tag">${esc(p.mode === 'watch' ? t('onWatcher') : p.mode)}</span></div>`).join(''));
     // 1.5.0: no rooms group here - who is in the rooms is on the Rooms tab (owner 08.11.2026)
-    // the launcher open: avatar, 1v1 rating, a dot for menu / game
+    // the launcher open: avatar, the rating (Relic, or Elite 1v1), a dot for menu / game
     if (inL.length) html += group('launcher', t('chMembers'), inL.length, [...inL].sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''))
-      .map(p => `<div class="on-p on-u">${avatar(onUser(p.steam).avatar)}${onWho(p.steam)}${onRt(onUser(p.steam).rating)}`
+      .map(p => `${row(p.steam, ' on-u')}${onRt(p.steam)}`
         + `<span class="st st-${esc(p.state)}" title="${esc(t('st_' + p.state))}"></span></div>`).join(''));
     // in a match, the last group and the biggest: a card per match - mode, map, getting ready / how long it plays -
     // team against team, the spectators
-    const pl = x => `<div class="on-p">${avatar(onUser(x.steam).avatar)}${onWho(x.steam)}${raceImg(x.race)}${onRt(onUser(x.steam).rating)}</div>`;
+    const pl = mode => x => `${row(x.steam)}${raceImg(x.race)}${onRt(x.steam, mode)}</div>`;
     const map = m => String(m || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
     if (matches.length) html += group('match', t('onInMatchH'), players.length, matches.map(m => `<div class="on-mc"><div class="on-mh">`
       + `<span class="tag ${m.state === 'playing' ? 'playing' : 'creating'}">${esc(m.mode)}</span><span class="map">${esc(map(m.map))}</span>`
       + `<span class="since">${esc(m.state === 'playing' ? t('onStatePlaying') + (m.started ? ' · ' + onMins(m.started) : '') : t('onStateCreating'))}</span>`
       + (m.live ? `<button class="lvw" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('lvTitle'))}" aria-label="${esc(t('lvTitle'))}">${ico('eye')}</button>` : '') + '</div>'
-      + m.team1.map(pl).join('') + '<div class="vs">vs</div>' + m.team2.map(pl).join('')
+      + m.team1.map(pl(m.mode)).join('') + '<div class="vs">vs</div>' + m.team2.map(pl(m.mode)).join('')
       + (m.watchers.length ? `<div class="on-wt">${esc(t('onWatchers'))}: ${m.watchers.map(onWho).join(', ')}</div>` : '') + '</div>').join(''));
   }
   // "Online N" in the heading: everyone in the groups once, spectators too
