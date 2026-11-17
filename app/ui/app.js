@@ -317,6 +317,16 @@ const COMP_GROUPS = {
   experiment: ['roomjoin', 'netprobe'],
 };
 const compBase = c => String(c.id).replace(/_(r\d+|off)$/, '');
+// 1.6.23 (owner 17.11.2026: "Hero bar fix" twice on a Mac): the add-on lists the launcher shows - the real ones (on macOS
+// from components_macos) and, on macOS only, the Windows showcase (components_preview) minus every entry whose add-on has a
+// Mac build already (herolabelfix vs herolabelfix_mac, nohints vs nohints_mac: the same base id without "_mac")
+const macBase = c => compBase(c).replace(/_mac$/, '');
+function compAll() {
+  const real = (S && S.components || []).filter(compShown);
+  if (!S || S.os !== 'macos') return real;
+  const have = new Set(real.map(macBase));
+  return real.concat((S.components_preview || []).filter(compShown).filter(c => !have.has(macBase(c))));
+}
 // an entry with "order" is a new one: its category is trusted; an old entry (no "order") keeps the old category only for an
 // id this list does not know
 const compCat = c => (Number.isFinite(c.order) && COMP_CATS.includes(c.category) && c.category)
@@ -335,8 +345,8 @@ const compShown = c => !/(^|-)off$/i.test(String(c.latest || ''));
 // 09.11.2026: the add-ons a ticked one does not work with (either side lists the other) and the ones it needs; a warning
 // only - the player decides, nothing is unticked
 function compWarns(c) {
-  if (!c.enabled) return [];
-  const all = (S && S.components || []).concat(S && S.os === 'macos' ? (S.components_preview || []) : []).filter(compShown), b = compBase(c), nm = x => L(x.name) || x.id, out = [];
+  if (!c.enabled || c.preview) return [];
+  const all = compAll(), b = compBase(c), nm = x => L(x.name) || x.id, out = [];
   const ex = all.filter(x => x !== c && x.enabled && ((c.excludes || []).includes(compBase(x)) || (x.excludes || []).includes(b)));
   if (ex.length) out.push(t('addonExcl', { names: ex.map(nm).join(', ') }));
   const rq = (c.requires || []).map(id => all.find(x => compBase(x) === id)).filter(Boolean);
@@ -362,8 +372,10 @@ const compWarnMark = c => compWarns(c).length ? `<span class="addon-warn" title=
 // 1.4.11 (owner 05.11.2026): Play starts vanilla Retribution - the add-ons for Elite only are grey there, their switch locked
 const VAN = () => !!(S && S.game_mode === 'vanilla');
 // 1.6.5: a mod version with add-ons of its own game (IG Rework, status addon_game): the ones not made for it are grey too
-const naHere = c => (VAN() && !c.vanilla_ok) || c.game_ok === false;
-const naChip = c => c.game_ok === false && !VAN() ? `<span class="chip na" title="${esc(t('notThisModNote'))}">${esc(t('notThisMod'))}</span>`
+// 1.6.23: a macOS showcase entry (preview: a Windows add-on, never installed) is grey too, its tick empty and locked
+const naHere = c => !!c.preview || (VAN() && !c.vanilla_ok) || c.game_ok === false;
+const naChip = c => c.preview ? `<span class="chip na" title="${esc(t('winOnlyNote'))}">${esc(t('winOnly'))}</span>`
+  : c.game_ok === false && !VAN() ? `<span class="chip na" title="${esc(t('notThisModNote'))}">${esc(t('notThisMod'))}</span>`
   : `<span class="chip na" title="${esc(t('eliteOnlyNote'))}">${esc(t('eliteOnly'))}</span>`;
 // add-on rows: a switch each and its own options under it once it is on; the details behind "?" on the home screen,
 // written out on the Add-ons tab (full)
@@ -376,7 +388,7 @@ function compList(box, list, full) {
       + (full ? compChips(c) : '') + (naHere(c) ? naChip(c) : '')
       + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '') + compWarnMark(c)
       + (full ? '' : `<button class="qm ${$('pop').dataset.id === c.id ? 'on' : ''}" data-info="${esc(c.id)}" aria-label="${esc(t('addonInfo', { name: L(c.name) || c.id }))}">?</button>`)
-      + `<label class="switch"><input type="checkbox" role="switch" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled ? 'checked' : ''} ${lock || naHere(c) || c.required ? 'disabled' : ''}><i></i></label></div>`
+      + `<label class="switch"><input type="checkbox" role="switch" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled && !c.preview ? 'checked' : ''} ${lock || naHere(c) || c.required ? 'disabled' : ''}><i></i></label></div>`
       + (full ? (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
           + `<div class="addon-ver">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
           + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') + compWarnHtml(c, 'addon-note') : '')
@@ -389,7 +401,7 @@ function compList(box, list, full) {
   // the columns about equally tall; an add-on is a row - a checkbox on the left (a click on the row ticks it), the name with
   // its marks, the description, its settings; the version on the right
   const row = c => `<div class="arow ${c.enabled && !naHere(c) ? '' : 'off'} ${naHere(c) ? 'na' : ''} ${lock || naHere(c) ? 'lock' : ''}">`
-      + `<input type="checkbox" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled ? 'checked' : ''} ${lock || naHere(c) || c.required ? 'disabled' : ''}>`
+      + `<input type="checkbox" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled && !c.preview ? 'checked' : ''} ${lock || naHere(c) || c.required ? 'disabled' : ''}>`
       + `<div class="arow-b"><div class="arow-n"><b>${nameHtml(c)}</b>${naHere(c) ? naChip(c) : ''}${compChips(c)}`
       + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '') + compWarnMark(c) + '</div>'
       + (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
@@ -756,7 +768,7 @@ function render() {
 
   // add-ons: only the game server on the home screen (or what launcher.json marks "home"), all of them on the Add-ons tab
   // 1.6.9 (owner 14.11.2026): on macOS the Windows add-ons too, as a showcase (components_preview: shown, never installed)
-  const comps = (S.components || []).concat(S.os === 'macos' ? (S.components_preview || []) : []).filter(compShown);
+  const comps = compAll();
   const pinned = comps.some(c => c.home) ? comps.filter(c => c.home)
     : comps.filter(c => c.id === 'relay');   // until launcher.json marks them
   $('compBox').classList.toggle('hidden', !pinned.length);

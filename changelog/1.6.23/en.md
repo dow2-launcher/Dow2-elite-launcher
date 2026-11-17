@@ -1,0 +1,2 @@
+- macOS, Add-ons: an add-on that has a Mac build (Hero bar fix, NoHints, Reinforce fix) is listed once - its Windows version is no longer shown next to it.
+- macOS, Add-ons: the Windows add-ons shown for reference are grey with a "Windows only" mark, their tick empty and locked - nothing to switch on there.
