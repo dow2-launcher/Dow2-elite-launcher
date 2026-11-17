@@ -1,5 +1,5 @@
 //! Launcher rooms (owner 05.11.2026): a lobby in the launcher like the game's own - the map, who plays in which team with
-//! which race and hero, everybody presses Ready, a 10 s countdown, then the game starts for everyone and they all land in
+//! which race and hero, everybody presses Ready, a 5 s countdown, then the game starts for everyone and they all land in
 //! one match. The room lives on our ladder server (dow2-ladder ladder/lroom.py); the window talks to it through
 //! `lroom_api` (POST /ladder/api/lroom/<verb>, the community session token added here, never in the page) and hears every
 //! change on the live stream (event "lroom" - the room's whole view - and "lroom_gone").
