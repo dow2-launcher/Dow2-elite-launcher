@@ -48,7 +48,7 @@ function hlLr(x) {
 }
 // a lobby of the game (app.js roomCard, short)
 function hlGame(r) {
-  const A = (RM.host || siteBase()) + '/elite/assets/';
+  const A = siteBase() + '/elite/assets/';
   const why = r.game === 'elite' ? roomJoinWhy(r) : '', vok = r.game === 'elite' ? !why : r.game === 'vanilla' ? !!(S && S.vanilla_offered) : false;
   const cap = r.cap || (((r.map || '').match(/^(\d)p_/) || [])[1] | 0) || 0, per = cap ? Math.max(1, Math.round(cap / 2)) : 0;
   const isObs = p => p.observer || !(p.team === 0 || p.team === 1 || p.team == null);

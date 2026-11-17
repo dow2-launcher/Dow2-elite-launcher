@@ -8,7 +8,7 @@ use super::*;
 // checks the answer with Steam and hands the launcher a session token for the random nonce it made.
 pub(crate) fn c_profile(s: &Settings) -> Value {
     let local = elite_core::game::steam_local_user();
-    json!({"signed_in": !s.c_token.is_empty(), "steam": s.c_steam, "name": s.c_name, "avatar": s.c_avatar, "configured": !fb_hosts().is_empty(),
+    json!({"signed_in": !s.c_token.is_empty(), "steam": s.c_steam, "name": s.c_name, "avatar": s.c_avatar, "configured": !reach::api_hosts().is_empty(),
            "local_name": local.as_ref().map(|l| l.1.clone()).unwrap_or_default(), "local_found": local.is_some()})
 }
 
@@ -34,18 +34,14 @@ pub(crate) fn c_local_call(token: &str) -> Result<Value, String> {
     let device = elite_core::game::machine_id();
     c_log(&format!("local: steam {steam} name {name:?} device {}", if device.is_empty() { "-" } else { &device[..8] }));
     let body = json!({"steam": steam, "name": name, "device": device, "token": token, "launcher": LAUNCHER_VERSION, "os": os_name()}).to_string();
-    let mut last = "the server is not configured in this build".to_string();
-    for h in fb_hosts() {
-        match HTTP.post(&format!("{h}/ladder/api/c/local")).timeout(Duration::from_secs(20)).set("Content-Type", "application/json").send_string(&body) {
-            Ok(r) => {
-                let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
-                c_log(&format!("local: {h} -> ok={} {}", v["ok"], v["error"].as_str().unwrap_or("")));
-                return Ok(v);
-            }
-            Err(e) => { c_log(&format!("local: {h} failed: {e}")); api_err(&h, &e); last = e.to_string(); }
+    reach::call("sign-in", |h| match HTTP.post(&format!("{h}/ladder/api/c/local")).timeout(Duration::from_secs(20)).set("Content-Type", "application/json").send_string(&body) {
+        Ok(r) => {
+            let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
+            c_log(&format!("local: {h} -> ok={} {}", v["ok"], v["error"].as_str().unwrap_or("")));
+            Ok(v)
         }
-    }
-    Err(last)
+        Err(e) => { c_log(&format!("local: {h} failed: {e}")); Err(e) }
+    })
 }
 
 /// Sign in with the Steam account of this computer, no browser. {need_browser: true} when the account is bound to
@@ -72,7 +68,7 @@ pub fn c_login_cancel() { LOGIN_GEN.fetch_add(1, Ordering::SeqCst); }
 
 #[tauri::command]
 pub async fn c_login(app: AppHandle) -> Result<Value, String> {
-    let host = fb_hosts().into_iter().next().ok_or("the server is not configured in this build")?;
+    let host = reach::api_hosts().into_iter().next().ok_or(reach::NOT_CONFIGURED)?;
     let attempt = LOGIN_GEN.fetch_add(1, Ordering::SeqCst) + 1;
     let mut b = [0u8; 24];
     getrandom::getrandom(&mut b).map_err(|e| e.to_string())?;
@@ -85,21 +81,18 @@ pub async fn c_login(app: AppHandle) -> Result<Value, String> {
         for _ in 0..150 {
             std::thread::sleep(Duration::from_secs(2));
             if LOGIN_GEN.load(Ordering::SeqCst) != attempt { c_log("browser: cancelled (Cancel or a new click)"); return Err("cancelled".to_string()); }
-            for h in fb_hosts() {
-                let r = match HTTP.get(&format!("{h}/ladder/api/c/claim?nonce={nonce}")).timeout(Duration::from_secs(10)).call() {
-                    Ok(r) => r,
-                    Err(e) => { c_log(&format!("browser: claim at {h} failed: {e}")); api_err(&h, &e); continue; }
-                };
-                let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
-                if v["ok"].as_bool() == Some(true) {
-                    c_log(&format!("browser: signed in as {}", v["steam"].as_str().unwrap_or("")));
-                    let prof = c_save(&app2, &v);
-                    let _ = c_local_call(v["token"].as_str().unwrap_or(""));   // binds this computer: next time no browser
-                    return Ok(prof);
-                }
-                if let Some(e) = v["error"].as_str() { c_log(&format!("browser: claim error {e}")); return Err(e.to_string()); }
-                break;
+            let r = match reach::call("sign-in claim", |h| HTTP.get(&format!("{h}/ladder/api/c/claim?nonce={nonce}")).timeout(Duration::from_secs(10)).call()) {
+                Ok(r) => r,
+                Err(e) => { c_log(&format!("browser: claim failed: {e}")); continue; }
+            };
+            let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
+            if v["ok"].as_bool() == Some(true) {
+                c_log(&format!("browser: signed in as {}", v["steam"].as_str().unwrap_or("")));
+                let prof = c_save(&app2, &v);
+                let _ = c_local_call(v["token"].as_str().unwrap_or(""));   // binds this computer: next time no browser
+                return Ok(prof);
             }
+            if let Some(e) = v["error"].as_str() { c_log(&format!("browser: claim error {e}")); return Err(e.to_string()); }
         }
         c_log("browser: no answer from Steam in 5 minutes (the Steam page did not come back - blocked, closed or not signed in)");
         Err("timeout".to_string())
@@ -114,8 +107,8 @@ pub fn c_logout(app: State<'_, App>) -> Value {
     save_settings(&s);
     STREAM_GEN.fetch_add(1, Ordering::SeqCst);
     let body = json!({"token": token}).to_string();
-    std::thread::spawn(move || for h in fb_hosts() {
-        if HTTP.post(&format!("{h}/ladder/api/c/logout")).timeout(Duration::from_secs(10)).set("Content-Type", "application/json").send_string(&body).is_ok() { break; }
+    std::thread::spawn(move || {
+        let _ = reach::call("sign-out", |h| HTTP.post(&format!("{h}/ladder/api/c/logout")).timeout(Duration::from_secs(10)).set("Content-Type", "application/json").send_string(&body));
     });
     c_profile(&s)
 }
@@ -134,24 +127,21 @@ pub async fn c_api(app: AppHandle, path: String, body: Option<Value>) -> Result<
         b.to_string()
     });
     tauri::async_runtime::spawn_blocking(move || {
-        let mut last = "the server is not configured in this build".to_string();
-        for h in chat_hosts() {
+        // 1.6.22: the active host first, as every other call (1.6.19-1.6.21 put the live stream's host first here - a second
+        // "active" host; the stream now moves to the active host itself)
+        let r = reach::call(&format!("chat {name}"), |h| {
             let url = format!("{h}/ladder/api/c/{path}");
-            let r = match &post {
+            match &post {
                 Some(b) => HTTP.post(&url).timeout(Duration::from_secs(secs)).set("Content-Type", "application/json").send_string(b),
                 None => HTTP.get(&url).timeout(Duration::from_secs(secs)).call(),
-            };
-            match r {
-                Ok(r) => {
-                    let mut v = serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
-                    if name == "msgs" { for m in v["msgs"].as_array().into_iter().flatten() { stream_note(m); } }
-                    if name == "live" { v["host"] = json!(h); }
-                    return Ok(v);
-                }
-                Err(e) => { api_err(&h, &e); last = e.to_string(); }
             }
-        }
-        if name != "msgs" && name != "online" && name != "hello" { c_log(&format!("api {name}: {last}")); }
-        Err(last)
+        });
+        let r = match r {
+            Ok(r) => r,
+            Err(last) => { if name != "msgs" && name != "online" && name != "hello" { c_log(&format!("api {name}: {last}")); } return Err(last); }
+        };
+        let v = serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
+        if name == "msgs" { for m in v["msgs"].as_array().into_iter().flatten() { stream_note(m); } }
+        Ok(v)
     }).await.map_err(|e| e.to_string())?
 }

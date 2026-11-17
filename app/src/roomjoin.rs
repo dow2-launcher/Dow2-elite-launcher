@@ -695,13 +695,9 @@ fn session(app: AppHandle, gen: u64, id: u64, name: String, wait: Duration, leav
 
 /// Is the lobby in the open lobbies list now (the ladder's copy of Relic's, /ladder/api/rooms)? None: no answer.
 fn room_listed(id: u64) -> Option<bool> {
-    for h in crate::fb_hosts() {
-        if let Ok(r) = crate::HTTP.get(&format!("{h}/ladder/api/rooms")).timeout(Duration::from_secs(8)).call() {
-            let v: Value = serde_json::from_str(&r.into_string().ok()?).ok()?;
-            return Some(v["rooms"].as_array()?.iter().any(|x| x["id"].as_u64() == Some(id) || x["id"].as_str() == Some(&id.to_string())));
-        }
-    }
-    None
+    let r = crate::reach::call("rooms", |h| crate::HTTP.get(&format!("{h}/ladder/api/rooms")).timeout(Duration::from_secs(8)).call()).ok()?;
+    let v: Value = serde_json::from_str(&r.into_string().ok()?).ok()?;
+    Some(v["rooms"].as_array()?.iter().any(|x| x["id"].as_u64() == Some(id) || x["id"].as_str() == Some(&id.to_string())))
 }
 
 /// Cancel: the waiting for the game stops, and every game with the pipe is told - for the room of this join only (RoomJoin 11;

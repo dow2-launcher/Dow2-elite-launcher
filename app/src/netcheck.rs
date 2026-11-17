@@ -4,8 +4,8 @@ use super::*;
 
 /// What the window shows in Settings: every mirror and API host with the time of its answer, the best first.
 pub(crate) fn net_status_json() -> Value {
-    let one = |pool: reach::Pool| { let (list, checked) = reach::snapshot(pool); json!({"list": list, "checked": checked}) };
-    json!({"data": one(reach::Pool::Data), "api": one(reach::Pool::Api)})
+    let (list, checked, active) = reach::snapshot();
+    json!({"list": list, "checked": checked, "active": active})
 }
 #[tauri::command]
 pub fn net_status() -> Value { net_status_json() }
@@ -79,13 +79,7 @@ pub async fn game_net_check(app: State<'_, App>) -> Result<Value, String> {
     let lobby_ini = game_dir(&app).and_then(|d| std::fs::read_to_string(d.join("Elite_DLLs").join("OwnLobby.ini")).ok()).unwrap_or_default();
     let r = tauri::async_runtime::spawn_blocking(move || {
         // the node list: the DLL's three + the signed ladder list (what MMFind gives Relay.ini) + Relay.ini Nodes=
-        let mut ladder: Option<Vec<(std::net::Ipv4Addr, String)>> = None;
-        for host in fb_hosts() {
-            match HTTP.get(&format!("{host}/ladder/api/relays")).timeout(Duration::from_secs(8)).call() {
-                Ok(r) => { ladder = serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).ok().and_then(|d| netgame::signed_relays(&d)); break; }
-                Err(e) => api_err(&host, &e),
-            }
-        }
+        let ladder = netgame::ladder_relays();
         let (ini_nodes, port) = netgame::ini_nodes(&ini);
         let port = port.unwrap_or(netgame::GAME_PORT);
         let nodes = netgame::node_set(ladder.as_deref().unwrap_or(&[]), &ini_nodes);
@@ -135,9 +129,7 @@ pub async fn game_net_check(app: State<'_, App>) -> Result<Value, String> {
 #[tauri::command]
 pub async fn net_check() -> Value {
     let _ = tauri::async_runtime::spawn_blocking(|| {
-        let a = std::thread::spawn(|| { let b = reach::snapshot_candidates(reach::Pool::Data); reach::check(reach::Pool::Data, &b); });
-        let b = reach::snapshot_candidates(reach::Pool::Api); reach::check(reach::Pool::Api, &b);
-        let _ = a.join();
+        reach::check();
     }).await;
     net_status_json()
 }

@@ -18,8 +18,8 @@ $('addonCheck').onclick = async () => {
 $('closeQuits').onchange = e => invoke('set_setting', { key: 'close_quits', value: e.target.checked }).then(reload);
 $('cache').onchange = e => invoke('set_setting', { key: 'cache_mb', value: +e.target.value }).then(reload);
 // ---------- Settings: how our servers answer from here (reach.rs) ----------
-// two groups - the files (updates of Elite and the add-ons) and everything else (chat, Online, rooms, the launcher's own
-// update); in each the one in use first; checked at the start and when one stops answering, or by the button
+// 1.6.22: one list - every part of the launcher (files, chat, Online, rooms, links, the launcher's own update) uses the host
+// marked "in use" and falls back down this list; checked at the start, every 10 minutes, when one stops answering, or by the button
 const NET_PLACE = { 'dow2ru.fintebtc.de': 'netMoscow', 'dow2.fintebtc.de': 'netGermany', 'rts.fintebtc.de': 'netGermany' };
 const netHost = b => String(b || '').replace(/^https?:\/\//, '').split('/')[0];
 const netPlace = b => { const h = netHost(b); return NET_PLACE[h] ? t(NET_PLACE[h]) : /\.r2\.dev$/.test(h) ? t('netR2') : h; };
@@ -27,17 +27,12 @@ var NET_LAST = null;   // (var: render() may call renderNet before this line ran
 function renderNet(d) {
   if (d) NET_LAST = d; else d = NET_LAST;
   if (!d || !$('netList')) return;
-  const grp = (key, g) => {
-    const list = (g && g.list) || [];
-    if (!list.length) return '';
-    return `<div class="net-g"><div class="net-gh">${esc(t(key))}</div>` + list.map((p, i) => `<div class="net-r ${p.ms != null ? 'ok' : 'off'}">`
-      + `<i></i><span class="net-p">${esc(netPlace(p.base))}</span><span class="net-h">${esc(netHost(p.base))}</span>`
-      + `<span class="net-ms">${p.ms != null ? esc(t('netMs', { n: p.ms })) : esc(t('netNone'))}</span>`
-      + (i === 0 && p.ms != null ? `<span class="chip">${esc(t('netUsed'))}</span>` : '<span></span>') + '</div>').join('') + '</div>';
-  };
-  $('netList').innerHTML = grp('netFiles', d.data) + grp('netApi', d.api) || `<div class="note">${esc(t('netWait'))}</div>`;
-  const checked = d.data && d.data.checked && d.api && d.api.checked;
-  $('netNote').textContent = checked ? t('netNoteDone') : t('netNoteOld');
+  const list = d.list || [];
+  $('netList').innerHTML = !list.length ? `<div class="note">${esc(t('netWait'))}</div>` : '<div class="net-g">' + list.map(p => `<div class="net-r ${p.ms != null ? 'ok' : 'off'}"${p.aside ? ` title="${esc(p.aside)}"` : ''}>`
+    + `<i></i><span class="net-p">${esc(netPlace(p.base))}</span><span class="net-h">${esc(netHost(p.base))}</span>`
+    + `<span class="net-ms">${p.ms != null ? esc(t('netMs', { n: p.ms })) : esc(t('netNone'))}</span>`
+    + (p.base === d.active ? `<span class="chip">${esc(t('netUsed'))}</span>` : '<span></span>') + '</div>').join('') + '</div>';
+  $('netNote').textContent = d.checked ? t('netNoteDone') : t('netNoteOld');
 }
 invoke('net_status').then(renderNet).catch(() => {});
 listen('net_rank', e => renderNet(e.payload));

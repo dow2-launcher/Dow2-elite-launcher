@@ -26,6 +26,97 @@ pub(crate) fn write_rating_ini(dir: &std::path::Path, sys: &str) {
     }
 }
 
+/// 1.6.22 (owner 17.11.2026: every part the same): our in-game add-ons call our servers themselves, each with its own list in its
+/// ini (Dow2-patches main 17.11.2026) - the launcher writes its ACTIVE host first, the other API hosts after it in the pool's order
+/// (reach.rs), so the game goes where the launcher goes. (DLL, its ini, section, key = `Server`, at most hosts, a full URL or bare
+/// hosts, the DLL's buffer in characters): MMFind mmfind.c:2496 (`;, `-separated, 4 hosts, 128), LobbyStats and LoadingRatings
+/// lobbystats.c:990 (LS_NAME.ini [LobbyStats], 4, 192), EliteAI eliteai.c:1223 ([Replays], 6, 256), LiveReplay livereplay.c:853
+/// (one base URL, 200). NetProbe has its hosts in the code (netprobe.c:103, no ini) - nothing to write; JoinSound reads no server.
+pub(crate) struct AddonServer { pub dll: &'static str, pub ini: &'static str, pub section: &'static str, pub max: usize, pub url: bool, pub cap: usize }
+pub(crate) const ADDON_SERVERS: [AddonServer; 5] = [
+    AddonServer { dll: "MMFind.dll", ini: "MMFind.ini", section: "MMFind", max: 4, url: false, cap: 127 },
+    AddonServer { dll: "LobbyStats.dll", ini: "LobbyStats.ini", section: "LobbyStats", max: 4, url: false, cap: 191 },
+    AddonServer { dll: "LoadingRatings.dll", ini: "LoadingRatings.ini", section: "LobbyStats", max: 4, url: false, cap: 191 },
+    AddonServer { dll: "EliteAI.dll", ini: "EliteAI.ini", section: "Replays", max: 6, url: false, cap: 255 },
+    AddonServer { dll: "LiveReplay.dll", ini: "LiveReplay.ini", section: "LiveReplay", max: 1, url: true, cap: 199 },
+];
+/// The bare host of an origin the add-ons can use (HTTPS on 443: `https://host`), else None.
+fn addon_host(origin: &str) -> Option<String> {
+    let h = origin.trim().trim_end_matches('/').strip_prefix("https://")?.to_ascii_lowercase();
+    (!h.is_empty() && h.len() < 64 && !h.contains(['/', ':', '?', '#', ';', ',', ' '])).then_some(h)
+}
+/// The `Server=` value for one add-on: the hosts in order (the active one first), as many as it takes and its buffer holds.
+pub(crate) fn addon_server_value(a: &AddonServer, hosts: &[String]) -> String {
+    let mut out = String::new();
+    for h in hosts.iter().filter_map(|h| addon_host(h)).take(a.max) {
+        let item = if a.url { format!("https://{h}") } else { h };
+        let next = if out.is_empty() { item } else { format!("{out};{item}") };
+        if next.chars().count() > a.cap { break; }
+        out = next;
+    }
+    out
+}
+/// One value of an ini file (the first `key=` of the section), None when there is none.
+fn ini_get(text: &str, section: &str, key: &str) -> Option<String> {
+    let mut in_sec = false;
+    for l in text.lines() {
+        let t = l.trim();
+        if t.starts_with('[') && t.ends_with(']') { in_sec = t[1..t.len() - 1].trim().eq_ignore_ascii_case(section); continue; }
+        if in_sec { if let Some((k, v)) = t.split_once('=') { if k.trim().eq_ignore_ascii_case(key) { return Some(v.trim().to_string()); } } }
+    }
+    None
+}
+/// A `Server=` the launcher may replace: none, or only our hosts (the add-on's default, or what the launcher wrote before); a
+/// server the player or a tester put there by hand (a test ladder, an own host) stays.
+pub(crate) fn addon_server_ours(cur: &str, known: &[String]) -> bool {
+    cur.split([';', ',', ' ']).filter(|t| !t.is_empty()).all(|t| {
+        let t = t.trim().trim_end_matches('/').to_ascii_lowercase();
+        let t = t.strip_prefix("https://").unwrap_or(&t).to_string();
+        known.iter().any(|k| *k == t)
+    })
+}
+/// A file of `d` by its name in any case (the game folder under Proton keeps the manifests' names, a hand copy may not).
+fn file_ci(d: &std::path::Path, name: &str) -> Option<std::path::PathBuf> {
+    let p = d.join(name);
+    if p.is_file() { return Some(p); }
+    std::fs::read_dir(d).ok()?.flatten().find(|e| e.file_name().to_string_lossy().eq_ignore_ascii_case(name)).map(|e| e.path())
+}
+/// The add-ons' ini files are written by one writer at a time: the sync of the add-ons (sync_components_with) holds it for its
+/// whole run, the Server= lists below take it too (reviewer 17.11.2026: no write into a file the sync is putting in place).
+pub(crate) static INI_LOCK: Mutex<()> = Mutex::new(());
+/// Write the hosts (the active one first) into every add-on's `Server=` of Elite_DLLs and of our vanilla dow2-patches - only where its
+/// DLL is, only over a value of our hosts. Before every game start (the DLLs read it once, at the game's start; waits for a sync
+/// that runs). -> the files written.
+pub(crate) fn write_server_inis(dir: &std::path::Path, hosts: &[String]) -> Vec<String> {
+    let _w = INI_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+    server_inis(dir, hosts)
+}
+/// The same when the active host changes (main.rs, the hosts' worker): only when no sync runs now (None) - the next game start
+/// writes it anyway.
+pub(crate) fn try_write_server_inis(dir: &std::path::Path, hosts: &[String]) -> Option<Vec<String>> {
+    let _w = match INI_LOCK.try_lock() { Ok(g) => g, Err(std::sync::TryLockError::Poisoned(e)) => e.into_inner(), Err(_) => return None };
+    Some(server_inis(dir, hosts))
+}
+fn server_inis(dir: &std::path::Path, hosts: &[String]) -> Vec<String> {
+    let mut known: Vec<String> = reach::SITE_HOSTS.iter().map(|h| h.to_string()).collect();
+    known.extend(hosts.iter().filter_map(|h| addon_host(h)));
+    let mut wrote = Vec::new();
+    for sub in ["Elite_DLLs", "dow2-patches"] {
+        let d = dir.join(sub);
+        if !d.is_dir() || (sub == "dow2-patches" && vanilla_owned(dir).is_empty()) { continue; }
+        for a in &ADDON_SERVERS {
+            if file_ci(&d, a.dll).is_none() { continue; }
+            let v = addon_server_value(a, hosts);
+            if v.is_empty() { continue; }
+            let ini = file_ci(&d, a.ini).unwrap_or_else(|| d.join(a.ini));
+            let cur = ini_get(&std::fs::read_to_string(&ini).unwrap_or_default(), a.section, "Server").unwrap_or_default();
+            if cur == v || !addon_server_ours(&cur, &known) { continue; }
+            if elite::set_ini_value(&ini, a.section, "Server", &v).is_ok() { wrote.push(format!("{sub}/{}", a.ini)); }
+        }
+    }
+    wrote
+}
+
 /// 1.6.20: the window's rating pick (at its start and on every change): kept for the next game start and written to the add-ons'
 /// ini right away; no game folder yet - only kept.
 #[tauri::command]
@@ -598,6 +689,7 @@ pub(crate) fn sync_components(dir: &std::path::Path, cfg: &LauncherConfig, s: &S
 /// A version's manifest (update::load_manifest; the tests give their own).
 pub(crate) type LoadManifest<'a> = &'a dyn Fn(&update::Game, &str) -> Result<elite_core::manifest::Manifest, update::Error>;
 pub(crate) fn sync_components_with(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings, m: &Mirrors, progress: &mut dyn FnMut(&update::Progress), load: LoadManifest) -> Result<(), update::Error> {
+    let _ini = INI_LOCK.lock().unwrap_or_else(|e| e.into_inner());   // 1.6.22: no Server= write into a file being put in place
     if os_name() == "macos" {
         return sync_mac_addons(&mac_addons_root(), cfg, s, m, progress, load, true);
     }
@@ -642,6 +734,52 @@ pub(crate) fn sync_components_with(dir: &std::path::Path, cfg: &LauncherConfig, 
 #[cfg(test)]
 mod enforce_off_tests {
     use super::*;
+    #[test]
+    fn the_active_host_goes_first_into_every_addons_server_list() {
+        let hosts = |a: &[&str]| a.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        let pool = hosts(&["https://dow2ru.fintebtc.de", "https://dow2.fintebtc.de", "https://rts.fintebtc.de"]);
+        let by = |dll: &str| ADDON_SERVERS.iter().find(|a| a.dll == dll).unwrap();
+        assert_eq!(addon_server_value(by("MMFind.dll"), &pool), "dow2ru.fintebtc.de;dow2.fintebtc.de;rts.fintebtc.de");
+        assert_eq!(addon_server_value(by("LiveReplay.dll"), &pool), "https://dow2ru.fintebtc.de", "one base URL");
+        // not usable by an add-on (HTTPS on 443, a bare host): skipped; no more than it takes, never past its buffer
+        let odd = hosts(&["http://127.0.0.1:8217", "https://a.example.org:8443", "https://b.example.org/x/", "https://c.example.org"]);
+        assert_eq!(addon_server_value(by("EliteAI.dll"), &odd), "c.example.org", "a plain http, a port or a path: not for an add-on");
+        let many: Vec<String> = (0..9).map(|i| format!("https://h{i}-{}.example.org", "x".repeat(40))).collect();
+        let v = addon_server_value(by("MMFind.dll"), &many);
+        assert!(v.chars().count() <= 127 && v.starts_with("h0-") && v.split(';').count() == 2, "{v}");
+        // only our hosts are replaced: the DLL's default, the launcher's own earlier write, none; a hand-made server stays
+        let known = hosts(&["rts.fintebtc.de", "dow2.fintebtc.de", "dow2ru.fintebtc.de"]);
+        assert!(addon_server_ours("", &known) && addon_server_ours("rts.fintebtc.de;dow2.fintebtc.de, dow2ru.fintebtc.de", &known));
+        assert!(addon_server_ours("https://rts.fintebtc.de/", &known));
+        assert!(!addon_server_ours("127.0.0.1:8217", &known) && !addon_server_ours("rts.fintebtc.de;my.test.org", &known));
+
+        let d = std::env::temp_dir().join(format!("srv_ini_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        let e = d.join("Elite_DLLs");
+        std::fs::create_dir_all(&e).unwrap();
+        std::fs::create_dir_all(d.join("dow2-patches")).unwrap();
+        for f in ["MMFind.dll", "lobbystats.dll", "EliteAI.dll", "LiveReplay.dll", "Cooldowns.dll"] { std::fs::write(e.join(f), b"MZ").unwrap(); }
+        std::fs::write(e.join("MMFind.ini"), "[MMFind]\r\nLang=ru\r\nServer=rts.fintebtc.de\r\n").unwrap();
+        std::fs::write(e.join("LobbyStats.ini"), "[LobbyStats]\r\nRating=own\r\n").unwrap();
+        std::fs::write(e.join("EliteAI.ini"), "[Lua]\r\nx=1\r\n[Replays]\r\nServer=my.test.org\r\n").unwrap();
+        let mut w = write_server_inis(&d, &pool);
+        w.sort();
+        assert_eq!(w, ["Elite_DLLs/LiveReplay.ini", "Elite_DLLs/LobbyStats.ini", "Elite_DLLs/MMFind.ini"], "the tester's EliteAI server stays; no LoadingRatings.dll - no ini");
+        let rd = |f: &str| std::fs::read_to_string(e.join(f)).unwrap();
+        assert_eq!(rd("MMFind.ini"), "[MMFind]\r\nLang=ru\r\nServer=dow2ru.fintebtc.de;dow2.fintebtc.de;rts.fintebtc.de\r\n");
+        assert!(rd("LobbyStats.ini").contains("Rating=own") && rd("LobbyStats.ini").contains("Server=dow2ru.fintebtc.de;dow2.fintebtc.de;rts.fintebtc.de"));
+        assert!(rd("EliteAI.ini").contains("Server=my.test.org"));
+        assert!(rd("LiveReplay.ini").contains("[LiveReplay]") && rd("LiveReplay.ini").contains("Server=https://dow2ru.fintebtc.de"));
+        assert!(!d.join("dow2-patches/MMFind.ini").exists(), "no vanilla copies of ours there - nothing made");
+        // the active host changed: the lists follow; the same list again writes nothing
+        let pool2 = hosts(&["https://rts.fintebtc.de", "https://dow2ru.fintebtc.de", "https://dow2.fintebtc.de"]);
+        assert_eq!(write_server_inis(&d, &pool2).len(), 3);
+        assert!(rd("MMFind.ini").contains("Server=rts.fintebtc.de;dow2ru.fintebtc.de;dow2.fintebtc.de"));
+        assert!(write_server_inis(&d, &pool2).is_empty());
+        assert!(write_server_inis(&d, &[]).is_empty(), "no hosts known: the lists stay");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
     #[test]
     fn rating_pick_reaches_the_lobbystats_ini() {
         // 1.6.20: Rating=own|relic in Elite_DLLs/LobbyStats.ini, the other keys kept; no dow2-patches of ours - not made there

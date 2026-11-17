@@ -1,41 +1,36 @@
-//! Which of our hosts this computer reaches best (owner 02.11.2026: the launcher must work and download everywhere; no
-//! ICMP ping; checked once at the start and again only when access is lost).
+//! Our servers: ONE pool of hosts and ONE active host for every part of the launcher (1.6.22, owner 17.11.2026: "the chat on
+//! one server, the downloads from another, the links on a third, the add-ons on a fourth - make it work the same everywhere").
 //!
-//! Two pools:
-//! - Data: the mirrors (launcher.json, Elite's and the add-ons' files) - Moscow, Germany, Cloudflare R2, whatever the
-//!   signed launcher.json lists. Checked with `<base>launcher.json` (~46 KB).
-//! - Api: our servers with the ladder API (chat, the stream, rooms, logs, usage) and the launcher's own updater.json.
-//!   Checked with the last 120 chat messages (~110 KB of JSON in 11.2026; the first PROBE_BYTES of it are read).
-//! 1.4.3 (03.11.2026, noofancy: "dow2 does not answer, trying the next one... 0.02 MB of 2.54 MB", fine with a VPN): the checks
-//! were a tiny file (89 bytes) and a few hundred bytes - on many Russian lines the way to Europe passes that and the first
-//! ~33 KB of a connection, then stops (DPI; NetProbe 2-3.11). A mirror that answered a tiny file fastest was picked and every
-//! real download stalled on it. A check now has to get a STREAM past that point; a host that stops on it is "no answer".
+//! A host is one of our origins (`https://dow2ru.fintebtc.de`) with what it serves: the API (the ladder: chat, the stream, rooms,
+//! the rating, the replays, logs, notices, the launcher's own updater.json) and / or the store (launcher.json, the manifests and
+//! the blobs under a base path). The hosts come from the build (ELITE_LOG_HOSTS, ELITE_MIRRORS) and the signed launcher.json
+//! (`api_hosts`, `mirrors`); a store base on an API host's origin is the same host. A store of its own (Cloudflare R2) is a host
+//! that serves files only. Every subsystem asks this module - `api_hosts()` / `call()` for the API, `store_bases()` (through
+//! `Store`, the `HostPolicy` of elite-core's `Mirrors`) for the files, `site_base()` for links and pictures - and tells it of a
+//! failure on the way (`lost`, `note_err`) or of a host whose long connections die (`set_aside`); none keeps a list of its own.
 //!
-//! A check is an HTTPS GET with short timeouts, every host at once (threads); the time to the whole answer is its score
-//! (DNS + TCP + TLS + HTTP - what a real request costs, unlike a ping). The ones that answered come first, fastest
-//! first; the ones that did not stay at the end as a last resort. A host that fails a real request goes to the end at
-//! once and the pool is checked again in the background (at most once in 30 s). Until the first check of this run is
-//! done the order of the last run is used (kept in the settings).
-//! 1.6.19 (Malum 16.11.2026: an empty chat after a restart): a host whose LONG connection dies on this line - the live stream
-//! cut by a read timeout or giving no event twice within minutes (stream.rs) or a stream cut by the connection test - is "set
-//! aside" for SET_ASIDE_SECS: it goes after every host that answered, whatever its time, a check of the pool keeps the mark
-//! (a DPI that cuts streams after minutes lets the check's short answer through), and the mark is kept in the settings with the
-//! order, so a restart does not go back to it.
+//! The order (owner 02.11.2026: the launcher must work and download everywhere; no ICMP ping): every host is checked at once
+//! (threads) with an HTTPS GET that has to get a STREAM past ~33 KB - the first PROBE_BYTES of the last 120 chat messages on an
+//! API host, of `<store>launcher.json` on a store-only one; the time to it is the score. Answered first, fastest first; not
+//! checked yet; set aside; no answer at the end. The ACTIVE host - the first API host - is what every request tries first; it
+//! stays active while it answers its checks (a check finding another host much faster - much_faster() - moves it), and changes at
+//! once when a request to it fails on the way (it goes to the end: the next host that answered is active for everything) or
+//! when it is set aside. Checked at the start (the order of the last run until then), every RECHECK_SECS, again in the
+//! background after a failure (at most once in 30 s) and by the button in Settings. Each change of the active host is one line
+//! in community.log with the reason.
+//! 1.4.3 (03.11.2026, noofancy): a check of a tiny file picked a mirror whose streams stop after ~33 KB (DPI) - so the check
+//! reads a stream. 1.6.19 (Malum 16.11.2026): a host whose LONG connection dies on this line (the stream cut twice within minutes,
+//! a stream cut by the connection test) is set aside for SET_ASIDE_SECS: after every host that answered whatever its time, the
+//! mark kept through checks and in the settings over a restart.
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{LazyLock, Mutex};
 use std::time::{Duration, Instant};
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Pool { Data, Api }
-
-impl Pool {
-    fn i(self) -> usize { match self { Pool::Data => 0, Pool::Api => 1 } }
-}
-
 #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct Probe {
+    /// The host's origin (`https://dow2ru.fintebtc.de`).
     pub base: String,
-    /// The time of the whole answer; None - no answer (or lost since).
+    /// The time of the check's answer; None - no answer (or lost since).
     pub ms: Option<u32>,
     #[serde(default)]
     pub err: String,
@@ -45,118 +40,347 @@ pub struct Probe {
     /// Why it was set aside (community.log, Settings).
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub aside: String,
+    /// When a real request lost it (unix time; this run only): a check that started before keeps the mark.
+    #[serde(skip)]
+    pub lost_at: u64,
 }
 fn is_zero(v: &u64) -> bool { *v == 0 }
 
+/// One of our hosts and what it serves.
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Host {
+    pub origin: String,
+    /// The store's base on it (ends with '/'), "" when it serves no files.
+    pub store: String,
+    /// It serves our API (the ladder).
+    pub api: bool,
+}
+
 /// How long a host whose streams die stays set aside.
 pub const SET_ASIDE_SECS: u64 = 6 * 3600;
+/// A check of every host this often while the launcher runs (the order of the moment; the active host stays unless it fails or
+/// another one is MUCH_FASTER).
+pub const RECHECK_SECS: u64 = 10 * 60;
+pub const NOT_CONFIGURED: &str = "the server is not configured in this build";
 
 impl Probe {
     fn aside_at(&self, now: u64) -> bool { self.aside_until > now }
-    /// The place in the order: answered (0), set aside but answering (2), no answer (3); a host not checked yet is 1 (order()).
+    /// The place in the order: answered (0), not checked yet (1), set aside but answering (2), no answer (3).
     fn tier(&self, now: u64) -> u8 { if self.ms.is_none() { 3 } else if self.aside_at(now) { 2 } else { 0 } }
 }
-fn sort_list(list: &mut [Probe], now: u64) { list.sort_by_key(|p| (p.tier(now), p.ms.unwrap_or(0))); }   // stable: no answer keeps its order
 
-struct Rank { list: Vec<Probe>, checked: bool }
+/// Another host answered so much faster that the active one gives way to it: under half its time and over 300 ms less (two
+/// names of one server, or Moscow against Germany 50 ms apart, never swap the host every check).
+pub fn much_faster(best: u32, active: u32) -> bool { best.saturating_mul(2) < active && active - best > 300 }
 
-static RANK: LazyLock<[Mutex<Rank>; 2]> = LazyLock::new(|| [Mutex::new(Rank { list: vec![], checked: false }), Mutex::new(Rank { list: vec![], checked: false })]);
-static BUSY: [AtomicBool; 2] = [AtomicBool::new(false), AtomicBool::new(false)];
-static LAST: [AtomicU64; 2] = [AtomicU64::new(0), AtomicU64::new(0)];
-/// The hosts of each pool as the launcher knows them now (set by the launcher before it asks for an order).
-static CANDIDATES: LazyLock<[Mutex<Vec<String>>; 2]> = LazyLock::new(|| [Mutex::new(vec![]), Mutex::new(vec![])]);
-/// Called after every check (the launcher saves the order and tells the window).
-static ON_CHECKED: Mutex<Option<Box<dyn Fn(Pool, &[Probe]) + Send>>> = Mutex::new(None);
+#[derive(Default)]
+struct State {
+    hosts: Vec<Host>,
+    /// The results of the checks (and of the requests since), by origin.
+    list: Vec<Probe>,
+    checked: bool,
+    /// The active host was picked by a time it answered in (a check of this run or the last run's order), not just by the
+    /// configured order: only then it holds against a host that is a little faster.
+    measured: bool,
+    /// The origin every request tries first ("" until there is an API host).
+    active: String,
+    /// A store base the player typed in (Settings): the first for the files while it works, never checked.
+    own_store: String,
+    /// The player's store failed on the way in this run: after ours until it gives a file again.
+    own_dead: bool,
+}
+
+static ST: LazyLock<Mutex<State>> = LazyLock::new(|| Mutex::new(State::default()));
+static BUSY: AtomicBool = AtomicBool::new(false);
+/// A check was asked for while one ran: one more after it (a host added meanwhile is checked too).
+static AGAIN: AtomicBool = AtomicBool::new(false);
+static LAST: AtomicU64 = AtomicU64::new(0);
+/// A check is waiting for its gap to pass (check_soon with a gap that has not passed yet).
+static PENDING: AtomicBool = AtomicBool::new(false);
+/// The game runs (main.rs): no periodic check - it would compete with a match for the line (as the connection test, 1.4.5).
+pub static GAME_RUNNING: AtomicBool = AtomicBool::new(false);
+/// Called after every check and change of the order (the launcher saves it and tells the window).
+static ON_CHECKED: Mutex<Option<Box<dyn Fn(&[Probe]) + Send>>> = Mutex::new(None);
+/// Called when the active host changes: (from, to, why) - community.log and the window.
+static ON_SWITCH: Mutex<Option<Box<dyn Fn(&str, &str, &str) + Send>>> = Mutex::new(None);
 
 fn now() -> u64 { std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0) }
-fn key(b: &str) -> String { b.trim_end_matches('/').to_ascii_lowercase() }
 
-pub fn on_checked(f: impl Fn(Pool, &[Probe]) + Send + 'static) { *ON_CHECKED.lock().unwrap() = Some(Box::new(f)); }
-
-/// The order of the last run, until this run's check is done.
-pub fn seed(pool: Pool, saved: Vec<Probe>) {
-    let mut r = RANK[pool.i()].lock().unwrap();
-    if !r.checked && r.list.is_empty() { r.list = saved; }
+/// `https://Host:443/a/b` -> `https://host` (the key of a host); "" for anything else than http(s).
+pub fn origin_of(url: &str) -> String {
+    let u = url.trim();
+    let lower = u.to_ascii_lowercase();
+    let (scheme, rest) = if lower.starts_with("https://") { ("https", &u[8..]) } else if lower.starts_with("http://") { ("http", &u[7..]) } else { return String::new() };
+    let auth = rest.split(['/', '?', '#']).next().unwrap_or("").to_ascii_lowercase();
+    let auth = if scheme == "https" { auth.strip_suffix(":443").unwrap_or(&auth).to_string() } else { auth };
+    if auth.is_empty() { String::new() } else { format!("{scheme}://{auth}") }
 }
 
-pub fn set_candidates(pool: Pool, bases: Vec<String>) { *CANDIDATES[pool.i()].lock().unwrap() = bases; }
-pub fn snapshot_candidates(pool: Pool) -> Vec<String> { CANDIDATES[pool.i()].lock().unwrap().clone() }
+pub fn on_checked(f: impl Fn(&[Probe]) + Send + 'static) { *ON_CHECKED.lock().unwrap() = Some(Box::new(f)); }
+pub fn on_switch(f: impl Fn(&str, &str, &str) + Send + 'static) { *ON_SWITCH.lock().unwrap() = Some(Box::new(f)); }
 
-/// `bases` in the order to try: answered (fastest first), not checked yet (as given), set aside (fastest first), no answer.
-pub fn order(pool: Pool, bases: Vec<String>) -> Vec<String> {
-    let r = RANK[pool.i()].lock().unwrap();
-    let t = now();
-    let pos = |b: &String| r.list.iter().position(|p| key(&p.base) == key(b));
-    let mut v: Vec<(u8, u32, usize, String)> = bases.into_iter().enumerate().map(|(i, b)| match pos(&b).map(|j| &r.list[j]) {
-        Some(p) => (p.tier(t), p.ms.unwrap_or(0), i, b),
-        None => (1, 0, i, b),
-    }).collect();
-    v.sort_by_key(|x| (x.0, x.1, x.2));
-    v.into_iter().map(|x| x.3).collect()
+/// Our hosts from these lists, in this order of preference: `api` - API origins, `stores` - store bases (`https://h/path/`).
+/// `own`: the player's store base (Settings), None - keep the one set before. The results of the checks stay.
+pub fn configure(api: &[String], stores: &[String], own: Option<&str>) {
+    let hosts = hosts_of(api, stores);
+    let (changed, unchecked) = {
+        let mut s = ST.lock().unwrap();
+        if let Some(o) = own { s.own_store = norm_store(o); }
+        let changed = s.hosts != hosts;
+        let unchecked = s.checked && hosts.iter().any(|h| !s.list.iter().any(|p| p.base == h.origin));
+        s.hosts = hosts;
+        (changed, unchecked)
+    };
+    if changed { refresh_active("the list of our hosts"); }
+    if changed && unchecked { check_soon(0); }   // a new host (launcher.json) after this run's check: checked now, not in 10 min
+}
+fn norm_store(b: &str) -> String {
+    let b = b.trim();
+    if origin_of(b).is_empty() { String::new() } else if b.ends_with('/') { b.to_string() } else { format!("{b}/") }
+}
+/// The hosts of `api` and `stores` merged by origin, in the order each origin first appears (an API origin before a store's).
+fn hosts_of(api: &[String], stores: &[String]) -> Vec<Host> {
+    let mut v: Vec<Host> = Vec::new();
+    let mut add = |url: &str, store: bool| {
+        let o = origin_of(url);
+        if o.is_empty() { return; }
+        let i = match v.iter().position(|h| h.origin == o) { Some(i) => i, None => { v.push(Host { origin: o, ..Default::default() }); v.len() - 1 } };
+        if store { if v[i].store.is_empty() { v[i].store = norm_store(url); } } else { v[i].api = true; }
+    };
+    let (mut a, mut s) = (api.iter(), stores.iter());
+    loop {   // one of each in turn: the team's order of either list decides, neither list pushes the other to the end
+        let (x, y) = (a.next(), s.next());
+        if x.is_none() && y.is_none() { break; }
+        if let Some(x) = x { add(x, false); }
+        if let Some(y) = y { add(y, true); }
+    }
+    v
 }
 
-pub fn snapshot(pool: Pool) -> (Vec<Probe>, bool) {
-    let r = RANK[pool.i()].lock().unwrap();
-    (r.list.clone(), r.checked)
-}
-
-/// A real request to `base` failed (no connection, timeout, a gateway error): it goes to the end and the pool is checked
-/// again in the background (also for a host that is already at the end - it stays there).
-pub fn lost(pool: Pool, base: &str) {
+/// The order of the last run, until this run's first check.
+pub fn seed(saved: Vec<Probe>) {
     {
-        let mut r = RANK[pool.i()].lock().unwrap();
-        match r.list.iter().position(|p| key(&p.base) == key(base)) {
-            Some(j) if r.list[j].ms.is_some() => { let mut p = r.list.remove(j); p.ms = None; p.err = "lost".into(); r.list.push(p); }
-            // 1.6.20 (Malum): a host already at the end (failed before, or set aside) is still checked again soon - a bare
-            // return left the pool's order as it was until the next periodic check
-            Some(_) => {}
-            None => r.list.push(Probe { base: base.to_string(), ms: None, err: "lost".into(), ..Default::default() }),
+        let mut s = ST.lock().unwrap();
+        if s.checked || !s.list.is_empty() { return; }
+        s.list = saved.into_iter().map(|mut p| { p.base = origin_of(&p.base); p }).filter(|p| !p.base.is_empty()).collect();
+    }
+    refresh_active("the order of the last start");
+}
+
+/// The hosts in the order to try: the active one, then answered (fastest first), not checked yet (as configured), set aside,
+/// no answer.
+fn ordered(s: &State) -> Vec<Host> {
+    let t = now();
+    let rank = |h: &Host| s.list.iter().find(|p| p.base == h.origin).map(|p| (p.tier(t), p.ms.unwrap_or(0))).unwrap_or((1, 0));
+    let mut v: Vec<(u8, u32, usize, Host)> = s.hosts.iter().enumerate().map(|(i, h)| { let (a, b) = rank(h); (a, b, i, h.clone()) }).collect();
+    v.sort_by_key(|x| (x.0, x.1, x.2));
+    let mut out: Vec<Host> = v.into_iter().map(|x| x.3).collect();
+    if let Some(i) = out.iter().position(|h| h.origin == s.active) { let h = out.remove(i); out.insert(0, h); }
+    out
+}
+/// The host to be active by the order of the moment: the active one while it answers (unless another one is MUCH_FASTER), else
+/// the first API host.
+fn pick_active(s: &State) -> String {
+    let t = now();
+    let probe = |o: &str| s.list.iter().find(|p| p.base == o);
+    let mut v: Vec<(u8, u32, usize, &Host)> = s.hosts.iter().enumerate().filter(|(_, h)| h.api)
+        .map(|(i, h)| { let (a, b) = probe(&h.origin).map(|p| (p.tier(t), p.ms.unwrap_or(0))).unwrap_or((1, 0)); (a, b, i, h) }).collect();
+    v.sort_by_key(|x| (x.0, x.1, x.2));
+    let Some(best) = v.first() else { return String::new() };
+    if let Some(cur) = v.iter().find(|x| x.3.origin == s.active) {
+        let keep = match cur.0 {
+            0 => s.measured && !(best.0 == 0 && much_faster(best.1, cur.1)),
+            1 => best.0 != 0,    // not checked yet (seeded or new): until a check finds an answering one
+            _ => false,          // set aside or no answer
+        };
+        if keep { return cur.3.origin.clone(); }
+    }
+    best.3.origin.clone()
+}
+/// Pick the active host again after a change; a new one is told (log line + window) with `why`.
+fn refresh_active(why: &str) {
+    let (from, to, list) = {
+        let mut s = ST.lock().unwrap();
+        let to = pick_active(&s);
+        let t = now();
+        s.measured = s.list.iter().any(|p| p.base == to && p.tier(t) == 0);
+        let from = std::mem::replace(&mut s.active, to.clone());
+        (from, to, s.list.clone())
+    };
+    if from != to {
+        if let Some(f) = ON_SWITCH.lock().unwrap().as_ref() { f(&from, &to, why); }
+    }
+    if let Some(f) = ON_CHECKED.lock().unwrap().as_ref() { f(&list); }
+}
+
+/// The active host's origin ("" when no API host is known).
+pub fn active() -> String { ST.lock().unwrap().active.clone() }
+/// The active host, or our site's default while none is known (a base for an address the game or the window fetches itself).
+pub fn active_or_default() -> String { let a = active(); if a.is_empty() { SITE_DEFAULT.to_string() } else { a } }
+/// Our API hosts in the order every API request tries them: the active one first.
+pub fn api_hosts() -> Vec<String> { ordered(&ST.lock().unwrap()).into_iter().filter(|h| h.api).map(|h| h.origin).collect() }
+/// The store bases in the order every download tries them: the player's own (while it works), the active host's, the others;
+/// a host with no answer (lost, or no answer to the check) after every one that answers - a files-only store (R2) never waits
+/// behind a dead API host. (Within one download elite-core's Mirrors also starts with the base that gave it the last part.)
+pub fn store_bases() -> Vec<String> {
+    let s = ST.lock().unwrap();
+    let t = now();
+    let dead = |h: &Host| s.list.iter().any(|p| p.base == h.origin && p.tier(t) == 3);
+    let own = (!s.own_store.is_empty()).then(|| s.own_store.clone());
+    let mut v: Vec<String> = own.iter().filter(|_| !s.own_dead).cloned().collect();
+    let hosts = ordered(&s);
+    for h in hosts.iter().filter(|h| !dead(h)).chain(hosts.iter().filter(|h| dead(h))) {
+        if !h.store.is_empty() && !v.contains(&h.store) { v.push(h.store.clone()); }
+    }
+    if s.own_dead { v.extend(own); }
+    v
+}
+/// Every host as Settings shows it: {base, ms, err, aside…, api, files} in the order of the moment, and the active one.
+pub fn snapshot() -> (Vec<serde_json::Value>, bool, String) {
+    let s = ST.lock().unwrap();
+    let rows = ordered(&s).into_iter().map(|h| {
+        let p = s.list.iter().find(|p| p.base == h.origin).cloned().unwrap_or(Probe { base: h.origin.clone(), ..Default::default() });
+        let mut v = serde_json::to_value(&p).unwrap_or_default();
+        v["api"] = serde_json::json!(h.api);
+        v["files"] = serde_json::json!(!h.store.is_empty());
+        v["checked"] = serde_json::json!(s.list.iter().any(|p| p.base == h.origin));
+        v
+    }).collect();
+    (rows, s.checked, s.active.clone())
+}
+
+/// A real request to `host` (an origin or any URL on it) failed on the way: it goes to the end - the next one is active for
+/// everything - and the pool is checked again in the background (a host already at the end stays there).
+pub fn lost(host: &str, why: &str) {
+    let o = origin_of(host);
+    if o.is_empty() { return; }
+    {
+        let mut s = ST.lock().unwrap();
+        if !s.own_store.is_empty() && host.starts_with(s.own_store.trim_end_matches('/')) {
+            s.own_dead = true;   // the player's own store: after ours for the files, never ordered with them
+            return;
+        }
+        if !s.hosts.iter().any(|h| h.origin == o) { return; }   // a test server: not ours to order
+        let err = format!("lost: {}", why.chars().take(100).collect::<String>());
+        let t = now();
+        match s.list.iter().position(|p| p.base == o) {
+            Some(j) => { let mut p = s.list.remove(j); p.ms = None; p.err = err; p.lost_at = t; s.list.push(p); }
+            None => s.list.push(Probe { base: o.clone(), ms: None, err, lost_at: t, ..Default::default() }),
         }
     }
-    check_soon(pool, 30);
+    refresh_active(&format!("{o} failed: {why}"));
+    check_soon(30);
 }
 
-/// `base` is set aside for SET_ASIDE_SECS (`why`: for the log and Settings); the order is kept at once and the pool is checked
-/// again (the mark stays through the check). False when it was set aside already.
-pub fn set_aside(pool: Pool, base: &str, why: &str) -> bool {
-    let list = {
-        let mut r = RANK[pool.i()].lock().unwrap();
+/// A request to `host` failed: a failure on the way (no connection, a timeout, a gateway that got no answer) makes the host
+/// lost; an answer of the server itself (404, 400, a refusal) says nothing about the way there.
+pub fn note_err(host: &str, what: &str, e: &ureq::Error) {
+    if way_error(e) { lost(host, &format!("{what}: {e}")); }
+}
+pub fn way_error(e: &ureq::Error) -> bool { matches!(e, ureq::Error::Transport(_) | ureq::Error::Status(502..=504, _)) }
+/// No connection at all - the request never reached the server (no name, no TCP / TLS, the proxy refused): safe to send again.
+pub fn connect_error(e: &ureq::Error) -> bool {
+    matches!(e, ureq::Error::Transport(t) if matches!(t.kind(), ureq::ErrorKind::Dns | ureq::ErrorKind::ConnectionFailed | ureq::ErrorKind::ProxyConnect))
+}
+
+/// What a request is, for its failures (reviewer 17.11.2026): a big body or a slow answer says little about the way to a host.
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum Kind {
+    /// A small call: a failure on the way makes the host lost (the next one is active for everything), the next host is tried.
+    Small,
+    /// A big download (a replay): only no connection makes the host lost; a cut or slow body goes on to the next host unmarked.
+    HeavyGet,
+    /// A big upload (logs, a replay, pictures): only no connection makes the host lost and tries the next one; any other failure
+    /// ends it - the body may have reached the server, a second copy is not sent.
+    HeavyPost,
+}
+
+/// One request to our API: the hosts in order, the active one first, until one answers. `f` makes it on a host's origin; its
+/// Ok ends it (a caller that takes a server's refusal as the answer turns it into its Ok). A small call goes on to the next host
+/// after any error and a failure on the way makes the host lost - the next one becomes the active host for everything.
+pub fn call<T>(what: &str, f: impl FnMut(&str) -> Result<T, ureq::Error>) -> Result<T, String> { call_kind(Kind::Small, what, f) }
+pub fn call_kind<T>(kind: Kind, what: &str, mut f: impl FnMut(&str) -> Result<T, ureq::Error>) -> Result<T, String> {
+    let mut last = NOT_CONFIGURED.to_string();
+    for h in api_hosts() {
+        match f(&h) {
+            Ok(v) => return Ok(v),
+            Err(e) => {
+                last = e.to_string();
+                match kind {
+                    Kind::Small => note_err(&h, what, &e),
+                    _ if connect_error(&e) => lost(&h, &format!("{what}: {e}")),
+                    Kind::HeavyGet => {}
+                    Kind::HeavyPost => return Err(last),
+                }
+            }
+        }
+    }
+    Err(last)
+}
+
+/// `host` is set aside for SET_ASIDE_SECS (`why`: for the log and Settings); the pool is checked again (the mark stays through
+/// the check). False when it was set aside already.
+pub fn set_aside(host: &str, why: &str) -> bool {
+    let o = origin_of(host);
+    {
+        let mut s = ST.lock().unwrap();
         let t = now();
-        let j = match r.list.iter().position(|p| key(&p.base) == key(base)) {
+        let j = match s.list.iter().position(|p| p.base == o) {
             Some(j) => j,
-            None => { r.list.push(Probe { base: base.to_string(), ms: None, err: String::new(), ..Default::default() }); r.list.len() - 1 }
+            None => { s.list.push(Probe { base: o.clone(), ms: None, ..Default::default() }); s.list.len() - 1 }
         };
-        if r.list[j].aside_at(t) { return false; }
-        r.list[j].aside_until = t + SET_ASIDE_SECS;
-        r.list[j].aside = why.chars().take(120).collect();
-        sort_list(&mut r.list, t);
-        r.list.clone()
-    };
-    if let Some(f) = ON_CHECKED.lock().unwrap().as_ref() { f(pool, &list); }
-    check_soon(pool, 0);
+        if s.list[j].aside_at(t) { return false; }
+        s.list[j].aside_until = t + SET_ASIDE_SECS;
+        s.list[j].aside = why.chars().take(120).collect();
+    }
+    refresh_active(&format!("{o} set aside: {why}"));
+    check_soon(0);
     true
 }
 
 /// Check the pool in the background unless a check runs or ran less than `gap` seconds ago (0: always).
-pub fn check_soon(pool: Pool, gap: u64) {
-    if gap > 0 && now().saturating_sub(LAST[pool.i()].load(Ordering::Relaxed)) < gap { return; }
-    if BUSY[pool.i()].swap(true, Ordering::SeqCst) { return; }
-    std::thread::spawn(move || {
-        let bases = CANDIDATES[pool.i()].lock().unwrap().clone();
-        if !bases.is_empty() { check(pool, &bases); }   // nothing to check (not configured yet): the order stays
-        BUSY[pool.i()].store(false, Ordering::SeqCst);
+/// Check the pool in the background soon: at once, or - when the last check is under `gap` seconds old - once that gap has passed
+/// (a lost host is checked again within `gap`, never only at the next periodic check). A request while a check runs makes one
+/// more after it.
+pub fn check_soon(gap: u64) {
+    #[cfg(test)]
+    if !TEST_BACKGROUND.load(Ordering::SeqCst) { return; }   // the unit tests set the results themselves (no network)
+    let since = now().saturating_sub(LAST.load(Ordering::SeqCst));
+    if gap > 0 && since < gap {
+        if !PENDING.swap(true, Ordering::SeqCst) {
+            let wait = gap - since;
+            std::thread::spawn(move || { std::thread::sleep(Duration::from_secs(wait)); PENDING.store(false, Ordering::SeqCst); check_soon(0); });
+        }
+        return;
+    }
+    AGAIN.store(true, Ordering::SeqCst);
+    if BUSY.swap(true, Ordering::SeqCst) { return; }   // the running check's thread sees AGAIN and checks once more
+    std::thread::spawn(|| loop {
+        while AGAIN.swap(false, Ordering::SeqCst) {
+            if !ST.lock().unwrap().hosts.is_empty() { check(); }   // nothing to check (not configured yet): the order stays
+        }
+        BUSY.store(false, Ordering::SeqCst);
+        // a request between the last swap and the store above: this thread takes it, unless another one already did
+        if !AGAIN.load(Ordering::SeqCst) || BUSY.swap(true, Ordering::SeqCst) { break; }
+    });
+}
+/// The periodic check: every RECHECK_SECS while the launcher runs and the game does not (a thread of its own, started once).
+pub fn start_recheck() {
+    static STARTED: AtomicBool = AtomicBool::new(false);
+    if STARTED.swap(true, Ordering::SeqCst) { return; }
+    std::thread::spawn(|| loop {
+        std::thread::sleep(Duration::from_secs(60));
+        if GAME_RUNNING.load(Ordering::SeqCst) { continue; }
+        if now().saturating_sub(LAST.load(Ordering::SeqCst)) >= RECHECK_SECS { check_soon(0); }
     });
 }
 
-fn probe_url(pool: Pool, base: &str) -> String {
-    match pool {
-        Pool::Data => format!("{}/launcher.json", base.trim_end_matches('/')),
-        Pool::Api => format!("{}/ladder/api/c/msgs?room=all&after=0&limit=120", base.trim_end_matches('/')),
-    }
+fn probe_url(h: &Host) -> String {
+    if h.api { format!("{}/ladder/api/c/msgs?room=all&after=0&limit=120", h.origin) } else { format!("{}launcher.json", h.store) }
 }
 
 /// What a check reads of an answer: well past the ~33-36 KB where a DPI stops a stream (1.4.3; Malum's lobby check 16.11.2026:
-/// "cut 36200 B"), and no more - the chat's answer grows with the chat (60 KB in 11.2026 was 112 KB a few days later), and a
+/// "cut 36200 B"), and no more - the chat's answer grows with the chat (60 KB in 11.2026 was 119 KB a few days later), and a
 /// check that read all of it in its 8 s failed on a slow line for a size that says nothing. Read as it comes, no gzip: a
 /// compressed answer of a few KB would get a host whose streams are cut past the point where it stops.
 const PROBE_BYTES: u64 = 64 << 10;
@@ -170,7 +394,7 @@ fn probe_body(r: impl std::io::Read) -> Result<usize, String> {
 }
 
 /// One host: the time of the answer's first PROBE_BYTES, or why there is none.
-fn probe(pool: Pool, base: &str) -> Probe {
+fn probe(h: &Host) -> Probe {
     let agent = ureq::AgentBuilder::new()
         .timeout_connect(Duration::from_secs(4))
         .timeout(Duration::from_secs(8))
@@ -178,52 +402,55 @@ fn probe(pool: Pool, base: &str) -> Probe {
         .try_proxy_from_env(true)
         .build();
     let t = Instant::now();
-    // 1.6.20: ureq takes gzip now (Cargo.toml) - the check asks for the raw bytes, it measures the stream, not a packed answer
-    let res = agent.get(&probe_url(pool, base)).set("Accept-Encoding", "identity").call().map_err(|e| e.to_string()).and_then(|r| probe_body(r.into_reader()).map(|_| ()));
+    // 1.6.20: ureq takes gzip - the check asks for the raw bytes, it measures the stream, not a packed answer
+    let res = agent.get(&probe_url(h)).set("Accept-Encoding", "identity").call().map_err(|e| e.to_string()).and_then(|r| probe_body(r.into_reader()).map(|_| ()));
     match res {
-        Ok(()) => Probe { base: base.to_string(), ms: Some(t.elapsed().as_millis().min(u32::MAX as u128) as u32), err: String::new(), ..Default::default() },
-        Err(e) => Probe { base: base.to_string(), ms: None, err: e.chars().take(120).collect(), ..Default::default() },
+        Ok(()) => Probe { base: h.origin.clone(), ms: Some(t.elapsed().as_millis().min(u32::MAX as u128) as u32), err: String::new(), ..Default::default() },
+        Err(e) => Probe { base: h.origin.clone(), ms: None, err: e.chars().take(120).collect(), ..Default::default() },
     }
 }
 
-/// Check every host of the pool at once; the new order is kept and returned.
-pub fn check(pool: Pool, bases: &[String]) -> Vec<Probe> {
-    LAST[pool.i()].store(now(), Ordering::Relaxed);
-    let handles: Vec<_> = bases.iter().cloned().map(|b| std::thread::spawn(move || probe(pool, &b))).collect();
+/// Check every host at once; the new order is kept.
+pub fn check() {
+    let started = now();
+    LAST.store(started, Ordering::SeqCst);
+    let hosts = ST.lock().unwrap().hosts.clone();
+    let handles: Vec<_> = hosts.into_iter().map(|h| std::thread::spawn(move || probe(&h))).collect();
     let got: Vec<Probe> = handles.into_iter().filter_map(|h| h.join().ok()).collect();
-    let got = keep(pool, got);
-    if let Some(f) = ON_CHECKED.lock().unwrap().as_ref() { f(pool, &got); }
-    got
+    keep(got, started);
+    refresh_active("the check of our hosts");
 }
 
-/// A check's results become the order (the set-aside marks kept).
-fn keep(pool: Pool, mut got: Vec<Probe>) -> Vec<Probe> {
-    {
-        let mut r = RANK[pool.i()].lock().unwrap();
-        // 1.6.19: a set-aside mark stays (taken under the lock: one set while this check ran too)
-        let t = now();
-        for p in got.iter_mut() {
-            if let Some(o) = r.list.iter().find(|o| key(&o.base) == key(&p.base) && o.aside_at(t)) { p.aside_until = o.aside_until; p.aside = o.aside.clone(); }
-        }
-        // answered first, fastest first; set aside after them; no answer at the end in the given order (sort_by_key is stable)
-        sort_list(&mut got, t);
-        r.list = got.clone();
-        r.checked = true;
+/// A check's results become the order: the set-aside marks kept, and a host a real request lost since the check `started` stays
+/// lost (its answer to the check may be older than that failure).
+fn keep(mut got: Vec<Probe>, started: u64) {
+    let mut s = ST.lock().unwrap();
+    let t = now();
+    for p in got.iter_mut() {
+        if let Some(o) = s.list.iter().find(|o| o.base == p.base && o.aside_at(t)) { p.aside_until = o.aside_until; p.aside = o.aside.clone(); }
+        if let Some(o) = s.list.iter().find(|o| o.base == p.base && o.lost_at >= started && o.lost_at > 0) { p.ms = None; p.err = o.err.clone(); p.lost_at = o.lost_at; }
     }
-    got
+    got.sort_by_key(|p| (p.tier(t), p.ms.unwrap_or(0)));   // stable: no answer keeps its order
+    s.list = got;
+    s.checked = true;
 }
 
-// ---------- 1.6.21 (owner 17.11.2026): links to our site go to the mirror in use ----------
-// "If he uses a mirror now, the links to our site take him to the same mirror": some Russian lines cut big answers from
-// Germany, a player on Moscow (dow2ru) could not open the rts.fintebtc.de pages the launcher linked to. The three hosts are
-// one site (Germany's origin; Moscow passes every path to it), so a path opened on one opens the same on another.
+/// The store side of elite-core's `Mirrors`: the order and the failures go through this pool.
+pub struct Store;
+impl elite_core::net::HostPolicy for Store {
+    fn bases(&self) -> Vec<String> { store_bases() }
+    fn failed(&self, base: &str, why: &str) { lost(base, &format!("files: {why}")) }
+    fn worked(&self, base: &str) {
+        let mut s = ST.lock().unwrap();
+        if s.own_dead && !s.own_store.is_empty() && base.starts_with(s.own_store.trim_end_matches('/')) { s.own_dead = false; }
+    }
+}
 
-/// Our site's hosts: rts and dow2 (Germany) and dow2ru (Moscow, a proxy of the same origin).
+// ---------- links and pictures: our site on the active host ----------
+/// Our site's hosts: rts and dow2 (Germany) and dow2ru (Moscow, a proxy of the same origin) - one site, every path on each.
 pub const SITE_HOSTS: [&str; 3] = ["rts.fintebtc.de", "dow2.fintebtc.de", "dow2ru.fintebtc.de"];
-/// The link's base when no host of ours is known yet.
+/// The site's base when no host of ours is known yet.
 pub const SITE_DEFAULT: &str = "https://rts.fintebtc.de";
-
-/// The host of an http(s) link when it is one of ours (lower case), and where its path begins.
 fn site_host(url: &str) -> Option<(String, usize)> {
     let lower = url.get(..8)?.to_ascii_lowercase();
     let start = if lower.starts_with("https://") { 8 } else if lower.starts_with("http://") { 7 } else { return None };
@@ -233,13 +460,12 @@ fn site_host(url: &str) -> Option<(String, usize)> {
     let host = auth.strip_suffix(":443").unwrap_or(&auth);
     SITE_HOSTS.contains(&host).then(|| (host.to_string(), start + end))
 }
-
-/// The base of our site the launcher uses now: the first of our hosts in `hosts` (the chat's / API's order - the live stream's
-/// host first, then the one that answers best from here), else rts.
-pub fn site_base(hosts: &[String]) -> String {
+/// The base of our site: the first of our site's hosts in `hosts` (the API order: the active host first), else rts.
+pub fn site_base_of(hosts: &[String]) -> String {
     hosts.iter().find_map(|h| site_host(h).map(|(host, _)| format!("https://{host}"))).unwrap_or_else(|| SITE_DEFAULT.to_string())
 }
-
+/// Our site on the active host.
+pub fn site_base() -> String { site_base_of(&api_hosts()) }
 /// A link to any of our hosts on the `base` host (its path, query and #part kept); any other link as it is.
 pub fn site_link(url: &str, base: &str) -> String {
     match site_host(url) {
@@ -249,89 +475,229 @@ pub fn site_link(url: &str, base: &str) -> String {
 }
 
 #[cfg(test)]
-mod site_tests {
-    use super::*;
-
-    #[test]
-    fn links_follow_the_mirror_in_use() {
-        let ru = "https://dow2ru.fintebtc.de";
-        assert_eq!(site_link("https://rts.fintebtc.de/ladder/table?mode=1v1&lang=ru#how", ru), "https://dow2ru.fintebtc.de/ladder/table?mode=1v1&lang=ru#how");
-        assert_eq!(site_link("http://dow2.fintebtc.de/stats/?q=1", ru), "https://dow2ru.fintebtc.de/stats/?q=1");
-        assert_eq!(site_link("https://RTS.fintebtc.de", ru), "https://dow2ru.fintebtc.de");
-        assert_eq!(site_link("https://rts.fintebtc.de:443/elite/", ru), "https://dow2ru.fintebtc.de/elite/");
-        assert_eq!(site_link("https://dow2ru.fintebtc.de/replay/r/1", "https://rts.fintebtc.de/"), "https://rts.fintebtc.de/replay/r/1");
-        // not ours: as it is
-        assert_eq!(site_link("https://discord.gg/elitemod", ru), "https://discord.gg/elitemod");
-        assert_eq!(site_link("https://rts.fintebtc.de.evil.org/x", ru), "https://rts.fintebtc.de.evil.org/x");
-        assert_eq!(site_link("https://evil.org/https://rts.fintebtc.de/", ru), "https://evil.org/https://rts.fintebtc.de/");
-        assert_eq!(site_link("steam://store/56400", ru), "steam://store/56400");
-    }
-
-    #[test]
-    fn the_base_is_the_first_of_ours() {
-        let v = |a: &[&str]| a.iter().map(|s| s.to_string()).collect::<Vec<_>>();
-        assert_eq!(site_base(&v(&["https://dow2ru.fintebtc.de", "https://rts.fintebtc.de"])), "https://dow2ru.fintebtc.de");
-        assert_eq!(site_base(&v(&["https://pl.example.org", "https://dow2.fintebtc.de/"])), "https://dow2.fintebtc.de");
-        assert_eq!(site_base(&v(&["https://pl.example.org"])), SITE_DEFAULT);
-        assert_eq!(site_base(&[]), SITE_DEFAULT);
-    }
-}
+pub(crate) static TEST_LOCK: Mutex<()> = Mutex::new(());
+#[cfg(test)]
+static TEST_BACKGROUND: AtomicBool = AtomicBool::new(false);
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn order_answered_fastest_then_unchecked_then_dead() {
-        let pool = Pool::Data;
-        {
-            let mut r = RANK[pool.i()].lock().unwrap();
-            r.list = vec![
-                Probe { base: "https://slow/".into(), ms: Some(300), ..Default::default() },
-                Probe { base: "https://fast/".into(), ms: Some(40), ..Default::default() },
-                Probe { base: "https://dead/".into(), ms: None, err: "timeout".into(), ..Default::default() },
-            ];
-        }
-        let o = order(pool, vec!["https://dead/".into(), "https://new/".into(), "https://slow/".into(), "https://fast".into()]);
-        assert_eq!(o, vec!["https://fast", "https://slow/", "https://new/", "https://dead/"]);
-        // a real request to the fastest failed: it goes to the end, the slow one leads
-        LAST[pool.i()].store(now(), Ordering::Relaxed);   // no background check in the test
-        lost(pool, "https://fast/");
-        let o = order(pool, vec!["https://fast/".into(), "https://slow/".into()]);
-        assert_eq!(o, vec!["https://slow/", "https://fast/"]);
+    fn v(a: &[&str]) -> Vec<String> { a.iter().map(|s| s.to_string()).collect() }
+    fn keep_now(got: Vec<Probe>) { keep(got, now()) }
+    fn pr(base: &str, ms: Option<u32>) -> Probe { Probe { base: base.into(), ms, ..Default::default() } }
+    const RU: &str = "https://dow2ru.fintebtc.de";
+    const DE: &str = "https://dow2.fintebtc.de";
+    const RTS: &str = "https://rts.fintebtc.de";
+    const R2: &str = "https://pub-x.r2.dev";
+    /// The pool as the launcher of 11.2026 has it: launcher.json api_hosts = Moscow, mirrors = Moscow, Germany, R2, rts; the build's
+    /// API hosts dow2 and rts. A fresh state, no background checks.
+    fn setup() -> std::sync::MutexGuard<'static, ()> {
+        let g = TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        *ST.lock().unwrap() = State::default();
+        *ON_SWITCH.lock().unwrap() = None;
+        *ON_CHECKED.lock().unwrap() = None;
+        LAST.store(now(), Ordering::Relaxed);
+        configure(&v(&[RU, DE, RTS]), &v(&["https://dow2ru.fintebtc.de/eu/s/", "https://dow2.fintebtc.de/eu/s/", "https://pub-x.r2.dev/eu/s/", "https://rts.fintebtc.de/eu/s/"]), Some(""));
+        g
+    }
+    fn switches() -> std::sync::Arc<Mutex<Vec<String>>> {
+        let l = std::sync::Arc::new(Mutex::new(vec![]));
+        let l2 = l.clone();
+        on_switch(move |a, b, why| l2.lock().unwrap().push(format!("{a} -> {b}: {why}")));
+        l
     }
 
-    fn pr(base: &str, ms: Option<u32>) -> Probe { Probe { base: base.into(), ms, ..Default::default() } }
+    #[test]
+    fn one_list_of_hosts_from_both_lists() {
+        let _g = setup();
+        let h = ST.lock().unwrap().hosts.clone();
+        assert_eq!(h.iter().map(|h| (h.origin.as_str(), h.api, h.store.as_str())).collect::<Vec<_>>(), vec![
+            (RU, true, "https://dow2ru.fintebtc.de/eu/s/"), (DE, true, "https://dow2.fintebtc.de/eu/s/"),
+            (RTS, true, "https://rts.fintebtc.de/eu/s/"), (R2, false, "https://pub-x.r2.dev/eu/s/")], "one of each list in turn");
+        assert_eq!(origin_of("HTTPS://Dow2.fintebtc.de:443/eu/s/?x"), DE);
+        assert_eq!(origin_of("steam://x"), "");
+        // before any check: the configured order, Moscow active for the API and the files alike
+        assert_eq!(active(), RU);
+        assert_eq!(api_hosts(), v(&[RU, DE, RTS]));
+        assert_eq!(store_bases()[0], "https://dow2ru.fintebtc.de/eu/s/");
+    }
+
+    #[test]
+    fn the_api_and_the_files_go_to_the_same_host_and_fall_back_together() {
+        let _g = setup();
+        let sw = switches();
+        keep_now(vec![pr(RU, Some(300)), pr(DE, Some(60)), pr(R2, Some(20)), pr(RTS, Some(70))]);
+        refresh_active("check");
+        assert_eq!(active(), DE, "the fastest API host");
+        assert_eq!(api_hosts(), v(&[DE, RTS, RU]));
+        assert_eq!(store_bases(), v(&["https://dow2.fintebtc.de/eu/s/", "https://pub-x.r2.dev/eu/s/", "https://rts.fintebtc.de/eu/s/", "https://dow2ru.fintebtc.de/eu/s/"]),
+            "the files on the active host first, even with R2 faster");
+        // a blob cut on the way to Germany: everything moves to the next host
+        lost("https://dow2.fintebtc.de/eu/s/blobs/ab", "files: short read");
+        assert_eq!(active(), RTS);
+        assert_eq!(api_hosts(), v(&[RTS, RU, DE]));
+        assert_eq!(store_bases()[0], "https://rts.fintebtc.de/eu/s/");
+        assert_eq!(sw.lock().unwrap().as_slice(), &[
+            format!("{RU} -> {DE}: check"),
+            format!("{DE} -> {RTS}: {DE} failed: files: short read")]);
+        // the player's own mirror stays first for the files and is never ordered
+        configure(&v(&[RU, DE, RTS]), &v(&["https://dow2ru.fintebtc.de/eu/s/"]), Some("https://my.example.org/elite"));
+        assert_eq!(store_bases()[0], "https://my.example.org/elite/");
+        lost("https://my.example.org/elite/blobs/x", "cut");
+        assert_eq!(active(), RTS);
+    }
+
+    #[test]
+    fn the_active_host_stays_unless_it_fails_or_another_is_much_faster() {
+        let _g = setup();
+        keep_now(vec![pr(RU, Some(400)), pr(DE, Some(500)), pr(RTS, Some(520))]);
+        refresh_active("check");
+        assert_eq!(active(), RU);
+        // the next check: Germany a little faster now - Moscow stays (no swapping on every check)
+        keep_now(vec![pr(RU, Some(420)), pr(DE, Some(380)), pr(RTS, Some(390))]);
+        refresh_active("check");
+        assert_eq!(active(), RU);
+        assert_eq!(api_hosts(), v(&[RU, DE, RTS]));
+        // much faster: under half its time and 300 ms less
+        keep_now(vec![pr(RU, Some(900)), pr(DE, Some(150)), pr(RTS, Some(160))]);
+        refresh_active("check");
+        assert_eq!(active(), DE);
+        assert!(much_faster(150, 900) && !much_faster(150, 400) && !much_faster(380, 420));
+        // the active host does not answer a check: the next one
+        keep_now(vec![pr(RU, Some(200)), pr(DE, None), pr(RTS, Some(210))]);
+        refresh_active("check");
+        assert_eq!(active(), RU);
+    }
+
     #[test]
     fn a_host_set_aside_goes_after_the_answered_ones_and_stays_there_through_a_check() {
         // Malum 16.11.2026: Germany answers the check fastest, but its stream dies every few minutes; Moscow works
-        let pool = Pool::Api;
-        let hosts = || vec!["https://de".to_string(), "https://ru".to_string(), "https://dead".to_string()];
-        RANK[pool.i()].lock().unwrap().list = vec![pr("https://de", Some(40)), pr("https://ru", Some(90)), pr("https://dead", None)];
-        assert_eq!(order(pool, hosts()), vec!["https://de", "https://ru", "https://dead"]);
-        assert!(set_aside(pool, "https://de", "stream cut twice"));
-        assert!(!set_aside(pool, "https://de", "again"), "once until it ends");
-        assert_eq!(order(pool, hosts()), vec!["https://ru", "https://de", "https://dead"], "after the answered ones, before no answer");
-        let (l, _) = snapshot(pool);
-        assert_eq!(l.iter().map(|p| p.base.as_str()).collect::<Vec<_>>(), vec!["https://ru", "https://de", "https://dead"], "Settings shows the same order");
-        assert_eq!(l[1].aside, "stream cut twice");
+        let _g = setup();
+        let sw = switches();
+        keep_now(vec![pr(DE, Some(40)), pr(RU, Some(90)), pr(RTS, None)]);
+        refresh_active("check");
+        assert_eq!(api_hosts(), v(&[DE, RU, RTS]));
+        assert!(set_aside(DE, "stream cut twice"));
+        assert!(!set_aside(DE, "again"), "once until it ends");
+        assert_eq!(api_hosts(), v(&[RU, DE, RTS]), "after the answered ones, before no answer");
+        assert_eq!(store_bases()[0], "https://dow2ru.fintebtc.de/eu/s/", "the files follow");
+        assert_eq!(sw.lock().unwrap().last().unwrap(), &format!("{DE} -> {RU}: {DE} set aside: stream cut twice"));
+        let (rows, _, act) = snapshot();
+        assert_eq!(act, RU);
+        assert_eq!(rows.iter().find(|r| r["base"] == DE).unwrap()["aside"], "stream cut twice");
+        assert_eq!(rows[0]["base"], RU);
         // the next check: Germany's short answer is fast again - the mark stays
-        keep(pool, vec![pr("https://de", Some(30)), pr("https://ru", Some(95)), pr("https://dead", None)]);
-        assert_eq!(order(pool, hosts()), vec!["https://ru", "https://de", "https://dead"]);
+        keep_now(vec![pr(DE, Some(30)), pr(RU, Some(95)), pr(RTS, None)]);
+        refresh_active("check");
+        assert_eq!(api_hosts(), v(&[RU, DE, RTS]));
         // Moscow lost too: Germany (set aside, but it answers) before nothing
-        keep(pool, vec![pr("https://de", Some(30)), pr("https://ru", None), pr("https://dead", None)]);
-        assert_eq!(order(pool, hosts()), vec!["https://de", "https://ru", "https://dead"]);
+        keep_now(vec![pr(DE, Some(30)), pr(RU, None), pr(RTS, None)]);
+        refresh_active("check");
+        assert_eq!(active(), DE);
         // kept in the settings and read back at the next start (an old settings file has no mark)
-        let saved = serde_json::to_string(&snapshot(pool).0).unwrap();
+        let saved = serde_json::to_string(&ST.lock().unwrap().list).unwrap();
         let back: Vec<Probe> = serde_json::from_str(&saved).unwrap();
         assert!(back[0].aside_until > now() + SET_ASIDE_SECS - 60);
         let old: Vec<Probe> = serde_json::from_str(r#"[{"base":"https://de","ms":30,"err":""}]"#).unwrap();
         assert_eq!(old[0].aside_until, 0);
         assert!(!saved.contains("\"aside\":\"\""), "no empty fields: {saved}");
-        // the time is over: by the answer's time again
-        RANK[pool.i()].lock().unwrap().list.iter_mut().for_each(|p| p.aside_until = p.aside_until.min(now().saturating_sub(1)));
-        keep(pool, vec![pr("https://de", Some(30)), pr("https://ru", Some(95))]);
-        assert_eq!(order(pool, hosts()), vec!["https://de", "https://ru", "https://dead"]);
     }
+
+    #[test]
+    fn the_last_run_seeds_the_order_and_a_check_replaces_it() {
+        let _g = setup();
+        // settings of 1.6.21 (net_api; the files' list net_data is dropped): Germany was best
+        seed(vec![pr("https://dow2.fintebtc.de/", Some(50)), pr(RU, Some(300))]);
+        assert_eq!(active(), DE);
+        assert_eq!(api_hosts(), v(&[DE, RU, RTS]));
+        keep_now(vec![pr(RU, Some(80)), pr(DE, None), pr(RTS, None)]);
+        refresh_active("check");
+        assert_eq!(active(), RU);
+        seed(vec![pr(DE, Some(1))]);
+        assert_eq!(active(), RU, "a seed after the check changes nothing");
+        // the launcher's start: the last run's host holds against one a little faster (two names of one server: no switch, no
+        // reconnect of the stream at every start), not against one much faster
+        *ST.lock().unwrap() = State::default();
+        seed(vec![pr(DE, Some(22)), pr(RTS, Some(20))]);
+        configure(&v(&[RU, DE, RTS]), &[], Some(""));
+        assert_eq!(active(), RTS);
+        keep_now(vec![pr(DE, Some(18)), pr(RTS, Some(25)), pr(RU, Some(400))]);
+        refresh_active("check");
+        assert_eq!(active(), RTS);
+    }
+
+    #[test]
+    fn a_call_falls_back_and_the_fallback_is_active_for_everything() {
+        let _g = setup();
+        keep_now(vec![pr(DE, Some(40)), pr(RU, Some(90)), pr(RTS, Some(60))]);
+        refresh_active("check");
+        let mut tried = vec![];
+        let r = call("rooms", |h| { tried.push(h.to_string()); if h == DE { Err(ureq::Error::Status(504, ureq::Response::new(504, "x", "").unwrap())) } else { Ok(h.to_string()) } });
+        assert_eq!(r.unwrap(), RTS);
+        assert_eq!(tried, v(&[DE, RTS]));
+        assert_eq!(active(), RTS);
+        assert_eq!(store_bases()[0], "https://rts.fintebtc.de/eu/s/");
+        // a refusal of the server (404, 413) goes on to the next host but marks nothing
+        let r: Result<String, String> = call("x", |_| Err(ureq::Error::Status(404, ureq::Response::new(404, "x", "").unwrap())));
+        assert!(r.is_err());
+        assert_eq!(active(), RTS);
+        // no hosts at all
+        *ST.lock().unwrap() = State::default();
+        assert_eq!(call("x", |h| Ok(h.to_string())), Err(NOT_CONFIGURED.to_string()));
+    }
+
+    #[test]
+    fn files_skip_a_dead_host_and_a_dead_own_mirror_and_a_check_keeps_a_newer_loss() {
+        let _g = setup();
+        // every API host lost its way (the active one is a dead API host): R2 comes first for the files, not after them
+        keep_now(vec![pr(RU, None), pr(DE, None), pr(RTS, None), pr(R2, Some(50))]);
+        refresh_active("check");
+        assert_eq!(store_bases()[0], "https://pub-x.r2.dev/eu/s/");
+        assert!(!api_hosts().is_empty(), "the API still has its order to try");
+        // the player's own mirror: first while it works, after ours once it failed, first again when it gives a file
+        keep_now(vec![pr(RU, Some(90)), pr(DE, Some(60)), pr(RTS, Some(70)), pr(R2, Some(50))]);
+        refresh_active("check");
+        configure(&v(&[RU, DE, RTS]), &v(&["https://dow2ru.fintebtc.de/eu/s/", "https://dow2.fintebtc.de/eu/s/", "https://pub-x.r2.dev/eu/s/", "https://rts.fintebtc.de/eu/s/"]), Some("https://my.example.org/e/"));
+        assert_eq!(store_bases()[0], "https://my.example.org/e/");
+        lost("https://my.example.org/e/", "files: connection refused");
+        assert_eq!(store_bases()[0], "https://dow2.fintebtc.de/eu/s/");
+        assert_eq!(store_bases().last().unwrap(), "https://my.example.org/e/");
+        assert_eq!(active(), DE, "the player's mirror is not ours: the active host stays");
+        elite_core::net::HostPolicy::worked(&Store, "https://my.example.org/e/");
+        assert_eq!(store_bases()[0], "https://my.example.org/e/");
+        // a request lost Germany while a check ran: the check's (older) answer does not bring it back
+        let started = now();
+        lost(DE, "rooms: timed out");
+        keep(vec![pr(RU, Some(90)), pr(DE, Some(60)), pr(RTS, Some(70)), pr(R2, Some(50))], started);
+        refresh_active("check");
+        assert_ne!(active(), DE);
+        assert!(ST.lock().unwrap().list.iter().any(|p| p.base == DE && p.ms.is_none()));
+        // the next check, started after the loss: its answer counts
+        keep(vec![pr(RU, Some(90)), pr(DE, Some(60)), pr(RTS, Some(70)), pr(R2, Some(50))], started + 1);
+        assert!(ST.lock().unwrap().list.iter().any(|p| p.base == DE && p.ms == Some(60)));
+    }
+
+    #[test]
+    fn heavy_requests_do_not_move_the_active_host_unless_there_was_no_connection() {
+        let _g = setup();
+        keep_now(vec![pr(DE, Some(40)), pr(RU, Some(90)), pr(RTS, Some(60))]);
+        refresh_active("check");
+        let io = || ureq::Error::from(std::io::Error::new(std::io::ErrorKind::TimedOut, "timed out"));
+        // an upload cut half-way: no second copy, the active host stays
+        let mut tried = vec![];
+        let r: Result<(), String> = call_kind(Kind::HeavyPost, "logs", |h| { tried.push(h.to_string()); Err(io()) });
+        assert!(r.is_err());
+        assert_eq!((tried.len(), active()), (1, DE.to_string()));
+        // a slow download: the next host, unmarked
+        tried.clear();
+        let r = call_kind(Kind::HeavyGet, "replay", |h| { tried.push(h.to_string()); if h == DE { Err(io()) } else { Ok(h.to_string()) } });
+        assert_eq!(r.unwrap(), RTS);
+        assert_eq!(active(), DE);
+        // the same timeout on a small call: Germany lost, everything moves
+        let _ = call("rooms", |h| if h == DE { Err(io()) } else { Ok(()) });
+        assert_eq!(active(), RTS);
+    }
+
     /// A reader that gives `n` bytes, then fails as a stream stopped on the way does (or ends, when `end`).
     struct Cut { n: usize, end: bool }
     impl std::io::Read for Cut {
@@ -348,16 +714,38 @@ mod tests {
         let e = probe_body(Cut { n: 36200, end: false }).unwrap_err();
         assert!(e.starts_with("read: stopped after 35 KB"), "a stream stopped by a DPI is no answer: {e}");
         assert!(probe_body(Cut { n: 9000, end: true }).unwrap_err().starts_with("short answer"));
+        let h = |api, store: &str| Host { origin: "https://h".into(), store: store.into(), api };
+        assert_eq!(probe_url(&h(true, "https://h/s/")), "https://h/ladder/api/c/msgs?room=all&after=0&limit=120");
+        assert_eq!(probe_url(&h(false, "https://h/s/")), "https://h/s/launcher.json");
     }
 
-    /// Against the real servers (network): cargo test -p elite-launcher live_check -- --ignored --nocapture
-    /// REACH_DATA / REACH_API: ";"-separated bases to check.
+    #[test]
+    fn links_follow_the_active_host() {
+        let ru = "https://dow2ru.fintebtc.de";
+        assert_eq!(site_link("https://rts.fintebtc.de/ladder/table?mode=1v1&lang=ru#how", ru), "https://dow2ru.fintebtc.de/ladder/table?mode=1v1&lang=ru#how");
+        assert_eq!(site_link("http://dow2.fintebtc.de/stats/?q=1", ru), "https://dow2ru.fintebtc.de/stats/?q=1");
+        assert_eq!(site_link("https://rts.fintebtc.de:443/elite/", ru), "https://dow2ru.fintebtc.de/elite/");
+        assert_eq!(site_link("https://discord.gg/elitemod", ru), "https://discord.gg/elitemod");
+        assert_eq!(site_link("https://rts.fintebtc.de.evil.org/x", ru), "https://rts.fintebtc.de.evil.org/x");
+        assert_eq!(site_base_of(&v(&["https://pl.example.org", "https://dow2.fintebtc.de/"])), "https://dow2.fintebtc.de");
+        assert_eq!(site_base_of(&[]), SITE_DEFAULT);
+        let _g = setup();
+        keep_now(vec![pr(RTS, Some(40)), pr(RU, None), pr(DE, None)]);
+        refresh_active("check");
+        assert_eq!(site_base(), RTS);
+    }
+
+    /// Against the real servers (network): REACH_API / REACH_STORE = ";"-separated lists;
+    /// cargo test -p elite-launcher live_check -- --ignored --nocapture
     #[test]
     #[ignore]
     fn live_check() {
-        for (pool, var) in [(Pool::Data, "REACH_DATA"), (Pool::Api, "REACH_API")] {
-            let bases: Vec<String> = std::env::var(var).unwrap_or_default().split(';').filter(|x| !x.is_empty()).map(String::from).collect();
-            for p in check(pool, &bases) { println!("{pool:?} {:>6} {} {}", p.ms.map(|m| format!("{m} ms")).unwrap_or("-".into()), p.base, p.err); }
-        }
+        let _g = TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let l = |k: &str| std::env::var(k).unwrap_or_default().split(';').filter(|x| !x.is_empty()).map(String::from).collect::<Vec<_>>();
+        configure(&l("REACH_API"), &l("REACH_STORE"), Some(""));
+        check();
+        let (rows, _, act) = snapshot();
+        for r in rows { println!("{:>8} {} {}", r["ms"].as_u64().map(|m| format!("{m} ms")).unwrap_or("-".into()), r["base"], r["err"]); }
+        println!("active {act}; files {:?}", store_bases());
     }
 }

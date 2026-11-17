@@ -90,11 +90,11 @@ struct Settings {
     comp_values: BTreeMap<String, String>,
     /// Channel the player switched away from — the quick "back to …" button.
     prev_channel: Option<String>,
-    /// Mirror that worked last time — tried first (R2 is blocked in some countries, our server in others).
-    last_mirror: String,
-    /// The order of the mirrors and of the API hosts from the last check (reach.rs): used at the start until this run's
-    /// check is done.
-    net_data: Vec<reach::Probe>,
+    /// The order of our hosts from the last check (reach.rs): used at the start until this run's check is done. 1.6.22: one
+    /// list for everything (net_data, the files' list before it, is dropped).
+    net_hosts: Vec<reach::Probe>,
+    /// The API hosts' order of 1.6.21 and before: read once to seed net_hosts, never written again.
+    #[serde(skip_serializing)]
     net_api: Vec<reach::Probe>,
     /// Anonymous usage count (see usage_ping). None = on.
     usage_stats: Option<bool>,
@@ -207,12 +207,6 @@ fn load_settings() -> Settings {
     std::fs::read(data_dir().join("settings.json")).ok().and_then(|b| serde_json::from_slice(&b).ok()).unwrap_or_default()
 }
 
-/// Remember the mirror that just worked (tried first next time).
-fn remember_mirror(st: &App, worked: String) {
-    if worked.is_empty() { return; }
-    let mut s = st.settings.lock().unwrap();
-    if s.last_mirror != worked { s.last_mirror = worked; save_settings(&s); }
-}
 
 fn save_settings(s: &Settings) {
     let _ = std::fs::write(data_dir().join("settings.json"), serde_json::to_vec_pretty(s).unwrap());
@@ -234,57 +228,26 @@ fn os_name() -> &'static str {
     }
 }
 
+/// Our hosts for the shared pool (reach.rs): the signed launcher.json's first (the team changes the order without a new launcher),
+/// then the build's; the API hosts (`api_hosts`, ELITE_LOG_HOSTS) and the store bases (`mirrors`, ELITE_MIRRORS) of one origin
+/// are one host. `s`: the player's own store (Settings), first for the files; None keeps it.
+fn configure_hosts(s: Option<&Settings>, cfg: Option<&LauncherConfig>) {
+    let split = |v: &str| v.split(';').map(str::trim).filter(|x| !x.is_empty()).map(String::from).collect::<Vec<_>>();
+    let mut api: Vec<String> = cfg.map(|c| c.api_hosts.iter().map(|h| h.trim().trim_end_matches('/').to_string()).filter(|h| h.starts_with("https://")).collect()).unwrap_or_default();
+    api.extend(split(option_env!("ELITE_LOG_HOSTS").unwrap_or("")));
+    let mut stores: Vec<String> = cfg.map(|c| c.mirrors.clone()).unwrap_or_default();
+    stores.extend(split(BUILTIN_MIRRORS));
+    reach::configure(&api, &stores, s.map(|s| s.extra_mirror.trim()));
+}
+/// The store for a download: the shared pool's order, the active host first (02.11, owner: the launcher must download
+/// everywhere; 1.6.22: from the same host as everything else, and a failure moves everything).
 fn mirrors(s: &Settings, cfg: Option<&LauncherConfig>) -> Mirrors {
-    let mut v: Vec<String> = Vec::new();
-    if !s.extra_mirror.trim().is_empty() {
-        v.push(s.extra_mirror.trim().to_string());
-    }
-    // зеркала из подписанного launcher.json — первыми (так команда меняет порядок без нового лаунчера), потом встроенные
-    if let Some(c) = cfg {
-        v.extend(c.mirrors.iter().cloned());
-    }
-    v.extend(BUILTIN_MIRRORS.split(';').map(str::trim).filter(|x| !x.is_empty()).map(String::from));
-    // 02.11 (owner: the launcher must download everywhere): the order is the one that answers best from this computer -
-    // checked once at the start, again only when a mirror stops answering (reach.rs); a mirror the player typed in
-    // stays first. Before the first check: the order of the last run, then the order above (Moscow, Germany, the rest).
-    let _ = &s.last_mirror;
-    let mut seen = std::collections::HashSet::new();
-    v.retain(|m| seen.insert(m.trim_end_matches('/').to_ascii_lowercase()));
-    let own = s.extra_mirror.trim().to_string();
-    let rest: Vec<String> = v.iter().filter(|m| own.is_empty() || m.as_str() != own).cloned().collect();
-    reach::set_candidates(reach::Pool::Data, rest.clone());
-    let mut out = if own.is_empty() { vec![] } else { vec![own] };
-    out.extend(reach::order(reach::Pool::Data, rest));
-    Mirrors::new(out)
+    configure_hosts(Some(s), cfg);
+    Mirrors::with_policy(Arc::new(reach::Store))
 }
 
-/// After a run through the mirrors: the first one in the order did not answer (another one did, or none) - it is lost
-/// and the mirrors are checked again in the background (reach.rs).
-fn data_note(m: &Mirrors, ok: bool) {
-    let first = m.first_base();
-    if first.is_empty() { return; }
-    if !ok || m.current_base() != first { reach::lost(reach::Pool::Data, &first); }
-}
-
-/// The API hosts of the signed launcher.json (02.11: new servers - Poland, Cloudflare - without a new launcher).
-static CFG_API_HOSTS: Mutex<Vec<String>> = Mutex::new(Vec::new());
-fn note_config(c: &LauncherConfig) {
-    *CFG_API_HOSTS.lock().unwrap() = c.api_hosts.iter().map(|h| h.trim().trim_end_matches('/').to_string()).filter(|h| h.starts_with("https://")).collect();
-    reach::set_candidates(reach::Pool::Api, api_hosts());
-}
-/// Every host with our API: the build's (ELITE_LOG_HOSTS), then launcher.json's api_hosts.
-fn api_hosts() -> Vec<String> {
-    let mut v: Vec<String> = option_env!("ELITE_LOG_HOSTS").unwrap_or("").split(';').map(str::trim).filter(|x| !x.is_empty()).map(String::from).collect();
-    v.extend(CFG_API_HOSTS.lock().unwrap().iter().cloned());
-    let mut seen = std::collections::HashSet::new();
-    v.retain(|h| seen.insert(h.trim_end_matches('/').to_ascii_lowercase()));
-    v
-}
-/// A request to an API host failed on the way (no connection, timeout, a gateway that got no answer): the host is lost.
-/// An answer of the server itself (404, 400, a rejection) says nothing about the way there.
-fn api_err(host: &str, e: &ureq::Error) {
-    if matches!(e, ureq::Error::Transport(_) | ureq::Error::Status(502..=504, _)) { reach::lost(reach::Pool::Api, host); }
-}
+/// The signed launcher.json came: its hosts join the pool (02.11: new servers without a new launcher).
+fn note_config(c: &LauncherConfig) { configure_hosts(None, Some(c)); }
 
 fn game_dir(app: &App) -> Option<PathBuf> {
     let cfg = app.config.lock().unwrap().clone().unwrap_or_default();
@@ -378,7 +341,8 @@ fn get_status(app: State<'_, App>) -> Value {
         "cache_mb": s.cache_mb.unwrap_or(DEFAULT_CACHE_MB),
         "extra_mirror": s.extra_mirror,
         "dismissed": s.dismissed,
-        "mirror_count": mirrors(&s, cfg.as_ref()).count(),
+        "mirror_count": reach::store_bases().len(),
+        "host": reach::active(),
         // old copies of our add-ons: the window syncs the add-ons (they are put aside there) before Play starts the game
         "old_copies": dir.as_ref().map(|d| old_copies(d, &cfgd)).unwrap_or_default(),
         // 1.4.11: the game Play starts ("elite" / "vanilla"), whether the catalog offers vanilla, and whether the game folder
@@ -414,15 +378,12 @@ async fn refresh(app: AppHandle) -> Result<Value, String> {
     let res = tauri::async_runtime::spawn_blocking(move || {
         let mut m = mirrors(&s, cached.as_ref());
         m.on_status = Some(Box::new(move |msg| { let _ = appn.emit("net", msg); }));
-        let r = update::fetch_config(&m).map(|r| (r, m.current_base()));
-        data_note(&m, r.is_ok());
-        r
+        update::fetch_config(&m)
     })
     .await
     .map_err(|e| e.to_string())?;
     match res {
-        Ok(((cfg, raw, sig), worked)) => {
-            remember_mirror(&st, worked);
+        Ok((cfg, raw, sig)) => {
             let _ = std::fs::write(data_dir().join("launcher.json"), raw);
             let _ = std::fs::write(data_dir().join("launcher.json.sig"), sig);
             note_config(&cfg);
@@ -495,44 +456,71 @@ fn open_url(app: AppHandle, url: String) -> Result<(), String> {
     }
     // 1.6.21 (owner 17.11.2026): a link to our site - built here, from launcher.json, notice.json or the server - opens on the
     // mirror the launcher uses now
-    let url = reach::site_link(&url, &site_base());
+    let url = reach::site_link(&url, &reach::site_base());
     app.opener().open_url(url, None::<&str>).map_err(|e| e.to_string())
 }
 
-/// 1.6.21: our site's base the launcher uses now - the chat's / API's host (the live stream's first), when it is one of ours.
-fn site_base() -> String { reach::site_base(&chat_hosts()) }
-/// 1.6.21: the same for the window: it builds its links to our site on it (app.js siteUrl).
+/// 1.6.21: our site's base for the window (app.js siteBase); 1.6.22: the active host of the shared pool (reach.rs), the window
+/// hears of a change by the "host_active" event.
 #[tauri::command]
-fn site_host() -> String { site_base() }
+fn site_host() -> String { reach::site_base() }
 
-// ---------- our servers: one HTTP agent, the API hosts, the community log (every module calls them as crate::X) ----------
+// ---------- our servers: one HTTP agent and the community log (every module calls them as crate::X); the hosts: reach.rs ----------
 /// One agent for every call to our servers: connections are kept and reused instead of a new TCP + TLS handshake per
 /// request. A request's own .timeout() still caps the whole request.
 static HTTP: LazyLock<ureq::Agent> = LazyLock::new(|| {
     ureq::AgentBuilder::new().timeout_connect(Duration::from_secs(10)).timeout_read(Duration::from_secs(20)).build()
 });
 
-/// Our API hosts, the one that answers best from here first (reach.rs). Every call to our API goes through this.
-fn fb_hosts() -> Vec<String> {
-    reach::order(reach::Pool::Api, api_hosts())
-}
-/// 1.6.19: the chat's and the rooms' calls (c_api: the history, Online, say; lroom_api): the host the live stream is up on first
-/// (its long connection works from here; the window's history and the stream's events come from the same server), then fb_hosts.
-fn chat_hosts() -> Vec<String> {
-    let mut v = fb_hosts();
-    let up = stream::STREAM_HOST.lock().unwrap().clone();
-    if let Some(i) = v.iter().position(|h| !up.is_empty() && *h == up) { let h = v.remove(i); v.insert(0, h); }
-    v
-}
-/// 1.6.19: a connection test found the stream to these addresses cut on the way (DPI): our API hosts at them are set aside
-/// (reach.rs), the stream and the API go to another host. `what`: which test, for community.log.
+/// 1.6.19: a connection test found the stream to these addresses cut on the way (DPI): our hosts at them are set aside
+/// (reach.rs) - the stream, the API and the files go to another host. `what`: which test, for community.log.
 fn api_set_aside_at(ips: &[std::net::IpAddr], what: &str) {
     if ips.is_empty() { return; }
-    for h in api_hosts() {
+    for h in reach::api_hosts() {
         let Some(a) = stream::host_addr(&h) else { continue };
-        if ips.contains(&a.ip()) && reach::set_aside(reach::Pool::Api, &h, &format!("{what}: the stream to {} is cut on the way", a.ip())) {
-            c_log(&format!("{what}: the stream to {} ({h}) is cut on the way - set aside for {} h, the stream and the API go to {}", a.ip(),
-                reach::SET_ASIDE_SECS / 3600, fb_hosts().into_iter().find(|x| *x != h).unwrap_or_else(|| "no other host".into())));
+        if ips.contains(&a.ip()) && reach::set_aside(&h, &format!("{what}: the stream to {} is cut on the way", a.ip())) {
+            c_log(&format!("{what}: the stream to {} ({h}) is cut on the way - set aside for {} h, everything goes to {}", a.ip(),
+                reach::SET_ASIDE_SECS / 3600, reach::api_hosts().into_iter().find(|x| *x != h).unwrap_or_else(|| "no other host".into())));
+        }
+    }
+}
+
+/// What the shared host pool (reach.rs) tells the launcher; handled by host_worker, never in the pool's callback.
+enum HostEv { Order(Vec<reach::Probe>), Switch(String, String, String) }
+static HOST_EV: std::sync::OnceLock<Mutex<std::sync::mpsc::Sender<HostEv>>> = std::sync::OnceLock::new();
+fn host_ev(e: HostEv) { if let Some(tx) = HOST_EV.get() { let _ = tx.lock().unwrap_or_else(|e| e.into_inner()).send(e); } }
+/// The hosts' worker (one thread): the order into the settings and the window, a change of the active host into community.log, the
+/// window and - while no game runs and no sync writes them - the add-ons' Server= lists.
+fn host_worker(app: AppHandle, rx: std::sync::mpsc::Receiver<HostEv>) {
+    while let Ok(first) = rx.recv() {
+        let mut evs = vec![first];
+        evs.extend(rx.try_iter());
+        let order = evs.iter().rev().find_map(|e| if let HostEv::Order(l) = e { Some(l.clone()) } else { None });   // the newest order only
+        for e in evs {
+            let HostEv::Switch(from, to, why) = e else { continue };
+            c_log(&format!("mirror: active host {} -> {} ({why})", if from.is_empty() { "none" } else { &from }, if to.is_empty() { "none" } else { &to }));
+            let _ = app.emit("host_active", json!({"host": to, "site": reach::site_base()}));
+            // the in-game add-ons read their Server= at the game's start: the next start goes to the new host too (launch.rs writes it
+            // before every start as well)
+            let st = app.state::<App>();
+            if st.game_running.load(Ordering::SeqCst) || is_game_running() { continue; }
+            if let Some(d) = game_dir(&st) {
+                match addons::try_write_server_inis(&d, &reach::api_hosts()) {
+                    Some(w) if !w.is_empty() => c_log(&format!("mirror: the add-ons' Server= now {to} ({})", w.join(", "))),
+                    _ => {}
+                }
+            }
+        }
+        if let Some(list) = order {
+            let st = app.state::<App>();
+            {
+                let mut s = st.settings.lock().unwrap();
+                if s.net_hosts.len() != list.len() || serde_json::to_value(&s.net_hosts).ok() != serde_json::to_value(&list).ok() {
+                    s.net_hosts = list;
+                    save_settings(&s);
+                }
+            }
+            let _ = app.emit("net_rank", net_status_json());
         }
     }
 }
@@ -602,28 +590,28 @@ fn main() {
             }));
             // 1.3.13 (owner: no traces of the 1.3.10 hang help): the hang dumps it wrote into our own folder go, once, quietly
             let _ = std::fs::remove_dir_all(data_dir().join("dumps"));
-            // which mirror and which API host answer best from here: checked once now (no ICMP - one small HTTPS answer
-            // per host), again only when a host stops answering (reach.rs); the order is kept for the next start
+            // our hosts (reach.rs, 1.6.22: one pool, one active host for everything): the order of the last start until the check that
+            // starts now (no ICMP - one HTTPS answer per host); again every 10 minutes and when a host stops answering; the order is
+            // kept for the next start. One line in community.log per change of the active host; the window builds its links and
+            // pictures on it ("host_active")
+            // the pool's callbacks come from any thread (a download, the stream, a request, a check) - they only hand the event to
+            // the hosts' worker, which saves, logs, tells the window and writes the add-ons' Server= (reviewer 17.11.2026: no lock
+            // and no disk in a callback - the first one came while the config's lock was held and game_dir took it again)
+            let (tx, rx) = std::sync::mpsc::channel::<HostEv>();
+            let _ = HOST_EV.set(Mutex::new(tx));
+            let hw = app.handle().clone();
+            std::thread::spawn(move || host_worker(hw, rx));
+            reach::on_checked(|list| host_ev(HostEv::Order(list.to_vec())));
+            reach::on_switch(|from, to, why| host_ev(HostEv::Switch(from.to_string(), to.to_string(), why.to_string())));
             {
                 let st = app.state::<App>();
                 let s = st.settings.lock().unwrap().clone();
-                reach::seed(reach::Pool::Data, s.net_data.clone());
-                reach::seed(reach::Pool::Api, s.net_api.clone());
-                if let Some(c) = st.config.lock().unwrap().as_ref() { note_config(c); }
-                let _ = mirrors(&s, st.config.lock().unwrap().as_ref());   // sets the data candidates
+                let cfg = st.config.lock().unwrap().clone();   // no lock held over the pool's calls
+                reach::seed(if s.net_hosts.is_empty() { s.net_api.clone() } else { s.net_hosts.clone() });
+                configure_hosts(Some(&s), cfg.as_ref());
             }
-            let hn = app.handle().clone();
-            reach::on_checked(move |pool, list| {
-                let st = hn.state::<App>();
-                {
-                    let mut s = st.settings.lock().unwrap();
-                    match pool { reach::Pool::Data => s.net_data = list.to_vec(), reach::Pool::Api => s.net_api = list.to_vec() }
-                    save_settings(&s);
-                }
-                let _ = hn.emit("net_rank", net_status_json());
-            });
-            reach::check_soon(reach::Pool::Data, 0);
-            reach::check_soon(reach::Pool::Api, 0);
+            reach::check_soon(0);
+            reach::start_recheck();
             let hs = app.handle().clone();
             std::thread::spawn(move || stream_loop(hs));
             // watch the game: the window locks add-ons while it runs and picks pending updates up once it closes
@@ -631,6 +619,7 @@ fn main() {
             std::thread::spawn(move || loop {
                 std::thread::sleep(Duration::from_secs(3));
                 let now = is_game_running();
+                reach::GAME_RUNNING.store(now, Ordering::SeqCst);   // no periodic check of our hosts during a match
                 if hg.state::<App>().game_running.swap(now, Ordering::SeqCst) != now {
                     let _ = hg.emit("game_running", now);
                 }

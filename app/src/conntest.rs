@@ -3,7 +3,7 @@
 //! Online play: the DLL's built-in three + the signed ladder list + Relay.ini), the progress events ("nettest"), the last runs
 //! kept for comparing (the player marks each run "with VPN" / "without VPN") and the two files "Send to the developers" adds to
 //! the log upload: nettest.json (the last runs, in full) and nettest.log (a line per node and run). Never while the game runs.
-use crate::{api_err, c_log, data_dir, fb_hosts, is_game_running, netgame, os_name, relay_ini, App, HTTP};
+use crate::{c_log, data_dir, is_game_running, netgame, os_name, reach, relay_ini, App, HTTP};
 use elite_core::{nettest as nt, LAUNCHER_VERSION};
 use serde_json::{json, Value};
 use std::path::PathBuf;
@@ -52,13 +52,7 @@ pub async fn nettest_run(app: AppHandle, st: State<'_, App>, mode: String, vpn: 
     let ini = relay_ini(&st);
     let tok = st.settings.lock().unwrap().c_token.clone();
     let r = tauri::async_runtime::spawn_blocking(move || {
-        let mut ladder: Option<Vec<(std::net::Ipv4Addr, String)>> = None;
-        for host in fb_hosts() {
-            match HTTP.get(&format!("{host}/ladder/api/relays")).timeout(Duration::from_secs(8)).call() {
-                Ok(r) => { ladder = serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).ok().and_then(|d| netgame::signed_relays(&d)); break; }
-                Err(e) => api_err(&host, &e),
-            }
-        }
+        let ladder = netgame::ladder_relays();
         let (ini_nodes, port) = netgame::ini_nodes(&ini);
         let port = port.unwrap_or(nt::GAME_PORT);
         let nodes: Vec<(std::net::Ipv4Addr, String)> = netgame::node_set(ladder.as_deref().unwrap_or(&[]), &ini_nodes).into_iter().map(|n| (n.ip, n.name)).collect();
@@ -99,13 +93,8 @@ fn nq_call(token: &str, verb: &str, body: &Value) -> Option<Value> {
     let mut b = if body.is_object() { body.clone() } else { json!({}) };
     b["token"] = json!(token);
     let b = b.to_string();
-    for h in fb_hosts() {
-        match HTTP.post(&format!("{h}/ladder/api/nq/{verb}")).timeout(Duration::from_secs(10)).set("Content-Type", "application/json").send_string(&b) {
-            Ok(r) => return serde_json::from_str(&r.into_string().unwrap_or_default()).ok(),
-            Err(e) => api_err(&h, &e),
-        }
-    }
-    None
+    reach::call("node quality", |h| HTTP.post(&format!("{h}/ladder/api/nq/{verb}")).timeout(Duration::from_secs(10)).set("Content-Type", "application/json").send_string(&b))
+        .ok().and_then(|r| serde_json::from_str(&r.into_string().unwrap_or_default()).ok())
 }
 
 /// 1.4.24 node quality per player: "marks" - our nodes the matchmaker does not use for this player now and why (losses, a stuck

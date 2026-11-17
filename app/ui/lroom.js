@@ -77,13 +77,13 @@ const LR_HERO_RU = { 'Chaos Lord': 'Лорд Хаоса', 'Plague Champion': 'Ч
   'Farseer': 'Провидец', 'Inquisitor': 'Инквизитор', 'Commissar': 'Комиссар', 'Lord General': 'Лорд-генерал', 'Brother-Captain': 'Брат-капитан', 'Eversor Assassin': 'Ассасин Эверсор',
   'Daemonhunter': 'Охотник на демонов', 'Warboss': 'Варбосс', 'Kommando Nob': 'Коммандо-ноб', 'Mekboy': 'Мекбой', 'Force Commander': 'Командор', 'Apothecary': 'Апотекарий',
   'Techmarine': 'Техмарин', 'XV-8 Crisis Commander': 'Командир «Кризис» XV-8', 'Ethereal': 'Эфирный', 'Hive Tyrant': 'Тиран улья', 'Ravener Alpha': 'Альфа-потрошитель', 'Lictor Alpha': 'Альфа-ликтор' };
-const LR = { list: [], room: null, cat: {}, host: '', skew: 0, tick: 0, here: 0, pingT: 0, pinging: false, launched: 0, gameEv: null, pop: null };
+const LR = { list: [], room: null, cat: {}, skew: 0, tick: 0, here: 0, pingT: 0, pinging: false, launched: 0, gameEv: null, pop: null };
 const lrMmss = n => { n = Math.max(0, Math.round(+n || 0)); return Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0'); };   // 1:45, 0:30
 const lrMe = () => (CH.me && CH.me.signed_in ? String(CH.me.steam || '') : '');
 // in the room: on a seat, or (1.5.3) among its observers
 const lrMine = r => !!(r && lrMe() && ((r.slots || []).some(s => s && s.steam === lrMe()) || (r.obs || []).some(o => o && o.steam === lrMe())));
 const lrObsMe = r => !!(r && lrMe() && (r.obs || []).some(o => o && o.steam === lrMe()));
-const lrAssets = () => (LR.host || LIVE.host || RM.host || siteBase()) + '/elite/assets/';
+const lrAssets = () => siteBase() + '/elite/assets/';
 const lrHeroName = n => (lang === 'ru' && LR_HERO_RU[n]) || n || '';
 // 1.5.10: the node's place in the player's language (the server names them in English: "Moscow (pivolan)", "Poland (Amazon)")
 const lrNodeName = (net, ip) => { const n = (net.nodes || []).find(x => x.ip === ip); const nm = n ? n.name : ip;
@@ -92,7 +92,7 @@ const lrNodeName = (net, ip) => { const n = (net.nodes || []).find(x => x.ip ===
 async function lrCatalog(game) {
   game = game === 'vanilla' ? 'vanilla' : 'elite';
   if (LR.cat[game]) return LR.cat[game];
-  try { const c = await invoke('lroom_list', { what: 'catalog', game }); LR.cat[game] = c; if (c.host) LR.host = c.host; return c; } catch (e) { return null; }
+  try { const c = await invoke('lroom_list', { what: 'catalog', game }); LR.cat[game] = c; return c; } catch (e) { return null; }
 }
 // 1.6.19 (Malum 16.11.2026: "lroom get: no_room" every 2-3 s in community.log, not in any lobby): every load of the window asked
 // the server for "my room" (lrLoad at once, again 4 s later, and once more when a reload brings the Lobbies tab back), and so did
@@ -159,7 +159,7 @@ function lrSet(v) {
   if (PG) renderPgBar();
 }
 async function lrLoad() {
-  try { const d = await invoke('lroom_list', {}); LR.list = d.rooms || []; if (d.host) LR.host = d.host; lrOnSoon(); } catch (e) { /* the last list */ }
+  try { const d = await invoke('lroom_list', {}); LR.list = d.rooms || []; lrOnSoon(); } catch (e) { /* the last list */ }
   // in a room from before (the launcher restarted): its view - asked once; no_room is remembered (lrNoRoom), one question at a time
   if (lrMe() && !LR.room && !LR.asking && !lrNoRoomKnown()) {
     LR.asking = true;

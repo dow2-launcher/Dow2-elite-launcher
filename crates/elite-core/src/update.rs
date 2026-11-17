@@ -274,8 +274,8 @@ fn mtime(p: &Path) -> Option<(u64, u64)> {
 
 /// launcher.json from the mirrors, signature checked. Also cached next to `cache_file` for offline starts.
 pub fn fetch_config(m: &Mirrors) -> Result<(LauncherConfig, Vec<u8>, String), Error> {
-    let raw = m.get(CONFIG_FILE)?;
-    let sig = String::from_utf8_lossy(&m.get(&format!("{CONFIG_FILE}.sig"))?).to_string();
+    let (raw, sig) = m.get_pair(CONFIG_FILE, &format!("{CONFIG_FILE}.sig"))?;   // 1.6.22: both from one mirror
+    let sig = String::from_utf8_lossy(&sig).to_string();
     if !sign::verify(&raw, &sig) {
         return Err(Error::Bad("launcher.json signature is invalid — ignoring this mirror's data".into()));
     }
@@ -305,8 +305,8 @@ pub fn load_manifest(game: &Game, m: &Mirrors, version: &str) -> Result<Manifest
             }
         }
     }
-    let b = m.get(&format!("{version}.manifest"))?;
-    let s = String::from_utf8_lossy(&m.get(&format!("{version}.manifest.sig"))?).to_string();
+    let (b, s) = m.get_pair(&format!("{version}.manifest"), &format!("{version}.manifest.sig"))?;   // 1.6.22: both from one mirror
+    let s = String::from_utf8_lossy(&s).to_string();
     if !sign::verify(&b, &s) {
         return Err(Error::Bad(format!("manifest {version}: signature is invalid")));
     }
