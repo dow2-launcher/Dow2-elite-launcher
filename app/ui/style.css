@@ -1929,21 +1929,17 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .rjoin.full,.rjoin.full:hover,.rjoin.full:focus-visible{opacity:.4;filter:grayscale(.6);cursor:not-allowed;color:#9fb8b2}
 /* the rating: Elite's number in the Elite colour; none - the dash of .rt.none, as Relic's */
 .rt.el{color:#9fe3cf}
-/* the Elite table's top three of each mode by the name (rating.js rtBadge), sigils.css --sig-r<mode><a|b> (owner's picks
-   17.11.2026): 1v1 the Space Marines - the Reclusiam for the first, the Crux Terminatus for the Veterans; 2v2 the Imperial Guard -
-   the Astra Militarum's winged skull for the Lord General, the Officio Prefectus for the Commissars (both wide: lower, longer);
-   3v3 the Orks - the horned skull for the Warboss, Gork's head for the Nobs. 1st gold, 2nd silver, 3rd bronze */
+/* the Elite table's top three of each mode by the name (rating.js rtBadge). SirItos 17.11.2026: one icon per mode, the place is
+   its metal - 1st gold, 2nd silver, 3rd bronze (the same on the site's table): 1v1 the Crux Terminatus (--sig-r1b), 2v2 the Astra
+   Militarum's winged skull (--sig-r2a, wide: lower, longer), 3v3 the Orks' horned skull (--sig-r3a) */
 .rt-b{flex:none;display:inline-block;width:15px;height:15px;margin:0 1px;vertical-align:-2px;background:currentColor;
   -webkit-mask:var(--sig) center/contain no-repeat;mask:var(--sig) center/contain no-repeat;cursor:help}
 .rt-b.r1{color:#e9c46a;filter:drop-shadow(0 0 3px rgba(233,196,106,.55))}
-.rt-b.r2{color:#c9d3d1}
-.rt-b.r3{color:#c98a55}
-.rt-b.m1v1.r1{--sig:var(--sig-r1a);width:16px;height:16px}
-.rt-b.m1v1:not(.r1){--sig:var(--sig-r1b)}
-.rt-b.m2v2.r1{--sig:var(--sig-r2a);width:34px;height:12px;vertical-align:0}
-.rt-b.m2v2:not(.r1){--sig:var(--sig-r2b);width:34px;height:11px;vertical-align:0}
-.rt-b.m3v3.r1{--sig:var(--sig-r3a);width:18px}
-.rt-b.m3v3:not(.r1){--sig:var(--sig-r3b);width:11px}
+.rt-b.r2{color:#d4dddb;filter:drop-shadow(0 0 3px rgba(212,221,219,.3))}
+.rt-b.r3{color:#cd8a52;filter:drop-shadow(0 0 3px rgba(205,138,82,.35))}
+.rt-b.m1v1{--sig:var(--sig-r1b);width:16px;height:16px}
+.rt-b.m2v2{--sig:var(--sig-r2a);width:34px;height:12px;vertical-align:0}
+.rt-b.m3v3{--sig:var(--sig-r3a);width:18px}
 .me-chip .rt-b{align-self:center}
 /* the profile's menu: wider; under the name the rating system's tick; under the line the picked system; stats and Steam in a row */
 #meBox{width:340px}
@@ -1965,7 +1961,12 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .me-rr .v{font:700 13px/1.3 var(--fb);color:#eafff8;font-variant-numeric:tabular-nums}
 .me-rr .pl{justify-self:end;color:var(--gold2);white-space:nowrap}   /* the place at the right edge (owner 17.11.2026), the number stays */
 .me-rr .g{justify-self:end;color:var(--mu);white-space:nowrap}
-.me-rr.cal .c{grid-column:2 / span 2;justify-self:start;white-space:nowrap;color:#e8d8ae}
+.me-rr.cal .c{grid-column:2 / span 2;justify-self:start;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;color:#e8d8ae;font-variant-numeric:tabular-nums}
+/* SirItos 17.11.2026: the calibration as skulls (the Hall of Fame's skull-01, sigils.css --sig-skull) - dim until played, bright
+   when played - and k/5 by them; the word is in the tip (the site's table the same) */
+.csks{display:inline-flex;align-items:center;gap:2px}
+.csk{display:inline-block;width:9px;height:12px;background:currentColor;color:rgba(134,161,155,.32);-webkit-mask:var(--sig-skull) center/contain no-repeat;mask:var(--sig-skull) center/contain no-repeat}
+.csk.on{color:#bff7e8;filter:drop-shadow(0 0 3px rgba(69,224,192,.75))}
 .me-rr.none .v{color:var(--mu);font-weight:500}
 .me-rr.relic{grid-template-columns:auto 1fr;align-items:center}
 .me-rr.relic small{font-size:11.5px;line-height:1.3;color:var(--mu)}
@@ -1992,10 +1993,9 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .hl-p .nmw{height:19px}
 /* Home's narrow cards: the badges smaller (the Guard's wide ones most) */
 .hl-p .rt-b{width:12px;height:12px}
-.hl-p .rt-b.m1v1.r1{width:13px;height:13px}
+.hl-p .rt-b.m1v1{width:13px;height:13px}
 .hl-p .rt-b.m2v2{width:26px;height:9px}
-.hl-p .rt-b.m3v3.r1{width:14px}
-.hl-p .rt-b.m3v3:not(.r1){width:9px}
+.hl-p .rt-b.m3v3{width:14px}
 .room .team+.team .nmw,.hl-team.r .nmw{flex-direction:row-reverse}
 @media (max-width:1000px){.lr-net th,.lr-net td{padding:3px 3px}}
 /* 1.6.20 (SirItos): the Elite number / dash opens the player's page on the site, a top-3 badge the mode's table, a profile row my page */
