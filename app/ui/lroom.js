@@ -83,7 +83,7 @@ const lrMe = () => (CH.me && CH.me.signed_in ? String(CH.me.steam || '') : '');
 // in the room: on a seat, or (1.5.3) among its observers
 const lrMine = r => !!(r && lrMe() && ((r.slots || []).some(s => s && s.steam === lrMe()) || (r.obs || []).some(o => o && o.steam === lrMe())));
 const lrObsMe = r => !!(r && lrMe() && (r.obs || []).some(o => o && o.steam === lrMe()));
-const lrAssets = () => (LR.host || LIVE.host || RM.host || 'https://rts.fintebtc.de') + '/elite/assets/';
+const lrAssets = () => (LR.host || LIVE.host || RM.host || siteBase()) + '/elite/assets/';
 const lrHeroName = n => (lang === 'ru' && LR_HERO_RU[n]) || n || '';
 // 1.5.10: the node's place in the player's language (the server names them in English: "Moscow (pivolan)", "Poland (Amazon)")
 const lrNodeName = (net, ip) => { const n = (net.nodes || []).find(x => x.ip === ip); const nm = n ? n.name : ip;

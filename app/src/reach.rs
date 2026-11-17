@@ -213,6 +213,70 @@ fn keep(pool: Pool, mut got: Vec<Probe>) -> Vec<Probe> {
     got
 }
 
+// ---------- 1.6.21 (owner 17.11.2026): links to our site go to the mirror in use ----------
+// "If he uses a mirror now, the links to our site take him to the same mirror": some Russian lines cut big answers from
+// Germany, a player on Moscow (dow2ru) could not open the rts.fintebtc.de pages the launcher linked to. The three hosts are
+// one site (Germany's origin; Moscow passes every path to it), so a path opened on one opens the same on another.
+
+/// Our site's hosts: rts and dow2 (Germany) and dow2ru (Moscow, a proxy of the same origin).
+pub const SITE_HOSTS: [&str; 3] = ["rts.fintebtc.de", "dow2.fintebtc.de", "dow2ru.fintebtc.de"];
+/// The link's base when no host of ours is known yet.
+pub const SITE_DEFAULT: &str = "https://rts.fintebtc.de";
+
+/// The host of an http(s) link when it is one of ours (lower case), and where its path begins.
+fn site_host(url: &str) -> Option<(String, usize)> {
+    let lower = url.get(..8)?.to_ascii_lowercase();
+    let start = if lower.starts_with("https://") { 8 } else if lower.starts_with("http://") { 7 } else { return None };
+    let rest = &url[start..];
+    let end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+    let auth = rest[..end].to_ascii_lowercase();
+    let host = auth.strip_suffix(":443").unwrap_or(&auth);
+    SITE_HOSTS.contains(&host).then(|| (host.to_string(), start + end))
+}
+
+/// The base of our site the launcher uses now: the first of our hosts in `hosts` (the chat's / API's order - the live stream's
+/// host first, then the one that answers best from here), else rts.
+pub fn site_base(hosts: &[String]) -> String {
+    hosts.iter().find_map(|h| site_host(h).map(|(host, _)| format!("https://{host}"))).unwrap_or_else(|| SITE_DEFAULT.to_string())
+}
+
+/// A link to any of our hosts on the `base` host (its path, query and #part kept); any other link as it is.
+pub fn site_link(url: &str, base: &str) -> String {
+    match site_host(url) {
+        Some((_, at)) => format!("{}{}", base.trim_end_matches('/'), &url[at..]),
+        None => url.to_string(),
+    }
+}
+
+#[cfg(test)]
+mod site_tests {
+    use super::*;
+
+    #[test]
+    fn links_follow_the_mirror_in_use() {
+        let ru = "https://dow2ru.fintebtc.de";
+        assert_eq!(site_link("https://rts.fintebtc.de/ladder/table?mode=1v1&lang=ru#how", ru), "https://dow2ru.fintebtc.de/ladder/table?mode=1v1&lang=ru#how");
+        assert_eq!(site_link("http://dow2.fintebtc.de/stats/?q=1", ru), "https://dow2ru.fintebtc.de/stats/?q=1");
+        assert_eq!(site_link("https://RTS.fintebtc.de", ru), "https://dow2ru.fintebtc.de");
+        assert_eq!(site_link("https://rts.fintebtc.de:443/elite/", ru), "https://dow2ru.fintebtc.de/elite/");
+        assert_eq!(site_link("https://dow2ru.fintebtc.de/replay/r/1", "https://rts.fintebtc.de/"), "https://rts.fintebtc.de/replay/r/1");
+        // not ours: as it is
+        assert_eq!(site_link("https://discord.gg/elitemod", ru), "https://discord.gg/elitemod");
+        assert_eq!(site_link("https://rts.fintebtc.de.evil.org/x", ru), "https://rts.fintebtc.de.evil.org/x");
+        assert_eq!(site_link("https://evil.org/https://rts.fintebtc.de/", ru), "https://evil.org/https://rts.fintebtc.de/");
+        assert_eq!(site_link("steam://store/56400", ru), "steam://store/56400");
+    }
+
+    #[test]
+    fn the_base_is_the_first_of_ours() {
+        let v = |a: &[&str]| a.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert_eq!(site_base(&v(&["https://dow2ru.fintebtc.de", "https://rts.fintebtc.de"])), "https://dow2ru.fintebtc.de");
+        assert_eq!(site_base(&v(&["https://pl.example.org", "https://dow2.fintebtc.de/"])), "https://dow2.fintebtc.de");
+        assert_eq!(site_base(&v(&["https://pl.example.org"])), SITE_DEFAULT);
+        assert_eq!(site_base(&[]), SITE_DEFAULT);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

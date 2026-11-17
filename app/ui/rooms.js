@@ -84,7 +84,7 @@ function roomObs(id, name, btn) {
   return roomTry(id, name, btn, 'obs');
 }
 function roomCard(r) {
-  const A = (RM.host || 'https://rts.fintebtc.de') + '/elite/assets/';
+  const A = (RM.host || siteBase()) + '/elite/assets/';
   const why = r.game === 'elite' ? roomJoinWhy(r) : '';
   const tag = r.game === 'elite' ? `<span class="tag elite">Elite</span>`
     : r.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>`

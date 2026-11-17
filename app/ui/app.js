@@ -48,8 +48,7 @@ const onLinkUrl = u => /^https:\/\/[^/]+\/(ladder|stats)\b/.test(u) && !/[?&]lan
   ? u.replace(/(#.*)?$/, m => (u.includes('?') ? '&' : '?') + 'lang=' + (/\/ladder\b/.test(u) ? (lang === 'ru' ? 'ru' : 'en') : lang) + m) : u;
 function onLinks(cfgLinks) {
   const box = $('onLinks'); if (!box) return;
-  const host = (LIVE.host || 'https://rts.fintebtc.de').replace(/\/$/, '');
-  const ls = ON_LINKS.map(([, re, def, tip]) => ({ url: ((cfgLinks || []).find(l => re.test(l.url || '')) || {}).url || (def[0] === '/' ? host + def : def), tip: t(tip) }));
+  const ls = ON_LINKS.map(([, re, def, tip]) => ({ url: ((cfgLinks || []).find(l => re.test(l.url || '')) || {}).url || (def[0] === '/' ? siteUrl(def) : def), tip: t(tip) }));
   box.innerHTML = ls.map((l, i) => `<button class="foot-link" data-i="${i}" data-tip="${esc(l.tip)}" aria-label="${esc(l.tip)}">${linkIcon(l.url)}</button>`).join('');
   box.querySelectorAll('button').forEach(b => b.onclick = () => open(onLinkUrl(ls[+b.dataset.i].url)));
 }
@@ -152,6 +151,15 @@ Object.assign(ICO, { door: w40('gate'), crown: w40('host'), invite: w40('banner'
   purge: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13M10 11v5.5M14 11v5.5"/></svg>' });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const open = url => url && invoke('open_url', { url }).catch(e => toast(e, true));
+// 1.6.21 (owner 17.11.2026): our site on the mirror the launcher uses now - the live stream's / API host when it is one of ours
+// (rts / dow2 Germany, dow2ru Moscow - one site), else the one the launcher names (main.rs site_host), else rts. open_url moves any
+// link to our site (launcher.json, notice.json, the server's) onto that mirror too.
+const SITE_RE = /^https?:\/\/(rts|dow2|dow2ru)\.fintebtc\.de(:443)?(?=[/?#]|$)/i;
+let SITE_BASE = 'https://rts.fintebtc.de';
+const siteRefresh = () => invoke('site_host').then(h => { if (SITE_RE.test(h || '')) SITE_BASE = h.replace(/\/+$/, ''); }).catch(() => {});
+const siteBase = () => { const h = typeof LIVE === 'object' ? LIVE.host : ''; return (SITE_RE.test(h || '') ? h : SITE_BASE).replace(/\/+$/, ''); };
+const siteUrl = path => siteBase() + path;
+siteRefresh();
 // Windows long-path prefix from canonicalize() is noise for the player: \\?\G:\Steam → G:\Steam
 const winPath = p => String(p || '').replace(/\\\\\?\\/g, '');
 const day = d => {
@@ -433,8 +441,7 @@ function nickMenu(btn, steam, name, noTag) {
   // no SteamID (a player in the rooms while the server sends none): the stats found by his name, no Steam profile
   const pop = $('pop'), q = steam || name, id = 'nick:' + q;
   if (!q || (pop.dataset.id === id && !pop.classList.contains('hidden'))) return popClose();
-  const host = LIVE.host || 'https://dow2.fintebtc.de';
-  const urls = [host + '/stats/?q=' + encodeURIComponent(q) + '&lang=' + encodeURIComponent(lang), steam ? 'https://steamcommunity.com/profiles/' + steam : ''];
+  const urls = [siteUrl('/stats/?q=') + encodeURIComponent(q) + '&lang=' + encodeURIComponent(lang), steam ? 'https://steamcommunity.com/profiles/' + steam : ''];
   // noTag: a player who is not in our chat (the rooms: Relic's players) - no "mention"
   const tag = !noTag && name && CH.me && CH.me.signed_in && String(CH.me.steam) !== String(steam);
   pop.innerHTML = '<div class="nick-menu">' + (tag ? `<button data-tag="1">${esc(t('onTag'))}</button>` : '')
