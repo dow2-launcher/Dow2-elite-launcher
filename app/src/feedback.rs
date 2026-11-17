@@ -39,8 +39,11 @@ pub async fn fb_send(app: AppHandle, text: String, images: Vec<String>) -> Resul
     // not 60 s for 30 MB of photos. The next mirror only when this one did not take the message (no answer, 408 / 429 / 5xx); its
     // own refusal (413 too big, 400) comes back as it is - the same body to every mirror would only be refused again
     let secs = (60 + body.len() as u64 / 200_000).min(600);
+    let heavy = !images.is_empty() || body.len() > 64 << 10;
     tauri::async_runtime::spawn_blocking(move || {
-        let r = reach::call("dev chat send", |host| match HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(secs))
+        // with pictures it is a big upload (reach::Kind::HeavyPost): no second copy after a cut, the active host stays
+        let kind = if heavy { reach::Kind::HeavyPost } else { reach::Kind::Small };
+        let r = reach::call_kind(kind, "dev chat send", |host| match HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(secs))
             .set("Content-Type", "application/json").send_string(&body) {
             Ok(r) => {
                 let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();

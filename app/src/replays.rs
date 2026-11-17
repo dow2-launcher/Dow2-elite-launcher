@@ -136,7 +136,7 @@ pub async fn replay_upload(app: AppHandle, file: String) -> Result<Value, String
         if !replay::is_replay(&data) { return Ok(json!({"ok": false, "error": "not_replay"})); }
         if data.len() > 30 * 1024 * 1024 { return Ok(json!({"ok": false, "error": "too_big"})); }
         let name: String = file.bytes().map(|b| if b.is_ascii_alphanumeric() || b"-_.".contains(&b) { (b as char).to_string() } else { format!("%{b:02X}") }).collect();
-        crate::reach::call("replay upload", |h| {
+        crate::reach::call_kind(crate::reach::Kind::HeavyPost, "replay upload", |h| {
             let req = crate::HTTP.post(&format!("{h}/replay/api/upload")).timeout(Duration::from_secs(120))
                 .set("Content-Type", "application/octet-stream").set("X-Filename", &name).set("X-Token", &tok);
             match req.send_bytes(&data) {
@@ -173,7 +173,7 @@ pub async fn replay_download(id: String, name: Option<String>) -> Result<Value, 
     blocking(move || {
         let Some(dir) = replay::playback_dir() else { return Ok(json!({"ok": false, "error": "no_dir"})) };
         // the file from the active host; a transfer cut on the way is a failure of that host too - the next one (reach.rs)
-        let got = crate::reach::call("replay download", |h| match crate::HTTP.get(&format!("{h}/replay/api/r/{id}/replay.rec")).timeout(Duration::from_secs(120)).call() {
+        let got = crate::reach::call_kind(crate::reach::Kind::HeavyGet, "replay download", |h| match crate::HTTP.get(&format!("{h}/replay/api/r/{id}/replay.rec")).timeout(Duration::from_secs(120)).call() {
             Ok(r) => {
                 let mut data = Vec::new();
                 use std::io::Read;

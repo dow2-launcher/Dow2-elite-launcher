@@ -255,7 +255,7 @@ pub async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Res
         // куда слать логи — задаётся при сборке: ELITE_LOG_HOSTS="https://a;https://b" (в репозитории адресов нет)
         if reach::api_hosts().is_empty() { return Err("log upload is not configured in this build".into()); }
         // the active host first (reach.rs); the note to the developers' chat goes to the host that took the logs
-        let (host, r) = reach::call("logs", |host| HTTP.post(&format!("{host}/stats/api/logs?who={who}&uid={uid}")).set("Content-Type", "text/plain; charset=utf-8")
+        let (host, r) = reach::call_kind(reach::Kind::HeavyPost, "logs", |host| HTTP.post(&format!("{host}/stats/api/logs?who={who}&uid={uid}")).set("Content-Type", "text/plain; charset=utf-8")
             .send_bytes(out.as_bytes()).map(|r| (host.to_string(), r))).map_err(|last| format!("could not send logs: {last}"))?;
         let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
         let note = json!({"uid": uid, "name": if fb_name.is_empty() { who.clone() } else { fb_name.clone() },

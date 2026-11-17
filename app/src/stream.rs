@@ -68,7 +68,8 @@ pub(crate) fn host_addr(host: &str) -> Option<std::net::SocketAddr> {
 
 /// What the connection's thread hands to the stream's loop. End: why, and whether the read waited out its timeout (nothing came
 /// for the read timeout - the server pings every 20 s, so the way stopped carrying the stream).
-pub(crate) enum Got { Peer(Option<std::net::SocketAddr>), Line(String), End(String, bool), Fail(bool, String) }
+/// Fail(busy, marked, why): marked - the request's failure already made the host lost (reach::note_err).
+pub(crate) enum Got { Peer(Option<std::net::SocketAddr>), Line(String), End(String, bool), Fail(bool, bool, String) }
 
 // 1.6.19 (Malum 16.11.2026, log bundle 20261116-205024): his line (a DPI) stops long connections to Germany after 2-5 minutes,
 // Moscow holds them for hours. After a restart the check picked Germany (its short answer passes) and the stream went down by
@@ -230,10 +231,11 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
                         }
                         let _ = tx.send(Got::End("closed by the server".into(), false));
                     }
-                    Err(ureq::Error::Status(503, _)) => { let _ = tx.send(Got::Fail(true, "503: the server is full".into())); }   // it asks for 30 s
+                    Err(ureq::Error::Status(503, _)) => { let _ = tx.send(Got::Fail(true, false, "503: the server is full".into())); }   // it asks for 30 s
                     Err(e) => {
-                        if live.load(Ordering::SeqCst) { reach::note_err(&host, "stream", &e); }
-                        let _ = tx.send(Got::Fail(false, e.to_string()));
+                        let marked = reach::way_error(&e);
+                        if live.load(Ordering::SeqCst) && marked { reach::note_err(&host, "stream", &e); }
+                        let _ = tx.send(Got::Fail(false, marked, e.to_string()));
                     }
                 }
             });
@@ -241,7 +243,7 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
         slog.tries += 1;
         let mut sse = Sse::default();
         let (mut up_at, mut peer, mut src): (Option<Instant>, Option<std::net::SocketAddr>, Option<std::net::IpAddr>) = (None, None, None);
-        let (mut fail, mut busy, mut kick, mut stalled) = (false, false, false, false);
+        let (mut fail, mut busy, mut kick, mut stalled, mut marked) = (false, false, false, false, false);
         let mut route_at = Instant::now();
         let mut follow_at = Instant::now();
         let why: String = loop {
@@ -256,7 +258,7 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
                     side.event(&ev, d);
                 },
                 Ok(Got::End(e, st)) => { stalled = st; break e; }
-                Ok(Got::Fail(b, e)) => { fail = true; busy = b; break e; }
+                Ok(Got::Fail(b, m, e)) => { fail = true; busy = b; marked = m; break e; }
                 Err(RecvTimeoutError::Timeout) => {}
                 Err(RecvTimeoutError::Disconnected) => break "the connection's thread ended".into(),
             }
@@ -292,9 +294,10 @@ pub(crate) fn stream_run(side: Arc<dyn StreamSide>) {
             let what = if fail { why.clone() } else { format!("answered, but no event came ({why})") };
             if let Some(l) = slog.failed(&host, &what) { side.log(&l); }
             if !busy {
-                // no connection (marked lost already by the request) or an answer without events: the shared pool hears of it, the
-                // next host is active - the stream tries it next
-                if !fail { side.lost(&host, &format!("stream: {what}")); }
+                // no connection (marked lost already by the request), an HTTP error of the host (4xx / 5xx: as before 1.6.22 the
+                // stream moves on) or an answer without events: the shared pool hears of it, the next host is active - the stream
+                // tries it next
+                if !marked { side.lost(&host, &format!("stream: {what}")); }
                 fails += 1;
             }
         }
@@ -414,7 +417,7 @@ mod stream_tests {
     /// stall: the headers, then nothing (a proxy holding the body); else stream.py's start and a ping every 500 ms
     fn server(stall: bool) -> (String, Arc<AtomicUsize>) { server_as(if stall { Srv::Stall } else { Srv::Stream }) }
     #[derive(Clone, Copy, PartialEq)]
-    enum Srv { Stream, Stall, Cut }
+    enum Srv { Stream, Stall, Cut, Missing }
     /// Cut: stream.py's start, then nothing - a DPI that stops a long connection after its first bytes (Malum 16.11.2026)
     fn server_as(mode: Srv) -> (String, Arc<AtomicUsize>) {
         let l = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
@@ -426,6 +429,7 @@ mod stream_tests {
             n2.fetch_add(1, Ordering::SeqCst);
             std::thread::spawn(move || {
                 let mut buf = [0u8; 4096]; let _ = c.read(&mut buf);
+                if mode == Srv::Missing { let _ = c.write_all(b"HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"); return; }
                 let _ = c.write_all(b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream; charset=utf-8\r\nCache-Control: no-store\r\n\r\n");
                 let _ = c.flush();
                 if mode == Srv::Stall { std::thread::sleep(Duration::from_secs(120)); return; }
@@ -531,6 +535,19 @@ mod stream_tests {
         assert_eq!((n_de.load(Ordering::SeqCst), n_ru.load(Ordering::SeqCst)), (1, 1));
         assert!(f.aside.lock().unwrap().is_empty(), "a move is no cut");
         assert!(f.log.lock().unwrap().join("\n").contains(&format!("stream down {de}: the active host is {ru} now")));
+    }
+    #[test]
+    fn an_http_error_of_the_host_moves_the_stream_on() {
+        // reviewer 17.11.2026: a 404 / 500 of the stream's address (a host without the stream) is told to the pool, the stream goes on
+        let (bad, n_bad) = server_as(Srv::Missing);
+        let (ru, _) = server_as(Srv::Stream);
+        let f = fake_with(bad.clone(), vec![ru.clone()], Duration::from_secs(60));
+        let side: Arc<dyn StreamSide> = f.clone();
+        std::thread::spawn(move || stream_run(side));
+        assert!(wait(10, || f.up_on.lock().unwrap().contains(&ru)), "{}", f.log.lock().unwrap().join("\n"));
+        f.stop.store(true, Ordering::SeqCst);
+        assert_eq!(n_bad.load(Ordering::SeqCst), 1);
+        assert_eq!(*f.lost.lock().unwrap(), vec![bad.clone()]);
     }
     #[test]
     fn an_answer_without_events_twice_sets_the_host_aside_too() {

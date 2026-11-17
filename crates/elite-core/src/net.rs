@@ -12,8 +12,11 @@ use std::time::Duration;
 pub trait HostPolicy: Send + Sync {
     /// The bases to try now, the active host's first.
     fn bases(&self) -> Vec<String>;
-    /// A request to `base` failed on the way (no connection, a timeout, a cut transfer, a gateway with no answer).
+    /// A request to `base` failed on the way: no connection, or a gateway with no answer (a body cut or slow half-way is not told:
+    /// the download goes on from the next mirror and starts there next time, the shared host stays).
     fn failed(&self, base: &str, why: &str);
+    /// `base` gave a file.
+    fn worked(&self, _base: &str) {}
 }
 
 pub struct Mirrors {
@@ -53,15 +56,19 @@ enum Miss {
     NotFound,
     /// The server answered with an error (403, 500, no Range): the next mirror; marks it only in a run of its own.
     Server,
-    /// The way to it: no connection, a timeout, a cut transfer, 502-504 - the next mirror, and the shared pool hears of it.
+    /// The way to it: no connection, 502-504 - the next mirror, and the shared pool hears of it.
     Way,
+    /// The body stopped or crawled half-way (a timeout, a reset, a short read): the next mirror (on from the byte reached), which
+    /// this download then starts with; the shared pool is not told - a slow or cut body says little about the host for the rest.
+    Body,
 }
 fn miss_of(e: &ureq::Error) -> Miss {
     match e {
         ureq::Error::Status(404, _) => Miss::NotFound,
         ureq::Error::Status(502..=504, _) => Miss::Way,
         ureq::Error::Status(..) => Miss::Server,
-        ureq::Error::Transport(_) => Miss::Way,
+        ureq::Error::Transport(t) if matches!(t.kind(), ureq::ErrorKind::Dns | ureq::ErrorKind::ConnectionFailed | ureq::ErrorKind::ProxyConnect) => Miss::Way,
+        ureq::Error::Transport(_) => Miss::Body,   // the request went out: a timeout or a reset while it was answered
     }
 }
 
@@ -148,7 +155,11 @@ impl Mirrors {
     /// starts on the host it picks then), or - a list of its own - in order starting from the last one that worked.
     fn each<T>(&self, mut f: impl FnMut(&str) -> Result<T, (Miss, String)>) -> Result<T, NetError> {
         if let Some(p) = &self.policy {
-            let bases = Self::policy_bases(p.as_ref());
+            let mut bases = Self::policy_bases(p.as_ref());
+            // the base that gave this download its last part first (a body cut on the active host: the rest from the one that
+            // works, without waiting on the cut one for every part)
+            let w = self.worked.lock().unwrap().clone();
+            if let Some(i) = bases.iter().position(|b| *b == w) { let b = bases.remove(i); bases.insert(0, b); }
             if bases.is_empty() {
                 return Err(NetError::Failed("no mirrors configured".into()));
             }
@@ -164,6 +175,7 @@ impl Mirrors {
                 match f(b) {
                     Ok(v) => {
                         *self.worked.lock().unwrap() = b.clone();
+                        p.worked(b);
                         return Ok(v);
                     }
                     Err((miss, e)) => {
@@ -221,10 +233,23 @@ impl Mirrors {
         self.each(|base| {
             let r = self.agent.get(&format!("{base}{rel}")).call().map_err(|e| (miss_of(&e), e.to_string()))?;
             let mut v = Vec::new();
-            r.into_reader().take(64 << 20).read_to_end(&mut v).map_err(|e| (Miss::Way, e.to_string()))?;
+            r.into_reader().take(64 << 20).read_to_end(&mut v).map_err(|e| (Miss::Body, e.to_string()))?;
             self.downloaded.fetch_add(v.len() as u64, Ordering::Relaxed);
             Ok(v)
         })
+    }
+
+    /// Two small files from ONE mirror (a file and its signature: launcher.json + .sig, a manifest + .sig) - never a file of one
+    /// mirror with the signature of another (a mirror a publish has not reached yet).
+    pub fn get_pair(&self, a: &str, b: &str) -> Result<(Vec<u8>, Vec<u8>), NetError> {
+        let one = |base: &str, rel: &str| -> Result<Vec<u8>, (Miss, String)> {
+            let r = self.agent.get(&format!("{base}{rel}")).call().map_err(|e| (miss_of(&e), e.to_string()))?;
+            let mut v = Vec::new();
+            r.into_reader().take(64 << 20).read_to_end(&mut v).map_err(|e| (Miss::Body, e.to_string()))?;
+            self.downloaded.fetch_add(v.len() as u64, Ordering::Relaxed);
+            Ok(v)
+        };
+        self.each(|base| Ok((one(base, a)?, one(base, b)?)))
     }
 
     /// Bytes [from, to) of `rel` appended to `out`. A broken transfer goes on from the byte it reached on the next mirror
@@ -258,7 +283,7 @@ impl Mirrors {
                 if self.cancel.load(Ordering::Relaxed) {
                     return Err((Miss::NotFound, "cancelled".into()));
                 }
-                let n = rd.read(&mut buf).map_err(|e| (Miss::Way, format!("{e} after {got} bytes")))?;
+                let n = rd.read(&mut buf).map_err(|e| (Miss::Body, format!("{e} after {got} bytes")))?;
                 if n == 0 {
                     break;
                 }
@@ -269,7 +294,7 @@ impl Mirrors {
                 got_cb(done);
             }
             if done != to - from {
-                return Err((Miss::Way, format!("short read {done}/{}", to - from)));
+                return Err((Miss::Body, format!("short read {done}/{}", to - from)));
             }
             Ok(())
         })
@@ -325,7 +350,7 @@ mod tests {
     }
 
     #[test]
-    fn a_cut_range_goes_on_from_its_byte_on_the_next_mirror_and_the_pool_hears_of_it() {
+    fn a_cut_range_goes_on_from_its_byte_on_the_next_mirror_which_this_download_then_starts_with() {
         let data: Arc<Vec<u8>> = Arc::new((0..300_000u32).map(|i| (i * 7 % 251) as u8).collect());
         let (de, de_seen) = mirror(data.clone(), Some(100_000), true);
         let (ru, ru_seen) = mirror(data.clone(), None, true);
@@ -335,16 +360,29 @@ mod tests {
         let mut got = Vec::new();
         m.get_range_cb("blobs/x", 1000, 251_000, &mut out, &mut |g| got.push(g)).unwrap();
         assert_eq!(out.get_ref().as_slice(), &data[1000..251_000], "the bytes of both mirrors make the range");
-        assert_eq!(*pol.failed.lock().unwrap(), vec![de.clone()], "the cut is told to the pool");
+        assert!(pol.failed.lock().unwrap().is_empty(), "a body cut half-way is not told to the pool: the shared host stays");
         assert_eq!(*de_seen.lock().unwrap(), vec!["1000-250999"]);
         assert_eq!(*ru_seen.lock().unwrap(), vec!["101000-250999"], "the next mirror starts where the cut one stopped");
         assert!(got.windows(2).all(|w| w[0] <= w[1]) && *got.last().unwrap() == 250_000, "the progress never goes back");
         assert_eq!(m.current_base(), ru);
-        // the next request starts on the host the pool puts first now (Moscow), not on the cut one
+        // the next request of this download starts on the mirror that gave it the last part (Moscow), not on the cut one
         let mut out2 = Cursor::new(Vec::new());
         m.get_range("blobs/x", 0, 10, &mut out2).unwrap();
         assert_eq!(de_seen.lock().unwrap().len(), 1);
         assert_eq!(ru_seen.lock().unwrap().last().map(String::as_str), Some("0-9"));
+    }
+
+    #[test]
+    fn no_connection_is_told_to_the_pool_and_a_pair_comes_from_one_mirror() {
+        let closed = { let l = TcpListener::bind("127.0.0.1:0").unwrap(); format!("http://{}/", l.local_addr().unwrap()) };   // dropped: refused
+        let data: Arc<Vec<u8>> = Arc::new(vec![7u8; 100]);
+        let (ok, seen) = mirror(data.clone(), None, true);
+        let pol = Arc::new(Pol { order: Mutex::new(vec![closed.clone(), ok.clone()]), failed: Mutex::new(vec![]) });
+        let m = Mirrors::with_policy(pol.clone());
+        let (a, b) = m.get_pair("launcher.json", "launcher.json.sig").unwrap();
+        assert_eq!((a.len(), b.len()), (100, 100));
+        assert_eq!(*pol.failed.lock().unwrap(), vec![closed.clone()], "no connection: the pool hears of it");
+        assert_eq!(seen.lock().unwrap().len(), 2, "both files from the one mirror that answered");
     }
 
     #[test]
