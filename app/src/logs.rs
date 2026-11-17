@@ -37,6 +37,7 @@ pub async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Res
                 if v.is_empty() { String::new() } else { format!(" (vanilla loader {v}{})", if l.file_is_installed("winmm.dll") { ", in place" } else { ", not in place" }) } }).unwrap_or_default())))
         .collect()
     };
+    let mac_cfg = st.config.lock().unwrap().clone().unwrap_or_default();
     tauri::async_runtime::spawn_blocking(move || {
         let patches = dir.as_ref().and_then(|d| std::fs::read_dir(d.join("dow2-patches")).ok()).map(|rd| {
             let mut v: Vec<String> = rd.flatten().map(|e| e.file_name().to_string_lossy().to_string()).collect(); v.sort(); v.join(" ") }).unwrap_or_default();
@@ -84,6 +85,10 @@ pub async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Res
             for f in elite_core::macos::TMP_LOGS { let p = PathBuf::from(f); if p.is_file() && recent(&p, 7) { files.push(p); } }
             take(mac_addons_root(), 1, &["log", "ini", "txt"], 30, 40, &mut files);
             if let Some(h) = dirs::home_dir() { files.extend(elite_core::macos::game_logs(&h, 3, 20)); }
+            // 16.11.2026: the game's own output (the launcher starts it) and what was found of Steam and the game
+            let gl = data_dir().join("mac_game.log");
+            if gl.is_file() && recent(&gl, 7) { files.push(gl); }
+            out += &format!("mac: {}\n\n", mac_status(dir.as_deref(), &mac_cfg));
         }
         take(data_dir(), 0, &["log", "old"], 30, 4, &mut files);   // the launcher's own: community.log (Steam sign-in, chat)
         for f in conntest::share_files() { if !files.contains(&f) { files.push(f); } }   // 1.4.16: the connection test's runs and log

@@ -379,6 +379,9 @@ pub(crate) fn sync_mac_addons(addons: &std::path::Path, cfg: &LauncherConfig, s:
                 if !g.file_is_installed(&f.path) {
                     return Err(update::Error::Bad(format!("{}: {} differs from the manifest", c.id, f.path)));
                 }
+                // the published file into .elite_cache before the signature changes it (apply moves a cached file out
+                // since 1.5.4): the next sync puts it back from there, also offline, instead of downloading it again
+                g.seed_cache(&g.file(&f.path), &elite_core::cdc::hex(&f.sha));
                 if prepare {
                     for (prog, args) in macos::prepare_commands(&g.file(&f.path)) {
                         let r = std::process::Command::new(prog).args(&args).output();
@@ -397,6 +400,22 @@ pub(crate) fn sync_mac_addons(addons: &std::path::Path, cfg: &LauncherConfig, s:
         for id in update::Game::component_ids(&d) { update::Game::component(&d, &id).uninstall()?; }
     }
     Ok(())
+}
+
+/// macOS: do the Mac add-ons differ from what the catalog and the ticks want (a wanted one missing, of another version or
+/// without its files; an unwanted one still installed)? Then the window syncs them before Play - without it the vanilla game
+/// never got crossplay_fix (1.6.17: the vanilla mode looked only at the game folder). The files are checked for being there,
+/// not by SHA-256: the ad-hoc signature the sync puts on a dylib changes it.
+pub(crate) fn mac_addons_sync_needed(addons: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> bool {
+    cfg.components.iter().filter(|c| c.for_os("macos")).any(|c| {
+        let g = update::Game::component(&elite_core::macos::addon_dir(addons, &c.id), &c.id);
+        let st = g.load_state();
+        if c.required || s.components.get(&c.id).copied().unwrap_or(c.default) {
+            st.version != c.version || st.files.is_empty() || st.files.iter().any(|f| !g.file(&f.path).is_file())
+        } else {
+            !st.version.is_empty()
+        }
+    })
 }
 
 /// The launch config lists exactly the add-ons that are on and whose DLL is in place. Elite updates and Elite's own

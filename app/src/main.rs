@@ -357,6 +357,8 @@ fn get_status(app: State<'_, App>) -> Value {
         "config": cfg,
         "config_loaded": cfg.is_some(),
         "steam_found": game::steam_installed(),
+        // 16.11.2026: macOS - Steam and Feral's game as found (the status line), else null
+        "mac": if os_name() == "macos" { mac_status(dir.as_deref(), &cfgd) } else { Value::Null },
         "game_dir": dir,
         "game_found": dir.is_some(),
         "installed_version": installed.version,
