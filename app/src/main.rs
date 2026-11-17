@@ -115,6 +115,9 @@ struct Settings {
     lan_share: Option<bool>,
     /// Hotkeys the player changed: "scope:name" -> "Control+A" ("grid:AB_key_1" for Grid Hotkeys); see elite_core::hotkeys.
     hotkeys: BTreeMap<String, String>,
+    /// 1.6.20: the rating the player picked in the profile menu ("elite" / anything else = Relic), for the in-game add-ons
+    /// (addons::write_rating_ini); the window keeps it in localStorage.ratingSys and sends it here at the start and on a change
+    rating_sys: String,
     /// Community (chat, who is online): the session token from the Steam sign-in and the profile it belongs to.
     c_token: String,
     c_steam: String,
@@ -684,7 +687,7 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            get_status, refresh, set_channel, switch_to, logs::send_logs, addons::set_comp_option, set_setting, addons::set_component, addons::clean_junk, install::pick_game_dir, open_url, addons::set_comp_value, install::open_game_dir, install::start_update, install::cancel_update, launch::play,
+            get_status, refresh, set_channel, switch_to, logs::send_logs, addons::set_comp_option, set_setting, addons::set_component, addons::rating_sys_set, addons::clean_junk, install::pick_game_dir, open_url, addons::set_comp_value, install::open_game_dir, install::start_update, install::cancel_update, launch::play,
             feedback::fb_info, feedback::fb_set_name, feedback::fb_send, feedback::fb_thread, set_tray_labels, selfupdate::launcher_check, selfupdate::launcher_install, feeds::rooms_live,
             roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             livewatch::live_watch, livewatch::live_watch_probe, livewatch::live_watch_cancel,

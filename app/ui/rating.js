@@ -154,8 +154,13 @@ function rtRepaint() {
 function rtSet(sys) {
   RT.sys = sys === 'elite' ? 'elite' : 'relic';
   try { localStorage.setItem('ratingSys', RT.sys); } catch (e) {}
+  rtTellGame();
   if (!RT.own) rtLoad();
   rtRepaint();
 }
+// 1.6.20 (owner 17.11.2026): the in-game add-ons (LobbyStats 0.12, LoadingRatings 5) show the same rating - the launcher writes
+// the pick into their LobbyStats.ini (addons.rs rating_sys_set), at the start and on a change; Play writes it again
+function rtTellGame() { invoke('rating_sys_set', { sys: RT.sys }).catch(() => {}); }
+rtTellGame();
 rtLoad();
 setInterval(() => { if (!document.hidden) rtLoad(); }, 120000);

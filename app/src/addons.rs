@@ -13,6 +13,31 @@ pub fn set_component(app: State<'_, App>, id: String, on: bool) -> Result<(), St
     Ok(())
 }
 
+/// 1.6.20 (owner 17.11.2026): which rating the in-game add-ons show - LobbyStats 0.12 and LoadingRatings 5 read
+/// `[LobbyStats] Rating=own|relic` from LobbyStats.ini next to them: Elite_DLLs for Elite, dow2-patches for the launcher's vanilla
+/// copies. The player's pick of the profile menu (rating.js rtSet), Relic by default; the file is made when missing, only in a
+/// folder that is there (dow2-patches only while it holds our copies - a stand-alone package's folder is put aside empty).
+pub(crate) fn write_rating_ini(dir: &std::path::Path, sys: &str) {
+    let v = if sys == "elite" || sys == "own" { "own" } else { "relic" };
+    for sub in ["Elite_DLLs", "dow2-patches"] {
+        let d = dir.join(sub);
+        if !d.is_dir() || (sub == "dow2-patches" && vanilla_owned(dir).is_empty()) { continue; }
+        let _ = elite::set_ini_value(&d.join("LobbyStats.ini"), "LobbyStats", "Rating", v);
+    }
+}
+
+/// 1.6.20: the window's rating pick (at its start and on every change): kept for the next game start and written to the add-ons'
+/// ini right away; no game folder yet - only kept.
+#[tauri::command]
+pub fn rating_sys_set(app: State<'_, App>, sys: String) {
+    let sys = if sys == "elite" { "elite" } else { "relic" }.to_string();
+    {
+        let mut s = app.settings.lock().unwrap();
+        if s.rating_sys != sys { s.rating_sys = sys.clone(); save_settings(&s); }
+    }
+    if let Some(d) = game_dir(&app) { write_rating_ini(&d, &sys); }
+}
+
 /// Write every component option to its ini file (only for installed components).
 pub(crate) fn apply_options(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) {
     for c in &cfg.components {
@@ -617,6 +642,26 @@ pub(crate) fn sync_components_with(dir: &std::path::Path, cfg: &LauncherConfig, 
 #[cfg(test)]
 mod enforce_off_tests {
     use super::*;
+    #[test]
+    fn rating_pick_reaches_the_lobbystats_ini() {
+        // 1.6.20: Rating=own|relic in Elite_DLLs/LobbyStats.ini, the other keys kept; no dow2-patches of ours - not made there
+        let d = std::env::temp_dir().join(format!("rt_ini_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        write_rating_ini(&d, "elite");   // no game folder content at all - nothing made
+        assert!(!d.join("Elite_DLLs").exists());
+        std::fs::create_dir_all(d.join("Elite_DLLs")).unwrap();
+        std::fs::create_dir_all(d.join("dow2-patches")).unwrap();
+        std::fs::write(d.join("Elite_DLLs/LobbyStats.ini"), "[LobbyStats]\r\nShow=1\r\n").unwrap();
+        write_rating_ini(&d, "elite");
+        let t = std::fs::read_to_string(d.join("Elite_DLLs/LobbyStats.ini")).unwrap();
+        assert!(t.contains("Show=1") && t.contains("Rating=own"), "{t}");
+        write_rating_ini(&d, "relic");
+        let t = std::fs::read_to_string(d.join("Elite_DLLs/LobbyStats.ini")).unwrap();
+        assert!(t.contains("Rating=relic") && !t.contains("Rating=own"), "{t}");
+        assert!(!d.join("dow2-patches/LobbyStats.ini").exists(), "a folder without our vanilla copies stays as it is");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+
     #[test]
     fn a_version_without_addons_turns_them_all_off_and_back() {
         let d = std::env::temp_dir().join(format!("noaddons_test_{}", std::process::id()));

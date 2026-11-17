@@ -35,6 +35,8 @@ pub(crate) fn prepare_start(dir: &std::path::Path, cfg: &LauncherConfig, setting
     let (dir, cfg) = (dir.to_path_buf(), cfg.clone());
     let settings = &effective_settings(&dir, &cfg, settings);   // 1.5.4: a version without add-ons - all of them off
     let vanilla = vanilla_on(&cfg, settings);
+    // 1.6.20: the rating the in-game add-ons show, as the profile menu has it (Elite_DLLs / dow2-patches LobbyStats.ini)
+    write_rating_ini(&dir, &settings.rating_sys);
     // macOS (Feral's native game): no Windows DLLs, winmm loader or Elite.exe there - nothing of the checks below applies;
     // our Mac patches are dylibs in mac_addons (see `launch`)
     if os_name() == "macos" {
