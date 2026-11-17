@@ -89,9 +89,25 @@ pub fn steam_libraries_in(roots: Vec<PathBuf>) -> Vec<PathBuf> {
     libs
 }
 
-/// The game folder steamapps/common/<folder> in the first of `libs` where `is_game` says so.
+/// Dawn of War II: Retribution's Steam app id (its appmanifest_<id>.acf in a library).
+pub const STEAM_APPID: u32 = 56400;
+
+/// The folder Steam installed the app into: "installdir" of <lib>/steamapps/appmanifest_<appid>.acf (a plain name).
+pub fn manifest_installdir(lib: &Path, appid: u32) -> Option<String> {
+    let t = std::fs::read_to_string(lib.join("steamapps").join(format!("appmanifest_{appid}.acf"))).ok()?;
+    t.lines().find_map(|l| l.trim().strip_prefix("\"installdir\"").map(|r| r.trim().trim_matches('"').to_string()))
+        .filter(|d| !d.is_empty() && !d.contains('/') && !d.contains('\\') && d != "..")
+}
+
+/// The game folder steamapps/common/<folder> in the first of `libs` where `is_game` says so; 17.11.2026: in each library
+/// also the folder its appmanifest_56400.acf names, when Steam put the game under another name.
 pub fn find_game_in(libs: &[PathBuf], folder: &str, is_game: impl Fn(&Path) -> bool) -> Option<PathBuf> {
-    libs.iter().map(|l| l.join("steamapps").join("common").join(folder)).find(|d| is_game(d))
+    libs.iter().flat_map(|l| {
+        let common = l.join("steamapps").join("common");
+        let mut v = vec![common.join(folder)];
+        if let Some(d) = manifest_installdir(l, STEAM_APPID).filter(|d| d != folder) { v.push(common.join(d)); }
+        v
+    }).find(|d| is_game(d))
 }
 
 /// Where the game keeps Documents\My Games: on macOS - Feral's VFS; the add-on "Documents fix" moved it (1.5.9: the game may not
@@ -222,6 +238,24 @@ pub fn machine_id() -> String {
 
 #[cfg(test)]
 mod game_dir_tests {
+    #[test]
+    fn game_in_the_folder_of_the_appmanifest() {
+        let lib = std::env::temp_dir().join(format!("elite_acf_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&lib);
+        let other = lib.join("steamapps/common/DoW2 Retribution");
+        std::fs::create_dir_all(&other).unwrap();
+        std::fs::write(other.join("DOW2.exe"), b"x").unwrap();
+        let is_game = |d: &std::path::Path| d.join("DOW2.exe").is_file();
+        assert_eq!(super::find_game_in(std::slice::from_ref(&lib), "Dawn of War II - Retribution", is_game), None);
+        std::fs::write(lib.join("steamapps/appmanifest_56400.acf"),
+            "\"AppState\"\n{\n\t\"appid\"\t\t\"56400\"\n\t\"installdir\"\t\t\"DoW2 Retribution\"\n}\n").unwrap();
+        assert_eq!(super::manifest_installdir(&lib, 56400).as_deref(), Some("DoW2 Retribution"));
+        assert_eq!(super::find_game_in(std::slice::from_ref(&lib), "Dawn of War II - Retribution", is_game), Some(other.clone()));
+        std::fs::write(lib.join("steamapps/appmanifest_56400.acf"), "\"installdir\"\t\"..\"\n").unwrap();
+        assert_eq!(super::manifest_installdir(&lib, 56400), None);
+        let _ = std::fs::remove_dir_all(&lib);
+    }
+
     #[test]
     fn mac_game_dir_without_dow2_exe() {
         let dir = std::env::temp_dir().join(format!("elite_gamedir_{}", std::process::id()));

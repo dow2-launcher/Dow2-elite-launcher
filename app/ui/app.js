@@ -657,7 +657,9 @@ function render() {
   $('gameBanner').classList.toggle('hidden', S.game_found || !setupHidden);
   if (!S.game_found && setupHidden) {
     const g = cfg.game || {};
-    $('gameBannerText').innerHTML = `<b>${esc(t('noGame'))}</b> — ${esc(L(g.requirements) || t('noGameText'))}`;
+    // 17.11.2026, macOS: never the catalog's "GOG and the macOS port are not supported" (the owner's 1.6.19 showed it) -
+    // what is missing there: the Mac Steam and/or the native game
+    $('gameBannerText').innerHTML = `<b>${esc(t('noGame'))}</b> — ${esc(S.os === 'macos' ? macFound() : (L(g.requirements) || t('noGameText')))}`;
     $('gameBannerMore').textContent = t('setupMore'); $('gameBannerBuy').textContent = t('getGame');
     $('gameBannerMore').onclick = () => { try { localStorage.removeItem('setupHidden'); } catch (e) {} render(); };
     $('gameBannerBuy').onclick = () => open(g.store_url || 'steam://store/56400');
@@ -760,7 +762,8 @@ function render() {
       : S.last_error ? esc(winPath(errText(S.last_error)))
       : VAN() ? esc(t('readyVanilla'))
       : S.installed_version ? esc(t('ready', { v: activeCh ? L(activeCh.name).replace(/^Elite\s+/i, '') : S.installed_version })) : (S.config_loaded ? '' : esc(t('connecting')));
-    const hint = VAN() ? '' : L(cfg.launch?.[S.os]?.hint);   // the launch hint is about starting Elite
+    // the launch hint is about starting Elite; never on a Mac (17.11.2026: launch.macos's hint was CrossOver's)
+    const hint = VAN() || S.os === 'macos' ? '' : L(cfg.launch?.[S.os]?.hint);
     $('statusMeta').textContent = [hint, winPath(S.game_dir)].filter(Boolean).join(' · ');
     // all is well (ready, no launch hint): the line steps aside for the links (siritos 02.11: "Elite 3.2 is ready" and the
     // game folder are not news); any download, check or error writes the line again and it comes back (CSS :has)

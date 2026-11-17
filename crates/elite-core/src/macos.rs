@@ -121,9 +121,18 @@ pub fn game_version(app: &Path) -> Option<String> {
     info_plist(app).and_then(|t| plist_string(&t, "CFBundleShortVersionString"))
 }
 
-/// The game folder on a Mac: DOW2.module there and the game's .app next to it.
+/// Feral's bundle id of the game (Info.plist CFBundleIdentifier).
+pub const BUNDLE_ID: &str = "com.feralinteractive.dawnofwar2retribution";
+
+/// The game folder on a Mac: the game's .app (its binary in place) and DOW2.module next to it - or, 17.11.2026, the .app is
+/// Feral's Dawn of War II by its bundle id (1.6.19 said "not found" on the owner's Mac with Steam and the game installed:
+/// the data's place next to the .app is not taken for granted any more; the native game is vanilla, nothing is installed
+/// into its data).
 pub fn is_game_dir(dir: &Path) -> bool {
-    dir.join(MARKER).is_file() && mac_app(dir).and_then(|a| mac_binary(&a)).is_some()
+    let Some(app) = mac_app(dir) else { return false };
+    if mac_binary(&app).is_none() { return false; }
+    dir.join(MARKER).is_file()
+        || info_plist(&app).and_then(|t| plist_string(&t, "CFBundleIdentifier")).is_some_and(|b| b.eq_ignore_ascii_case(BUNDLE_ID))
 }
 
 /// Where Feral's game keeps "Documents" (My Games/... lives under it): its VFS in Application Support.
@@ -412,10 +421,21 @@ mod tests {
         assert_eq!(app.file_name().unwrap(), APP_NAME);
         assert_eq!(mac_binary(&app).unwrap(), app.join("Contents/MacOS").join(PROCESS_NAME));
         assert_eq!(game_version(&app).as_deref(), Some("1.0.3"));
-        // no DOW2.module -> not the game; another .app name is still found
+        // 17.11.2026: no DOW2.module next to it - still the game by Feral's bundle id; an .app of another bundle without
+        // DOW2.module is not; no binary in the .app is not either
         fs::remove_file(dir.join(MARKER)).unwrap();
+        assert!(is_game_dir(&dir));
+        let plist = app.join("Contents/Info.plist");
+        fs::write(&plist, PLIST.replace("VER", "1.0.3").replace(BUNDLE_ID, "com.example.other")).unwrap();
         assert!(!is_game_dir(&dir));
         fs::write(dir.join(MARKER), b"").unwrap();
+        assert!(is_game_dir(&dir));
+        fs::write(&plist, PLIST.replace("VER", "1.0.3")).unwrap();
+        let bin = mac_binary(&app).unwrap();
+        fs::rename(&bin, bin.with_extension("off")).unwrap();
+        assert!(!is_game_dir(&dir));
+        fs::rename(bin.with_extension("off"), &bin).unwrap();
+        // another .app name is still found
         fs::rename(&app, dir.join("DoW2.app")).unwrap();
         assert!(is_game_dir(&dir));
         assert!(!dir.join("DOW2.exe").exists());
