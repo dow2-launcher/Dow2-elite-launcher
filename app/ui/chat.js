@@ -48,14 +48,16 @@ function chMeRatings(me) {
     + `<button class="link-btn" id="meTable" data-tip="${esc(t('rtTableT'))}">${esc(t('rtTable'))}</button></div>`;
   if (!RT.own) return `<div class="me-rts">${head}<div class="me-rr off">${esc(t(RT.err ? 'rtOff' : 'rtWait'))}</div></div>`;
   const k = RT.own.cal_games || 5;
-  // a mode: its number and my place; in calibration "calibration: 2/5"; no games - a dash. No games / wins otherwise (owner
+  // a mode: its number and my place; in calibration skulls and "2/5"; no games - a dash. No games / wins otherwise (owner
   // 17.11.2026: the statistics are the site's - "Table ›" and My stats)
   const rows = RT_MODES.map(m => {
     const e = rtOwn(me.steam, m);
     // 1.6.20 (SirItos): a mode's row opens my page on the site in that mode (rating.js data-rtp)
     const go = ` data-rtp="${esc(me.steam)}" data-rtm="${m}" data-tip="${esc(t('rtMineT'))}"`;
     if (e && e.c != null) return `<div class="me-rr go"${go}><b>${m}</b><span class="v">${e.c}</span><span class="pl">${esc(t('rtPlace', { n: e.rank }))}</span><span class="g"></span></div>`;
-    if (e && e.cal > 0) return `<div class="me-rr cal go"${go}><b>${m}</b><span class="c">${esc(t('rtCal', { g: e.g || 0, k }))}</span><span class="g"></span></div>`;
+    // SirItos 17.11.2026: the calibration as skulls (played bright) and k/5 - the words in the tip
+    if (e && e.cal > 0) { const g = Math.min(e.g || 0, k);
+      return `<div class="me-rr cal go" data-rtp="${esc(me.steam)}" data-rtm="${m}" data-tip="${esc(t('rtCal', { g, k }) + '\n' + t('rtMineT'))}"><b>${m}</b><span class="c"><span class="csks" aria-hidden="true">${Array.from({ length: k }, (_, i) => `<i class="csk${i < g ? ' on' : ''}"></i>`).join('')}</span>${g}/${k}</span><span class="g"></span></div>`; }
     return `<div class="me-rr none"><b>${m}</b><span class="v">—</span><span class="pl"></span><span class="g"></span></div>`;
   }).join('');
   // 1.6.20 (SirItos 17.11.2026): under the modes - the rules ("Table ›" is in the head; a mode's row opens my page - no "My matches",
