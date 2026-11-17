@@ -1,0 +1,1 @@
+- Links to our site (the Elite table, player pages, the rules, the stats, replays, the hall of fame, the news and the developers' messages) open on the mirror the launcher uses now: through Moscow on a line that reaches only Moscow, through Germany otherwise.

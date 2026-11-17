@@ -92,8 +92,8 @@ const rtBadge = steam => rtTop(steam).map(b => { const txt = rtTopText(b);
 const rtName = (nameHtml, steam) => { const b = rtBadge(steam); return b ? `<span class="nmw">${nameHtml}${b}</span>` : nameHtml; };
 // 1.6.20 (SirItos 17.11.2026): the site's Elite pages wherever the Elite rating shows - the table (/ladder/table?mode=), a player's
 // page (/ladder/player/<steam>: his rating in every mode) and the rules (the table's "How the rating works",
-// #how). The site speaks ru / en; the host is the API host the launcher uses now (every mirror serves /ladder/).
-const rtSite = () => String(LIVE.host || 'https://rts.fintebtc.de').replace(/\/$/, '');
+// #how). The site speaks ru / en; 1.6.21: on the mirror the launcher uses now (app.js siteBase; every mirror serves /ladder/).
+const rtSite = () => siteBase();
 const rtLang = () => (lang === 'ru' ? 'ru' : 'en');
 const rtTableUrl = m => `${rtSite()}/ladder/table?mode=${rtMode(m) || '1v1'}&lang=${rtLang()}`;
 const rtPlayerUrl = (steam, m) => `${rtSite()}/ladder/player/${encodeURIComponent(steam)}?${rtMode(m) ? 'mode=' + rtMode(m) + '&' : ''}lang=${rtLang()}`;

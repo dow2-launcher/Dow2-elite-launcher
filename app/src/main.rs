@@ -493,8 +493,17 @@ fn open_url(app: AppHandle, url: String) -> Result<(), String> {
     if !ok {
         return Err("unsupported link".into());
     }
+    // 1.6.21 (owner 17.11.2026): a link to our site - built here, from launcher.json, notice.json or the server - opens on the
+    // mirror the launcher uses now
+    let url = reach::site_link(&url, &site_base());
     app.opener().open_url(url, None::<&str>).map_err(|e| e.to_string())
 }
+
+/// 1.6.21: our site's base the launcher uses now - the chat's / API's host (the live stream's first), when it is one of ours.
+fn site_base() -> String { reach::site_base(&chat_hosts()) }
+/// 1.6.21: the same for the window: it builds its links to our site on it (app.js siteUrl).
+#[tauri::command]
+fn site_host() -> String { site_base() }
 
 // ---------- our servers: one HTTP agent, the API hosts, the community log (every module calls them as crate::X) ----------
 /// One agent for every call to our servers: connections are kept and reused instead of a new TCP + TLS handshake per
@@ -687,7 +696,7 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            get_status, refresh, set_channel, switch_to, logs::send_logs, addons::set_comp_option, set_setting, addons::set_component, addons::rating_sys_set, addons::clean_junk, install::pick_game_dir, open_url, addons::set_comp_value, install::open_game_dir, install::start_update, install::cancel_update, launch::play,
+            get_status, refresh, set_channel, switch_to, logs::send_logs, addons::set_comp_option, set_setting, addons::set_component, addons::rating_sys_set, addons::clean_junk, install::pick_game_dir, open_url, site_host, addons::set_comp_value, install::open_game_dir, install::start_update, install::cancel_update, launch::play,
             feedback::fb_info, feedback::fb_set_name, feedback::fb_send, feedback::fb_thread, set_tray_labels, selfupdate::launcher_check, selfupdate::launcher_install, feeds::rooms_live,
             roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             livewatch::live_watch, livewatch::live_watch_probe, livewatch::live_watch_cancel,

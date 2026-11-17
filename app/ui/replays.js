@@ -547,7 +547,7 @@ function rpDetail() {
   on('rpDel', () => rpDelete(x));
   on('rpPlayB', () => rpPlay(x, mine ? 'mine' : 'pool'));
   on('rpSrc', () => invoke('open_url', { url: meta.src_link }).catch(() => {}));
-  on('rpSim', () => invoke('open_url', { url: `https://rts.fintebtc.de/replay/r/${pid}?lang=${lang === 'ru' ? 'ru' : 'en'}#sim` }).catch(() => {}));
+  on('rpSim', () => invoke('open_url', { url: siteUrl(`/replay/r/${pid}?lang=${lang === 'ru' ? 'ru' : 'en'}#sim`) }).catch(() => {}));
   on('rpEdit', () => rpEditDescr(meta, pid));
   on('rpRepT', () => { const r = $('rpRep'), b = $('rpRepT'), o = r.classList.toggle('hidden') === false; b.setAttribute('aria-expanded', String(o)); b.classList.toggle('on', o); if (o) b.scrollIntoView({ block: 'start', behavior: 'smooth' }); });
 }

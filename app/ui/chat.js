@@ -87,7 +87,7 @@ function chMe() {
     // 1.6.20 (SirItos): "Table ›" - the site's table in the mode I hold a place in (else 1v1); the rules (rating.js)
     if ($('meTable')) $('meTable').onclick = () => { box.classList.add('hidden'); open(rtTableUrl(RT_MODES.find(m => (rtOwn(me.steam, m) || {}).rank) || '1v1')); };
     if ($('meRules')) $('meRules').onclick = () => { box.classList.add('hidden'); open(rtRulesUrl()); };
-    $('meStats').onclick = () => { box.classList.add('hidden'); open((LIVE.host || 'https://dow2.fintebtc.de') + '/stats/?q=' + encodeURIComponent(me.steam) + '&lang=' + encodeURIComponent(lang)); };
+    $('meStats').onclick = () => { box.classList.add('hidden'); open(siteUrl('/stats/?q=') + encodeURIComponent(me.steam) + '&lang=' + encodeURIComponent(lang)); };
     $('meSteam').onclick = () => { box.classList.add('hidden'); open('https://steamcommunity.com/profiles/' + me.steam); };
   } else {
     box.classList.add('hidden'); box.innerHTML = '';
@@ -418,7 +418,7 @@ async function chInit() {
   // the queue of the last run; one already accepted ("sent") is in the history by now - dropped after 10 minutes
   try { CH.out = JSON.parse(localStorage.getItem('chOut') || '[]').map(o => ({ ...o, tries: 0 })).filter(o => o.state !== 'sent' || Date.now() / 1000 - o.ts < 600); } catch (e) {}
   listen('c_ev', e => { const { e: ev, d } = e.payload; onEvent(ev, d); chEvent(ev, d); });
-  listen('c_stream', e => { if (e.payload.host) LIVE.host = e.payload.host; streamState(e.payload.up); });
+  listen('c_stream', e => { if (e.payload.host) LIVE.host = e.payload.host; siteRefresh(); streamState(e.payload.up); });
   document.querySelectorAll('.ch-tab').forEach(b => b.onclick = () => {
     if (b.dataset.room === 'lobby') { CH.lobby = true; if (CH.room === 'dev') CH.room = CH.lang; chShowRoom(); return; }   // not kept: the lobby passes
     CH.lobby = false; CH.room = b.dataset.room === 'dev' ? 'dev' : CH.lang; try { localStorage.setItem('chRoom', CH.room); } catch (e) {} chShowRoom();

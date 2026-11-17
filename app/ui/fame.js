@@ -36,4 +36,4 @@ async function fameLoad(force) {
         + (e.changed ? `<div class="fame-c"><b>${esc(t('fameChanged'))}</b> ${esc(fameTx(e.changed))}</div>` : '') + '</li>').join('')}</ul></details>`;
   }).join('');
 }
-(() => { const b = document.getElementById('fameSite'); if (b) b.onclick = () => invoke('open_url', { url: 'https://rts.fintebtc.de/elite/fame/?lang=' + lang }).catch(() => {}); })();
+(() => { const b = document.getElementById('fameSite'); if (b) b.onclick = () => invoke('open_url', { url: siteUrl('/elite/fame/?lang=' + lang) }).catch(() => {}); })();

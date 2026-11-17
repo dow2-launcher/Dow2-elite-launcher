@@ -162,7 +162,7 @@ async function liveWatch(id, game) {
       }
     }
     toast(t(mine.length ? 'lvSent' : 'lvStarting'));
-    await invoke('live_watch', { id, game, base: LIVE.host || 'https://rts.fintebtc.de', wait });
+    await invoke('live_watch', { id, game, base: LIVE.host || siteBase(), wait });
   } catch (e) { toast(String(e), true); }
 }
 listen('live_watch', e => {
