@@ -35,15 +35,23 @@ pub async fn fb_send(app: AppHandle, text: String, images: Vec<String>) -> Resul
     let elite = game_dir(&st).map(|d| update::Game::new(d).load_state().version).unwrap_or_default();
     let body = json!({"uid": uid, "name": name, "text": text, "images": images,
                       "launcher": LAUNCHER_VERSION, "os": os_name(), "elite": elite}).to_string();
+    // 1.6.20 (SirItos: the developers' chat): pictures take their time on a slow line - 60 s plus 1 s per 200 KB (up to 10 min),
+    // not 60 s for 30 MB of photos. The next mirror only when this one did not take the message (no answer, 408 / 429 / 5xx); its
+    // own refusal (413 too big, 400) comes back as it is - the same body to every mirror would only be refused again
+    let secs = (60 + body.len() as u64 / 200_000).min(600);
     tauri::async_runtime::spawn_blocking(move || {
         let mut last = "feedback is not configured in this build".to_string();
         for host in fb_hosts() {
-            match HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(60))
+            match HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(secs))
                 .set("Content-Type", "application/json").send_string(&body) {
                 Ok(r) => {
                     let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
                     if v["ok"].as_bool() == Some(true) { return Ok(v); }
                     return Err(v["error"].as_str().unwrap_or("rejected").to_string());
+                }
+                Err(ureq::Error::Status(code, r)) if !matches!(code, 408 | 429 | 500..=599) => {
+                    let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
+                    return Err(v["error"].as_str().map(String::from).unwrap_or_else(|| format!("status code {code}")));
                 }
                 Err(e) => { api_err(&host, &e); last = e.to_string(); }
             }

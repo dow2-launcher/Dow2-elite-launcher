@@ -4,11 +4,11 @@
 // ---------- players' chat, Steam sign-in and the player's card (ladder service /ladder/api/c/*) ----------
 // Rooms General / RU / EN (the server's all / ru / en) next to the developers' chat.
 // 1.6.11: the chat's header (the language menu, Logs) and Online's links - here, the first render needs them
-Object.assign(T.en, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Player stats', lnkLadder: 'Ladder and match history', chLang: 'Language of the messages', chLangH: 'Show the messages', chOrigShort: 'Orig.', chAsWritten: 'as written', chTranslated: 'translated', logsShort: 'Logs' });
-Object.assign(T.ru, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Статистика игроков', lnkLadder: 'Ладдер и история матчей', chLang: 'Язык сообщений', chLangH: 'Показывать сообщения', chOrigShort: 'Ориг.', chAsWritten: 'как написали', chTranslated: 'перевод', logsShort: 'Логи' });
-Object.assign(T.es, { lnkElite: 'Discord de Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Estadísticas de jugadores', lnkLadder: 'Ladder e historial de partidas', chLang: 'Idioma de los mensajes', chLangH: 'Mostrar los mensajes', chOrigShort: 'Orig.', chAsWritten: 'tal como se escribió', chTranslated: 'traducido', logsShort: 'Registros' });
-Object.assign(T.fr, { lnkElite: 'Discord d\'Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Statistiques des joueurs', lnkLadder: 'Ladder et historique des parties', chLang: 'Langue des messages', chLangH: 'Afficher les messages', chOrigShort: 'Orig.', chAsWritten: 'tel qu\'écrit', chTranslated: 'traduit', logsShort: 'Journaux' });
-Object.assign(T.de, { lnkElite: 'Elite-Discord', lnkDiscord: 'Discord DoW2', lnkStats: 'Spielerstatistiken', lnkLadder: 'Ladder und Spielverlauf', chLang: 'Sprache der Nachrichten', chLangH: 'Nachrichten anzeigen', chOrigShort: 'Orig.', chAsWritten: 'wie geschrieben', chTranslated: 'übersetzt', logsShort: 'Logs' });
+Object.assign(T.en, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Player stats', lnkLadder: 'Ladder: the Elite rating table', chLang: 'Language of the messages', chLangH: 'Show the messages', chOrigShort: 'Orig.', chAsWritten: 'as written', chTranslated: 'translated', logsShort: 'Logs' });
+Object.assign(T.ru, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Статистика игроков', lnkLadder: 'Ладдер: таблица рейтинга Elite', chLang: 'Язык сообщений', chLangH: 'Показывать сообщения', chOrigShort: 'Ориг.', chAsWritten: 'как написали', chTranslated: 'перевод', logsShort: 'Логи' });
+Object.assign(T.es, { lnkElite: 'Discord de Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Estadísticas de jugadores', lnkLadder: 'Ladder: tabla del rating Elite', chLang: 'Idioma de los mensajes', chLangH: 'Mostrar los mensajes', chOrigShort: 'Orig.', chAsWritten: 'tal como se escribió', chTranslated: 'traducido', logsShort: 'Registros' });
+Object.assign(T.fr, { lnkElite: 'Discord d\'Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Statistiques des joueurs', lnkLadder: 'Ladder : tableau du classement Elite', chLang: 'Langue des messages', chLangH: 'Afficher les messages', chOrigShort: 'Orig.', chAsWritten: 'tel qu\'écrit', chTranslated: 'traduit', logsShort: 'Journaux' });
+Object.assign(T.de, { lnkElite: 'Elite-Discord', lnkDiscord: 'Discord DoW2', lnkStats: 'Spielerstatistiken', lnkLadder: 'Ladder: Tabelle der Elite-Wertung', chLang: 'Sprache der Nachrichten', chLangH: 'Nachrichten anzeigen', chOrigShort: 'Orig.', chAsWritten: 'wie geschrieben', chTranslated: 'übersetzt', logsShort: 'Logs' });
 // 1.6.11 (owner 14.11.2026): one players' tab (General) - RU / EN are the language of its messages (a menu, the original by
 // default: CH.lang), the developers' tab apart on the right
 const CH = { room: 'all', lang: 'all', msgs: {}, out: [], unread: {}, full: {}, me: null, prof: null, waiting: false, features: [], replyTo: null, lobby: false };
@@ -58,9 +58,9 @@ function chMeRatings(me) {
     if (e && e.cal > 0) return `<div class="me-rr cal go"${go}><b>${m}</b><span class="c">${esc(t('rtCal', { g: e.g || 0, k }))}</span><span class="g"></span></div>`;
     return `<div class="me-rr none"><b>${m}</b><span class="v">—</span><span class="pl"></span><span class="g"></span></div>`;
   }).join('');
-  // 1.6.20 (SirItos 17.11.2026): under the modes - my page on the site and the rules ("Table ›" is in the head)
-  const links = `<div class="me-rl"><button class="link-btn" id="meMine" data-tip="${esc(t('rtMineT'))}">${esc(t('rtMine'))}</button>`
-    + `<button class="link-btn" id="meRules" data-tip="${esc(t('rtRulesT'))}">${esc(t('rtRules'))}</button></div>`;
+  // 1.6.20 (SirItos 17.11.2026): under the modes - the rules ("Table ›" is in the head; a mode's row opens my page - no "My matches",
+  // the match history is not the launcher's business)
+  const links = `<div class="me-rl"><button class="link-btn" id="meRules" data-tip="${esc(t('rtRulesT'))}">${esc(t('rtRules'))}</button></div>`;
   return `<div class="me-rts">${head}${rows}${links}</div>`;
 }
 function chMe() {
@@ -82,9 +82,8 @@ function chMe() {
     // the page, and the click outside the menu below would close it)
     $('meSys').onchange = e => { const on = e.target.checked; setTimeout(() => rtSet(on ? 'elite' : 'relic')); };
     if ($('meInfo')) $('meInfo').onclick = () => { box.classList.add('hidden'); open(rtInfoUrl()); };
-    // 1.6.20 (SirItos): "Table ›" - the site's table in the mode I hold a place in (else 1v1); my matches, the rules (rating.js)
+    // 1.6.20 (SirItos): "Table ›" - the site's table in the mode I hold a place in (else 1v1); the rules (rating.js)
     if ($('meTable')) $('meTable').onclick = () => { box.classList.add('hidden'); open(rtTableUrl(RT_MODES.find(m => (rtOwn(me.steam, m) || {}).rank) || '1v1')); };
-    if ($('meMine')) $('meMine').onclick = () => { box.classList.add('hidden'); open(rtPlayerUrl(me.steam)); };
     if ($('meRules')) $('meRules').onclick = () => { box.classList.add('hidden'); open(rtRulesUrl()); };
     $('meStats').onclick = () => { box.classList.add('hidden'); open((LIVE.host || 'https://dow2.fintebtc.de') + '/stats/?q=' + encodeURIComponent(me.steam) + '&lang=' + encodeURIComponent(lang)); };
     $('meSteam').onclick = () => { box.classList.add('hidden'); open('https://steamcommunity.com/profiles/' + me.steam); };
