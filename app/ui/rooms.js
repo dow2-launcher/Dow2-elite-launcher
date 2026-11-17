@@ -2,7 +2,7 @@
 // Split out of app.js (1.6.17), its section as it was; app.js keeps the core (the status, render, the add-ons, the update).
 'use strict';
 // 1.3.15 (owner 02.11.2026): the Lobbies tab - open custom games from Relic's list through our ladder server, every 15 s while shown
-const RM = { timer: 0, host: '' };
+const RM = { timer: 0 };
 // 1.5.0: the player's country as its two letters in a small badge (a flag emoji is letters anyway in WebView2 on Windows)
 // 1.5.3 (owner 10.11): the map of a card - the minimap as a square on top (never stretched), its name under it, the same picture
 // dimmed behind the rest of the column
@@ -84,7 +84,7 @@ function roomObs(id, name, btn) {
   return roomTry(id, name, btn, 'obs');
 }
 function roomCard(r) {
-  const A = (RM.host || siteBase()) + '/elite/assets/';
+  const A = siteBase() + '/elite/assets/';
   const why = r.game === 'elite' ? roomJoinWhy(r) : '';
   const tag = r.game === 'elite' ? `<span class="tag elite">Elite</span>`
     : r.game === 'vanilla' ? `<span class="tag van">${esc(t('roomsVan'))}</span>`
@@ -158,7 +158,7 @@ function roomMine(R) {
 async function roomsLoad() {
   const box = $('roomsList'); if (!box) return;
   try {
-    const d = await invoke('rooms_live'); RM.host = d.host || RM.host;
+    const d = await invoke('rooms_live');
     const R = d.rooms || [];
     RM.last = R; RM.mine = roomMine(R);
     RM.err = false;

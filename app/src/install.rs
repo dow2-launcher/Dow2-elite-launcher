@@ -116,7 +116,7 @@ pub fn start_update(app: AppHandle, repair: bool, components_only: Option<bool>)
         compute_costs(&app2);
         let st = app2.state::<App>();
         if r.is_ok() { remember_mirror(&st, m.current_base()); }
-        if !m.cancel.load(Ordering::Relaxed) { data_note(&m, r.is_ok()); }   // a cancel says nothing about the mirrors
+        // 1.6.22: no note after the run - every failure on the way was told to the shared pool as it happened (reach::Store)
         st.busy.store(false, Ordering::SeqCst);
         let payload = match r {
             Ok(sum) => json!({"ok": true, "summary": sum}),

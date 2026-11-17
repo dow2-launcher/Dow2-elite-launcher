@@ -36,12 +36,13 @@ pub async fn launcher_check(app: AppHandle) -> Option<Value> {
 pub(crate) fn github_reachable() -> bool {
     HTTP.get(GITHUB_UPDATER).timeout(Duration::from_secs(8)).call().map(|r| r.status() == 200).unwrap_or(false)
 }
-/// The self-update's endpoints: GitHub Releases first when it answers, then our hosts in the order that answers best from
-/// here (each one's updater.json links its own copies of the files). A build without our hosts keeps tauri.conf.json's.
+/// The self-update's endpoints: GitHub Releases first when it answers (1.5.1, owner 09.11.2026: its download counters are the
+/// launcher's statistics), then our hosts in the shared order - the active host first (reach.rs; each one's updater.json links
+/// its own copies of the files). A build without our hosts keeps tauri.conf.json's.
 pub(crate) fn launcher_updater(app: &AppHandle, github: bool) -> Option<tauri_plugin_updater::Updater> {
     let mut urls: Vec<tauri::Url> = Vec::new();
     if github { urls.extend(tauri::Url::parse(GITHUB_UPDATER).ok()); }
-    urls.extend(fb_hosts().iter().filter_map(|h| tauri::Url::parse(&format!("{h}/elite/dl/updater.json")).ok()));
+    urls.extend(reach::api_hosts().iter().filter_map(|h| tauri::Url::parse(&format!("{h}/elite/dl/updater.json")).ok()));
     if urls.is_empty() { return app.updater().ok(); }
     app.updater_builder().endpoints(urls).ok()?.build().ok()
 }

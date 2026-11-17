@@ -7,18 +7,8 @@ use super::*;
 #[tauri::command]
 pub async fn rooms_live() -> Result<Value, String> {
     tauri::async_runtime::spawn_blocking(|| {
-        let mut last = "the ladder server is not configured in this build".to_string();
-        for host in fb_hosts() {
-            match ureq::get(&format!("{host}/ladder/api/rooms")).timeout(Duration::from_secs(10)).call() {
-                Ok(r) => {
-                    let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
-                    v["host"] = json!(host);
-                    return Ok(v);
-                }
-                Err(e) => { api_err(&host, &e); last = e.to_string(); }
-            }
-        }
-        Err(last)
+        reach::call("rooms", |h| HTTP.get(&format!("{h}/ladder/api/rooms")).timeout(Duration::from_secs(10)).call())
+            .and_then(|r| serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()))
     }).await.map_err(|e| e.to_string())?
 }
 
@@ -27,18 +17,8 @@ pub async fn rooms_live() -> Result<Value, String> {
 #[tauri::command]
 pub async fn mm_live() -> Result<Value, String> {
     tauri::async_runtime::spawn_blocking(|| {
-        let mut last = "the ladder server is not configured in this build".to_string();
-        for host in fb_hosts() {
-            match HTTP.get(&format!("{host}/ladder/api/mm/live")).timeout(Duration::from_secs(10)).call() {
-                Ok(r) => {
-                    let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
-                    v["host"] = json!(host);
-                    return Ok(v);
-                }
-                Err(e) => { api_err(&host, &e); last = e.to_string(); }
-            }
-        }
-        Err(last)
+        reach::call("mm live", |h| HTTP.get(&format!("{h}/ladder/api/mm/live")).timeout(Duration::from_secs(10)).call())
+            .and_then(|r| serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()))
     }).await.map_err(|e| e.to_string())?
 }
 
@@ -188,13 +168,9 @@ pub(crate) fn usage_ping(app: &AppHandle) {
     let hash: String = h.finalize().iter().take(16).map(|x| format!("{x:02x}")).collect();
     let elite = game_dir(&st).map(|d| update::Game::new(d).load_state().version).filter(|v| !v.is_empty()).unwrap_or_else(|| "none".into());
     let elite: String = elite.chars().filter(|c| c.is_ascii_alphanumeric() || *c == '.' || *c == '-').take(16).collect();
-    for host in fb_hosts() {
-        let url = format!("{host}/stats/api/ping?h={hash}&v={LAUNCHER_VERSION}&os={}&elite={elite}", os_name());
-        if HTTP.get(&url).timeout(Duration::from_secs(15)).call().is_ok() {
-            let mut s = st.settings.lock().unwrap();
-            s.ping_day = day;
-            save_settings(&s);
-            return;
-        }
+    if reach::call("usage", |h| HTTP.get(&format!("{h}/stats/api/ping?h={hash}&v={LAUNCHER_VERSION}&os={}&elite={elite}", os_name())).timeout(Duration::from_secs(15)).call()).is_ok() {
+        let mut s = st.settings.lock().unwrap();
+        s.ping_day = day;
+        save_settings(&s);
     }
 }

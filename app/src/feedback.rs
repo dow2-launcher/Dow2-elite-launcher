@@ -17,7 +17,7 @@ pub(crate) fn fb_uid(app: &App) -> String {
 #[tauri::command]
 pub fn fb_info(app: State<'_, App>) -> Value {
     let uid = fb_uid(&app);
-    json!({"uid": uid, "name": app.settings.lock().unwrap().fb_name.clone(), "configured": !fb_hosts().is_empty()})
+    json!({"uid": uid, "name": app.settings.lock().unwrap().fb_name.clone(), "configured": !reach::api_hosts().is_empty()})
 }
 
 #[tauri::command]
@@ -40,23 +40,19 @@ pub async fn fb_send(app: AppHandle, text: String, images: Vec<String>) -> Resul
     // own refusal (413 too big, 400) comes back as it is - the same body to every mirror would only be refused again
     let secs = (60 + body.len() as u64 / 200_000).min(600);
     tauri::async_runtime::spawn_blocking(move || {
-        let mut last = "feedback is not configured in this build".to_string();
-        for host in fb_hosts() {
-            match HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(secs))
-                .set("Content-Type", "application/json").send_string(&body) {
-                Ok(r) => {
-                    let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
-                    if v["ok"].as_bool() == Some(true) { return Ok(v); }
-                    return Err(v["error"].as_str().unwrap_or("rejected").to_string());
-                }
-                Err(ureq::Error::Status(code, r)) if !matches!(code, 408 | 429 | 500..=599) => {
-                    let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
-                    return Err(v["error"].as_str().map(String::from).unwrap_or_else(|| format!("status code {code}")));
-                }
-                Err(e) => { api_err(&host, &e); last = e.to_string(); }
+        let r = reach::call("dev chat send", |host| match HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(secs))
+            .set("Content-Type", "application/json").send_string(&body) {
+            Ok(r) => {
+                let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
+                Ok(if v["ok"].as_bool() == Some(true) { Ok(v) } else { Err(v["error"].as_str().unwrap_or("rejected").to_string()) })
             }
-        }
-        Err(last)
+            Err(ureq::Error::Status(code, r)) if !matches!(code, 408 | 429 | 500..=599) => {
+                let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
+                Ok(Err(v["error"].as_str().map(String::from).unwrap_or_else(|| format!("status code {code}"))))
+            }
+            Err(e) => Err(e),
+        });
+        r.and_then(|x| x)
     }).await.map_err(|e| e.to_string())?
 }
 
@@ -70,18 +66,11 @@ pub async fn fb_thread(app: AppHandle, after: Option<u64>, limit: Option<u32>) -
     if let Some(a) = after.filter(|a| *a > 0) { q.push_str(&format!("&after={a}")); }
     if let Some(n) = limit.filter(|n| *n > 0) { q.push_str(&format!("&limit={}", n.min(200))); }
     tauri::async_runtime::spawn_blocking(move || {
-        let mut last = "feedback is not configured in this build".to_string();
-        for host in fb_hosts() {
-            match HTTP.get(&format!("{host}/ladder/api/fb/thread?{q}")).timeout(Duration::from_secs(20)).call() {
-                Ok(r) => {
-                    let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
-                    v["img_base"] = json!(format!("{host}/ladder/api/fb/img/"));
-                    v["uid"] = json!(uid);
-                    return Ok(v);
-                }
-                Err(e) => { api_err(&host, &e); last = e.to_string(); }
-            }
-        }
-        Err(last)
+        let r = reach::call("dev chat", |host| HTTP.get(&format!("{host}/ladder/api/fb/thread?{q}")).timeout(Duration::from_secs(20)).call())?;
+        let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
+        // the pictures on the active host as well (1.6.22: it is the one that answered, or the next one the window falls back to)
+        v["img_base"] = json!(format!("{}/ladder/api/fb/img/", reach::active_or_default()));
+        v["uid"] = json!(uid);
+        Ok(v)
     }).await.map_err(|e| e.to_string())?
 }

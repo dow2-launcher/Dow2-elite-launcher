@@ -30,14 +30,13 @@ fn call(token: &str, verb: &str, body: &Value) -> Result<Value, String> {
     let mut b = if body.is_object() { body.clone() } else { json!({}) };
     b["token"] = json!(token);
     let b = b.to_string();
-    let mut last = "the server is not configured in this build".to_string();
-    for h in crate::chat_hosts() {
-        match crate::HTTP.post(&format!("{h}/ladder/api/lroom/{verb}")).timeout(Duration::from_secs(15)).set("Content-Type", "application/json").send_string(&b) {
-            Ok(r) => return serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()),
-            Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
-        }
-    }
-    Err(last)
+    crate::reach::call("lroom", |h| crate::HTTP.post(&format!("{h}/ladder/api/lroom/{verb}")).timeout(Duration::from_secs(15)).set("Content-Type", "application/json").send_string(&b))
+        .and_then(|r| serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()))
+}
+/// A GET of our API, the answer as JSON (the active host first, reach.rs).
+fn get_json(what: &str, path: &str, secs: u64) -> Result<Value, String> {
+    crate::reach::call(what, |h| crate::HTTP.get(&format!("{h}{path}")).timeout(Duration::from_secs(secs)).call())
+        .and_then(|r| serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()))
 }
 fn token(app: &AppHandle) -> String { app.state::<crate::App>().settings.lock().unwrap().c_token.clone() }
 
@@ -59,36 +58,14 @@ pub async fn lroom_api(app: AppHandle, verb: String, body: Option<Value>) -> Res
 #[tauri::command]
 pub async fn lroom_list(what: Option<String>, game: Option<String>) -> Result<Value, String> {
     let path = if what.as_deref() == Some("catalog") { format!("catalog?game={}", if game.as_deref() == Some("vanilla") { "vanilla" } else { "elite" }) } else { "list".into() };
-    tauri::async_runtime::spawn_blocking(move || {
-        let mut last = "the server is not configured in this build".to_string();
-        for h in crate::fb_hosts() {
-            match crate::HTTP.get(&format!("{h}/ladder/api/lroom/{path}")).timeout(Duration::from_secs(10)).call() {
-                Ok(r) => {
-                    let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
-                    v["host"] = json!(h);
-                    return Ok(v);
-                }
-                Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
-            }
-        }
-        Err(last)
-    }).await.map_err(|e| e.to_string())?
+    tauri::async_runtime::spawn_blocking(move || get_json("lroom list", &format!("/ladder/api/lroom/{path}"), 10)).await.map_err(|e| e.to_string())?
 }
 
 /// 1.6.20 (owner 17.11.2026): the Elite rating of every player of the current (pre)season, all modes, in one answer
 /// (/ladder/api/own/all): the window shows it wherever it lists a player - Online, the lobbies, the tips - when the player picked it.
 #[tauri::command]
 pub async fn own_get() -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let mut last = "the server is not configured in this build".to_string();
-        for h in crate::fb_hosts() {
-            match crate::HTTP.get(&format!("{h}/ladder/api/own/all")).timeout(Duration::from_secs(10)).call() {
-                Ok(r) => return serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()),
-                Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
-            }
-        }
-        Err(last)
-    }).await.map_err(|e| e.to_string())?
+    tauri::async_runtime::spawn_blocking(move || get_json("own rating", "/ladder/api/own/all", 10)).await.map_err(|e| e.to_string())?
 }
 
 /// 1.6.20 (owner 17.11.2026): a message to the players - /elite/notice.json on our hosts ({id, <lang>: {title, short, full}}), edited
@@ -97,15 +74,11 @@ pub async fn own_get() -> Result<Value, String> {
 #[tauri::command]
 pub async fn notice_get() -> Result<Value, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let mut last = "the server is not configured in this build".to_string();
-        for h in crate::fb_hosts() {
-            match crate::HTTP.get(&format!("{h}/elite/notice.json")).timeout(Duration::from_secs(10)).call() {
-                Ok(r) => return Ok(serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).unwrap_or(Value::Null)),
-                Err(ureq::Error::Status(404, _)) => return Ok(Value::Null),
-                Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
-            }
-        }
-        Err(last)
+        crate::reach::call("notice", |h| match crate::HTTP.get(&format!("{h}/elite/notice.json")).timeout(Duration::from_secs(10)).call() {
+            Ok(r) => Ok(serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).unwrap_or(Value::Null)),
+            Err(ureq::Error::Status(404, _)) => Ok(Value::Null),
+            Err(e) => Err(e),
+        })
     }).await.map_err(|e| e.to_string())?
 }
 
@@ -113,16 +86,7 @@ pub async fn notice_get() -> Result<Value, String> {
 /// (/elite/fame.json on our hosts; edited there, no release needed).
 #[tauri::command]
 pub async fn fame_get() -> Result<Value, String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        let mut last = "the server is not configured in this build".to_string();
-        for h in crate::fb_hosts() {
-            match crate::HTTP.get(&format!("{h}/elite/fame.json")).timeout(Duration::from_secs(10)).call() {
-                Ok(r) => return serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()),
-                Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
-            }
-        }
-        Err(last)
-    }).await.map_err(|e| e.to_string())?
+    tauri::async_runtime::spawn_blocking(move || get_json("fame", "/elite/fame.json", 10)).await.map_err(|e| e.to_string())?
 }
 
 /// Our game servers as this computer reaches them, by Relay.dll's rule: {pings: {ip: ms | -1}, raw: {ip: {ms, got, ok}}}.
@@ -131,13 +95,7 @@ pub async fn fame_get() -> Result<Value, String> {
 pub async fn lroom_pings(app: AppHandle) -> Result<Value, String> {
     let ini = crate::relay_ini(&app.state::<crate::App>());
     tauri::async_runtime::spawn_blocking(move || {
-        let mut ladder: Option<Vec<(std::net::Ipv4Addr, String)>> = None;
-        for host in crate::fb_hosts() {
-            match crate::HTTP.get(&format!("{host}/ladder/api/relays")).timeout(Duration::from_secs(8)).call() {
-                Ok(r) => { ladder = serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).ok().and_then(|d| crate::netgame::signed_relays(&d)); break; }
-                Err(e) => crate::api_err(&host, &e),
-            }
-        }
+        let ladder = crate::netgame::ladder_relays();
         let (ini_nodes, port) = crate::netgame::ini_nodes(&ini);
         let port = port.unwrap_or(crate::netgame::GAME_PORT);
         let nodes = crate::netgame::node_set(ladder.as_deref().unwrap_or(&[]), &ini_nodes);

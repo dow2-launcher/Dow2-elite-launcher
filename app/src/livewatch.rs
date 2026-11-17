@@ -29,8 +29,10 @@ pub async fn live_watch_probe(app: AppHandle) -> Value {
 #[tauri::command]
 pub fn live_watch(app: AppHandle, id: String, game: Option<String>, base: Option<String>, wait: Option<u64>) -> Result<Value, String> {
     if id.is_empty() || id.len() > 24 || !id.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'-' || b == b'_') { return Err("no match".into()); }
+    // 1.6.22: the game fetches the match from the active host (reach.rs), as everything else; the window's base only for a
+    // local test server
     let base = base.unwrap_or_default();
-    let base = if base.starts_with("https://") || base.starts_with("http://127.0.0.1") { base } else { "https://rts.fintebtc.de".into() };
+    let base = if base.starts_with("http://127.0.0.1") { base } else { crate::reach::active_or_default() };
     if base.len() > 150 || base.contains('"') || base.contains('\\') { return Err("bad server".into()); }
     let want: &'static str = if game.as_deref() == Some("vanilla") { "vanilla" } else { "elite" };
     let gen = GEN.fetch_add(1, Ordering::SeqCst) + 1;

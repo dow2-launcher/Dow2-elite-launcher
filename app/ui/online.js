@@ -45,12 +45,11 @@ async function liveSnapshot() {
     .map(p => ({ steam: put(p), mode: p.mode, race: p.race, since: now - (p.waiting || 0) }));
   searching.forEach(p => busy.add(p.steam));
   const launcher = (on.online || []).filter(u => u.steam && !busy.has(sid(u.steam))).map(u => ({ steam: sid(u.steam), state: u.state || 'menu' }));
-  return { now, host: mm.host, users, searching, ingame, launcher };
+  return { now, users, searching, ingame, launcher };
 }
 
 function onLive(d) {   // a full snapshot
   Object.assign(LIVE, { users: d.users || {}, searching: d.searching || [], ingame: d.ingame || [], launcher: d.launcher || [], ok: true });
-  if (d.host) LIVE.host = d.host;
   if (d.now) LIVE.skew = d.now - Date.now() / 1000;
   if (Array.isArray(d.lrooms) && typeof lrFromLive === 'function') lrFromLive(d.lrooms);   // 1.4.25: the launcher rooms (lroom.js)
   ON.err = false; onSoon();
@@ -162,7 +161,7 @@ async function liveWatch(id, game) {
       }
     }
     toast(t(mine.length ? 'lvSent' : 'lvStarting'));
-    await invoke('live_watch', { id, game, base: LIVE.host || siteBase(), wait });
+    await invoke('live_watch', { id, game, base: siteBase(), wait });   // the launcher sends the game its active host anyway
   } catch (e) { toast(String(e), true); }
 }
 listen('live_watch', e => {

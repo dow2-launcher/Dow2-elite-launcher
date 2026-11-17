@@ -252,32 +252,25 @@ pub async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Res
         if n == 0 { return Err("no log files found yet — play once with the add-ons on, then send".into()); }
         let who: String = who.chars().filter(|c| c.is_alphanumeric() || "._-".contains(*c)).take(32).collect();
         let who = if who.is_empty() { "anon".to_string() } else { who };
-        let mut last = String::new();
         // куда слать логи — задаётся при сборке: ELITE_LOG_HOSTS="https://a;https://b" (в репозитории адресов нет)
-        let hosts = fb_hosts();   // the best answering first (reach.rs)
-        if hosts.is_empty() { return Err("log upload is not configured in this build".into()); }
-        for host in hosts {
-            match HTTP.post(&format!("{host}/stats/api/logs?who={who}&uid={uid}")).set("Content-Type", "text/plain; charset=utf-8").send_bytes(out.as_bytes()) {
-                Ok(r) => {
-                    let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
-                    let note = json!({"uid": uid, "name": if fb_name.is_empty() { who.clone() } else { fb_name.clone() },
-                        "text": if nettest { format!("📶 Отправил проверку связи и логи · sent the connection test and logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n) }   // i18n-ok: both languages for the developers; the window shows it in the player's (app.js fbMsgText)
-                                else { format!("📋 Отправил логи · sent logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n) },   // i18n-ok
-                        "launcher": LAUNCHER_VERSION, "os": os_name(), "elite": elite_v}).to_string();
-                    let _ = HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(20))
-                        .set("Content-Type", "application/json").send_string(&note);
-                    // запомним, докуда дошли по каждому растущему логу — в следующий раз только новый хвост
-                    let _ = std::fs::write(data_dir().join("log_sent.json"), serde_json::to_vec(&Value::Object(newmarks.clone())).unwrap_or_default());
-                    if !running {
-                        for f in &sent_addon_logs { let _ = std::fs::OpenOptions::new().write(true).truncate(true).open(f); }
-                        for f in &sent_dumps { let _ = std::fs::remove_file(f); }
-                    }
-                    return Ok(format!("{} ({} files)", v["id"].as_str().unwrap_or("ok"), n));
-                }
-                Err(e) => { api_err(&host, &e); last = e.to_string(); }
-            }
+        if reach::api_hosts().is_empty() { return Err("log upload is not configured in this build".into()); }
+        // the active host first (reach.rs); the note to the developers' chat goes to the host that took the logs
+        let (host, r) = reach::call("logs", |host| HTTP.post(&format!("{host}/stats/api/logs?who={who}&uid={uid}")).set("Content-Type", "text/plain; charset=utf-8")
+            .send_bytes(out.as_bytes()).map(|r| (host.to_string(), r))).map_err(|last| format!("could not send logs: {last}"))?;
+        let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_default();
+        let note = json!({"uid": uid, "name": if fb_name.is_empty() { who.clone() } else { fb_name.clone() },
+            "text": if nettest { format!("📶 Отправил проверку связи и логи · sent the connection test and logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n) }   // i18n-ok: both languages for the developers; the window shows it in the player's (app.js fbMsgText)
+                    else { format!("📋 Отправил логи · sent logs: {} ({} files). Ответ придёт сюда · the answer comes here.", v["id"].as_str().unwrap_or("?"), n) },   // i18n-ok
+            "launcher": LAUNCHER_VERSION, "os": os_name(), "elite": elite_v}).to_string();
+        let _ = HTTP.post(&format!("{host}/ladder/api/fb/send")).timeout(Duration::from_secs(20))
+            .set("Content-Type", "application/json").send_string(&note);
+        // запомним, докуда дошли по каждому растущему логу — в следующий раз только новый хвост
+        let _ = std::fs::write(data_dir().join("log_sent.json"), serde_json::to_vec(&Value::Object(newmarks.clone())).unwrap_or_default());
+        if !running {
+            for f in &sent_addon_logs { let _ = std::fs::OpenOptions::new().write(true).truncate(true).open(f); }
+            for f in &sent_dumps { let _ = std::fs::remove_file(f); }
         }
-        Err(format!("could not send logs: {last}"))
+        Ok(format!("{} ({} files)", v["id"].as_str().unwrap_or("ok"), n))
     })
     .await
     .map_err(|e| e.to_string())?

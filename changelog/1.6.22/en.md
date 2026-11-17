@@ -1,0 +1,5 @@
+- Our servers: the whole launcher works through ONE server at a time - Elite's and the add-ons' files, launcher.json, the chat and its live stream, the developers' chat, Online, the lobbies, the rating, the replays, the messages, Send logs, the launcher's own update, the links and the pictures of maps and heroes. Before, the files could come from one mirror while the chat used another.
+- When that server stops answering on the way (no connection, a time-out, a cut download), the next one in the list takes over for everything at once, the chat's stream included; one line in community.log says which and why. A server whose long connections die is set aside for hours, as before.
+- The servers are checked at the start, every 10 minutes and when one stops answering; the one in use changes only when it fails or another one is much faster - no jumping between two equal servers.
+- A download cut half-way goes on from the byte it reached on the next server instead of starting the piece over; the same for a replay from the pool, which now also tries the next server when the transfer is cut.
+- Settings → Our servers: one list instead of two, the server in use marked.

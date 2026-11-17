@@ -20,32 +20,20 @@ static VTABLE: Mutex<Option<Value>> = Mutex::new(None);
 
 fn token(app: &AppHandle) -> String { app.state::<crate::App>().settings.lock().unwrap().c_token.clone() }
 
-fn get(path: &str, secs: u64) -> Result<Value, String> {
-    let mut last = "the server is not configured in this build".to_string();
-    for h in crate::fb_hosts() {
-        match crate::HTTP.get(&format!("{h}{path}")).timeout(Duration::from_secs(secs)).call() {
-            Ok(r) => return serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()),
-            Err(ureq::Error::Status(code, r)) if code < 500 => {
-                return Ok(serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_else(|_| json!({"ok": false, "error": code})));
-            }
-            Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
-        }
+/// The server's answer as JSON: a refusal under 500 is its answer too ({"ok": false, "error": code} when it has no JSON).
+fn answer(r: Result<ureq::Response, ureq::Error>) -> Result<Result<Value, String>, ureq::Error> {
+    match r {
+        Ok(r) => Ok(serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())),
+        Err(ureq::Error::Status(code, r)) if code < 500 => Ok(Ok(serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_else(|_| json!({"ok": false, "error": code})))),
+        Err(e) => Err(e),
     }
-    Err(last)
+}
+fn get(path: &str, secs: u64) -> Result<Value, String> {
+    crate::reach::call("replays", |h| answer(crate::HTTP.get(&format!("{h}{path}")).timeout(Duration::from_secs(secs)).call())).and_then(|x| x)
 }
 fn post(path: &str, body: &Value) -> Result<Value, String> {
     let b = body.to_string();
-    let mut last = "the server is not configured in this build".to_string();
-    for h in crate::fb_hosts() {
-        match crate::HTTP.post(&format!("{h}{path}")).timeout(Duration::from_secs(20)).set("Content-Type", "application/json").send_string(&b) {
-            Ok(r) => return serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()),
-            Err(ureq::Error::Status(code, r)) if code < 500 => {
-                return Ok(serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or_else(|_| json!({"ok": false, "error": code})));
-            }
-            Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
-        }
-    }
-    Err(last)
+    crate::reach::call("replays", |h| answer(crate::HTTP.post(&format!("{h}{path}")).timeout(Duration::from_secs(20)).set("Content-Type", "application/json").send_string(&b))).and_then(|x| x)
 }
 fn blocking<F: FnOnce() -> Result<Value, String> + Send + 'static>(f: F) -> impl std::future::Future<Output = Result<Value, String>> {
     async move { tauri::async_runtime::spawn_blocking(f).await.map_err(|e| e.to_string())? }
@@ -148,26 +136,23 @@ pub async fn replay_upload(app: AppHandle, file: String) -> Result<Value, String
         if !replay::is_replay(&data) { return Ok(json!({"ok": false, "error": "not_replay"})); }
         if data.len() > 30 * 1024 * 1024 { return Ok(json!({"ok": false, "error": "too_big"})); }
         let name: String = file.bytes().map(|b| if b.is_ascii_alphanumeric() || b"-_.".contains(&b) { (b as char).to_string() } else { format!("%{b:02X}") }).collect();
-        let mut last = "the server is not configured in this build".to_string();
-        for h in crate::fb_hosts() {
+        crate::reach::call("replay upload", |h| {
             let req = crate::HTTP.post(&format!("{h}/replay/api/upload")).timeout(Duration::from_secs(120))
                 .set("Content-Type", "application/octet-stream").set("X-Filename", &name).set("X-Token", &tok);
             match req.send_bytes(&data) {
-                Ok(r) => {
-                    let mut v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string())?;
+                Ok(r) => Ok(serde_json::from_str::<Value>(&r.into_string().unwrap_or_default()).map_err(|e| e.to_string()).map(|mut v| {
                     v["ok"] = json!(true);
                     crate::c_log(&format!("replays: {file} put into the pool as {}", v["id"]));
-                    return Ok(v);
-                }
+                    v
+                })),
                 Err(ureq::Error::Status(code, r)) if code < 500 || code == 507 => {
                     let v: Value = serde_json::from_str(&r.into_string().unwrap_or_default()).unwrap_or(Value::Null);
                     crate::c_log(&format!("replays: {file} not taken ({code}): {}", v["error"]));
-                    return Ok(json!({"ok": false, "error": match code { 429 => "too_many", 507 => "full", 413 => "too_big", _ => "rejected" }}));
+                    Ok(Ok(json!({"ok": false, "error": match code { 429 => "too_many", 507 => "full", 413 => "too_big", _ => "rejected" }})))
                 }
-                Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
+                Err(e) => Err(e),
             }
-        }
-        Err(last)
+        }).and_then(|x| x)
     }).await
 }
 
@@ -187,12 +172,20 @@ pub async fn replay_download(id: String, name: Option<String>) -> Result<Value, 
     if !pool_id(&id) { return Ok(json!({"ok": false, "error": "bad_id"})); }
     blocking(move || {
         let Some(dir) = replay::playback_dir() else { return Ok(json!({"ok": false, "error": "no_dir"})) };
-        let mut last = "the server is not configured in this build".to_string();
-        for h in crate::fb_hosts() {
-            match crate::HTTP.get(&format!("{h}/replay/api/r/{id}/replay.rec")).timeout(Duration::from_secs(120)).call() {
-                Ok(r) => {
-                    let mut data = Vec::new();
-                    { use std::io::Read; r.into_reader().take(40 * 1024 * 1024).read_to_end(&mut data).map_err(|e| e.to_string())?; }
+        // the file from the active host; a transfer cut on the way is a failure of that host too - the next one (reach.rs)
+        let got = crate::reach::call("replay download", |h| match crate::HTTP.get(&format!("{h}/replay/api/r/{id}/replay.rec")).timeout(Duration::from_secs(120)).call() {
+            Ok(r) => {
+                let mut data = Vec::new();
+                use std::io::Read;
+                r.into_reader().take(40 * 1024 * 1024).read_to_end(&mut data).map_err(ureq::Error::from)?;
+                Ok(Some(data))
+            }
+            Err(ureq::Error::Status(code, _)) if code < 500 => Ok(None),
+            Err(e) => Err(e),
+        })?;
+        {
+            match got {
+                Some(data) => {
                     if !replay::is_replay(&data) { return Ok(json!({"ok": false, "error": "not_replay"})); }
                     // the same file is there already: nothing to write
                     if let Ok(rd) = std::fs::read_dir(&dir) {
@@ -208,13 +201,11 @@ pub async fn replay_download(id: String, name: Option<String>) -> Result<Value, 
                     let p = replay::free_name(&dir, name.as_deref().unwrap_or(&id));
                     std::fs::write(&p, &data).map_err(|e| e.to_string())?;
                     crate::c_log(&format!("replays: {id} downloaded to {}", p.display()));
-                    return Ok(json!({"ok": true, "file": p.file_name().map(|f| f.to_string_lossy().into_owned())}));
+                    Ok(json!({"ok": true, "file": p.file_name().map(|f| f.to_string_lossy().into_owned())}))
                 }
-                Err(ureq::Error::Status(code, _)) if code < 500 => return Ok(json!({"ok": false, "error": "not_found"})),
-                Err(e) => { crate::api_err(&h, &e); last = e.to_string(); }
+                None => Ok(json!({"ok": false, "error": "not_found"})),
             }
         }
-        Err(last)
     }).await
 }
 

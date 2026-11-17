@@ -151,15 +151,34 @@ Object.assign(ICO, { door: w40('gate'), crown: w40('host'), invite: w40('banner'
   purge: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13M10 11v5.5M14 11v5.5"/></svg>' });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const open = url => url && invoke('open_url', { url }).catch(e => toast(e, true));
-// 1.6.21 (owner 17.11.2026): our site on the mirror the launcher uses now - the live stream's / API host when it is one of ours
-// (rts / dow2 Germany, dow2ru Moscow - one site), else the one the launcher names (main.rs site_host), else rts. open_url moves any
-// link to our site (launcher.json, notice.json, the server's) onto that mirror too.
+// 1.6.21 (owner 17.11.2026): our site on the mirror the launcher uses now; open_url moves any link to our site (launcher.json,
+// notice.json, the server's) onto that mirror too. 1.6.22: the ONE host of the window - links, the pictures of the maps, races and
+// heroes, the live replay - is the launcher's active host (reach.rs, main.rs site_host; "host_active" when it changes), the same
+// one the files, the chat and every other call use; no part of the window keeps a host of its own. A picture that does not load
+// from it is asked from the next of our hosts in the launcher's order.
 const SITE_RE = /^https?:\/\/(rts|dow2|dow2ru)\.fintebtc\.de(:443)?(?=[/?#]|$)/i;
 let SITE_BASE = 'https://rts.fintebtc.de';
-const siteRefresh = () => invoke('site_host').then(h => { if (SITE_RE.test(h || '')) SITE_BASE = h.replace(/\/+$/, ''); }).catch(() => {});
-const siteBase = () => { const h = typeof LIVE === 'object' ? LIVE.host : ''; return (SITE_RE.test(h || '') ? h : SITE_BASE).replace(/\/+$/, ''); };
+let SITE_LIST = [];   // our site's hosts in the launcher's order (Settings' list), for the pictures' fallback
+const siteSet = h => { if (SITE_RE.test(h || '')) SITE_BASE = h.replace(/\/+$/, ''); };
+const siteRefresh = () => invoke('site_host').then(siteSet).catch(() => {});
+const siteBase = () => SITE_BASE;
 const siteUrl = path => siteBase() + path;
+const siteList = d => { const l = ((d && d.list) || []).map(r => String(r.base || '')).filter(b => SITE_RE.test(b)); if (l.length) SITE_LIST = l; };
 siteRefresh();
+listen('host_active', e => siteSet(e.payload && e.payload.site));
+invoke('net_status').then(siteList).catch(() => {});
+listen('net_rank', e => siteList(e.payload));
+document.addEventListener('error', ev => {
+  const i = ev.target;
+  if (!(i instanceof HTMLImageElement) || (i.dataset.fb && i.onerror)) return;   // its own fallback first (a hero's icon -> the race's)
+  const m = SITE_RE.exec(i.src || '');
+  if (!m) return;
+  const tried = (i.dataset.hosts || '').split(' ').filter(Boolean).concat(m[0].toLowerCase().replace(/:443$/, ''));
+  const next = [SITE_BASE].concat(SITE_LIST).find(b => !tried.includes(b.toLowerCase()));
+  if (!next) return;
+  i.dataset.hosts = tried.join(' ');
+  i.src = next + i.src.slice(m[0].length);
+}, true);
 // Windows long-path prefix from canonicalize() is noise for the player: \\?\G:\Steam → G:\Steam
 const winPath = p => String(p || '').replace(/\\\\\?\\/g, '');
 const day = d => {

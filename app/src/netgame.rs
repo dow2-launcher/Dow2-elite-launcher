@@ -187,6 +187,14 @@ pub fn nearest(rows: &[Value]) -> Option<usize> {
     best.map(|b| b.0)
 }
 
+/// The signed list of our game servers from the ladder (/ladder/api/relays, the active host first): None when no host answered
+/// or the list is not signed right. 1.6.22: one fetch for the rooms' pings, the connection test and Settings' check.
+pub fn ladder_relays() -> Option<Vec<(Ipv4Addr, String)>> {
+    crate::reach::call("relays", |h| crate::HTTP.get(&format!("{h}/ladder/api/relays")).timeout(std::time::Duration::from_secs(8)).call()).ok()
+        .and_then(|r| serde_json::from_str::<serde_json::Value>(&r.into_string().unwrap_or_default()).ok())
+        .and_then(|d| signed_relays(&d))
+}
+
 // ---------- our lobby servers (OwnLobby.dll 2, Dow2-patches ownlobby/ownlobby.c, 1.4.6) ----------
 // OwnLobby puts the game's Relic lobby connection (the automatch) on our lobby server. Its rules: the servers of OwnLobby.ini
 // [OwnLobby] Servers= in order (default: the Moscow mirror, then rts), 4 at most; each: a TCP connect within 2.5 s, then -
