@@ -2,6 +2,9 @@
 - Profile menu: the rating tick under the name, under the line the rating and the place in every mode (in calibration - "calibration: 2/5"), a link to the table; "My stats" and "Steam profile" as buttons in a row. No rating in the header any more.
 - The tip on a player (Online, the lobby cards, your own lobby, the chat) shows all of his ratings: Elite by mode and Relic - the picked one first. The number of games shows only in calibration, the other statistics are on the site. The (i) by the season in the profile menu opens the page about the rating and the preseason.
 - The leaders of the Elite rating are seen by everybody by their names, each mode its own army: 1v1 - the Reclusiarch and Veterans (Space Marines), 2v2 - the Lord General and Commissars (Imperial Guard), 3v3 - the Warboss and nobs (Orks). First place gold, second silver, third bronze.
+- Rating in the game: the LobbyStats and LoadingRatings add-ons show the rating picked by the tick in the profile menu (Elite or Relic) - the launcher writes the pick into their settings at its start, on a change of the tick and before Play.
+- Links: Online's "Ladder" opens the Elite rating table, the site's pages open in the launcher's language; "My matches" is gone - a mode's row in the profile menu opens your page anyway.
+- Developers' chat: the last 20 messages on open, then only the new ones, "Earlier messages" for the whole conversation; Enter while sending does not send twice; big pictures are sent without a time-out cut.
 - Incoming message: a message from the developers comes once the "Launcher updated" strip is closed - two lines and "More" with the whole text; it shows at every start until it is closed.
 - Start errors of your own lobby (somebody was late, the match did not form, a game did not start the search) - a red strip on top, as every error.
 - A full lobby: the Join button stays, dimmed and not pressable. The eye in the lobby cards - without a frame.

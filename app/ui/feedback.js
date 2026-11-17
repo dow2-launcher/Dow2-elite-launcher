@@ -36,7 +36,7 @@ function fbPics() {
 }
 async function fbSend() {
   const text = $('fbText').value.trim();
-  if (!text && !FB.pics.length) return;
+  if ((!text && !FB.pics.length) || $('fbSend').disabled) return;   // 1.6.20: Enter while the last one is still going - not twice
   $('fbSend').disabled = true;
   try {
     await invoke('fb_set_name', { name: $('fbName').value });
