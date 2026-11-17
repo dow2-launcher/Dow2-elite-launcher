@@ -76,8 +76,9 @@ struct State {
     /// The results of the checks (and of the requests since), by origin.
     list: Vec<Probe>,
     checked: bool,
-    /// Checks done in this run: the first one picks the fastest host, the active host holds from the second on.
-    checks: u32,
+    /// The active host was picked by a time it answered in (a check of this run or the last run's order), not just by the
+    /// configured order: only then it holds against a host that is a little faster.
+    measured: bool,
     /// The origin every request tries first ("" until there is an API host).
     active: String,
     /// A store base the player typed in (Settings): always the first for the files, never checked.
@@ -86,6 +87,8 @@ struct State {
 
 static ST: LazyLock<Mutex<State>> = LazyLock::new(|| Mutex::new(State::default()));
 static BUSY: AtomicBool = AtomicBool::new(false);
+/// A check was asked for while one ran: one more after it (a host added meanwhile is checked too).
+static AGAIN: AtomicBool = AtomicBool::new(false);
 static LAST: AtomicU64 = AtomicU64::new(0);
 /// Called after every check and change of the order (the launcher saves it and tells the window).
 static ON_CHECKED: Mutex<Option<Box<dyn Fn(&[Probe]) + Send>>> = Mutex::new(None);
@@ -111,14 +114,16 @@ pub fn on_switch(f: impl Fn(&str, &str, &str) + Send + 'static) { *ON_SWITCH.loc
 /// `own`: the player's store base (Settings), None - keep the one set before. The results of the checks stay.
 pub fn configure(api: &[String], stores: &[String], own: Option<&str>) {
     let hosts = hosts_of(api, stores);
-    let changed = {
+    let (changed, unchecked) = {
         let mut s = ST.lock().unwrap();
         if let Some(o) = own { s.own_store = norm_store(o); }
         let changed = s.hosts != hosts;
+        let unchecked = s.checked && hosts.iter().any(|h| !s.list.iter().any(|p| p.base == h.origin));
         s.hosts = hosts;
-        changed
+        (changed, unchecked)
     };
     if changed { refresh_active("the list of our hosts"); }
+    if changed && unchecked { check_soon(0); }   // a new host (launcher.json) after this run's check: checked now, not in 10 min
 }
 fn norm_store(b: &str) -> String {
     let b = b.trim();
@@ -175,7 +180,7 @@ fn pick_active(s: &State) -> String {
     let Some(best) = v.first() else { return String::new() };
     if let Some(cur) = v.iter().find(|x| x.3.origin == s.active) {
         let keep = match cur.0 {
-            0 => s.checks >= 2 && !(best.0 == 0 && much_faster(best.1, cur.1)),
+            0 => s.measured && !(best.0 == 0 && much_faster(best.1, cur.1)),
             1 => best.0 != 0,    // not checked yet (seeded or new): until a check finds an answering one
             _ => false,          // set aside or no answer
         };
@@ -188,6 +193,8 @@ fn refresh_active(why: &str) {
     let (from, to, list) = {
         let mut s = ST.lock().unwrap();
         let to = pick_active(&s);
+        let t = now();
+        s.measured = s.list.iter().any(|p| p.base == to && p.tier(t) == 0);
         let from = std::mem::replace(&mut s.active, to.clone());
         (from, to, s.list.clone())
     };
@@ -285,10 +292,16 @@ pub fn set_aside(host: &str, why: &str) -> bool {
 
 /// Check the pool in the background unless a check runs or ran less than `gap` seconds ago (0: always).
 pub fn check_soon(gap: u64) {
+    #[cfg(test)]
+    if !TEST_BACKGROUND.load(Ordering::SeqCst) { return; }   // the unit tests set the results themselves (no network)
     if gap > 0 && now().saturating_sub(LAST.load(Ordering::Relaxed)) < gap { return; }
-    if BUSY.swap(true, Ordering::SeqCst) { return; }
+    if BUSY.swap(true, Ordering::SeqCst) { if gap == 0 { AGAIN.store(true, Ordering::SeqCst); } return; }
     std::thread::spawn(move || {
-        if !ST.lock().unwrap().hosts.is_empty() { check(); }   // nothing to check (not configured yet): the order stays
+        loop {
+            AGAIN.store(false, Ordering::SeqCst);
+            if !ST.lock().unwrap().hosts.is_empty() { check(); }   // nothing to check (not configured yet): the order stays
+            if !AGAIN.load(Ordering::SeqCst) { break; }
+        }
         BUSY.store(false, Ordering::SeqCst);
     });
 }
@@ -357,7 +370,6 @@ fn keep(mut got: Vec<Probe>) {
     got.sort_by_key(|p| (p.tier(t), p.ms.unwrap_or(0)));   // stable: no answer keeps its order
     s.list = got;
     s.checked = true;
-    s.checks += 1;
 }
 
 /// The store side of elite-core's `Mirrors`: the order and the failures go through this pool.
@@ -397,6 +409,8 @@ pub fn site_link(url: &str, base: &str) -> String {
 
 #[cfg(test)]
 pub(crate) static TEST_LOCK: Mutex<()> = Mutex::new(());
+#[cfg(test)]
+static TEST_BACKGROUND: AtomicBool = AtomicBool::new(false);
 
 #[cfg(test)]
 mod tests {
@@ -533,6 +547,15 @@ mod tests {
         assert_eq!(active(), RU);
         seed(vec![pr(DE, Some(1))]);
         assert_eq!(active(), RU, "a seed after the check changes nothing");
+        // the launcher's start: the last run's host holds against one a little faster (two names of one server: no switch, no
+        // reconnect of the stream at every start), not against one much faster
+        *ST.lock().unwrap() = State::default();
+        seed(vec![pr(DE, Some(22)), pr(RTS, Some(20))]);
+        configure(&v(&[RU, DE, RTS]), &[], Some(""));
+        assert_eq!(active(), RTS);
+        keep(vec![pr(DE, Some(18)), pr(RTS, Some(25)), pr(RU, Some(400))]);
+        refresh_active("check");
+        assert_eq!(active(), RTS);
     }
 
     #[test]
