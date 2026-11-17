@@ -3,3 +3,4 @@
 - The servers are checked at the start, every 10 minutes and when one stops answering; the one in use changes only when it fails or another one is much faster - no jumping between two equal servers.
 - A download cut half-way goes on from the byte it reached on the next server instead of starting the piece over; the same for a replay from the pool, which now also tries the next server when the transfer is cut.
 - Settings → Our servers: one list instead of two, the server in use marked.
+- In the game too: before every game start (and when the server in use changes) the launcher puts that server first into the server lists of the add-ons that call our servers themselves - Automatch (MMFind), LobbyStats, LoadingRatings, the new AI's replay upload (EliteAI) and Live replay - the others after it. A server list someone set by hand stays as it is.

@@ -579,6 +579,12 @@ fn main() {
             reach::on_switch(move |from, to, why| {
                 c_log(&format!("mirror: active host {} -> {} ({why})", if from.is_empty() { "none" } else { from }, if to.is_empty() { "none" } else { to }));
                 let _ = hw.emit("host_active", json!({"host": to, "site": reach::site_base()}));
+                // the in-game add-ons read their Server= at the game's start: the next start goes to the new host too (launch.rs
+                // writes it before every start as well)
+                if let Some(d) = game_dir(&hw.state::<App>()) {
+                    let wrote = addons::write_server_inis(&d, &reach::api_hosts());
+                    if !wrote.is_empty() { c_log(&format!("mirror: the add-ons' Server= now {to} ({})", wrote.join(", "))); }
+                }
             });
             {
                 let st = app.state::<App>();
