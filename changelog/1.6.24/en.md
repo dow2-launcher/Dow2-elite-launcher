@@ -1,0 +1,1 @@
+- Add-ons: a new group at the end of the list, "Testing & debug" - add-ons for testers and for tracking down problems: speed measurements, trials, extra logging.

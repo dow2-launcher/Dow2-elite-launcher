@@ -307,7 +307,9 @@ function optsHtml(c, lock) {
 // COMP_GROUPS is only the fallback for an entry without them (the store before those fields: the forwarding servers jumped
 // between groups there); ids without the "_r2"/"_r3" ends
 // 09.11.2026 (owner): "performance" - every speed-up add-on in its own group, marked as an experiment
-const COMP_CATS = ['network', 'interface', 'gameplay', 'fixes', 'performance', 'experiment'];
+// 1.6.24 (owner 18.11.2026): "debug" - the testers' and debugging group (speed measurements, trials, extra logging), last.
+// A category this list does not know (a newer store) goes to "experiment" (compCat) - an add-on is never hidden by it
+const COMP_CATS = ['network', 'interface', 'gameplay', 'fixes', 'performance', 'experiment', 'debug'];
 const COMP_GROUPS = {
   network: ['relay', 'relay_fwd', 'automatch', 'steamkeep', 'ownlobby'],
   interface: ['matchtimer', 'apm', 'cooldowns', 'lobbystats', 'loadingratings', 'joinsound', 'rusifikator'],
@@ -315,6 +317,7 @@ const COMP_GROUPS = {
   fixes: ['elitefix_wmic', 'obsfix', 'crashlog'],
   performance: [],
   experiment: ['roomjoin', 'netprobe'],
+  debug: [],
 };
 const compBase = c => String(c.id).replace(/_(r\d+|off)$/, '');
 // 1.6.23 (owner 17.11.2026: "Hero bar fix" twice on a Mac): the add-on lists the launcher shows - the real ones (on macOS
@@ -334,7 +337,7 @@ const compCat = c => (Number.isFinite(c.order) && COMP_CATS.includes(c.category)
   || (COMP_CATS.includes(c.category) ? c.category : 'experiment');
 const compRank = c => {
   if (Number.isFinite(c.order)) return c.order;
-  const i = COMP_GROUPS[compCat(c)].indexOf(compBase(c));
+  const i = (COMP_GROUPS[compCat(c)] || []).indexOf(compBase(c));
   return i < 0 ? 1e6 : (i + 1) * 10;
 };
 // the groups the player folded (only a convenience: without storage everything is open)
