@@ -1,0 +1,1 @@
+- Profile: an Elite rating mode you have not played yet now shows its calibration - skulls at 0/5, not a dash.
