@@ -1,0 +1,1 @@
+- Chat: links in messages are clickable (http://, https:// and www. addresses) and open in your browser; long ones are shortened, the full address is in the tooltip. Works for older messages too.

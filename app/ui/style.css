@@ -833,6 +833,9 @@ footer .status{order:0}
 .ch-m .tx{color:#e4f3ed}
 .ch-at{color:var(--gd2)}
 .ch-at.me{color:#04110f;background:var(--gd)}
+.ch-m .tx a.ch-link{color:var(--gd);text-decoration:none;cursor:pointer;overflow-wrap:anywhere}
+/* 1.6.27: a link in a message (chat.js chLinkify) */
+.ch-m .tx a.ch-link:hover,.ch-m .tx a.ch-link:focus-visible{color:#c9f7ea;text-decoration:underline;text-underline-offset:2px}
 .ch-day{color:var(--mu)}
 .ch-day::before,.ch-day::after{background:var(--ln)}
 .ch-send textarea,.fb-send textarea{border-color:#2b6f64;background:#061011}

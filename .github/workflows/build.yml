@@ -51,6 +51,9 @@ jobs:
       # translated by the window (scripts/i18n_check.py; a new untranslated string fails the build)
       - name: Translations
         run: python3 scripts/i18n_check.py --keys
+      # 1.6.27: the chat's links (chat.js chLinkify) against hostile messages - plain node, no browser
+      - name: Chat links
+        run: node scripts/uicheck/chat_links.mjs
       - id: version
         env:
           EVENT: ${{ github.event_name }}
