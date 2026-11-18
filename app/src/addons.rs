@@ -18,12 +18,55 @@ pub fn set_component(app: State<'_, App>, id: String, on: bool) -> Result<(), St
 /// copies. The player's pick of the profile menu (rating.js rtSet), Relic by default; the file is made when missing, only in a
 /// folder that is there (dow2-patches only while it holds our copies - a stand-alone package's folder is put aside empty).
 pub(crate) fn write_rating_ini(dir: &std::path::Path, sys: &str) {
-    let v = if sys == "elite" || sys == "own" { "own" } else { "relic" };
+    let v = rating_value(sys);
     for sub in ["Elite_DLLs", "dow2-patches"] {
         let d = dir.join(sub);
         if !d.is_dir() || (sub == "dow2-patches" && vanilla_owned(dir).is_empty()) { continue; }
         let _ = elite::set_ini_value(&d.join("LobbyStats.ini"), "LobbyStats", "Rating", v);
     }
+}
+
+/// The add-ons' `Rating=` of the profile menu's pick: "elite" (or "own") = our rating, anything else = Relic's.
+fn rating_value(sys: &str) -> &'static str {
+    if sys == "elite" || sys == "own" { "own" } else { "relic" }
+}
+
+/// 1.6.25: the Mac's LobbyStats (catalog components_macos `lobbystats_mac`, LobbyStats 0.12's lobby part, Dow2-patches
+/// mac/lobbystats/lobbystats.c) reads `[LobbyStats] Rating=own|relic` and `Server=` (bare hosts, `;`, 4 of them, 192 chars) from
+/// LobbyStats.ini next to its dylib - mac_addons/lobbystats_mac/, the Mac game has no Elite_DLLs - so up to 1.6.24 the rating pick
+/// and the active host never reached it. The other Mac add-ons (ctrlattack, overwatchonce, nohints, reinforcefix, herolabelfix
+/// _mac) read no server.
+pub(crate) const MAC_LOBBYSTATS_ID: &str = "lobbystats_mac";
+pub(crate) const MAC_LOBBYSTATS: AddonServer =
+    AddonServer { dll: "LobbyStats.dylib", ini: "LobbyStats.ini", section: "LobbyStats", max: 4, url: false, cap: 191 };
+/// Its ini in `addons` (mac_addons_root) when the add-on is installed (its state or its dylib there; the file is made when
+/// missing), else None - nothing is made for an add-on that is not there.
+fn mac_lobbystats_ini(addons: &std::path::Path) -> Option<std::path::PathBuf> {
+    let d = elite_core::macos::addon_dir(addons, MAC_LOBBYSTATS_ID);
+    let installed = file_ci(&d, MAC_LOBBYSTATS.dll).is_some()
+        || !update::Game::component(&d, MAC_LOBBYSTATS_ID).load_state().version.is_empty();
+    installed.then(|| file_ci(&d, MAC_LOBBYSTATS.ini).unwrap_or_else(|| d.join(MAC_LOBBYSTATS.ini)))
+}
+/// `Rating=` of the Mac's LobbyStats (the caller holds INI_LOCK) -> written.
+fn mac_rating_ini(addons: &std::path::Path, sys: &str) -> bool {
+    let Some(ini) = mac_lobbystats_ini(addons) else { return false };
+    let v = rating_value(sys);
+    let cur = ini_get(&std::fs::read_to_string(&ini).unwrap_or_default(), MAC_LOBBYSTATS.section, "Rating");
+    cur.as_deref() != Some(v) && elite::set_ini_value(&ini, MAC_LOBBYSTATS.section, "Rating", v).is_ok()
+}
+/// macOS: the rating pick into mac_addons/lobbystats_mac/LobbyStats.ini as well. `wait`: for a sync that runs (before a game
+/// start); without it (the window's pick, on its thread) a running sync means no write now - the next start writes it.
+pub(crate) fn write_mac_rating_ini(sys: &str, wait: bool) {
+    if os_name() != "macos" { return; }
+    let _w = if wait { INI_LOCK.lock().unwrap_or_else(|e| e.into_inner()) } else {
+        match INI_LOCK.try_lock() { Ok(g) => g, Err(std::sync::TryLockError::Poisoned(e)) => e.into_inner(), Err(_) => return }
+    };
+    if mac_rating_ini(&mac_addons_root(), sys) { c_log(&format!("mac add-on {MAC_LOBBYSTATS_ID}: Rating={}", rating_value(sys))); }
+}
+/// `Server=` of the Mac's LobbyStats, by the rules of server_inis (the caller holds INI_LOCK) -> the file written.
+fn mac_server_ini(addons: &std::path::Path, hosts: &[String], known: &[String]) -> Option<String> {
+    let ini = mac_lobbystats_ini(addons)?;
+    server_ini(&ini, &MAC_LOBBYSTATS, hosts, known).then(|| format!("mac_addons/{MAC_LOBBYSTATS_ID}/{}", MAC_LOBBYSTATS.ini))
 }
 
 /// 1.6.22 (owner 17.11.2026: every part the same): our in-game add-ons call our servers themselves, each with its own list in its
@@ -98,23 +141,35 @@ pub(crate) fn try_write_server_inis(dir: &std::path::Path, hosts: &[String]) -> 
     Some(server_inis(dir, hosts))
 }
 fn server_inis(dir: &std::path::Path, hosts: &[String]) -> Vec<String> {
-    let mut known: Vec<String> = reach::SITE_HOSTS.iter().map(|h| h.to_string()).collect();
-    known.extend(hosts.iter().filter_map(|h| addon_host(h)));
+    let known = server_known(hosts);
     let mut wrote = Vec::new();
     for sub in ["Elite_DLLs", "dow2-patches"] {
         let d = dir.join(sub);
         if !d.is_dir() || (sub == "dow2-patches" && vanilla_owned(dir).is_empty()) { continue; }
         for a in &ADDON_SERVERS {
             if file_ci(&d, a.dll).is_none() { continue; }
-            let v = addon_server_value(a, hosts);
-            if v.is_empty() { continue; }
             let ini = file_ci(&d, a.ini).unwrap_or_else(|| d.join(a.ini));
-            let cur = ini_get(&std::fs::read_to_string(&ini).unwrap_or_default(), a.section, "Server").unwrap_or_default();
-            if cur == v || !addon_server_ours(&cur, &known) { continue; }
-            if elite::set_ini_value(&ini, a.section, "Server", &v).is_ok() { wrote.push(format!("{sub}/{}", a.ini)); }
+            if server_ini(&ini, a, hosts, &known) { wrote.push(format!("{sub}/{}", a.ini)); }
         }
     }
+    // 1.6.25: the Mac's add-ons are not in the game folder - LobbyStats reads its Server= in mac_addons/lobbystats_mac/ (the
+    // tests of the game folder above leave the real home alone; mac_server_ini has its own test)
+    if os_name() == "macos" && !cfg!(test) { wrote.extend(mac_server_ini(&mac_addons_root(), hosts, &known)); }
     wrote
+}
+/// The hosts a `Server=` may hold for the launcher to replace it: the site's and the pool's.
+fn server_known(hosts: &[String]) -> Vec<String> {
+    let mut known: Vec<String> = reach::SITE_HOSTS.iter().map(|h| h.to_string()).collect();
+    known.extend(hosts.iter().filter_map(|h| addon_host(h)));
+    known
+}
+/// One add-on's `Server=` in `ini`: the hosts in order, only over none or our own hosts -> written.
+fn server_ini(ini: &std::path::Path, a: &AddonServer, hosts: &[String], known: &[String]) -> bool {
+    let v = addon_server_value(a, hosts);
+    if v.is_empty() { return false; }
+    let cur = ini_get(&std::fs::read_to_string(ini).unwrap_or_default(), a.section, "Server").unwrap_or_default();
+    if cur == v || !addon_server_ours(&cur, known) { return false; }
+    elite::set_ini_value(ini, a.section, "Server", &v).is_ok()
 }
 
 /// 1.6.20: the window's rating pick (at its start and on every change): kept for the next game start and written to the add-ons'
@@ -127,6 +182,7 @@ pub fn rating_sys_set(app: State<'_, App>, sys: String) {
         if s.rating_sys != sys { s.rating_sys = sys.clone(); save_settings(&s); }
     }
     if let Some(d) = game_dir(&app) { write_rating_ini(&d, &sys); }
+    write_mac_rating_ini(&sys, false);   // 1.6.25: no game folder needed - mac_addons is the launcher's
 }
 
 /// Write every component option to its ini file (only for installed components).
@@ -798,6 +854,51 @@ mod enforce_off_tests {
         assert!(t.contains("Rating=relic") && !t.contains("Rating=own"), "{t}");
         assert!(!d.join("dow2-patches/LobbyStats.ini").exists(), "a folder without our vanilla copies stays as it is");
         let _ = std::fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn mac_lobbystats_ini_gets_the_rating_and_the_hosts() {
+        // 1.6.25: the Mac's LobbyStats reads mac_addons/lobbystats_mac/LobbyStats.ini - the rating pick and the hosts reach it
+        let root = std::env::temp_dir().join(format!("mac_ls_ini_test_{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&root);
+        let hosts = |v: &[&str]| v.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        let pool = hosts(&["https://dow2ru.fintebtc.de", "https://dow2.fintebtc.de", "https://rts.fintebtc.de"]);
+        let known = server_known(&pool);
+        // not installed: nothing made
+        assert!(!mac_rating_ini(&root, "elite") && mac_server_ini(&root, &pool, &known).is_none());
+        assert!(!root.join("lobbystats_mac").exists());
+        // installed (the dylib there), its ini missing: made with both keys
+        let d = root.join("lobbystats_mac");
+        std::fs::create_dir_all(&d).unwrap();
+        std::fs::write(d.join("LobbyStats.dylib"), b"\xcf\xfa\xed\xfe").unwrap();
+        assert!(mac_rating_ini(&root, "elite"));
+        assert_eq!(mac_server_ini(&root, &pool, &known).as_deref(), Some("mac_addons/lobbystats_mac/LobbyStats.ini"));
+        let rd = || std::fs::read_to_string(d.join("LobbyStats.ini")).unwrap();
+        assert_eq!(ini_get(&rd(), "LobbyStats", "Rating").as_deref(), Some("own"));
+        assert_eq!(ini_get(&rd(), "LobbyStats", "Server").as_deref(), Some("dow2ru.fintebtc.de;dow2.fintebtc.de;rts.fintebtc.de"));
+        // the published ini (LF, a commented Server=): Rating replaced, Server= added, the rest kept; the same again writes nothing
+        std::fs::write(d.join("LobbyStats.ini"), "[LobbyStats]\n; which rating\nEnabled=1\nRating=relic\n; hosts\n;Server=\n").unwrap();
+        assert!(mac_rating_ini(&root, "own") && mac_server_ini(&root, &pool, &known).is_some());
+        let t = rd();
+        assert!(t.contains("Enabled=1\nRating=own\n") && t.contains(";Server=\n") && !t.contains('\r'), "{t}");
+        assert_eq!(ini_get(&t, "LobbyStats", "Server").as_deref(), Some("dow2ru.fintebtc.de;dow2.fintebtc.de;rts.fintebtc.de"));
+        assert!(!mac_rating_ini(&root, "elite") && mac_server_ini(&root, &pool, &known).is_none());
+        assert!(mac_rating_ini(&root, "relic") && rd().contains("Rating=relic") && !rd().contains("Rating=own"));
+        // the active host changed: the list follows; a server put there by hand stays
+        let pool2 = hosts(&["https://rts.fintebtc.de", "https://dow2ru.fintebtc.de", "https://dow2.fintebtc.de"]);
+        assert!(mac_server_ini(&root, &pool2, &server_known(&pool2)).is_some());
+        assert_eq!(ini_get(&rd(), "LobbyStats", "Server").as_deref(), Some("rts.fintebtc.de;dow2ru.fintebtc.de;dow2.fintebtc.de"));
+        elite::set_ini_value(&d.join("LobbyStats.ini"), "LobbyStats", "Server", "my.test.org").unwrap();
+        assert!(mac_server_ini(&root, &pool, &known).is_none());
+        assert_eq!(ini_get(&rd(), "LobbyStats", "Server").as_deref(), Some("my.test.org"));
+        // installed by the launcher (its state) but the dylib gone: still its ini
+        std::fs::remove_file(d.join("LobbyStats.dylib")).unwrap();
+        assert!(!mac_rating_ini(&root, "own"), "neither the dylib nor the launcher's state: not installed");
+        std::fs::create_dir_all(d.join(".elite_launcher")).unwrap();
+        std::fs::write(d.join(".elite_launcher/component-lobbystats_mac.json"),
+            r#"{"version":"lobbystats_mac-1","channel":"lobbystats_mac","files":[]}"#).unwrap();
+        assert!(mac_rating_ini(&root, "own") && rd().contains("Rating=own"));
+        let _ = std::fs::remove_dir_all(&root);
     }
 
     #[test]

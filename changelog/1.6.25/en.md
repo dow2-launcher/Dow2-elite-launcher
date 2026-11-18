@@ -1,0 +1,1 @@
+- macOS: the "Lobby ratings" add-on now gets the rating you picked in the launcher (Relic or Elite) and the launcher's active server - it used to show Relic's rating and use only its default servers.
