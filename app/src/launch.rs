@@ -37,6 +37,7 @@ pub(crate) fn prepare_start(dir: &std::path::Path, cfg: &LauncherConfig, setting
     let vanilla = vanilla_on(&cfg, settings);
     // 1.6.20: the rating the in-game add-ons show, as the profile menu has it (Elite_DLLs / dow2-patches LobbyStats.ini)
     write_rating_ini(&dir, &settings.rating_sys);
+    write_mac_rating_ini(&settings.rating_sys, true);   // 1.6.25: the Mac's LobbyStats.ini in mac_addons/lobbystats_mac/
     // 1.6.22: the in-game add-ons' own server lists - the launcher's active host first (reach.rs, addons.rs write_server_inis)
     let wrote = write_server_inis(&dir, &reach::api_hosts());
     if !wrote.is_empty() { c_log(&format!("launch: the add-ons' Server= now {} ({})", reach::active(), wrote.join(", "))); }
