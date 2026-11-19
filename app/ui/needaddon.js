@@ -91,8 +91,9 @@ async function naNeed(id, what, game, run) {
   if (c.enabled) return true;
   if (c.chosen && !S.game_running) { rjModal(title, [t('naBlocked', { what: w })]); return false; }   // ticked, the version takes none
   const running = !!S.game_running;
-  const ok = await askBox(title, [t('naAsk', { what: w, name }), running ? t('naAskRun') : ''],
-    [{ label: t(running ? 'naOnAfter' : 'naOn'), cls: 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
+  // 1.6.29: an add-on marked dangerous (app.js compDanger): its warning in the same question, the button red
+  const ok = await askBox(title, [t('naAsk', { what: w, name }), compDanger(c), compDanger(c) ? t('dangerAsk') : '', running ? t('naAskRun') : ''],
+    [{ label: t(running ? 'naOnAfter' : 'naOn'), cls: compDanger(c) ? 'red' : 'gold', val: 1 }, { label: t('rjCancel'), val: 0 }]);
   if (!ok) return false;
   if (running) { NA.after = { id: c.id, run, until: Date.now() + 15 * 60000 }; toast(t('naWait', { name })); return false; }
   try { await invoke('set_component', { id: c.id, on: true }); await reload(); }

@@ -23,6 +23,14 @@ impl Text {
             Text::ByLang(m) => m.get(lang).or_else(|| m.get("en")).or_else(|| m.values().next()).cloned().unwrap_or_default(),
         }
     }
+    /// No text in any language.
+    pub fn is_empty(&self) -> bool {
+        match self {
+            Text::None => true,
+            Text::Plain(s) => s.trim().is_empty(),
+            Text::ByLang(m) => m.values().all(|v| v.trim().is_empty()),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -149,6 +157,17 @@ pub struct Component {
     /// 10.11.2026: always on where it is offered, the player cannot untick it (crossplay_mac: without it a Mac game
     /// desyncs from the Windows ones and Feral's integrity check ends it).
     pub required: bool,
+    /// 1.6.29 (owner 19.11.2026: "show it as a danger - don't switch it on casually, it means desync"): a short warning, e.g.
+    /// `{"en": "...", "ru": "..."}`. The window marks the card (a red chip, the text on the card) and asks before turning it on;
+    /// such an add-on is never on by default, whatever `default` says - only the player's own tick turns it on.
+    pub danger: Text,
+}
+
+impl Component {
+    /// On without the player's tick: `default`, unless it carries a `danger` warning (1.6.29).
+    pub fn on_by_default(&self) -> bool {
+        self.default && self.danger.is_empty()
+    }
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
@@ -399,6 +418,21 @@ mod tests {
         assert_eq!(cfg.vanilla_loader(), Some("vloader-1"));
         let cfg: LauncherConfig = serde_json::from_str(r#"{"vanilla":{}}"#).unwrap();
         assert!(cfg.vanilla_loader().is_none());
+    }
+    /// 1.6.29: "danger" - read in every form, never on by default; an entry without it as before (components and components_macos)
+    #[test]
+    fn danger_never_on_by_default() {
+        let raw = r#"{"components":[{"id":"retreatnow","default":true,"danger":{"en":"Desync unless everyone has it","ru":"Рассинхрон"}},
+            {"id":"plain","default":true},{"id":"blank","default":true,"danger":{"en":" "}},{"id":"str","danger":"x"}],
+            "components_macos":[{"id":"retreatnow_mac","default":true,"danger":"Desync"}]}"#;
+        let cfg: LauncherConfig = serde_json::from_str(raw).unwrap();
+        let c = |id: &str| cfg.components.iter().chain(cfg.components_macos.iter()).find(|c| c.id == id).unwrap().clone();
+        assert_eq!(c("retreatnow").danger.get("ru"), "Рассинхрон");
+        assert_eq!(c("retreatnow").danger.get("de"), "Desync unless everyone has it");
+        assert!(!c("retreatnow").on_by_default() && !c("retreatnow_mac").on_by_default());
+        assert!(c("plain").on_by_default() && c("plain").danger.is_empty());
+        assert!(c("blank").on_by_default());          // a warning of spaces is no warning
+        assert!(!c("str").on_by_default() && !c("str").danger.is_empty());
     }
     #[test]
     fn os_filter() {

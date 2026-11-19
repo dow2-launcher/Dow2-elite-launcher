@@ -1,0 +1,1 @@
+- Add-ons: dangerous add-ons (such as "Instant retreat") carry a red DANGER chip and their warning right on the card; turning one on asks for confirmation, turning it off does not. Such an add-on is never on by default.

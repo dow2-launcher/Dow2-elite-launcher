@@ -261,11 +261,11 @@ pub(crate) fn hand_copy_paths(c: &elite_core::config::Component) -> Vec<String> 
 pub(crate) fn enforce_off(dir: &std::path::Path, cfg: &LauncherConfig, s: &Settings) -> Vec<String> {
     let elite_owned = elite_files(dir);
     let on_injects: std::collections::HashSet<String> = cfg.components.iter()
-        .filter(|c| !c.inject.is_empty() && s.components.get(&c.id).copied().unwrap_or(c.default))
+        .filter(|c| !c.inject.is_empty() && s.components.get(&c.id).copied().unwrap_or(c.on_by_default()))
         .map(|c| c.inject.to_ascii_lowercase()).collect();
     let mut done = Vec::new();
     for c in &cfg.components {
-        if c.inject.is_empty() || s.components.get(&c.id).copied().unwrap_or(c.default) { continue; }
+        if c.inject.is_empty() || s.components.get(&c.id).copied().unwrap_or(c.on_by_default()) { continue; }
         let cg = update::Game::component(dir, &c.id);
         let dll = dir.join("Elite_DLLs").join(&c.inject);
         let was = dll.is_file();
@@ -511,7 +511,7 @@ pub(crate) fn effective_settings(dir: &std::path::Path, cfg: &LauncherConfig, s:
 }
 
 pub(crate) fn comp_on(dir: &std::path::Path, c: &elite_core::config::Component, s: &Settings) -> bool {
-    (c.required || s.components.get(&c.id).copied().unwrap_or(c.default)) && found_conflicts(dir, c).is_empty()
+    (c.required || s.components.get(&c.id).copied().unwrap_or(c.on_by_default())) && found_conflicts(dir, c).is_empty()
 }
 
 // ---------- 10.11.2026: the add-ons of the native Mac game (Feral 1.0.3) ----------
@@ -525,7 +525,7 @@ pub(crate) fn mac_addons_root() -> std::path::PathBuf {
 pub(crate) fn mac_on_ids(cfg: &LauncherConfig, s: &Settings, vanilla: bool) -> Vec<String> {
     let game = if vanilla { "vanilla" } else { "elite" };
     cfg.components.iter()
-        .filter(|c| c.for_os("macos") && c.for_game(game) && (c.required || s.components.get(&c.id).copied().unwrap_or(c.default)))
+        .filter(|c| c.for_os("macos") && c.for_game(game) && (c.required || s.components.get(&c.id).copied().unwrap_or(c.on_by_default())))
         .map(|c| c.id.clone()).collect()
 }
 
@@ -543,7 +543,7 @@ pub(crate) fn sync_mac_addons(addons: &std::path::Path, cfg: &LauncherConfig, s:
         let d = macos::addon_dir(addons, &c.id);
         known.insert(d.clone());
         let g = update::Game::component(&d, &c.id);
-        if c.required || s.components.get(&c.id).copied().unwrap_or(c.default) {
+        if c.required || s.components.get(&c.id).copied().unwrap_or(c.on_by_default()) {
             std::fs::create_dir_all(&d).map_err(|e| update::Error::Io(e.to_string()))?;
             let man = load(&g, &c.version)?;
             update::apply(&g, m, &man, &update::Options { verify_all: false, cache_limit: s.cache_mb.unwrap_or(DEFAULT_CACHE_MB) << 20, channel: c.id.clone() }, progress)?;
@@ -582,7 +582,7 @@ pub(crate) fn mac_addons_sync_needed(addons: &std::path::Path, cfg: &LauncherCon
     cfg.components.iter().filter(|c| c.for_os("macos")).any(|c| {
         let g = update::Game::component(&elite_core::macos::addon_dir(addons, &c.id), &c.id);
         let st = g.load_state();
-        if c.required || s.components.get(&c.id).copied().unwrap_or(c.default) {
+        if c.required || s.components.get(&c.id).copied().unwrap_or(c.on_by_default()) {
             st.version != c.version || st.files.is_empty() || st.files.iter().any(|f| !g.file(&f.path).is_file())
         } else {
             !st.version.is_empty()

@@ -565,7 +565,7 @@ def check_events(problems):
 def check_store(problems, path):
     import json
     d = json.loads(Path(path).read_text(encoding="utf-8"))
-    for c in d.get("components") or []:
+    for c in (d.get("components") or []) + (d.get("components_macos") or []):   # 1.6.29: the Mac cards too
         cid = c.get("id")
         nm = c.get("name")
         if isinstance(nm, dict):
@@ -577,6 +577,8 @@ def check_store(problems, path):
         elif isinstance(nm, str) and CYR.search(nm):
             problems.append(f"store {cid}: a Russian card name: {nm}")
         _texts_ok(f"store {cid}.description", c.get("description"), problems, True)
+        if c.get("danger") is not None:      # 1.6.29: the card's warning - in all five languages like the description
+            _texts_ok(f"store {cid}.danger", c.get("danger"), problems, True)
         for o in c.get("options") or []:
             on = o.get("name")
             if not o.get("choices") and isinstance(on, dict) and len(set(on.values())) > 1:

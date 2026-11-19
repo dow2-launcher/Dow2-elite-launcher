@@ -1414,3 +1414,9 @@ Object.assign(T.fr, { rTeamShort: 'Éq. {n}', rAvg: 'moy. {r}', secGame: 'Jeu', 
 Object.assign(T.de, { rTeamShort: 'Team {n}', rAvg: 'Ø {r}', secGame: 'Spiel', secLauncher: 'Launcher', secService: 'Wartung', aboutTitle: 'Über', aboutAuto: 'aktualisiert sich selbst', aboutNews: 'Neuigkeiten', aboutInstalled: 'Installiert', aboutCode: 'Open Source', aboutLicense: 'MIT-Lizenz', addonsOnOf: '{n} von {m} an', setupHide: 'Ausblenden', setupMore: 'Mehr', launcherRestarts: 'startet von selbst neu', launcherGet: 'Herunterladen', launcherUpdatingTo: 'Launcher wird auf {v} aktualisiert…',
   launcherAfter: 'danach Signaturprüfung und Neustart', chWaitingShort: 'Anmeldung im Browser…', meRating: '1v1-Wertung · {r}',
   lvAddonAsk: 'Zum Zuschauen braucht es das Add-on „Live replay“. Der Launcher aktiviert es, startet das Spiel und öffnet dieses Match.' });
+// 1.6.29 (owner 19.11.2026): an add-on marked dangerous in the store (app.js compDanger) - its chip and the question before it goes on
+Object.assign(T.en, { addonDanger: 'DANGER', dangerTitle: 'Turn on {name}?', dangerAsk: 'Turn it on only if you know what it does.', dangerOn: 'Turn on', dangerCancel: 'Cancel' });
+Object.assign(T.ru, { addonDanger: 'ОПАСНО', dangerTitle: 'Включить {name}?', dangerAsk: 'Включайте, только если понимаете, что оно делает.', dangerOn: 'Включить', dangerCancel: 'Отмена' });
+Object.assign(T.es, { addonDanger: 'PELIGRO', dangerTitle: '¿Activar {name}?', dangerAsk: 'Actívalo solo si sabes lo que hace.', dangerOn: 'Activar', dangerCancel: 'Cancelar' });
+Object.assign(T.fr, { addonDanger: 'DANGER', dangerTitle: 'Activer {name} ?', dangerAsk: 'Activez-le seulement si vous savez ce qu\'il fait.', dangerOn: 'Activer', dangerCancel: 'Annuler' });
+Object.assign(T.de, { addonDanger: 'GEFAHR', dangerTitle: '{name} aktivieren?', dangerAsk: 'Nur aktivieren, wenn du weißt, was es tut.', dangerOn: 'Aktivieren', dangerCancel: 'Abbrechen' });

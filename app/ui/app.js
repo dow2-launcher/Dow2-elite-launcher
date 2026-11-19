@@ -405,6 +405,21 @@ function compDependentsOff(id) {
   return out;
 }
 const compWarnHtml = (c, cls) => compWarns(c).map(w => `<div class="${cls}">${esc(w)}</div>`).join('');
+// <danger> 1.6.29 (owner 19.11.2026: "show it as a danger - don't switch it on casually, it means desync"): an add-on with a
+// "danger" text in the store - a red chip by the name, the red edge of its card, the text on the card itself; turning it on asks
+// first (Cancel leaves it off), turning it off does not. Every way of turning an add-on on goes through compDangerOk (the
+// switch / the row of the Add-ons tab, naNeed of needaddon.js); the launcher never turns one on by default (config.rs
+// on_by_default). tests: scripts/uicheck/danger_addons.mjs
+const compDanger = c => (c ? L(c.danger) : '').trim();
+const dangerChip = c => compDanger(c) ? `<span class="chip danger" title="${esc(compDanger(c))}">${esc(t('addonDanger'))}</span>` : '';
+const dangerHtml = c => compDanger(c) ? `<div class="addon-danger">${esc(compDanger(c))}</div>` : '';
+async function compDangerOk(c) {
+  if (!compDanger(c)) return true;
+  const v = await askBox(t('dangerTitle', { name: L(c.name) || c.id }), [compDanger(c), t('dangerAsk')],
+    [{ label: t('dangerOn'), cls: 'red', val: 1 }, { label: t('dangerCancel'), val: 0 }]);
+  return v === 1;
+}
+// </danger>
 const compWarnMark = c => compWarns(c).length ? `<span class="addon-warn" title="${esc(compWarns(c).join('; '))}">!</span>` : '';
 // 1.4.11 (owner 05.11.2026): Play starts vanilla Retribution - the add-ons for Elite only are grey there, their switch locked
 const VAN = () => !!(S && S.game_mode === 'vanilla');
@@ -421,11 +436,12 @@ function compList(box, list, full) {
   const noAddons = !!(S.addons_blocked || S.addons_blocked_next);
   const lock = S.busy || S.game_running || noAddons;
   const nameHtml = c => { const n = L(c.name) || c.id, m = n.match(/^(.+?)\s*\(([^()]+)\)$/); return m ? `${esc(m[1])}<small>${esc(m[2])}</small>` : esc(n); };
-  const card = c => `<div class="addon ${c.enabled && !naHere(c) ? '' : 'off'} ${naHere(c) ? 'na' : ''}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
-      + (full ? compChips(c) : '') + (naHere(c) ? naChip(c) : '')
+  const card = c => `<div class="addon ${c.enabled && !naHere(c) ? '' : 'off'} ${naHere(c) ? 'na' : ''} ${compDanger(c) ? 'danger' : ''}"><div class="addon-row"><span class="addon-name" title="${esc(L(c.name) || c.id)}">${nameHtml(c)}</span>`
+      + dangerChip(c) + (full ? compChips(c) : '') + (naHere(c) ? naChip(c) : '')
       + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '') + compWarnMark(c)
       + (full ? '' : `<button class="qm ${$('pop').dataset.id === c.id ? 'on' : ''}" data-info="${esc(c.id)}" aria-label="${esc(t('addonInfo', { name: L(c.name) || c.id }))}">?</button>`)
       + `<label class="switch"><input type="checkbox" role="switch" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled && !c.preview ? 'checked' : ''} ${lock || naHere(c) || c.required ? 'disabled' : ''}><i></i></label></div>`
+      + dangerHtml(c)
       + (full ? (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
           + `<div class="addon-ver">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
           + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') + compWarnHtml(c, 'addon-note') : '')
@@ -437,11 +453,11 @@ function compList(box, list, full) {
   // 1.5.0 (D): on the Add-ons tab every group is a panel; the panels go into 1 / 2 / 3 columns by the window's width, whole,
   // the columns about equally tall; an add-on is a row - a checkbox on the left (a click on the row ticks it), the name with
   // its marks, the description, its settings; the version on the right
-  const row = c => `<div class="arow ${c.enabled && !naHere(c) ? '' : 'off'} ${naHere(c) ? 'na' : ''} ${lock || naHere(c) ? 'lock' : ''}">`
+  const row = c => `<div class="arow ${c.enabled && !naHere(c) ? '' : 'off'} ${naHere(c) ? 'na' : ''} ${lock || naHere(c) ? 'lock' : ''} ${compDanger(c) ? 'danger' : ''}">`
       + `<input type="checkbox" data-id="${esc(c.id)}" aria-label="${esc(L(c.name) || c.id)}" ${c.enabled && !c.preview ? 'checked' : ''} ${lock || naHere(c) || c.required ? 'disabled' : ''}>`
-      + `<div class="arow-b"><div class="arow-n"><b>${nameHtml(c)}</b>${naHere(c) ? naChip(c) : ''}${compChips(c)}`
+      + `<div class="arow-b"><div class="arow-n"><b>${nameHtml(c)}</b>${dangerChip(c)}${naHere(c) ? naChip(c) : ''}${compChips(c)}`
       + (c.enabled && (c.conflicts || []).length ? `<span class="addon-warn" title="${esc(t('conflictActive'))}">!</span>` : '') + compWarnMark(c) + '</div>'
-      + (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
+      + dangerHtml(c) + (L(c.description) ? `<p class="addon-desc">${esc(L(c.description))}</p>` : '')
       + (c.enabled && (c.conflicts || []).length ? `<div class="addon-note">${esc(t('conflictActive'))}</div>` : '') + compWarnHtml(c, 'addon-note')
       + (c.enabled && !naHere(c) && (c.options || []).length ? '<div class="addon-opts">' + optsHtml(c, lock) + '</div>' : '')
       + `</div><div class="arow-v">${esc(compVer(c))}</div></div>`;
@@ -470,6 +486,9 @@ function compList(box, list, full) {
   box.querySelectorAll('select[data-opt]').forEach(sel => sel.onchange = () =>
     invoke('set_comp_value', { comp: sel.dataset.comp, opt: sel.dataset.opt, value: sel.value }).then(reload).catch(e => toast(e, true)));
   box.querySelectorAll('input[data-id]').forEach(cb => cb.onchange = async () => {
+    // 1.6.29: an add-on marked dangerous asks before it goes on (the switch stays off while it asks); Cancel - nothing changes
+    const dc = cb.checked && list.find(c => c.id === cb.dataset.id);
+    if (dc && compDanger(dc)) { cb.checked = false; if (!(await compDangerOk(dc))) return; cb.checked = true; }
     const deps = cb.checked ? [] : compDependentsOff(cb.dataset.id);
     await invoke('set_component', { id: cb.dataset.id, on: cb.checked });
     for (const d of deps) await invoke('set_component', { id: d.id, on: false });
@@ -484,7 +503,7 @@ addEventListener('resize', () => { const n = window.innerWidth < 1000 ? 1 : wind
 function popAddon(btn, c) {
   const pop = $('pop');
   if (!c || (pop.dataset.id === c.id && !pop.classList.contains('hidden'))) return popClose();
-  pop.innerHTML = `<b>${esc(L(c.name) || c.id)}</b>` + (L(c.description) ? `<p>${esc(L(c.description))}</p>` : '')
+  pop.innerHTML = `<b>${esc(L(c.name) || c.id)}</b>` + (compDanger(c) ? `<div class="w danger">${esc(compDanger(c))}</div>` : '') + (L(c.description) ? `<p>${esc(L(c.description))}</p>` : '')
     + `<div class="v">${esc([compVer(c), t('addonLater')].filter(Boolean).join(' · '))}</div>`
     + (c.enabled && (c.conflicts || []).length ? `<div class="w">${esc(t('conflictActive'))}</div>` : '') + compWarnHtml(c, 'w');
   pop.dataset.id = c.id;
