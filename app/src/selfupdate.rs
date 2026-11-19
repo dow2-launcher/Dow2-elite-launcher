@@ -43,8 +43,22 @@ pub(crate) fn launcher_updater(app: &AppHandle, github: bool) -> Option<tauri_pl
     let mut urls: Vec<tauri::Url> = Vec::new();
     if github { urls.extend(tauri::Url::parse(GITHUB_UPDATER).ok()); }
     urls.extend(reach::api_hosts().iter().filter_map(|h| tauri::Url::parse(&format!("{h}/elite/dl/updater.json")).ok()));
-    if urls.is_empty() { return app.updater().ok(); }
-    app.updater_builder().endpoints(urls).ok()?.build().ok()
+    let b = app.updater_builder();
+    let b = if urls.is_empty() { b } else { b.endpoints(urls).ok()? };
+    // 1.6.30: the plugin's own install (the fallback of launcher_install) replaces this copy where it is too - /D= last
+    let d: Vec<String> = update_dir().as_deref().and_then(elite_core::selfupd::nsis_dir).map(|d| format!("/D={d}")).into_iter().collect();
+    b.installer_args(d).build().ok()
+}
+/// 1.6.30 (TvangeS 19.11.2026: "updated three times, after a restart it is the old one again"): the running copy's folder for the
+/// installer's /D= (elite_core::selfupd: Tauri's installer otherwise takes the folder of the last install from the registry).
+/// None when this user can not write there (Program Files: the per-user installer keeps its own pick, as before) or on Linux / macOS.
+pub(crate) fn update_dir() -> Option<String> {
+    if !cfg!(windows) { return None; }
+    let dir = std::env::current_exe().ok()?.parent()?.to_path_buf();
+    let probe = dir.join(".elite-update-probe");
+    std::fs::write(&probe, b"").ok()?;
+    let _ = std::fs::remove_file(&probe);
+    Some(dir.to_string_lossy().into_owned())
 }
 /// The launcher's download progress for the window (the footer's bar), counted from 0.
 pub(crate) fn launcher_progress(app: &AppHandle) -> impl FnMut(usize, Option<u64>) + Send + 'static {
@@ -85,11 +99,15 @@ pub async fn launcher_install(app: AppHandle) -> Result<(), String> {
         // Launcher" when it catches it half-way through closing (siritos 29.10: the plugin starts the installer and only
         // then exits). So: download (the signature is checked there), then the installer is started 3 s after this
         // process is gone, with the plugin's own arguments (passive, update, restart). The plugin's way if that fails.
+        // 1.6.30: + /D=<this copy's folder> (elite_core::selfupd) - the update replaces the running copy where it is, not the
+        // registry's folder; the path and the arguments go through the environment (cmd's !delayed! expansion: & % ^ in a folder)
         let path = std::env::temp_dir().join(format!("EliteLauncher-{}-setup.exe", upd.version));
         if std::fs::write(&path, &bytes).is_ok() {
             use std::os::windows::process::CommandExt;
-            let line = format!("ping -n 4 127.0.0.1 >NUL & start \"\" \"{}\" /P /UPDATE /R /ARGS", path.display());
-            let started = std::process::Command::new("cmd").arg("/C").raw_arg(&line)
+            let args = elite_core::selfupd::nsis_update_args(update_dir().as_deref());
+            c_log(&format!("launcher update: {} {args}", path.display()));
+            let started = std::process::Command::new("cmd").arg("/V:ON").arg("/C").raw_arg(elite_core::selfupd::CMD_LINE)
+                .env("ELITE_SETUP", &path).env("ELITE_SETUP_ARGS", &args)
                 .creation_flags(0x0800_0000 /* CREATE_NO_WINDOW */ | 0x0000_0200 /* CREATE_NEW_PROCESS_GROUP */)
                 .stdin(std::process::Stdio::null()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null())
                 .spawn().is_ok();

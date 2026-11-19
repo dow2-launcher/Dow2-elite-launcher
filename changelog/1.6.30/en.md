@@ -1,0 +1,1 @@
+- Windows: updating the launcher from the launcher now installs the new version into the same folder it runs from. A launcher kept in a folder of its own (e.g. D:\elite launcher) used to be updated into another one - after a restart the old version opened again, and a second icon flashed in the tray.

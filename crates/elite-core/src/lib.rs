@@ -17,6 +17,7 @@ pub mod nettest;
 pub mod proton;
 pub mod replay;
 pub mod sign;
+pub mod selfupd;
 pub mod update;
 pub mod winplace;
 
