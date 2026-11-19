@@ -1,0 +1,2 @@
+- Chats: links in messages are clickable (http://, https:// and www. addresses) — in the general chat, the lobby chat and the thread with the developers; they open in your browser, are underlined, and long ones are shortened (the full address is in the tooltip). Works for older messages too.
+- The launcher window remembers its size, position and maximized state — after a restart or an update it opens the way you left it. If that monitor is gone or the window would be off-screen, it opens centred on the main monitor.

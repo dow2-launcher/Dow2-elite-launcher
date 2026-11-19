@@ -278,7 +278,7 @@ function chRender(force, older) {
     return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${toMe ? 'tome' : ''} ${extra}"${m.id ? ` data-id="${esc(String(m.id))}"` : ''}><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">` + avatar(m.avatar) + `</span>`
       + `<div><div class="w"><b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}"${rtTipAttr(m.steam, m.name)}>${esc(m.name)}</b>${rtBadge(m.steam)}<span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}${tail}</div>`
       + quote(m.reply)
-      + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${mention(esc(text))}</div></div></div>`;
+      + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${linkify(text, p => mention(esc(p)), linkA)}</div></div></div>`;
   };
   const sent = list.map(m => row(m, '', '')).join('');   // first: the day headings run on into the queue
   // ours not confirmed yet stay at the bottom: a clock while sending, "Not sent · Retry · Delete" when it failed
