@@ -1,20 +1,21 @@
 #!/usr/bin/env node
-// 1.6.27 (SirItos 18.11.2026): links in the chat - chat.js chLinkify(), cut out of the file by its // <linkify> marks, against hostile
-// and tricky messages. The site's chat (dow2-ladder ladder/chat.html linkify, ladder/tests/test_chat_links.js) is the same code and cases.
+// 1.6.27 (SirItos 18.11.2026; 19.11: every chat of the launcher): links in the chats - app.js linkify(), cut out of the file by its
+// // <linkify> marks, against hostile and tricky messages, and its three call sites (the players' chat, the lobby chat, the developers'
+// thread). The site's chat (dow2-ladder ladder/chat.html linkify, ladder/tests/test_chat_links.js) is the same code and cases.
 // No browser needed.   node scripts/uicheck/chat_links.mjs
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-const FILE = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'app', 'ui', 'chat.js');
+const UI = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'app', 'ui'), FILE = join(UI, 'app.js');
 const src = readFileSync(FILE, 'utf8'), a = src.indexOf('// <linkify>'), b = src.indexOf('// </linkify>');
 if (a < 0 || b < a) { console.error('no // <linkify> ... // </linkify> in ' + FILE); process.exit(2); }
 // app.js's esc
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const chLinkify = new Function('esc', src.slice(a, b) + '\nreturn chLinkify;')(esc);
-// the plain parts escaped + a mention lit (the chat's own mention pass works on the plain parts the same way), a link as chat.js chLinkA
+const linkify = new Function('esc', src.slice(a, b) + '\nreturn linkify;')(esc);
+// the plain parts escaped + a mention lit (the chats' own mention pass works on the plain parts the same way), a link as app.js linkA
 const fmt = p => esc(p).replace(/(^|\s)(@[^\s@]{1,32})/g, (m, s, x) => s + '<span class="at">' + x + '</span>');
 const link = (href, shown) => `<a class="ch-link" href="${esc(href)}" title="${esc(href)}" rel="noopener noreferrer nofollow ugc">${esc(shown)}</a>`;
-const R = t => chLinkify(t, fmt, link);
+const R = t => linkify(t, fmt, link);
 const hrefs = h => [...h.matchAll(/<a class="ch-link" href="([^"]*)"/g)].map(m => m[1]);
 const shown = h => [...h.matchAll(/<a [^>]*>([^<]*)<\/a>/g)].map(m => m[1]);
 let fails = 0;
@@ -51,5 +52,16 @@ h = safe('too long', 'https://example.com/' + 'a'.repeat(500)); check('over 500 
 h = safe('two in a row', 'https://a.b https://c.d'); check('two links', JSON.stringify(hrefs(h)) === '["https://a.b","https://c.d"]', h);
 h = safe('user@host', 'https://u@evil.example/x'); check('a user part: still an https link, shown as typed', JSON.stringify(hrefs(h)) === '["https://u@evil.example/x"]', h);
 h = safe('nothing to link', 'просто текст @nick, без ссылок'); check('as before: escape + mention', h === 'просто текст <span class="at">@nick,</span> без ссылок', h);
+// the developers' thread: no mentions there - the plain parts only escaped (fmt = esc)
+h = linkify('логи: https://rts.fintebtc.de/up/ <img src=x>', esc, link);
+check('the dev thread (fmt = esc): a link, the rest escaped', JSON.stringify(hrefs(h)) === '["https://rts.fintebtc.de/up/"]' && h.endsWith('&lt;img src=x&gt;'), h);
+// every chat of the launcher renders its message text through linkify (19.11): the call sites
+const site = (f, re) => check(f + ': the message text through linkify', re.test(readFileSync(join(UI, f), 'utf8')), f);
+site('chat.js', /\$\{linkify\(text, p => mention\(esc\(p\)\), linkA\)\}/);
+site('lchat.js', /\$\{linkify\(text, p => mention\(esc\(p\)\), linkA\)\}/);
+site('feedback.js', /\$\{linkify\(fbMsgText\(m\), esc, linkA\)\}/);
+check('one helper: no copy of it left in the chats', !['chat.js', 'lchat.js', 'feedback.js'].some(f => /function \w*[lL]inkify\(/.test(readFileSync(join(UI, f), 'utf8'))), '');
+const css = readFileSync(join(UI, 'style.css'), 'utf8'), rule = (css.match(/(^|\n)a\.ch-link\{[^}]*\}/) || [''])[0];
+check('the link style: underlined always, never bold', /text-decoration:underline/.test(rule) && /font-weight:400/.test(rule), rule);
 console.log(fails ? '\n' + fails + ' failed' : '\nall ok');
 process.exit(fails ? 1 : 0);

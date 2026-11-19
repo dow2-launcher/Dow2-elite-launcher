@@ -151,6 +151,40 @@ Object.assign(ICO, { door: w40('gate'), crown: w40('host'), invite: w40('banner'
   purge: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13M10 11v5.5M14 11v5.5"/></svg>' });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const open = url => url && invoke('open_url', { url }).catch(e => toast(e, true));
+// <linkify> 1.6.27 (SirItos 18.11.2026, the same on the site's chat; 19.11: every chat of the launcher - the players' chat, the lobby
+// chat, the developers' thread): links in the messages, at render time only (the text stays plain, so
+// the old messages get them too). Only http(s):// and bare www. addresses (-> https://), up to 500 characters; the sentence's punctuation
+// after one is not its part (a ")" stays when the address opened a "("). The plain parts go through fmt (escape + @mentions) and the
+// link through esc alone - a mention never breaks a link with "@" in it. Shown short (no scheme, ~60 characters), the whole in title.
+// tests: scripts/uicheck/chat_links.mjs
+function linkify(text, fmt, link) {
+  const s = String(text == null ? '' : text), re = /(^|[^\w@/.-])((?:https?:\/\/|www\.)[^\s<>"'`«»]+)/gi;
+  let out = '', last = 0, m;
+  while ((m = re.exec(s))) {
+    let u = m[2];
+    while (u) {
+      const c = u[u.length - 1];
+      if (c === ')' && u.split('(').length >= u.split(')').length) break;
+      if (!'.,;:!?)]»"\''.includes(c)) break;
+      u = u.slice(0, -1);
+    }
+    const href = /^www\./i.test(u) ? 'https://' + u : u, host = href.replace(/^https?:\/\//i, '').split(/[/?#]/)[0].replace(/^[^@]*@/, '').replace(/:\d+$/, '');
+    if (u.length > 500 || !/^[^.\s]+(\.[^.\s]+)+$/.test(host)) continue;
+    const start = m.index + m[1].length, shown = Array.from(u.replace(/^https?:\/\//i, ''));
+    out += fmt(s.slice(last, start)) + link(href, shown.length > 60 ? shown.slice(0, 57).join('') + '…' : shown.join(''));
+    last = re.lastIndex = start + u.length;
+  }
+  return out + fmt(s.slice(last));
+}
+// </linkify>
+const linkA = (href, shown) => `<a class="ch-link" href="${esc(href)}" title="${esc(href)}" rel="noopener noreferrer nofollow ugc">${esc(shown)}</a>`;
+// a click on a link of any chat opens it in the browser (open_url: our site on the mirror in use, onLinkUrl: our pages in the launcher's
+// language); the window itself never navigates - a middle click / Ctrl+click either
+document.addEventListener('click', e => {
+  const a = e.target.closest && e.target.closest('a.ch-link'); if (!a) return;
+  e.preventDefault(); e.stopPropagation(); open(onLinkUrl(a.getAttribute('href')));
+}, true);
+document.addEventListener('auxclick', e => { if (e.target.closest && e.target.closest('a.ch-link')) e.preventDefault(); }, true);
 // 1.6.21 (owner 17.11.2026): our site on the mirror the launcher uses now; open_url moves any link to our site (launcher.json,
 // notice.json, the server's) onto that mirror too. 1.6.22: the ONE host of the window - links, the pictures of the maps, races and
 // heroes, the live replay - is the launcher's active host (reach.rs, main.rs site_host; "host_active" when it changes), the same

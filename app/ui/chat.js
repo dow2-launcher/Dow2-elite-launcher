@@ -248,39 +248,6 @@ async function chGoto(id) {
     await chLoad(key, 'older');
   }
 }
-// <linkify> 1.6.27 (SirItos 18.11.2026, the same on the site's chat): links in the messages, at render time only (the text stays plain, so
-// the old messages get them too). Only http(s):// and bare www. addresses (-> https://), up to 500 characters; the sentence's punctuation
-// after one is not its part (a ")" stays when the address opened a "("). The plain parts go through fmt (escape + @mentions) and the
-// link through esc alone - a mention never breaks a link with "@" in it. Shown short (no scheme, ~60 characters), the whole in title.
-// tests: scripts/uicheck/chat_links.mjs
-function chLinkify(text, fmt, link) {
-  const s = String(text == null ? '' : text), re = /(^|[^\w@/.-])((?:https?:\/\/|www\.)[^\s<>"'`«»]+)/gi;
-  let out = '', last = 0, m;
-  while ((m = re.exec(s))) {
-    let u = m[2];
-    while (u) {
-      const c = u[u.length - 1];
-      if (c === ')' && u.split('(').length >= u.split(')').length) break;
-      if (!'.,;:!?)]»"\''.includes(c)) break;
-      u = u.slice(0, -1);
-    }
-    const href = /^www\./i.test(u) ? 'https://' + u : u, host = href.replace(/^https?:\/\//i, '').split(/[/?#]/)[0].replace(/^[^@]*@/, '').replace(/:\d+$/, '');
-    if (u.length > 500 || !/^[^.\s]+(\.[^.\s]+)+$/.test(host)) continue;
-    const start = m.index + m[1].length, shown = Array.from(u.replace(/^https?:\/\//i, ''));
-    out += fmt(s.slice(last, start)) + link(href, shown.length > 60 ? shown.slice(0, 57).join('') + '…' : shown.join(''));
-    last = re.lastIndex = start + u.length;
-  }
-  return out + fmt(s.slice(last));
-}
-// </linkify>
-const chLinkA = (href, shown) => `<a class="ch-link" href="${esc(href)}" title="${esc(href)}" rel="noopener noreferrer nofollow ugc">${esc(shown)}</a>`;
-// 1.6.27: a click on a link opens it in the browser (open_url: our site on the mirror in use, onLinkUrl: our pages in the launcher's
-// language); the window itself never navigates - a middle click / Ctrl+click either
-$('chMsgs').addEventListener('click', e => {
-  const a = e.target.closest && e.target.closest('a.ch-link'); if (!a) return;
-  e.preventDefault(); e.stopPropagation(); open(onLinkUrl(a.getAttribute('href')));
-});
-$('chMsgs').addEventListener('auxclick', e => { if (e.target.closest && e.target.closest('a.ch-link')) e.preventDefault(); });
 function chRender(force, older) {
   const box = $('chMsgs'), key = chKey(CH.room), list = CH.msgs[key] || [];
   const atEnd = box.scrollTop + box.clientHeight > box.scrollHeight - 30, h0 = box.scrollHeight, top0 = box.scrollTop;
@@ -311,7 +278,7 @@ function chRender(force, older) {
     return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${toMe ? 'tome' : ''} ${extra}"${m.id ? ` data-id="${esc(String(m.id))}"` : ''}><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">` + avatar(m.avatar) + `</span>`
       + `<div><div class="w"><b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}"${rtTipAttr(m.steam, m.name)}>${esc(m.name)}</b>${rtBadge(m.steam)}<span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}${tail}</div>`
       + quote(m.reply)
-      + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${chLinkify(text, p => mention(esc(p)), chLinkA)}</div></div></div>`;
+      + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${linkify(text, p => mention(esc(p)), linkA)}</div></div></div>`;
   };
   const sent = list.map(m => row(m, '', '')).join('');   // first: the day headings run on into the queue
   // ours not confirmed yet stay at the bottom: a clock while sending, "Not sent · Retry · Delete" when it failed

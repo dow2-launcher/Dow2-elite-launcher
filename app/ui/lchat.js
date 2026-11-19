@@ -111,7 +111,7 @@ function lcRows(r) {
       + `<div><div class="w">${m.obs ? `<i class="lc-ome" data-tip="${esc(t('lrChatObs'))}">${ico('eye')}</i>` : ''}`
       + `<b class="${r && m.steam === r.owner ? 'lc-host' : ''}" data-name="${esc(m.name || '')}" data-steam="${esc(m.steam)}"${rtTipAttr(m.steam, m.name)}>${esc(m.name || '')}</b>${rtBadge(m.steam)}`
       + `<span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}</div>${q}`
-      + `<div class="tx ${tr ? 'tr' : ''}"${tr ? ` title="${esc(t('chOrig') + ': ' + lcOrig(m))}"` : ''}>${mention(esc(text))}</div></div></div>`;
+      + `<div class="tx ${tr ? 'tr' : ''}"${tr ? ` title="${esc(t('chOrig') + ': ' + lcOrig(m))}"` : ''}>${linkify(text, p => mention(esc(p)), linkA)}</div></div></div>`;
   }).join('');
 }
 // one of the two places (the lobby's column, Home's pane): its messages, the reply strip, the input

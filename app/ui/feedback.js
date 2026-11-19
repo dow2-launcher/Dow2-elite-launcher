@@ -77,7 +77,7 @@ function fbRender(keepTop) {
   const when = ts => new Date(ts * 1000).toLocaleString(lang, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
   const img = f => `${FB.img}${encodeURIComponent(f)}?uid=${encodeURIComponent(FB.uid)}`;
   box.innerHTML = (FB.more ? `<button class="link-btn fb-more" id="fbMore">${esc(t('fbEarlier'))}</button>` : '')
-    + (ms.length ? ms.map(m => `<div class="fb-m ${m.author === 'dev' ? 'dev' : 'me'}"><div class="w">${esc(m.author === 'dev' ? t('fbDev') : (m.name || t('fbMe')))} · ${when(m.ts)}</div>${esc(fbMsgText(m))}` +
+    + (ms.length ? ms.map(m => `<div class="fb-m ${m.author === 'dev' ? 'dev' : 'me'}"><div class="w">${esc(m.author === 'dev' ? t('fbDev') : (m.name || t('fbMe')))} · ${when(m.ts)}</div>${linkify(fbMsgText(m), esc, linkA)}` +
     (m.images || []).map(f => `<img src="${img(f)}" data-u="${img(f)}">`).join('') + '</div>').join('')
     : `<div class="fb-empty">${esc(t('fbEmpty'))}</div>`);
   box.querySelectorAll('img').forEach(i => i.onclick = () => open(i.dataset.u));
