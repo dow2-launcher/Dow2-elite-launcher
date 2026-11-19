@@ -118,6 +118,15 @@ pub async fn replays_have(ids: Vec<String>) -> Result<Value, String> {
     blocking(move || post("/replay/api/have", &json!({"ids": ids}))).await
 }
 
+/// 1.6.28: the SteamIDs of Relic profile ids - the players of the own files, for the player tip and menu: {"<id>": "<SteamID>"}
+/// (the replay service's /replay/api/steams, relicstats behind it); the computer (4294967295) and nonsense left out.
+#[tauri::command]
+pub async fn replays_steams(pids: Vec<u64>) -> Result<Value, String> {
+    let pids: Vec<u64> = pids.into_iter().filter(|p| *p > 0 && *p < 4_294_967_295).take(200).collect();
+    if pids.is_empty() { return Ok(json!({})); }
+    blocking(move || post("/replay/api/steams", &json!({"pids": pids}))).await
+}
+
 /// One replay of the pool: its meta, the caption and the report of the server's analysis.
 #[tauri::command]
 pub async fn replay_info(id: String) -> Result<Value, String> {

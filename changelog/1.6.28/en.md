@@ -1,0 +1,1 @@
+- Replays: hovering a player's name shows the same tip as everywhere in the launcher (Elite rating per mode, Relic rating), and a click opens the player menu; in the list and in the replay's panel. The computer and unknown players have no tip.
