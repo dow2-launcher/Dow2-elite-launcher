@@ -39,6 +39,7 @@ mod feedback;
 mod community;
 mod stream;
 mod feeds;
+mod winstate;
 // every module's items reachable crate-wide (crate::X), as when they were all in this file; some are used on one OS only
 #[allow(unused_imports)]
 pub(crate) use self::{netcheck::*, prefs::*, gameproc::*, selfupdate::*, addons::*, vanilla::*, install::*, logs::*, launch::*, feedback::*, community::*, stream::*, feeds::*};
@@ -563,6 +564,10 @@ fn main() {
             ),
         })
         .setup(|app| {
+            // 1.6.27 (SirItos 19.11.2026): the window opens where the player left it (size, place, maximized - winstate.rs); it is
+            // created hidden (tauri.conf.json) and shown only here, once placed. Shown whatever happens - a launcher never stays invisible
+            let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| winstate::restore(app.handle())));
+            if let Some(w) = app.get_webview_window("main") { let _ = w.show(); }
             // 1.4.9: links elite://join/<id>?name=... (the ladder site's Join): registered for this user at every start (the
             // installer does it too; this covers the portable zip and the AppImage), handled like Join in the Lobbies tab
             #[cfg(any(windows, target_os = "linux"))]
@@ -674,7 +679,10 @@ fn main() {
         // the close button hides to the tray, only the tray's "Quit" ends the launcher; minimising is an ordinary
         // minimise to the taskbar. The tray icon (or its "Open" item, or starting the launcher again) brings it back
         .on_window_event(|window, event| {
+            // 1.6.27: the window's size and place are kept (winstate.rs): after a move / resize, and when it is closed or hidden
+            if matches!(event, tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_)) { winstate::touch(); }
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if let Some(w) = window.app_handle().get_webview_window(window.label()) { winstate::save_now(&w); }
                 // 1.3.12 (owner): a tick in Settings - the close button quits the launcher instead of hiding it in the tray
                 if window.app_handle().state::<App>().settings.lock().unwrap().close_quits.unwrap_or(false) {
                     window.app_handle().exit(0);
@@ -701,6 +709,10 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("error while running Elite Launcher")
         .run(|_app, _event| {
+            // 1.6.27: the tray's Quit (and any exit): the window's last size and place kept
+            if let tauri::RunEvent::ExitRequested { .. } = _event {
+                if let Some(w) = _app.get_webview_window("main") { winstate::save_now(&w); }
+            }
             // macOS: a click on the Dock icon brings back the window the close button hid
             #[cfg(target_os = "macos")]
             if let tauri::RunEvent::Reopen { .. } = _event {

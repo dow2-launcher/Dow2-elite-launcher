@@ -18,6 +18,7 @@ pub mod proton;
 pub mod replay;
 pub mod sign;
 pub mod update;
+pub mod winplace;
 
 /// Version of this launcher build (compared with `min_launcher` / `launcher_update` in launcher.json).
 pub const LAUNCHER_VERSION: &str = env!("CARGO_PKG_VERSION");
