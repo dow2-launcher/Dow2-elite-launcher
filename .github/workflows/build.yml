@@ -57,6 +57,9 @@ jobs:
       # 1.6.28: the Replays tab's player names (replays.js rpNm / rpAskSteams) - plain node
       - name: Replay player tips
         run: node scripts/uicheck/replay_tips.mjs
+      # 1.6.29: add-ons marked dangerous (app.js compDanger) and every way of turning one on - plain node
+      - name: Dangerous add-ons
+        run: node scripts/uicheck/danger_addons.mjs
       - id: version
         env:
           EVENT: ${{ github.event_name }}

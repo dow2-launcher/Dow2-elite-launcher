@@ -299,9 +299,9 @@ fn get_status(app: State<'_, App>) -> Value {
             "vanilla_installed": dir.as_ref().map(|d| update::Game::vanilla_component(d, &c.id).load_state().version).unwrap_or_default(),
             "game_ok": mod_g.as_deref().is_none_or(|g| c.for_game(g)),
             "enabled": !addons_off && mod_g.as_deref().is_none_or(|g| c.for_game(g))   // a version without add-ons (or not for this mod) wins
-                && (c.required || s.components.get(&c.id).copied().unwrap_or(c.default)),
-            "chosen": c.required || s.components.get(&c.id).copied().unwrap_or(c.default),
-            "required": c.required, "os": c.os,
+                && (c.required || s.components.get(&c.id).copied().unwrap_or(c.on_by_default())),
+            "chosen": c.required || s.components.get(&c.id).copied().unwrap_or(c.on_by_default()),
+            "required": c.required, "os": c.os, "danger": c.danger,   // 1.6.29: the card's warning, asked before it goes on
             "conflicts": if preview { Vec::new() } else { dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default() },
             "preview": preview,
             "installed": if preview { String::new() } else if os_name() == "macos" {

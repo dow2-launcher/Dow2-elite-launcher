@@ -19,7 +19,7 @@ pub async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Res
         let s = st.settings.lock().unwrap().clone();
         cfg.components.iter().map(|c| match dir.as_ref() {
             Some(d) => {
-                let on = s.components.get(&c.id).copied().unwrap_or(c.default);
+                let on = s.components.get(&c.id).copied().unwrap_or(c.on_by_default());
                 let have = update::Game::component(d, &c.id).load_state().version;
                 let conf = found_conflicts(d, c);
                 let dll = !c.inject.is_empty() && d.join("Elite_DLLs").join(&c.inject).is_file();

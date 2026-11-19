@@ -2009,3 +2009,12 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .me-rl{display:flex;justify-content:space-between;gap:10px;margin-top:4px}
 .me-rl .link-btn{padding:0;border:0;background:none;font:600 12px var(--fb);color:var(--gd);cursor:pointer}
 .me-rl .link-btn:hover{color:#eafff8}
+/* 1.6.29 (owner 19.11.2026): an add-on marked dangerous in the store (app.js compDanger) - a red chip by the name, a red edge
+   on the left of its card / row and its warning as a line of the card; the question before it goes on is askBox with a red button */
+.chip.danger{border-color:var(--blood2);background:linear-gradient(#b52b27,#7a1715);color:#fff2e8;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.addon.danger,.arow.danger{box-shadow:inset 3px 0 0 var(--blood2)}
+.addon-all .addon.danger{border-color:#6e2a24}
+.arow.danger{background:linear-gradient(90deg,rgba(168,48,42,.13),transparent 50%)}
+.addon-danger{margin:5px 0 2px;padding:4px 8px;border-left:2px solid var(--blood2);background:rgba(168,48,42,.15);color:#ffb3a8;font-size:12.5px;line-height:1.35;white-space:normal}
+.arow.off .addon-danger,.addon.off .addon-danger{color:#f0a298}
+#pop .w.danger{color:var(--red)}
