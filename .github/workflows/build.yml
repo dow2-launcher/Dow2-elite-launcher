@@ -54,6 +54,9 @@ jobs:
       # 1.6.27: the chat's links (chat.js chLinkify) against hostile messages - plain node, no browser
       - name: Chat links
         run: node scripts/uicheck/chat_links.mjs
+      # 1.6.28: the Replays tab's player names (replays.js rpNm / rpAskSteams) - plain node
+      - name: Replay player tips
+        run: node scripts/uicheck/replay_tips.mjs
       - id: version
         env:
           EVENT: ${{ github.event_name }}

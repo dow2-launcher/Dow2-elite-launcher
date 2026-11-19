@@ -698,7 +698,7 @@ fn main() {
             roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             livewatch::live_watch, livewatch::live_watch_probe, livewatch::live_watch_cancel,
             replayopen::replay_open, replayopen::replay_open_probe, replayopen::replay_open_cancel,
-            replays::replays_local, replays::replays_pool, replays::replays_versions, replays::replays_have, replays::replay_info, replays::replay_upload,
+            replays::replays_local, replays::replays_pool, replays::replays_steams, replays::replays_versions, replays::replays_have, replays::replay_info, replays::replay_upload,
             replays::replay_describe, replays::replay_download, replays::replay_delete, replays::replays_open_dir,
             lroom::lroom_api, lroom::lroom_list, lroom::fame_get, lroom::own_get, lroom::notice_get, lroom::lroom_pings, lroom::lroom_launch, lroom::lroom_launch_cancel, lroom::lroom_probe, lroom::lroom_attention,
             prefs::hotkeys_get, prefs::hotkeys_save, prefs::hotkeys_reset, prefs::ui_scale_get, prefs::ui_scale_set, install::uninstall_elite,

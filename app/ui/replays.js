@@ -184,6 +184,7 @@ const RP = {
   look: 'rows',     // 1.6.3: the list as rows with the map's picture, or as the Rooms tab's cards
   f: { q: '', mode: 'all', players: 'all', version: 'all', races: [], played: false },   // played: "My replays" (1.6.16)
   myPid: undefined,   // my Relic profile id (the server's me_pid; null: not known), for the own files
+  steams: {}, steamAsked: new Set(),   // 1.6.28: Relic profile id -> SteamID of the own files' players (replays_steams), the ids asked
 };
 try { Object.assign(RP.f, JSON.parse(localStorage.getItem('replaysFilter') || '{}')); } catch (e) {}
 try { if (localStorage.getItem('replaysLook') === 'cards') RP.look = 'cards'; } catch (e) {}
@@ -352,6 +353,33 @@ function rpAct(x, kind) {
 const RP_SIM_ICO = '<svg viewBox="0 0 24 16" aria-hidden="true"><path d="M1 3l6-2 6 2 6-2v12l-6 2-6-2-6 2z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
   + '<path d="M7 1v12M13 3v12" stroke="currentColor" stroke-width="1" opacity=".55"/><circle cx="18" cy="11" r="5" fill="#0c1718" stroke="currentColor" stroke-width="1.4"/><path d="M16.6 8.6v4.8l3.8-2.4z" fill="currentColor"/></svg>';
 // 1.6.11 (owner 14.11.2026): how many times the match was watched on the map (the site counts a viewer once a day)
+// <rptip>
+// 1.6.28 (SirItos 19.11.2026: "a tip on a player's nick, like everywhere else, also in Replays - there is a hover but no info"): a
+// replay's player with his SteamID gets the launcher's player tip (rating.js rtTipAttr: the Elite rating of every mode, Relic) and
+// the player menu (nickBind, as in the lobbies' lists). The pool's players carry it (replay/app.py "steam", from relicstats by the Relic
+// profile id); the own files' players are asked for once per id (replays_steams). The computer and a player nobody knows: just the
+// name, no hover (the underline promised a tip that was not there).
+const RP_CPU = 4294967295;
+const rpPid = p => (p.pid != null ? p.pid : p.profile);
+const rpSteamOf = p => p.steam || RP.steams[rpPid(p)] || '';
+function rpNm(p) {
+  const s = rpSteamOf(p), n = p.name || '?';
+  return s ? `<span class="nm" data-steam="${esc(s)}" data-name="${esc(n)}"${rtTipAttr(s, n, p.rating)}>${esc(n)}</span>` : `<span class="nm nx">${esc(n)}</span>`;
+}
+function rpAskSteams(items) {
+  const need = [...new Set(items.flatMap(x => x.players || []).filter(p => !p.steam).map(rpPid)
+    .filter(id => Number.isInteger(id) && id > 0 && id < RP_CPU && !RP.steamAsked.has(id)))];
+  for (let i = 0; i < need.length; i += 200) {
+    const part = need.slice(i, i + 200); part.forEach(id => RP.steamAsked.add(id));
+    invoke('replays_steams', { pids: part }).then(r => {
+      let got = 0;
+      for (const [k, v] of Object.entries(r || {})) if (/^7656119\d{10}$/.test(String(v)) && RP.steams[k] !== v) { RP.steams[k] = v; got++; }
+      if (got) rpRender();
+    }).catch(() => {});
+  }
+}
+const rpBindNames = box => box.querySelectorAll('.nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));
+// </rptip>  (tests: scripts/uicheck/replay_tips.mjs)
 const RP_EYE = '<svg viewBox="0 0 24 16" aria-hidden="true"><path d="M1 8s4-6.5 11-6.5S23 8 23 8s-4 6.5-11 6.5S1 8 1 8z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="8" r="3.2" fill="currentColor"/></svg>';
 function rpRow(x, kind) {
   const id = kind === 'mine' ? x.file : x.id, sel = (kind === 'mine' ? RP.mine.sel : RP.pool.sel) === id;
@@ -364,13 +392,13 @@ function rpRow(x, kind) {
     + (x.views ? `<span class="rp-views" data-tip="${esc(t('rpViewsTip'))}">${RP_EYE}${esc(String(x.views))}</span>` : '');
   if (RP.look === 'cards') {   // the Rooms tab's card: the map on the left, the teams, the foot with the action
     const teams = rpTeams(x.players).map((tm, i) => `<div class="team"><div class="th"><span>${esc(t('rTeamShort', { n: i + 1 }))}</span></div>`
-      + tm.map(p => { const hero = rpHero(p.race, p.hero); return `<div class="rp">${raceImg(rpRace(p.race))}<span class="nm">${esc(p.name || '?')}</span>${hero ? `<span class="rt">${esc(hero)}</span>` : ''}</div>`; }).join('') + '</div>').join('');
+      + tm.map(p => { const hero = rpHero(p.race, p.hero); return `<div class="rp">${raceImg(rpRace(p.race))}${rpNm(p)}${hero ? `<span class="rt">${esc(hero)}</span>` : ''}</div>`; }).join('') + '</div>').join('');
     return `<div class="room rp-card${sel ? ' on' : ''}" ${a}>${rpMapImg(x.map)}<div class="rb">`
       + `<div class="rh"><span class="rn">${esc(rpMin(x.duration))} · ${esc(rpWhen(kind === 'mine' ? x.mtime : x.uploaded))}</span>${tags}</div>`
       + `<div class="teams">${teams}</div>`
       + `<div class="rfoot2"><span class="rhost">${esc(kind === 'pool' ? [x.author, x.descr].filter(Boolean).join(' · ') : x.file)}</span>${rpAct(x, kind)}</div></div></div>`;
   }
-  const teams = rpTeams(x.players).map(tm => `<span class="rp-tm">${tm.map(p => `<span class="rp-p">${raceImg(rpRace(p.race))}<span class="nm">${esc(p.name || '?')}</span></span>`).join('')}</span>`).join('<i class="rp-vs">vs</i>');
+  const teams = rpTeams(x.players).map(tm => `<span class="rp-tm">${tm.map(p => `<span class="rp-p">${raceImg(rpRace(p.race))}${rpNm(p)}</span>`).join('')}</span>`).join('<i class="rp-vs">vs</i>');
   return `<div class="rp-row${sel ? ' on' : ''}" ${a}>${rpMapImg(x.map)}<div class="rp-mid">`
     + `<div class="rp-r1"><b>${esc(rpMapName(x.map))}</b>${tags}</div><div class="rp-r2">${teams}</div>`
     + (kind === 'pool' && x.descr ? `<div class="rp-r3">${esc(x.descr)}</div>` : '') + '</div>'
@@ -411,6 +439,8 @@ function rpRender() {
   list.classList.toggle('cards', RP.look === 'cards');
   list.innerHTML = html;
   list.scrollTop = top;
+  rpBindNames(list);
+  rpAskSteams(mine ? items.slice(RP.mine.page * RP_PAGE, (RP.mine.page + 1) * RP_PAGE) : items);
   list.querySelectorAll('[data-id]').forEach(b => {
     b.onclick = e => { if (!e.target.closest('[data-dl],[data-up]')) rpSelect(b.dataset.id); };
     b.onkeydown = e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === b) { e.preventDefault(); rpSelect(b.dataset.id); } };
@@ -498,9 +528,12 @@ function rpDetail() {
   const pid = mine ? RP.mine.have[x.id] : x.id;
   const meta = RP.det && RP.det.pid === pid ? RP.det.meta : (mine ? null : x);
   const kv = (k, v) => v ? `<div class="rp-kv"><span>${esc(t(k))}</span><b>${esc(v)}</b></div>` : '';
+  // 1.6.28: the server's data of the replay (meta) knows more of a player - his Relic rating, his SteamID: the panel's tip has it
+  const mp = {}; ((meta && meta.players) || []).forEach(q => { if (q.pid != null) mp[q.pid] = q; });
+  const withMeta = p => { const q = mp[rpPid(p)]; return q ? Object.assign({}, p, { steam: p.steam || q.steam, rating: p.rating || q.rating }) : p; };
   const teams = rpTeams(x.players).map((tm, i) => `<div class="rp-team"><h4>${esc(t('rpTeam', { n: i + 1 }))}</h4>${tm.map(p => {
     const hero = rpHero(p.race, p.hero);
-    return `<div class="rp-pl">${raceImg(rpRace(p.race))}<span class="nm">${esc(p.name || '?')}</span><em>${esc([hero, p.level ? t('rpLevel', { n: p.level }) : ''].filter(Boolean).join(' · '))}</em></div>`;
+    return `<div class="rp-pl">${raceImg(rpRace(p.race))}${rpNm(withMeta(p))}<em>${esc([hero, p.level ? t('rpLevel', { n: p.level }) : ''].filter(Boolean).join(' · '))}</em></div>`;
   }).join('')}</div>`).join('');
   const obs = (x.observers || []).length ? `<div class="rp-obs"><span>${esc(t('rpObservers'))}:</span> ${esc(x.observers.join(', '))}</div>` : '';
   const src = meta && meta.source ? String(meta.source) : '';
@@ -541,6 +574,7 @@ function rpDetail() {
     + (pid ? (rep ? `<div class="rp-sec rp-repsec"><button class="rp-band" id="rpRepT" aria-expanded="false"><span>${esc(t('rpReport'))}</span><small>${esc(t('rpReportSub'))}</small><b class="chev"></b></button><div class="rp-rep hidden" id="rpRep">${rpMd(rep)}</div></div>`
                   : (RP.det && RP.det.pid === pid && !RP.det.error ? `<div class="note">${esc(t('rpReportWait'))}</div>` : '')) : '');
   const on = (id, fn) => { const e = $(id); if (e) e.onclick = fn; };
+  rpBindNames(box);
   on('rpUp', () => rpUpload(x));
   on('rpLogin', () => { if (typeof chLogin === 'function') chLogin(); });
   on('rpDl', () => rpDownload(x));
