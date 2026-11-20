@@ -1,0 +1,1 @@
+- Elite rating badges in 1v1: first place is now the "Captain" (was the "Reclusiarch"), second and third the "Veterans".
