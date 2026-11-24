@@ -57,8 +57,9 @@ h = linkify('логи: https://rts.fintebtc.de/up/ <img src=x>', esc, link);
 check('the dev thread (fmt = esc): a link, the rest escaped', JSON.stringify(hrefs(h)) === '["https://rts.fintebtc.de/up/"]' && h.endsWith('&lt;img src=x&gt;'), h);
 // every chat of the launcher renders its message text through linkify (19.11): the call sites
 const site = (f, re) => check(f + ': the message text through linkify', re.test(readFileSync(join(UI, f), 'utf8')), f);
-site('chat.js', /\$\{linkify\(text, p => mention\(esc\(p\)\), linkA\)\}/);
-site('lchat.js', /\$\{linkify\(text, p => mention\(esc\(p\)\), linkA\)\}/);
+// 1.6.32: the plain parts go through mentionAll (the @names, then @all) - still escaped first
+site('chat.js', /\$\{linkify\(text, p => mention(All)?\(esc\(p\)\), linkA\)\}/);
+site('lchat.js', /\$\{linkify\(text, p => mention(All)?\(esc\(p\)\), linkA\)\}/);
 site('feedback.js', /\$\{linkify\(fbMsgText\(m\), esc, linkA\)\}/);
 check('one helper: no copy of it left in the chats', !['chat.js', 'lchat.js', 'feedback.js'].some(f => /function \w*[lL]inkify\(/.test(readFileSync(join(UI, f), 'utf8'))), '');
 const css = readFileSync(join(UI, 'style.css'), 'utf8'), rule = (css.match(/(^|\n)a\.ch-link\{[^}]*\}/) || [''])[0];

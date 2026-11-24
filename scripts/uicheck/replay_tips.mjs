@@ -15,13 +15,16 @@ const RP = { steams: {}, steamAsked: new Set() };
 const invoke = (cmd, args) => { asked.push([cmd, args.pids.slice()]); return Promise.resolve(answer); };
 const nickBind = (el, steam, name, mention, noTag) => bound.push([steam, name, mention, noTag]);
 const rpRender = () => { renders++; };
-const f = new Function('esc', 'RP', 'invoke', 'nickBind', 'rpRender', tipLine + '\n' + rp.slice(a, b) + '\nreturn { rpNm, rpAskSteams, rpBindNames };');
-const { rpNm, rpAskSteams, rpBindNames } = f(esc, RP, invoke, nickBind, rpRender);
+// 1.6.32: rating.js fmSeal - the Hall of Fame's seal left of a name (a stand-in: S1 is in the hall)
+const fmSeal = (s, n) => s === '76561198000000111' ? '<i class="fm-seal"></i>' : '';
+const f = new Function('esc', 'RP', 'invoke', 'nickBind', 'rpRender', 'fmSeal', tipLine + '\n' + rp.slice(a, b) + '\nreturn { rpNm, rpAskSteams, rpBindNames };');
+const { rpNm, rpAskSteams, rpBindNames } = f(esc, RP, invoke, nickBind, rpRender, fmSeal);
 let fails = 0;
 const check = (name, ok, got) => { console.log((ok ? 'ok   ' : 'FAIL ') + name + (ok ? '' : '\n     got: ' + got)); if (!ok) fails++; };
 const S1 = '76561198000000111';
 let h = rpNm({ name: 'SirItos', pid: 111, steam: S1, rating: 1995 });
 check("a pool player with his SteamID: the player tip (data-ptip, the name, Relic's number) + the menu's data", h.includes(`data-ptip="${S1}"`) && h.includes('data-pname="SirItos"') && h.includes('data-prt="1995"') && h.includes(`data-steam="${S1}"`) && !h.includes('nx'), h);
+check('a Hall of Fame player: the seal right before the name (1.6.32)', h.startsWith('<i class="fm-seal"></i><span class="nm"'), h);
 h = rpNm({ name: 'Computer Player', pid: 4294967295 });
 check('the computer: just the name, no tip, no hover (class nx)', h === '<span class="nm nx">Computer Player</span>', h);
 h = rpNm({ name: 'Nobody', profile: 555 });
