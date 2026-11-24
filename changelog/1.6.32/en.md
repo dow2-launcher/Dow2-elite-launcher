@@ -1,0 +1,11 @@
+- Hall of Fame players carry a purity seal left of their name: its tip says what they are in the hall for, a click opens their entry in the Hall of Fame.
+- Simpler tips on the Elite rating badges: "Nob · place 2 in 3v3", no "candidate", no "click".
+- `@all` in the chat mentions everybody in the launcher. The "No sound when someone mentions me" setting covers `@all` too.
+- A bigger tray icon; a yellow dot on it means you were mentioned in the chat (`@name`, a reply to you or `@all`) and have not seen it yet.
+- The chat's message language is now a globe button right of "Logs", with the same menu.
+- Home: "Your lobby" is on top of the left column, over the lobbies' list; the events are over the chat.
+- Your lobby: the host can move into the observers too (Start, Stop and the ready check stay theirs). "Invite" and "Sit here" have line icons again.
+- A player removed from a lobby cannot come back for 5 minutes, unless the host invites them again.
+- The launcher no longer piles up memory in the tray: the chat keeps the last 300 messages and is not redrawn while unseen; the lists (Online, lobbies, matches) are redrawn only when something in them changed; in the tray the window gives memory back, background polls and animations wait. Mentions and `@all` still reach a launcher in the tray.
+- The self-update no longer leaves a second, dead icon of the old launcher in the tray. If the launcher already runs as administrator, a second one does not start but says so. An old copy of the launcher (before 1.3.7) running beside it is reported.
+- Sharing Elite with neighbours on the local network answers local addresses only and keeps at most 16 connections at once.

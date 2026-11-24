@@ -4,6 +4,24 @@
 const { invoke } = window.__TAURI__.core;
 const { listen } = window.__TAURI__.event;
 const $ = id => document.getElementById(id);
+// 1.6.32 (memory, owner 24.11.2026): the window hidden in the tray is not "hidden" for WebView2 - document.hidden stays false, so
+// the polls and redraws that wait for a hidden page went on all the time the launcher sat in the tray, and the animations ran.
+// The Rust side tells (win_vis: false on hiding, true on showing / focus); pageHidden() is both; a change fires the page's own
+// visibilitychange (its listeners read pageHidden()); html.bg pauses every CSS animation meanwhile.
+const WINVIS = { hidden: false };
+const pageHidden = () => document.hidden || WINVIS.hidden;
+// 1.6.32 (players: "two launchers"): a launcher older than 1.3.7 (no check for a second copy) runs beside this one - tauri tray.rs
+Object.assign(T.en, { otherCopy: 'Another copy of the launcher is running - an old one, without the guard against a second start. Close it (in the tray or the Task Manager): two copies get in each other\'s way and in the way of updates.' });
+Object.assign(T.ru, { otherCopy: 'Запущена ещё одна копия лаунчера — старая, без защиты от второго запуска. Закройте её (в трее или в диспетчере задач): две копии мешают друг другу и обновлению.' });
+Object.assign(T.es, { otherCopy: 'Hay otra copia del launcher abierta: una antigua, sin protección contra un segundo inicio. Ciérrala (en la bandeja o en el Administrador de tareas): dos copias se estorban entre sí y estorban las actualizaciones.' });
+Object.assign(T.fr, { otherCopy: 'Une autre copie du launcher tourne : une ancienne, sans protection contre un second lancement. Fermez-la (zone de notification ou Gestionnaire des tâches) : deux copies se gênent et gênent les mises à jour.' });
+Object.assign(T.de, { otherCopy: 'Eine weitere Kopie des Launchers läuft - eine alte, ohne Schutz vor einem zweiten Start. Schließe sie (im Infobereich oder im Task-Manager): Zwei Kopien stören sich gegenseitig und die Updates.' });
+listen('other_copy', () => { if (typeof errBar === 'function') errBar(t('otherCopy')); });
+listen('win_vis', e => {
+  const h = !e.payload; if (h === WINVIS.hidden) return;
+  WINVIS.hidden = h; document.documentElement.classList.toggle('bg', h);
+  document.dispatchEvent(new Event('visibilitychange'));
+});
 
 let S = null;          // last status from Rust
 let lang = 'en';
@@ -138,7 +156,8 @@ const ico = name => (window.ART_ICONS || []).includes(name) ? `<img class="ico a
 // same library as the strips' sigils), sized as the line icons (.ico) and coloured by color. The line icons stay for the controls
 // (close, arrows, the check, plus, the list's look, reload, upload / download, sign out, Join, the observer's eye, the bell of a call,
 // the trash of Delete, the map of On the map) and the brands (Steam, Discord); the gear, the (i) by the version and the header's connection bars too. A lobby:
-// the gate of Cadia (and the players' chat, 1.6.17: the Officio Prefectus' wide emblem was too big there); the host: the chaplain's skull; a seat: Troops; invite: the banner; stats: a list with skulls for its bullets.
+// the gate of Cadia (and the players' chat, 1.6.17: the Officio Prefectus' wide emblem was too big there); the host: the chaplain's skull; stats: a list with skulls for its bullets
+// (a seat: Troops and invite: the banner until 1.6.32 - line icons again, below).
 const w40 = k => `<i class="ico sig s-${k}" aria-hidden="true"></i>`;
 // 1.6.17 (owner 16.11.2026): an empty list - a sigil in the block's middle over a title and a hint, no plate: Home's lobbies and
 // the Lobbies tab's open lobbies (Catachan's skull over blades), its running matches (the swords). 1.6.20 (owner 17.11.2026): all
@@ -147,7 +166,10 @@ const zeroPane = (sig, title, hint, more) => `<div class="rp-none zero"><i class
   + `<b>${esc(title)}</b>${hint ? `<span>${esc(hint)}</span>` : ''}${more || ''}</div>`;
 // nothing under the filters: the same middle of the block, the line in the pane's title size, no sigil
 const fltPane = () => `<div class="rp-none zero flt"><b>${esc(t('rNoneFilter'))}</b></div>`;
-Object.assign(ICO, { door: w40('gate'), crown: w40('host'), invite: w40('banner'), seat: w40('seat'), bars: w40('stats'), up: w40('up'),
+// 1.6.32 (owner 24.11.2026): a lobby's free seat - Invite is the line icon of a player with a plus again (not the banner), Sit here
+// an arrow down onto a platform (not the Troops sigil)
+ICO.seat = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5v10M8 8.5l4 4 4-4M6.5 16.5h11l3 4.5h-17z"/></svg>';
+Object.assign(ICO, { door: w40('gate'), crown: w40('host'), bars: w40('stats'), up: w40('up'),
   purge: '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9.5 7V4.5h5V7M6 7l1 13h10l1-13M10 11v5.5M14 11v5.5"/></svg>' });
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const open = url => url && invoke('open_url', { url }).catch(e => toast(e, true));
@@ -690,6 +712,7 @@ function render() {
   if (!T[lang]) lang = 'en';
   document.documentElement.lang = lang;
   syncTrayLabels();
+  if (typeof grpRender === 'function') grpRender();   // 1.6.32: the group's texts in the language (grp.js)
   document.querySelectorAll('[data-t]').forEach(e => { if (tHas(e.dataset.t)) e.textContent = t(e.dataset.t); });
   renderFwdBanner();
   document.querySelectorAll('[data-tp]').forEach(e => { if (tHas(e.dataset.tp)) e.placeholder = t(e.dataset.tp); });
@@ -1061,6 +1084,7 @@ listen('update_done', async e => {
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => {
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === b));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('hidden', v.id !== b.dataset.view));
+  document.dispatchEvent(new CustomEvent('viewchange', { detail: b.dataset.view }));   // 1.6.32: the chat draws what it put off (chat.js)
 });
 // 1.5.13 (owner 12.11.2026): the launcher's own update restarts it on the tab it was on (and the Rooms panel's view), not on Home.
 // Kept right before the restart (launcherInstall), taken once at the next start if it is fresh (5 minutes).

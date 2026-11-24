@@ -72,6 +72,7 @@ pub async fn replays_local() -> Result<Value, String> {
         let mut cache = CACHE.lock().unwrap();
         let cache = cache.get_or_insert_with(HashMap::new);
         let mut items = Vec::new();
+        let keep: std::collections::HashSet<(String, u64, u64)> = files.iter().cloned().collect();   // 1.6.32: deleted / renamed ones leave the cache
         for k in files {
             let v = match cache.get(&k) {
                 Some(v) => v.clone(),
@@ -86,6 +87,7 @@ pub async fn replays_local() -> Result<Value, String> {
             if let Some(h) = v["vhash"].as_str() { v["version"] = vt.get(h).cloned().unwrap_or(Value::Null); }
             items.push(v);
         }
+        cache.retain(|k, _| keep.contains(k));
         Ok(json!({"ok": true, "dir": dir.to_string_lossy(), "exists": dir.is_dir(), "items": items}))
     }).await
 }

@@ -7,7 +7,7 @@
 // The Online block comes ready from the ladder server: the snapshot (online / c/live) and then only changes over the
 // stream (presence, match, match_end, user). Each person is in one group only, the server sorts that out.
 const LIVE = { users: {}, searching: [], ingame: [], launcher: [], host: '', ok: false, skew: 0 };
-const ON = { err: false, shut: new Set(), t: null };
+const ON = { err: false, shut: new Set(), t: null, dirty: false };
 // the groups the player folded stay folded (only a convenience: without storage everything opens)
 try { ON.shut = new Set(JSON.parse(localStorage.getItem('onShut') || '[]')); } catch (e) {}
 const RACES = ['space_marines', 'chaos_marines', 'eldar', 'orks', 'tyranids', 'imperial_guard', 't_tau', 'z_unecron', 'ordo_malleus'];
@@ -56,7 +56,7 @@ function onLive(d) {   // a full snapshot
 }
 function onEvent(ev, d) {
   if (ev === 'online') return onLive(d);
-  if (ev === 'user') { LIVE.users[d.steam] = { name: d.name, avatar: d.avatar, rating: d.rating }; if (CH.me && d.steam === CH.me.steam) chMe(); }
+  if (ev === 'user') { delete LIVE.users[d.steam]; LIVE.users[d.steam] = { name: d.name, avatar: d.avatar, rating: d.rating }; onUsersCap(); if (CH.me && d.steam === CH.me.steam) chMe(); }
   else if (ev === 'presence') {
     // out of every group, then into the new one (ingame: the match event carries the teams)
     LIVE.searching = LIVE.searching.filter(p => p.steam !== d.steam);
@@ -70,10 +70,23 @@ function onEvent(ev, d) {
   else return;
   onSoon();
 }
+// 1.6.32 (memory): LIVE.users only grew between two snapshots (a "user" event per player who came, none for one who left) - a
+// launcher open for days kept every name. Past ON_USERS the oldest are dropped, never one in a group now or me.
+const ON_USERS = 2000;
+function onUsersCap() {
+  const ks = Object.keys(LIVE.users); if (ks.length <= ON_USERS) return;
+  const keep = new Set([...LIVE.searching.map(p => String(p.steam)), ...LIVE.launcher.map(p => String(p.steam)),
+    ...LIVE.ingame.flatMap(m => [...(m.team1 || []), ...(m.team2 || [])].map(x => String(x.steam)).concat((m.watchers || []).map(String))),
+    String((CH.me && CH.me.steam) || '')]);
+  let n = ks.length;
+  for (const k of ks) { if (n <= ON_USERS * 0.75) break; if (!keep.has(k)) { delete LIVE.users[k]; n--; } }
+}
 function onSoon() {   // at most one redraw in 500 ms, however many events come
   if (ON.t) return;
-  ON.t = setTimeout(() => { ON.t = null; onRender(); roomsJoinState(); }, 500);
+  // 1.6.32 (memory): not while the window is in the tray - drawn once when it shows again
+  ON.t = setTimeout(() => { ON.t = null; if (pageHidden()) { ON.dirty = true; return; } onRender(); roomsJoinState(); }, 500);
 }
+document.addEventListener('visibilitychange', () => { if (ON.dirty && !pageHidden()) { ON.dirty = false; onRender(); roomsJoinState(); } });
 
 function onRender() {
   if (!S) return;
@@ -94,7 +107,7 @@ function onRender() {
     if (!look.length && !matches.length && !inL.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
     // looking for a game: avatar, name, race, mode (spectators marked); no time (owner 03.11.2026: not needed)
     // 1.6.20: every row of a player carries his tip (rating.js: the picked system whole) and, with Elite, the warboss / nob by the name
-    const row = (s, cls) => `<div class="on-p${cls || ''}"${rtTipAttr(s, onUser(s).name, onUser(s).rating)}>${avatar(onUser(s).avatar)}${onWho(s)}${rtBadge(s)}`;
+    const row = (s, cls) => `<div class="on-p${cls || ''}"${rtTipAttr(s, onUser(s).name, onUser(s).rating)}>${avatar(onUser(s).avatar)}${fmSeal(s, onUser(s).name)}${onWho(s)}${rtBadge(s)}`;
     if (look.length) html += group('look', t('onSearching'), look.length, look.map(p => `${row(p.steam)}${raceImg(p.race)}`
       + `<span class="tag">${esc(p.mode === 'watch' ? t('onWatcher') : p.mode)}</span></div>`).join(''));
     // 1.5.0: no rooms group here - who is in the rooms is on the Rooms tab (owner 08.11.2026)
@@ -115,8 +128,14 @@ function onRender() {
   }
   // "Online N" in the heading: everyone in the groups once, spectators too
   const ids = new Set([...look.map(p => p.steam), ...players.map(x => x.steam), ...matches.flatMap(m => m.watchers), ...inL.map(p => p.steam)]);
-  $('onTotal').textContent = LIVE.ok ? String(ids.size) : '';
-  $('onGroups').innerHTML = html;
+  const tot = LIVE.ok ? String(ids.size) : ''; if ($('onTotal').textContent !== tot) $('onTotal').textContent = tot;
+  // 1.6.32 (memory): the same list - nothing written, the handlers are on it already (rooms.js setHtml)
+  if (setHtml($('onGroups'), html)) onBind();
+  if (typeof rLiveRender === 'function') rLiveRender();   // the Rooms tab's running matches
+  if (typeof grpRender === 'function') grpRender();       // 1.6.32: the group's dots (grp.js, a prototype)
+  tipCut($('onGroups'));
+}
+function onBind() {
   // a name: the menu (mention in the chat - the owner's 1.3.12 click - / stats / Steam); the avatar opens the Steam profile (1.3.12)
   // the name and the avatar of a player: the player menu (stats, Steam, mention in the chat)
   $('onGroups').querySelectorAll('.nm[data-steam]').forEach(b => nickBind(b, b.dataset.steam, b.dataset.name));
@@ -128,10 +147,8 @@ function onRender() {
     try { localStorage.setItem('onShut', JSON.stringify([...ON.shut])); } catch (e) {}
     onRender();
   });
-  if (typeof rLiveRender === 'function') rLiveRender();   // the Rooms tab's running matches
-  tipCut($('onGroups'));
 }
-setInterval(() => LIVE.ok && onRender(), 30000);   // the minutes go on without any event
+setInterval(() => LIVE.ok && !pageHidden() && onRender(), 30000);   // the minutes go on without any event (1.6.32: not in the tray)
 
 // 1.4.18 (owner 06.11.2026): "Watch" on a running match of our servers - the LiveReplay add-on opens it in the game as a replay
 // that keeps growing, a few minutes behind (livewatch.rs; the game fetches the replay from the ladder itself)

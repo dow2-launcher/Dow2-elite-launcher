@@ -64,8 +64,13 @@ pub(crate) fn update_dir() -> Option<String> {
 pub(crate) fn launcher_progress(app: &AppHandle) -> impl FnMut(usize, Option<u64>) + Send + 'static {
     let h = app.clone();
     let mut done = 0u64;
+    let mut last: Option<std::time::Instant> = None;
     move |n: usize, total: Option<u64>| {
         done += n as u64;
+        // 1.6.32 (memory): a message per received chunk redrew the footer thousands of times - at most every 120 ms, and the end
+        let end = total.is_some_and(|t| done >= t);
+        if !end && last.is_some_and(|t| t.elapsed() < std::time::Duration::from_millis(120)) { return; }
+        last = Some(std::time::Instant::now());
         let _ = h.emit("launcher_progress", json!({"done": done, "total": total}));
     }
 }
@@ -111,7 +116,9 @@ pub async fn launcher_install(app: AppHandle) -> Result<(), String> {
                 .creation_flags(0x0800_0000 /* CREATE_NO_WINDOW */ | 0x0000_0200 /* CREATE_NEW_PROCESS_GROUP */)
                 .stdin(std::process::Stdio::null()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null())
                 .spawn().is_ok();
-            if started { std::process::exit(0); }
+            // 1.6.32 (players: "two launchers"): the tray's icon is taken away first - a process ended by exit() leaves its icon in
+            // the tray until the mouse passes over it, next to the new launcher's own
+            if started { app.cleanup_before_exit(); std::process::exit(0); }
         }
         upd.install(bytes).map_err(|e| e.to_string())?;
         app.restart()

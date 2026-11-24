@@ -28,6 +28,11 @@ dirs = "5"
 base64 = "0.22"
 ureq = { version = "2", default-features = false, features = ["tls", "gzip"] }   # 1.6.20: gzip (the API answers); reach.rs probes ask for identity
 
+# 1.6.32 (memory): the WebView2 controller told its window is in the tray (tray.rs webview_shown) - the versions wry already uses
+[target.'cfg(windows)'.dependencies]
+webview2-com = "0.39"
+windows-core = "0.62"
+
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]

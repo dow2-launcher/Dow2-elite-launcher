@@ -29,6 +29,24 @@ pub(crate) mod procs {   // logs.rs reads the OEM code page of Windows' tools wi
             String::from_utf16_lossy(&w)
         }
     }
+    /// 1.6.32: the ids of the processes with any of these exe names (letter case aside) - tray.rs old_copies
+    pub fn pids_named(names: &[String]) -> Vec<u32> {
+        let mut out = Vec::new();
+        unsafe {
+            let snap = CreateToolhelp32Snapshot(2 /* TH32CS_SNAPPROCESS */, 0);
+            if snap == -1 { return out; }
+            let mut e: Entry = std::mem::zeroed(); e.size = std::mem::size_of::<Entry>() as u32;
+            let mut ok = Process32FirstW(snap, &mut e);
+            while ok != 0 {
+                let n = e.exe.iter().position(|&c| c == 0).unwrap_or(e.exe.len());
+                let exe = String::from_utf16_lossy(&e.exe[..n]);
+                if names.iter().any(|x| x.eq_ignore_ascii_case(&exe)) { out.push(e.pid); }
+                ok = Process32NextW(snap, &mut e);
+            }
+            CloseHandle(snap);
+        }
+        out
+    }
     pub fn running(name: &str) -> bool {
         unsafe {
             let snap = CreateToolhelp32Snapshot(2 /* TH32CS_SNAPPROCESS */, 0);

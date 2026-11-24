@@ -8,19 +8,20 @@ Object.assign(T.es, { fameTitle: 'Salón de la fama', fameSub: 'los jugadores qu
 Object.assign(T.fr, { fameTitle: 'Panthéon', fameSub: 'les joueurs qui ont le plus aidé le launcher', fameOpen: 'Ouvrir', fameLead: 'En haut, celui qui a aidé le plus récemment. Cliquez sur un nom pour voir ce qui a été fait et ce que nous avons changé.', fameLast: 'dernier : {d}', fameChanged: 'Ce que nous avons changé :', fameOrders: 'Ordres : {n} sur 5, par rapport aux autres', fameNone: 'La liste ne s\'est pas chargée ; réessayez plus tard.', fameSite: 'Sur le site' });
 Object.assign(T.de, { fameTitle: 'Ruhmeshalle', fameSub: 'die Spieler, die dem Launcher am meisten geholfen haben', fameOpen: 'Öffnen', fameLead: 'Oben steht, wer zuletzt geholfen hat. Einen Namen anklicken: was getan wurde und was sich dadurch geändert hat.', fameLast: 'zuletzt: {d}', fameChanged: 'Was wir geändert haben:', fameOrders: 'Orden: {n} von 5 im Vergleich zu den anderen', fameNone: 'Die Liste wurde nicht geladen – später erneut versuchen.', fameSite: 'Auf der Website' });
 
-// 1.6.11 (owner 14.11.2026): the orders are purity seals - red wax with an embossed I, two parchment strips of a litany
-const FAME_ORDER = '<svg viewBox="0 0 20 30" aria-hidden="true"><path d="M6.4 14.5L4.6 29.2l2.3-1.3 1.6 1.7 1-14.3z" fill="#e7dab8" stroke="#6f5f3c" stroke-width=".5"/><path d="M10.6 15.3l1 14.3 1.6-1.7 2.3 1.3-1.8-14.7z" fill="#d9c79b" stroke="#6f5f3c" stroke-width=".5"/><path d="M5.9 18.6h3.2M5.6 21h3.3M5.4 23.4h3.4M5.2 25.8h3.4M11.1 18.6h3.2M11.3 21h3.3M11.5 23.4h3.4M11.7 25.8h3.3" stroke="#6b5a37" stroke-width=".45"/><path d="M10.00 0.70L12.70 2.18L15.72 2.78L16.84 5.65L18.76 8.05L17.78 10.97L17.71 14.05L15.08 15.65L13.04 17.96L10.00 17.50L6.96 17.96L4.92 15.65L2.29 14.05L2.22 10.97L1.24 8.05L3.16 5.65L4.28 2.78L7.30 2.18z" fill="#a3221d" stroke="#4e0b09" stroke-width=".6"/><circle cx="10" cy="9.6" r="5.5" fill="#8a1814" stroke="#cf4b3f" stroke-width=".6"/><path d="M7.6 6.6h4.8M7.6 12.6h4.8M10 6.6v6" stroke="#e8786a" stroke-width="1.25" fill="none"/><circle cx="10" cy="9.6" r="1.1" fill="#e8786a"/></svg>';
+// 1.6.11 (owner 14.11.2026): the orders are purity seals - FAME_ORDER, rating.js since 1.6.32 (the seal by the names)
 const fameTx = o => o ? (o[lang] || o.en || o.ru || '') : '';
 const fameLast = p => (p.events || []).reduce((m, e) => (e.date > m ? e.date : m), '');
 const fameScore = p => (p.events || []).reduce((s, e) => s + (e.changed ? 2 : 1), 0);
 const fameDay = d => { try { return new Date(d + 'T12:00:00').toLocaleDateString(lang === 'en' ? 'en-GB' : lang, { day: 'numeric', month: 'short', year: 'numeric' }); } catch (e) { return d; } };
 // 1.6.10: a tab of Settings (#setFame) instead of a window; loaded when the tab opens, again after 10 minutes
-let FAME_AT = 0;
-async function fameLoad(force) {
+// 1.6.32: the list is the one rating.js keeps for the seals by the names (fmLoad: at the start, every 30 min); one draw at a time
+let FAME_AT = 0, FAME_P = null;
+function fameLoad(force) { return FAME_P || (FAME_P = fameDraw(force).finally(() => { FAME_P = null; })); }
+async function fameDraw(force) {
   const box = document.getElementById('fameList'); if (!box) return;
   if (!force && FAME_AT && Date.now() - FAME_AT < 600000 && box.childElementCount) return;
   if (!box.childElementCount) box.innerHTML = '<div class="spin"></div>';
-  let d = null; try { d = await invoke('fame_get'); } catch (e) { d = null; }
+  const d = await fmLoad(force || !FM.at || Date.now() - FM.at > 600000);
   const ppl = ((d && d.people) || []).slice().sort((a, b) => fameLast(b).localeCompare(fameLast(a)));
   if (!ppl.length) { box.innerHTML = `<p class="note">${esc(t('fameNone'))}</p>`; return; }
   FAME_AT = Date.now();
@@ -29,11 +30,21 @@ async function fameLoad(force) {
     const n = Math.max(1, Math.min(5, Math.round(5 * fameScore(p) / best)));
     const ords = Array.from({ length: 5 }, (_, k) => k < n ? FAME_ORDER : FAME_ORDER.replace('<svg ', '<svg class="off" ')).join('');
     const ev = (p.events || []).slice().sort((a, b) => b.date.localeCompare(a.date));
-    return `<details class="fame-p"><summary><span class="fame-n">${i + 1}</span><span class="fame-h"><b>${esc(p.name)}</b>`
+    return `<details class="fame-p" data-name="${esc(p.name)}"><summary><span class="fame-n">${i + 1}</span><span class="fame-h"><b>${esc(p.name)}</b>`
       + `<span class="fame-o" data-tip="${esc(t('fameOrders', { n }))}">${ords}</span><em>${esc(fameTx(p.role))}</em></span>`
       + `<span class="fame-d">${esc(t('fameLast', { d: fameDay(fameLast(p)) }))}</span><span class="fame-s">${esc(fameTx(p.short))}</span></summary>`
       + `<ul>${ev.map(e => `<li><span class="fame-dt">${esc(fameDay(e.date))}</span><div>${esc(fameTx(e.did))}</div>`
         + (e.changed ? `<div class="fame-c"><b>${esc(t('fameChanged'))}</b> ${esc(fameTx(e.changed))}</div>` : '') + '</li>').join('')}</ul></details>`;
   }).join('');
+}
+// 1.6.32 (owner 24.11.2026): a click on the seal by a name (rating.js fmSeal) - Settings › Hall of Fame, his entry open and lit
+async function fameGo(name) {
+  const tab = document.querySelector('.tab[data-view="settings"]'); if (tab) tab.click();
+  const st = document.querySelector('.set-tab[data-set="setFame"]'); if (st) st.click();   // draws the list (fameLoad)
+  await fameLoad();
+  const el = [...document.querySelectorAll('#fameList .fame-p')].find(x => x.dataset.name === name); if (!el) return;
+  document.querySelectorAll('#fameList .fame-p[open]').forEach(x => { if (x !== el) x.open = false; });
+  el.open = true; el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 }
 (() => { const b = document.getElementById('fameSite'); if (b) b.onclick = () => invoke('open_url', { url: siteUrl('/elite/fame/?lang=' + lang) }).catch(() => {}); })();

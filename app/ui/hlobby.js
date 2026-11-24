@@ -17,7 +17,7 @@ const HL_EYE = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d=
 // 1.6.20: the tip is the player's tip of rating.js (the picked system whole), the number the lobby's mode's; the warboss / nobs
 const hlHours = p => { const h = p && (p.hours != null ? p.hours : p.playtime_h); return h != null && isFinite(h) && h > 0 ? Math.round(h) : 0; };
 const hlRow = (pic, p, mode, host, hours) => `<div class="rp hl-p${host ? ' host' : ''}"${p.steam ? rtTipAttr(p.steam, p.name, p.rating, hours) : ` data-tip="${esc(p.name || '?')}"`}>`
-  + `${pic}${rtName(`<span class="nm">${esc(p.name || '?')}</span>`, p.steam)}${rtCell(p.steam, mode, p.rating)}</div>`;
+  + `${pic}${fmSeal(p.steam, p.name)}${rtName(`<span class="nm">${esc(p.name || '?')}</span>`, p.steam)}${rtCell(p.steam, mode, p.rating)}</div>`;
 const hlFree = () => `<div class="rp hl-p free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`;
 const hlTeams = (a, b) => `<div class="hl-teams"><div class="hl-team">${a}</div><div class="hl-team r">${b}</div></div>`;
 function hlCard(o) {   // o: {kind, id, name, map, mm, lock, tags, teams, obs, acts, dim}
@@ -74,15 +74,14 @@ function hlRender() {
   const box = $('hlList'); if (!box || !S) return;
   const lrs = (LR.list || []).filter(x => x.state === 'lobby' || x.state === 'countdown'), games = RM.last || [];
   const n = lrs.length + games.length;
-  $('hlN').textContent = n ? t('hlOpen', { n }) : '';
+  const nt = n ? t('hlOpen', { n }) : ''; if ($('hlN').textContent !== nt) $('hlN').textContent = nt;
   // 1.6.16 (owner 16.11.2026): no lobby - a sigil of battle in the block's middle with interference (as the Replays' empty pane),
   // no plate, no Create button. 1.6.17: always Catachan's (1.6.16 picked one of five at the start); drawn once while empty
   box.classList.toggle('empty', !n);
-  if (!n) {
-    if (!box.querySelector('.zero')) box.innerHTML = zeroPane('s-battle', t('hlNone'), t('hlNoneHint'));
-    return;
-  }
-  box.innerHTML = lrs.map(hlLr).join('') + games.map(hlGame).join('');
+  // 1.6.32 (memory): written only when the cards changed (rooms.js setHtml) - the 15 s poll and every lobby event drew them again
+  // whole; the empty pane the same way (a rewrite would restart its sigil)
+  if (!n) { setHtml(box, zeroPane('s-battle', t('hlNone'), t('hlNoneHint'))); return; }
+  if (!setHtml(box, lrs.map(hlLr).join('') + games.map(hlGame).join(''))) return;
   box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
   box.querySelectorAll('[data-lr-join]').forEach(b => b.onclick = e => { e.stopPropagation(); lrCall('join', { id: b.dataset.lrJoin }); });
   box.querySelectorAll('[data-lr-watch]').forEach(b => b.onclick = e => { e.stopPropagation(); lrCall('join', { id: b.dataset.lrWatch, as: 'obs' }); });

@@ -177,7 +177,7 @@ listen('c_ev', e => {
     LR.list = LR.list.filter(x => x.id !== d.id);
     if (LR.room && LR.room.id === d.id) LR.room = null;
     lrRender(); lrOnSoon();
-  } else if (ev === 'lroom_kicked') { if (LR.room && LR.room.id === d.id) { const nm = LR.room.name; LR.room = null; toast(t('n_kicked_me', { name: nm }) + (d.left > 0 ? ' ' + t('kickedLeft', { left: lrMmss(d.left) }) : ''), true); } lrRender(); }
+  } else if (ev === 'lroom_kicked') { if (LR.room && LR.room.id === d.id) { const nm = LR.room.name; LR.room = null; toast(d.left > 0 ? t('n_kicked_ban', { name: nm, left: lrMmss(d.left) }) : t('n_kicked_me', { name: nm }), true); } lrRender(); }
 });
 listen('lroom_game', e => { LR.gameEv = e.payload || null; lrRender(); });
 // while in a room: "here" every 15 s (the server keeps only those whose launcher is open), the room again when the stream is
@@ -311,7 +311,7 @@ function lrSlot(r, s, i, cat) {
   const sg = lrSig(r, s);
   const tick = `<span class="flw" data-tip="${esc(tip)}"><button class="rdy${s.ready ? ' on' : ''}${mine && open ? ' mine' : ''}${mine && why && !s.ready ? ' dis' : ''}${sg.flash ? ' flash' : ''}"`
     + `${mine && open ? ' id="lrReadyTick"' : ' tabindex="-1"'} aria-label="${esc(tip)}" aria-pressed="${!!s.ready}"${!(mine && open) || (why && !s.ready) ? ' disabled' : ''}></button></span>`;
-  return `<div class="lr-slot${mine ? ' me' : ''}${s.ready ? ' ready' : ''}${sg.cls}"><span class="av-w">${avatar(s.avatar)}${sg.av}</span><div class="lr-who"><span class="lr-line"><span class="nm" data-steam="${esc(s.steam)}" data-name="${esc(s.name)}"${rtTipAttr(s.steam, s.name, s.rating)}>${esc(s.name)}</span>`
+  return `<div class="lr-slot${mine ? ' me' : ''}${s.ready ? ' ready' : ''}${sg.cls}"><span class="av-w">${avatar(s.avatar)}${sg.av}</span><div class="lr-who"><span class="lr-line">${fmSeal(s.steam, s.name)}<span class="nm" data-steam="${esc(s.steam)}" data-name="${esc(s.name)}"${rtTipAttr(s.steam, s.name, s.rating)}>${esc(s.name)}</span>`
     + `${s.owner ? `<span class="lr-crown" title="${esc(t('lrOwner'))}" aria-label="${esc(t('lrOwner'))}">${ico('crown')}</span>` : ''}${rtBadge(s.steam)}${rtCell(s.steam, r.mode, s.rating)}`
     + `${s.spoil ? `<span class="tag bad">${esc(t('lrSpoil', { n: s.spoil }))}</span>` : ''}</span><span class="lr-armyrow">${army}</span></div>`
     + `${gs}${sg.row}${owner && !mine && open ? `<button class="lr-kick" data-kick="${esc(s.steam)}" data-tip="${esc(t('lrKick'))}" aria-label="${esc(t('lrKick'))}">${ico('x')}</button>` : ''}${tick}</div>`;
@@ -354,7 +354,7 @@ function lrInvMenu(r) {
   const people = (LIVE.launcher || []).filter(p => p && p.state !== 'game' && !inRoom.has(String(p.steam)) && onUser(p.steam).name && (!f || onUser(p.steam).name.toLowerCase().includes(f)))
     .sort((a, b) => (onUser(a.steam).name || '').localeCompare(onUser(b.steam).name || ''));
   const row = p => { const u = onUser(p.steam), at = sent[p.steam] || 0, was = Date.now() - at < INV_MARK;   // "✓ invited" for 5 s
-    return `<button class="ii${was ? ' sent' : ''}" data-inv="${esc(p.steam)}"${was ? ` data-at="${at}"` : ''}>${avatar(u.avatar)}${rtName(`<span class="nm">${esc(u.name)}</span>`, p.steam)}${onRt(p.steam, r.mode)}`
+    return `<button class="ii${was ? ' sent' : ''}" data-inv="${esc(p.steam)}"${was ? ` data-at="${at}"` : ''}>${avatar(u.avatar)}${fmSeal(p.steam, u.name)}${rtName(`<span class="nm">${esc(u.name)}</span>`, p.steam)}${onRt(p.steam, r.mode)}`
       + `<span class="ii-st">${esc(was ? '✓ ' + t('lrInvSent') : t('lrInvite'))}</span></button>`; };
   const g = (k, ps) => ps.length ? `<div class="ii-g"><span>${esc(t(k))}</span><span>${ps.length}</span></div>${ps.map(row).join('')}` : '';
   const list = g('lrInvMenu', people);
@@ -467,14 +467,16 @@ function lrRoomHtml(r) {
   const vt = r.game === 'vanilla' ? `<span class="tag van">${esc(t('lrGameVan'))}</span>` : '';
   const ping = lrPingBtn(r, 'lr-ping');
   // 1.6.17 (owner 16.11.2026): the observers - a block under the teams, every seat one height (taken, free, mine); a free seat is
-  // the move for a player ("Go here": his seat is freed; never the owner - the match is started from his game)
+  // the move for a player ("Go here": his seat is freed). 1.6.32 (owner 24.11.2026): the host too (ladder: the match's host is a
+  // seated player anyway; his Start / Stop / ready check stay his) - his crown goes with him into the observers
   const ol = r.obs || [], ocap = r.obs_cap != null ? r.obs_cap : Math.max(0, 8 - (r.slots || []).length);
-  const mySeat = (r.slots || []).some(s => s && s.steam === me), canGo = mySeat && !owner && (r.state === 'lobby' || r.state === 'countdown');
-  let ocells = ol.map(o => `<div class="lr-oc${o.steam === me ? ' me' : ''}"${rtTipAttr(o.steam, o.name, onUser(o.steam).rating)}>${avatar(o.avatar)}<span class="nm" data-steam="${esc(o.steam)}" data-name="${esc(o.name)}">${esc(o.name)}</span>${rtBadge(o.steam)}`
+  const mySeat = (r.slots || []).some(s => s && s.steam === me), canGo = mySeat && (r.state === 'lobby' || r.state === 'countdown');
+  const crown = `<span class="lr-crown" title="${esc(t('lrOwner'))}" aria-label="${esc(t('lrOwner'))}">${ico('crown')}</span>`;
+  let ocells = ol.map(o => `<div class="lr-oc${o.steam === me ? ' me' : ''}"${rtTipAttr(o.steam, o.name, onUser(o.steam).rating)}>${avatar(o.avatar)}${fmSeal(o.steam, o.name)}<span class="nm" data-steam="${esc(o.steam)}" data-name="${esc(o.name)}">${esc(o.name)}</span>${o.steam === r.owner ? crown : ''}${rtBadge(o.steam)}`
     + `${o.steam === me ? `<em>${esc(t('lrObsYou'))}</em>` : ''}</div>`).join('');
   for (let i = ol.length; i < ocap; i++) ocells += canGo
     ? `<button class="lr-oc free go" data-tip="${esc(t('lrObsGoTip'))}"><i class="oe">${ico('eye')}</i><span class="nm">${esc(t('lrObsGo'))}</span></button>`
-    : `<div class="lr-oc free"${mySeat && owner ? ` data-tip="${esc(t('lrObsOwnerNo'))}"` : ''}><i class="oe">${ico('eye')}</i><span class="nm">${esc(t('lrObsFree'))}</span></div>`;
+    : `<div class="lr-oc free"><i class="oe">${ico('eye')}</i><span class="nm">${esc(t('lrObsFree'))}</span></div>`;
   const obs = ocap ? `<div class="lr-team lr-obs"><div class="lr-sub">${esc(t('lrObs'))} <em>${ol.length}/${ocap}</em></div><div class="lr-og">${ocells}</div>`
     + `${lrObsMe(r) ? `<div class="note lr-onote">${esc(t('lrObsMe'))}</div>` : ''}</div>` : '';
   // the right column: "Map and settings" (the three blocks) | "Lobby chat" (lchat.js puts the chat in, lcSideBind)
@@ -511,7 +513,7 @@ function lrCardHtml(x) {
   const pic = p => !p.race || p.race === 'random' ? raceImg('random') : p.hero >= 0
     ? `<img src="${A}heroes/${esc(p.race)}_${p.hero | 0}.png" alt="" data-fb="${A}races/${esc(p.race)}.png">` : raceImg(p.race);
   // 1.6.20: the rating of the picked system and the lobby's mode (rating.js), the player's tip, the warboss / nobs
-  const row = p => p ? `<div class="rp${p.steam === x.owner ? ' host' : ''}"${rtTipAttr(p.steam, p.name, p.rating)}>${pic(p)}${rtName(`<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`, p.steam)}`
+  const row = p => p ? `<div class="rp${p.steam === x.owner ? ' host' : ''}"${rtTipAttr(p.steam, p.name, p.rating)}>${pic(p)}${fmSeal(p.steam, p.name)}${rtName(`<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`, p.steam)}`
     + `${p.ready ? `<span class="rk" title="${esc(t('lrIsReady'))}"></span>` : ''}${rtCell(p.steam, x.mode, p.rating)}</div>`
     : `<div class="rp free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`;
   const teams = sl ? [0, 1].map(k => { const ps = sl.slice(k * per, k * per + per);
@@ -585,8 +587,8 @@ function rLiveRender() {
     .filter(({ m, lr }) => (RF.from === 'all' || (RF.from === 'lr') === !!lr) && (RF.lmode === 'all' || m.mode === RF.lmode));
   // 1.6.20: the rating of the picked system and the match's mode (rating.js), the player's tip, the warboss / nobs
   const pl = mode => x => `<div class="rp"${rtTipAttr(x.steam, onUser(x.steam).name, onUser(x.steam).rating)}>${raceImg(x.race)}`
-    + `${rtName(`<span class="nm" data-steam="${esc(x.steam)}" data-name="${esc(onUser(x.steam).name || '')}">${esc(onUser(x.steam).name || 'Player')}</span>`, x.steam)}${rtCell(x.steam, mode, onUser(x.steam).rating)}</div>`;
-  box.innerHTML = ms.map(({ m, lr }) => {
+    + `${fmSeal(x.steam, onUser(x.steam).name)}${rtName(`<span class="nm" data-steam="${esc(x.steam)}" data-name="${esc(onUser(x.steam).name || '')}">${esc(onUser(x.steam).name || 'Player')}</span>`, x.steam)}${rtCell(x.steam, mode, onUser(x.steam).rating)}</div>`;
+  const html = ms.map(({ m, lr }) => {
     const map = String(m.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
     const act = m.live ? `<button class="rjoin lvw go" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('rWatchTip'))}" aria-label="${esc(t('rWatchTip'))}">${ico('eye')}</button>` : '';
     return `<div class="room live-card">${mmapHtml(`${A}maps/${encodeURIComponent(m.map || '')}.png`, map)}<div class="rb">`
@@ -602,11 +604,14 @@ function rLiveRender() {
     if (kind && z.dataset.kind !== kind) { z.dataset.kind = kind; z.innerHTML = kind === 'flt' ? fltPane() : zeroPane('s-live', t('rLiveZeroT'), t('rLiveZeroHint')); }
     if (!kind) delete z.dataset.kind;
   }
-  box.querySelectorAll('.lvw[data-m]').forEach(b => b.onclick = () => liveWatch(b.dataset.m, b.dataset.g === 'vanilla' ? 'vanilla' : 'elite'));
-  box.querySelectorAll('.rp .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name));
+  // 1.6.32 (memory): written and bound only when the cards changed (Online redraws every 30 s and on every presence event)
+  if (setHtml(box, html)) {
+    box.querySelectorAll('.lvw[data-m]').forEach(b => b.onclick = () => liveWatch(b.dataset.m, b.dataset.g === 'vanilla' ? 'vanilla' : 'elite'));
+    box.querySelectorAll('.rp .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name));
+  }
   tipCut(box);
-  $('rLiveN').textContent = (LIVE.ingame || []).length ? String((LIVE.ingame || []).length) : '';
-  $('rLiveN2').textContent = $('rLiveN').textContent;
+  const nl = (LIVE.ingame || []).length ? String((LIVE.ingame || []).length) : '';
+  if ($('rLiveN').textContent !== nl) { $('rLiveN').textContent = nl; $('rLiveN2').textContent = nl; }
 }
 // the top of the panel: Create a lobby; in a launcher lobby - its card (back to it); signed out - Sign in
 function rTop(r) {
@@ -627,21 +632,25 @@ function lrRender() {
   const r = LR.room && lrMine(LR.room) ? LR.room : null;
   if (r && RV.seen !== r.id) { RV.seen = r.id; RV.view = 'mine'; }        // just joined / created: its view
   if (!r) { RV.seen = ''; if (RV.view === 'mine') RV.view = 'open'; }
-  $('rTop').innerHTML = rTop(r);
-  if ($('rMine')) $('rMine').onclick = () => rShow('mine');
-  if ($('rMineX')) $('rMineX').onclick = e => { e.stopPropagation(); lrLeave(); };
-  if ($('rCreate')) $('rCreate').onclick = lrCreate;
-  if ($('rSignIn')) $('rSignIn').onclick = chLogin;
+  // 1.6.32 (memory): the panel's top and the list are written only when they changed (rooms.js setHtml) - every lobby event of
+  // any player redrew them whole (and Home's cards after the list); unchanged, the handlers bound before are still on them
+  if (setHtml($('rTop'), rTop(r))) {
+    if ($('rMine')) $('rMine').onclick = () => rShow('mine');
+    if ($('rMineX')) $('rMineX').onclick = e => { e.stopPropagation(); lrLeave(); };
+    if ($('rCreate')) $('rCreate').onclick = lrCreate;
+    if ($('rSignIn')) $('rSignIn').onclick = chLogin;
+  }
   document.querySelectorAll('.rnb[data-r]').forEach(b => { b.classList.toggle('on', b.dataset.r === RV.view); b.onclick = () => rShow(b.dataset.r); });
   $('rOpen').classList.toggle('hidden', RV.view !== 'open');
   $('rLive').classList.toggle('hidden', RV.view !== 'live');
   $('rooms').classList.toggle('in-lroom', RV.view === 'mine');
   if (!$('rFlt').innerHTML) rFilters();
-  list.innerHTML = lrListHtml();
-  list.querySelectorAll('.lr-join').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id }));
-  list.querySelectorAll('.lr-watch').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id, as: 'obs' }));
-  list.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
-  list.querySelectorAll('.rp .nm[data-steam]').forEach(n => { if (n.dataset.steam) nickBind(n, n.dataset.steam, n.dataset.name); });
+  if (setHtml(list, lrListHtml())) {
+    list.querySelectorAll('.lr-join').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id }));
+    list.querySelectorAll('.lr-watch').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id, as: 'obs' }));
+    list.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
+    list.querySelectorAll('.rp .nm[data-steam]').forEach(n => { if (n.dataset.steam) nickBind(n, n.dataset.steam, n.dataset.name); });
+  }
   tipCut(list);
   rApplyFilter(); rLiveRender(); lrPlay();
   if (typeof lcSync === 'function') lcSync();                     // lchat.js: my lobby's chat (Home's tab, the counts)
@@ -768,7 +777,7 @@ function lrPlay() {
 function lrMiniRender(r) {
   const box = $('lrMini'); if (!box) return;
   box.classList.toggle('hidden', !r);
-  if (!r) { box.innerHTML = ''; return; }
+  if (!r) { setHtml(box, ''); return; }
   const me = lrMe(), slots = r.slots || [], A = lrAssets(), owner = r.owner === me, nObs = (r.obs || []).length;
   // the state in one line, without names: ready n of m, all ready, the countdown, the start, the match (owner 10.11)
   const all = r.all_ready != null ? r.all_ready : slots.every(s => s && s.ready);
@@ -777,9 +786,11 @@ function lrMiniRender(r) {
     : t('playWait', { n: slots.filter(s => s && s.ready).length, m: slots.length });
   const go = r.state === 'countdown' || r.state === 'launching' || (r.state === 'lobby' && all);
   const sub = [st].concat(nObs ? [t('lmObs', { n: nObs })] : []).join(' · ');
-  box.innerHTML = `<div class="h"><span>${esc(t(owner ? 'rMineHost' : 'rMineIn'))}</span><span class="tag">${esc(r.mode)}</span></div>`
+  // 1.6.32 (memory): written only when it changed (rooms.js setHtml): Play's state calls this on every lobby event and tick
+  const html = `<div class="h"><span>${esc(t(owner ? 'rMineHost' : 'rMineIn'))}</span><span class="tag">${esc(r.mode)}</span></div>`
     + `<button class="lm-head" id="lmGo" data-tip="${esc(t('lmBack'))}"><i class="lm-map" style="background-image:url('${A}maps/${encodeURIComponent(r.map)}.png')"></i><span class="lm-n"><b>${esc(r.name)}</b><small${go ? ' class="go"' : ''}>${esc(sub)}</small></span></button>`
     + `<div class="lm-act"><button class="btn small ghost" id="lmLeave">${esc(t('lmLeave'))}</button><button class="btn gold small" id="lmBack">${esc(t('lmBack'))}</button></div>`;
+  if (!setHtml(box, html)) return;
   const back = () => { const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click(); rShow('mine'); };
   $('lmGo').onclick = back; $('lmBack').onclick = back; $('lmLeave').onclick = lrLeave;
 }
@@ -797,7 +808,7 @@ function lrPingLeft(r, kind) {
   return LR.pinged && LR.pingedKind === kind && LR.pingedRoom === r.id ? { left: Math.ceil((LR.pinged + 30000 - Date.now()) / 1000), from: lrMe() } : { left: 0 };
 }
 function lrPingBtn(r, cls) {
-  if (!r || r.state !== 'lobby' || lrObsMe(r)) return '';
+  if (!r || r.state !== 'lobby' || (lrObsMe(r) && r.owner !== lrMe())) return '';   // 1.6.32: the host's ready check from the observers too
   const me = lrMe(), owner = r.owner === me, slots = r.slots || [];
   const kind = owner ? (slots.some(s => s && s.steam !== me && !s.ready) ? 'ready' : '') : (r.hs && lrOthersReady(r) ? 'start' : '');
   if (!kind) return '';
@@ -893,7 +904,7 @@ listen('c_ev', e => { const { e: ev, d } = e.payload || {}; if (ev === 'lroom_pi
 // the lobby's sound: soft - JoinSound's chime (E6 0.16 s, then B6, 0.55 s, 18 %, the same envelope); sharp - four loud square
 // pulses (the game's own alert of JoinSound later). Settings: lobby_sound, soft by default.
 const lrSoundPick = () => (S && S.lobby_sound === 'sharp' ? 'sharp' : 'soft');
-let lrAudio = null;
+let lrAudio = null, lrAudioNap = 0;
 // 1.5.12 (owner 12.11: "the pings make no sound"): a stopped AudioContext (the WebView's autoplay rule: no click in the window
 // yet) is resumed first and the sound played when it runs - before, it was scheduled into the stopped clock and never heard.
 // Its state goes back to the caller (-> lroom_attention -> community.log). tauri.conf.json: WebView2 may play without a click.
@@ -926,9 +937,11 @@ function lrSoundPlay(pick) {
         o.start(t0 + dl); o.stop(t0 + dl + 0.12);
       });
     }
+    clearTimeout(lrAudioNap); lrAudioNap = setTimeout(() => { try { lrAudio.suspend(); } catch (e) {} }, 1500);   // 1.6.32: asleep again
   } catch (e) {}
 }
-document.addEventListener('pointerdown', () => { try { lrAudio = lrAudio || new (window.AudioContext || window.webkitAudioContext)(); if (lrAudio.state === 'suspended') lrAudio.resume(); } catch (e) {} });
+// 1.6.32 (memory): made at the first click (the autoplay rule) and asleep at once - lrSoundPlay wakes it for a sound, then it sleeps again
+document.addEventListener('pointerdown', () => { if (lrAudio) return; try { lrAudio = new (window.AudioContext || window.webkitAudioContext)(); lrAudio.suspend(); } catch (e) {} });
 if ($('lobbySound')) {
   $('lobbySound').value = lrSoundPick();
   $('lobbySound').onchange = e => { const v = e.target.value; if (S) S.lobby_sound = v; invoke('set_setting', { key: 'lobby_sound', value: v }).catch(() => {}); lrSound(v); };
@@ -1161,7 +1174,7 @@ Object.assign(T.en, {
   sg_start_wait: '{who}: being called to start the match', sg_start_yes: '{who}: coming to the lobby', sg_start_no: '{who}: asks to wait',
   sgShort_wait: 'calling', sgShort_yes: 'coming', sgShort_no: 'no', evClose: 'Close',
   pgCapReady: 'Summons of the Inquisition', pgCapStart: 'Summons of the Inquisition', pgReadyNo: 'Not ready', pgClose: 'Close', pgToLobby: 'To the lobby', pgNotNow: 'Not now',
-  e_kicked_t: 'You were removed from this lobby - you can come back in {left}.',
+  e_kicked_t: 'You were removed from this lobby - you can come back in {left}, or at once if the host invites you.',
   n_kicked_me: 'You were removed from the lobby “{name}”. You can join it again at any time.', kickedLeft: 'By yourself - in {left}.',
   pgAlreadyStart: 'The host has just been called by another player - waiting for his answer.', pgAlreadyReady: 'The ready check has just been sent.',
 });
@@ -1172,13 +1185,25 @@ Object.assign(T.ru, {
   sg_start_wait: '{who}: хоста зовут начать матч', sg_start_yes: '{who}: идёт в лобби', sg_start_no: '{who}: просит подождать',
   sgShort_wait: 'зовём', sgShort_yes: 'идёт', sgShort_no: 'отказ', evClose: 'Закрыть',
   pgCapReady: 'Призыв Инквизиции', pgCapStart: 'Призыв Инквизиции', pgReadyNo: 'Не готов', pgClose: 'Закрыть', pgToLobby: 'В лобби', pgNotNow: 'Не сейчас',
-  e_kicked_t: 'Вас убрали из этого лобби — вернуться можно через {left}.',
+  e_kicked_t: 'Вас убрали из этого лобби — вернуться можно через {left} или сразу, если хост пригласит.',
   n_kicked_me: 'Вас убрали из лобби «{name}». Войти снова можно в любой момент.', kickedLeft: 'Самому — через {left}.',
   pgAlreadyStart: 'Хоста только что позвал другой игрок — ждём его ответа.', pgAlreadyReady: 'Проверка готовности только что отправлена.',
 });
 Object.assign(T.en, { invKicker: 'Invitation to a lobby', invSeats: '{n} of {m} seats taken', });
 Object.assign(T.ru, { invKicker: 'Приглашение в лобби', invSeats: 'занято {n} из {m}', });
 Object.assign(T.en, { pgMeta: '{n} seconds to answer' });
+// 1.6.32 (owner 24.11.2026): a kicked player is kept out of that lobby for 5 minutes (ladder KICK_BAN); the host's invitation lets
+// him back at once, another player's invitation of him is refused (inv_kicked)
+Object.assign(T.en, { n_kicked_ban: 'You were removed from the lobby “{name}”. You can come back in {left} - or at once if the host invites you.',
+  e_inv_kicked: 'The host removed this player: only the host can invite them back now (or wait {left}).' });
+Object.assign(T.ru, { n_kicked_ban: 'Вас убрали из лобби «{name}». Вернуться можно через {left} — или сразу, если хост пригласит.',
+  e_inv_kicked: 'Хост убрал этого игрока: позвать обратно сейчас может только хост (или подождите {left}).' });
+Object.assign(T.es, { n_kicked_ban: 'Te quitaron de la sala «{name}». Puedes volver en {left}, o al momento si el anfitrión te invita.',
+  e_inv_kicked: 'El anfitrión quitó a este jugador: ahora solo el anfitrión puede invitarlo de nuevo (o espera {left}).' });
+Object.assign(T.fr, { n_kicked_ban: 'Vous avez été retiré du salon « {name} ». Retour possible dans {left}, ou tout de suite si l\'hôte vous invite.',
+  e_inv_kicked: 'L\'hôte a retiré ce joueur : seul l\'hôte peut le réinviter maintenant (ou attendez {left}).' });
+Object.assign(T.de, { n_kicked_ban: 'Du wurdest aus der Lobby „{name}“ entfernt. Zurück in {left} – oder sofort, wenn der Host dich einlädt.',
+  e_inv_kicked: 'Der Host hat diesen Spieler entfernt: Nur der Host kann ihn jetzt wieder einladen (oder warte {left}).' });
 Object.assign(T.ru, { pgMeta: '{n} секунд на ответ' });
 // 1.5.12: the new words in es / fr / de; the pings are strips now (no "window" in the tips)
 Object.assign(T.es, {
@@ -1187,7 +1212,7 @@ Object.assign(T.es, {
   sg_ready_wait: '{who}: esperando respuesta a la comprobación', sg_ready_no: '{who}: no está listo (respondió)', sg_start_wait: '{who}: lo llaman para empezar',
   sg_start_yes: '{who}: va a la sala', sg_start_no: '{who}: pide esperar', sgShort_wait: 'llamando', sgShort_yes: 'va', sgShort_no: 'no', evClose: 'Cerrar',
   pgCapReady: 'Convocatoria de la Inquisición', pgCapStart: 'Convocatoria de la Inquisición', pgReadyNo: 'No listo', pgClose: 'Cerrar', pgToLobby: 'A la sala', pgNotNow: 'Ahora no',
-  e_kicked_t: 'Te quitaron de esta sala: puedes volver en {left}.',
+  e_kicked_t: 'Te quitaron de esta sala: puedes volver en {left}, o al momento si el anfitrión te invita.',
   n_kicked_me: 'Te quitaron de la sala «{name}». Puedes volver a entrar cuando quieras.', kickedLeft: 'Por tu cuenta: en {left}.',
   pgAlreadyStart: 'Otro jugador acaba de llamar al anfitrión: esperando su respuesta.', pgAlreadyReady: 'La comprobación acaba de enviarse.',
   invKicker: 'Invitación a una sala', invSeats: '{n} de {m} plazas ocupadas', pgMeta: '{n} segundos para responder' });
@@ -1197,7 +1222,7 @@ Object.assign(T.fr, {
   sg_ready_wait: '{who} : réponse à la vérification attendue', sg_ready_no: '{who} : pas prêt (a répondu)', sg_start_wait: '{who} : appelé pour lancer la partie',
   sg_start_yes: '{who} : arrive dans le salon', sg_start_no: '{who} : demande d\'attendre', sgShort_wait: 'appel', sgShort_yes: 'arrive', sgShort_no: 'non', evClose: 'Fermer',
   pgCapReady: 'Convocation de l\'Inquisition', pgCapStart: 'Convocation de l\'Inquisition', pgReadyNo: 'Pas prêt', pgClose: 'Fermer', pgToLobby: 'Au salon', pgNotNow: 'Pas maintenant',
-  e_kicked_t: 'Vous avez été retiré de ce salon : retour possible dans {left}.',
+  e_kicked_t: 'Vous avez été retiré de ce salon : retour possible dans {left}, ou tout de suite si l\'hôte vous invite.',
   n_kicked_me: 'Vous avez été retiré du salon « {name} ». Vous pouvez y revenir à tout moment.', kickedLeft: 'Par vous-même : dans {left}.',
   pgAlreadyStart: 'Un autre joueur vient d\'appeler l\'hôte : on attend sa réponse.', pgAlreadyReady: 'La vérification vient d\'être envoyée.',
   invKicker: 'Invitation dans un salon', invSeats: '{n} places prises sur {m}', pgMeta: '{n} secondes pour répondre' });
@@ -1207,7 +1232,7 @@ Object.assign(T.de, {
   sg_ready_wait: '{who}: Antwort auf die Abfrage steht aus', sg_ready_no: '{who}: nicht bereit (geantwortet)', sg_start_wait: '{who}: wird zum Start gerufen',
   sg_start_yes: '{who}: kommt in die Lobby', sg_start_no: '{who}: bittet zu warten', sgShort_wait: 'Ruf', sgShort_yes: 'kommt', sgShort_no: 'nein', evClose: 'Schließen',
   pgCapReady: 'Ruf der Inquisition', pgCapStart: 'Ruf der Inquisition', pgReadyNo: 'Nicht bereit', pgClose: 'Schließen', pgToLobby: 'Zur Lobby', pgNotNow: 'Nicht jetzt',
-  e_kicked_t: 'Du wurdest aus dieser Lobby entfernt – zurück in {left}.',
+  e_kicked_t: 'Du wurdest aus dieser Lobby entfernt – zurück in {left} oder sofort, wenn der Host dich einlädt.',
   n_kicked_me: 'Du wurdest aus der Lobby „{name}“ entfernt. Du kannst jederzeit wieder beitreten.', kickedLeft: 'Selbst – in {left}.',
   pgAlreadyStart: 'Ein anderer Spieler hat den Host gerade gerufen – wir warten auf seine Antwort.', pgAlreadyReady: 'Die Bereitschaftsabfrage wurde gerade gesendet.',
   invKicker: 'Einladung in eine Lobby', invSeats: '{n} von {m} Plätzen belegt', pgMeta: '{n} Sekunden zum Antworten' });

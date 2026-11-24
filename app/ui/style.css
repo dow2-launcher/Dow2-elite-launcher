@@ -2018,3 +2018,38 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .addon-danger{margin:5px 0 2px;padding:4px 8px;border-left:2px solid var(--blood2);background:rgba(168,48,42,.15);color:#ffb3a8;font-size:12.5px;line-height:1.35;white-space:normal}
 .arow.off .addon-danger,.addon.off .addon-danger{color:#f0a298}
 #pop .w.danger{color:var(--red)}
+/* 1.6.32 (owner 24.11.2026): the language of the messages - a globe right of Logs, frameless (a highlight on hover, as every icon
+   button); a translation on: the globe gold, its language small at the globe's corner */
+.ch-devg .ch-lang{margin-left:0}
+.ch-lbtn.ch-globe{position:relative;width:30px;justify-content:center;padding:0}
+.ch-lbtn.ch-globe svg{width:19px;height:19px}
+.ch-lbtn.ch-globe.tr{color:var(--gd)}
+.ch-ltr{position:absolute;right:-3px;bottom:2px;font:700 8.5px/1 var(--fb);letter-spacing:.2px;color:var(--gd);text-shadow:0 0 2px #071011,0 0 3px #071011}
+.ch-ltr:empty{display:none}
+/* 1.6.32 (owner 24.11.2026): the Hall of Fame's purity seal left of a name (rating.js fmSeal) - its tip what the hall says, a click
+   opens the hall at that entry (lit for a moment) */
+.fm-seal{flex:none;display:inline-flex;align-items:center;justify-content:center;width:11px;height:17px;margin:0 4px 0 0;vertical-align:-4px;cursor:pointer}
+.fm-seal svg{width:11px;height:17px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6));transition:filter .15s}
+.fm-seal:hover svg,.fm-seal:focus-visible svg{filter:drop-shadow(0 0 4px rgba(232,120,106,.9))}
+.hl-p .fm-seal{width:10px;height:15px;margin-right:3px}
+.hl-p .fm-seal svg{width:10px;height:15px}
+.fame-p.flash{animation:chflash 1.6s ease}
+@media (prefers-reduced-motion:reduce){.fame-p.flash{animation:none}}
+/* 1.6.32 (memory): the window hidden in the tray (app.js WINVIS) - every animation paused */
+html.bg *,html.bg *::before,html.bg *::after{animation-play-state:paused!important}
+/* 1.6.32 (owner 24.11.2026): the group of up to 3 left of Play (grp.js - its layout only, shown from 2 players): the avatars as the
+   lobby's portraits; the leader's mark - the lobby host's skull, gold, over his portrait where a crown would be; a dot of where he
+   is at the bottom right; a free place is the lobby's empty seat (the dimmed skull) with a plus inside the square */
+.grp-foot{display:flex;align-items:center;gap:6px;flex:none;margin-right:2px}
+.grp-foot.hidden{display:none}
+.grp-f{position:relative;display:block}
+.grp-f .gp{position:relative;display:block;width:46px;height:46px}
+.grp-f .av{width:46px;height:46px}
+.grp-f.me .av{filter:drop-shadow(0 0 4px rgba(69,224,192,.45))}
+.grp-f .gld{position:absolute;top:-9px;left:50%;transform:translateX(-50%);display:block;line-height:0;color:#e9c46a;filter:drop-shadow(0 1px 1px #000) drop-shadow(0 0 3px rgba(233,196,106,.45))}
+.grp-f .gld .ico{width:16px;height:16px}
+.grp-f .gst{position:absolute;right:1px;bottom:1px;width:9px;height:9px;border-radius:50%;box-shadow:0 0 0 2px #071011}
+.grp-f .gst.menu{background:#45e0c0}.grp-f .gst.game{background:#e2b86a}.grp-f .gst.off{background:#5d6d6a}
+.grp-f.add .sk-av{opacity:.42;filter:grayscale(.4)}
+.grp-f.add .gplus{position:absolute;right:6px;bottom:5px;display:block;line-height:0;color:var(--gd)}
+.grp-f.add .gplus .ico{width:13px;height:13px;stroke-width:2.6}

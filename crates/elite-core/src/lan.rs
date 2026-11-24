@@ -6,7 +6,7 @@
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream, UdpSocket};
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -41,10 +41,15 @@ pub fn serve(resolve: Resolver) {
         });
     }
     if let Ok(l) = TcpListener::bind(SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), PORT)) {
+        // 1.6.32 (review): a connection from outside the private ranges is closed before any read or thread; at most 16 answers at
+        // once (a flood of connections made a thread each)
+        static BUSY: AtomicUsize = AtomicUsize::new(0);
         std::thread::spawn(move || {
             for s in l.incoming().flatten() {
+                if !s.peer_addr().map(|p| private(p.ip())).unwrap_or(false) { continue; }
+                if BUSY.fetch_add(1, Ordering::SeqCst) >= 16 { BUSY.fetch_sub(1, Ordering::SeqCst); continue; }
                 let r = resolve.clone();
-                std::thread::spawn(move || { let _ = answer(s, &r); });
+                std::thread::spawn(move || { let _ = answer(s, &r); BUSY.fetch_sub(1, Ordering::SeqCst); });
             }
         });
     }
@@ -53,8 +58,9 @@ pub fn serve(resolve: Resolver) {
 fn answer(mut s: TcpStream, resolve: &Resolver) -> std::io::Result<()> {
     let peer = s.peer_addr()?;
     s.set_read_timeout(Some(Duration::from_secs(10)))?;
+    s.set_write_timeout(Some(Duration::from_secs(30)))?;
     let mut line = String::new();
-    BufReader::new(s.try_clone()?).read_line(&mut line)?;
+    BufReader::new(Read::take(s.try_clone()?, 512)).read_line(&mut line)?;   // 1.6.32: the request line only, never a whole stream
     let sha = line.strip_prefix("GET /blob/").and_then(|r| r.split_whitespace().next()).unwrap_or("");
     let ok = ENABLED.load(Ordering::Relaxed) && private(peer.ip()) && sha.len() == 64 && sha.bytes().all(|c| c.is_ascii_hexdigit());
     match if ok { resolve(sha) } else { None } {
@@ -112,11 +118,11 @@ fn fetch_from(p: SocketAddr, sha: &str, size: u64, out: &mut dyn Write, cancel: 
         if write!(s, "GET /blob/{sha} HTTP/1.1\r\nHost: lan\r\nConnection: close\r\n\r\n").is_err() { return None; }
         let mut r = BufReader::new(s);
         let mut status = String::new();
-        if r.read_line(&mut status).is_err() || !status.starts_with("HTTP/1.1 200") { return None; }
+        if Read::take(&mut r, 4096).read_line(&mut status).is_err() || !status.starts_with("HTTP/1.1 200") { return None; }   // 1.6.32: lines capped
         let mut len = None;
         loop {
             let mut h = String::new();
-            if r.read_line(&mut h).unwrap_or(0) == 0 { break; }
+            if Read::take(&mut r, 4096).read_line(&mut h).unwrap_or(0) == 0 { break; }
             let h = h.trim_end();
             if h.is_empty() { break; }
             if let Some(v) = h.strip_prefix("Content-Length: ") { len = v.trim().parse::<u64>().ok(); }
