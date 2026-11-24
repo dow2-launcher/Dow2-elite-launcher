@@ -17,7 +17,7 @@ const HL_EYE = '<svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d=
 // 1.6.20: the tip is the player's tip of rating.js (the picked system whole), the number the lobby's mode's; the warboss / nobs
 const hlHours = p => { const h = p && (p.hours != null ? p.hours : p.playtime_h); return h != null && isFinite(h) && h > 0 ? Math.round(h) : 0; };
 const hlRow = (pic, p, mode, host, hours) => `<div class="rp hl-p${host ? ' host' : ''}"${p.steam ? rtTipAttr(p.steam, p.name, p.rating, hours) : ` data-tip="${esc(p.name || '?')}"`}>`
-  + `${pic}${rtName(`<span class="nm">${esc(p.name || '?')}</span>`, p.steam)}${rtCell(p.steam, mode, p.rating)}</div>`;
+  + `${pic}${fmSeal(p.steam, p.name)}${rtName(`<span class="nm">${esc(p.name || '?')}</span>`, p.steam)}${rtCell(p.steam, mode, p.rating)}</div>`;
 const hlFree = () => `<div class="rp hl-p free"><i class="sk"></i><span class="nm">${esc(t('roomsFree'))}</span></div>`;
 const hlTeams = (a, b) => `<div class="hl-teams"><div class="hl-team">${a}</div><div class="hl-team r">${b}</div></div>`;
 function hlCard(o) {   // o: {kind, id, name, map, mm, lock, tags, teams, obs, acts, dim}

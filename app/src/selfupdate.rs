@@ -111,7 +111,9 @@ pub async fn launcher_install(app: AppHandle) -> Result<(), String> {
                 .creation_flags(0x0800_0000 /* CREATE_NO_WINDOW */ | 0x0000_0200 /* CREATE_NEW_PROCESS_GROUP */)
                 .stdin(std::process::Stdio::null()).stdout(std::process::Stdio::null()).stderr(std::process::Stdio::null())
                 .spawn().is_ok();
-            if started { std::process::exit(0); }
+            // 1.6.32 (players: "two launchers"): the tray's icon is taken away first - a process ended by exit() leaves its icon in
+            // the tray until the mouse passes over it, next to the new launcher's own
+            if started { app.cleanup_before_exit(); std::process::exit(0); }
         }
         upd.install(bytes).map_err(|e| e.to_string())?;
         app.restart()

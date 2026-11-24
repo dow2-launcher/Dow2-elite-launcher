@@ -9,6 +9,12 @@ Object.assign(T.ru, { lnkElite: 'Discord Elite', lnkDiscord: 'Discord DoW2', lnk
 Object.assign(T.es, { lnkElite: 'Discord de Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Estadísticas de jugadores', lnkLadder: 'Ladder: tabla del rating Elite', chLang: 'Idioma de los mensajes', chLangH: 'Mostrar los mensajes', chOrigShort: 'Orig.', chAsWritten: 'tal como se escribió', chTranslated: 'traducido', logsShort: 'Registros' });
 Object.assign(T.fr, { lnkElite: 'Discord d\'Elite', lnkDiscord: 'Discord DoW2', lnkStats: 'Statistiques des joueurs', lnkLadder: 'Ladder : tableau du classement Elite', chLang: 'Langue des messages', chLangH: 'Afficher les messages', chOrigShort: 'Orig.', chAsWritten: 'tel qu\'écrit', chTranslated: 'traduit', logsShort: 'Journaux' });
 Object.assign(T.de, { lnkElite: 'Elite-Discord', lnkDiscord: 'Discord DoW2', lnkStats: 'Spielerstatistiken', lnkLadder: 'Ladder: Tabelle der Elite-Wertung', chLang: 'Sprache der Nachrichten', chLangH: 'Nachrichten anzeigen', chOrigShort: 'Orig.', chAsWritten: 'wie geschrieben', chTranslated: 'übersetzt', logsShort: 'Logs' });
+// 1.6.32: the tray icon's tip while its yellow dot says a mention of me waits unseen (chMark)
+Object.assign(T.en, { trayMention: 'DoW Launcher - you were mentioned in the chat' });
+Object.assign(T.ru, { trayMention: 'DoW Launcher — вас упомянули в чате' });
+Object.assign(T.es, { trayMention: 'DoW Launcher: te mencionaron en el chat' });
+Object.assign(T.fr, { trayMention: 'DoW Launcher : on vous a mentionné dans le chat' });
+Object.assign(T.de, { trayMention: 'DoW Launcher – du wurdest im Chat erwähnt' });
 // 1.6.11 (owner 14.11.2026): one players' tab (General) - RU / EN are the language of its messages (a menu, the original by
 // default: CH.lang), the developers' tab apart on the right
 const CH = { room: 'all', lang: 'all', msgs: {}, out: [], unread: {}, full: {}, me: null, prof: null, waiting: false, features: [], replyTo: null, lobby: false };
@@ -17,7 +23,7 @@ try { CH.lang = localStorage.getItem('chLang') || 'all'; CH.room = localStorage.
 // language switch is General's and the Lobby's both
 function chShowRoom() {
   document.querySelectorAll('.ch-tab').forEach(b => b.classList.toggle('on', b.dataset.room === 'lobby' ? !!CH.lobby : !CH.lobby && (b.dataset.room === 'dev') === (CH.room === 'dev')));
-  $('chLangCur').textContent = CH.lang === 'all' ? t('chOrigShort') : CH.lang.toUpperCase();
+  $('chLangCur').textContent = CH.lang === 'all' ? '' : CH.lang.toUpperCase();   // 1.6.32: the globe; a translation shows its language on it
   $('chLangBtn').classList.toggle('tr', CH.lang !== 'all');
   $('chLangBtn').parentElement.classList.toggle('off', CH.room === 'dev' && !CH.lobby);
   document.querySelectorAll('#chLangMenu [data-lang]').forEach(b => { b.classList.toggle('on', b.dataset.lang === CH.lang); b.setAttribute('aria-checked', String(b.dataset.lang === CH.lang)); });
@@ -26,7 +32,7 @@ function chShowRoom() {
   $('lobbyPane').classList.toggle('hidden', !CH.lobby);
   if (CH.room !== 'dev' && !CH.lobby) { CH.chatRoom = CH.room; CH.unread[chKey(CH.room)] = 0; chRender(true); if (!CH.msgs[chKey(CH.room)]) chLoad(chKey(CH.room)); }
   if (typeof lcPaint === 'function') { lcPaint(true); if (CH.lobby) lcStick(LC.home); }   // the lobby's chat in the language picked
-  chUnread(); FB.open = CH.room === 'dev' && !CH.lobby; fbWatch();
+  chUnread(); FB.open = CH.room === 'dev' && !CH.lobby; fbWatch(); CH.dirty = false; chMarkCheck();
   chReplyBar();   // 1.6.3: the Reply strip only over the chat's own input
 }
 // 1.5.0: the profile is a plate in the header (the online dot, the name); a click opens its menu - the avatar, the name with the
@@ -72,8 +78,8 @@ function chMe() {
   $('hdrMe').classList.toggle('hidden', !CH.me || CH.me.configured === false);
   if (me) {
     plate.innerHTML = `<button class="me-chip" id="meChip" aria-haspopup="menu" aria-expanded="${!box.classList.contains('hidden')}"><i class="me-dot"></i>`
-      + `<span class="me-nr"><span class="me-n">${esc(me.name || me.steam)}</span>${rtBadge(me.steam)}</span><b class="chev"></b></button>`;
-    box.innerHTML = `<div class="me-head">${avatar(me.avatar, 'me-av')}<div class="me-info"><div class="me-top"><span class="me-name${String(me.name || me.steam).length > 14 ? ' long' : ''}">${esc(me.name || me.steam)}</span>`
+      + `<span class="me-nr">${fmSeal(me.steam, me.name)}<span class="me-n">${esc(me.name || me.steam)}</span>${rtBadge(me.steam)}</span><b class="chev"></b></button>`;
+    box.innerHTML = `<div class="me-head">${avatar(me.avatar, 'me-av')}<div class="me-info"><div class="me-top">${fmSeal(me.steam, me.name)}<span class="me-name${String(me.name || me.steam).length > 14 ? ' long' : ''}">${esc(me.name || me.steam)}</span>`
       + `${rtBadge(me.steam)}<button class="me-out" id="chOut" data-tip="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}">${ico('out')}</button></div>`
       + `<label class="chk me-sys" data-tip="${esc(t('rtUseT'))}"><input type="checkbox" id="meSys"${rtElite() ? ' checked' : ''}><span>${esc(t('rtUse'))}</span></label></div></div>`
       + chMeRatings(me)
@@ -132,27 +138,37 @@ async function chProfile() {
   chMe();
 }
 // 1.3.12 (owner): a short beep when someone tags me (@my name) in the chat; Settings: "No sound when someone mentions me"
-let chAudio = null;
+// 1.6.32 (memory): the audio context sleeps between the beeps (it was woken by every click and kept the sound device busy for good)
+let chAudio = null, chAudioNap = 0;
 function chBeep() {
   if (S && S.mute_mention) return;
   try {
     chAudio = chAudio || new (window.AudioContext || window.webkitAudioContext)();
-    if (chAudio.state === 'suspended') chAudio.resume();
-    const t0 = chAudio.currentTime;
-    [[880, 0], [1320, 0.12]].forEach(([f, d]) => {
-      const o = chAudio.createOscillator(), g = chAudio.createGain();
-      o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(chAudio.destination);
-      g.gain.setValueAtTime(0.0001, t0 + d); g.gain.exponentialRampToValueAtTime(0.25, t0 + d + 0.01);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.11); o.start(t0 + d); o.stop(t0 + d + 0.12);
-    });
+    const play = () => {
+      const t0 = chAudio.currentTime;
+      [[880, 0], [1320, 0.12]].forEach(([f, d]) => {
+        const o = chAudio.createOscillator(), g = chAudio.createGain();
+        o.type = 'sine'; o.frequency.value = f; o.connect(g); g.connect(chAudio.destination);
+        g.gain.setValueAtTime(0.0001, t0 + d); g.gain.exponentialRampToValueAtTime(0.25, t0 + d + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.11); o.start(t0 + d); o.stop(t0 + d + 0.12);
+      });
+      clearTimeout(chAudioNap); chAudioNap = setTimeout(() => { try { chAudio.suspend(); } catch (e) {} }, 1500);
+    };
+    if (chAudio.state === 'running') play(); else chAudio.resume().then(play, () => {});
   } catch (e) {}
 }
-document.addEventListener('pointerdown', () => { try { chAudio = chAudio || new (window.AudioContext || window.webkitAudioContext)(); if (chAudio.state === 'suspended') chAudio.resume(); } catch (e) {} });
+// the first click unlocks the sound for the page (the autoplay rule); the context is made then and put to sleep at once
+document.addEventListener('pointerdown', () => { if (chAudio) return; try { chAudio = new (window.AudioContext || window.webkitAudioContext)(); chAudio.suspend(); } catch (e) {} });
+// 1.6.32 (owner 24.11.2026): @all tags everybody in the chat - every launcher open counts it as a mention of its player (the sound,
+// unless Settings' "no sound when someone mentions me" is on; the tray's dot). A word of its own: "@all," yes, "@allies" no
+const CH_ALL = /(^|[^\p{L}\p{N}_])@all(?![\p{L}\p{N}_])/iu;
+const chAtAll = html => html.replace(new RegExp(CH_ALL.source, 'giu'), '$1<span class="ch-at me all">@all</span>');
 function chMentionsMe(m) {
   const me = CH.me && CH.me.signed_in ? CH.me : null;
   if (!me || !me.name || m.steam === me.steam) return false;
   if (m.reply && !m.reply.deleted && String(m.reply.steam) === String(me.steam)) return true;   // 1.6.3: a reply to me
-  return String(chOrig(m) || '').toLowerCase().includes('@' + me.name.toLowerCase());
+  const tx = String(chOrig(m) || '');
+  return tx.toLowerCase().includes('@' + me.name.toLowerCase()) || CH_ALL.test(tx);
 }
 // Two kinds of server (siritos 02.11: on the live, older one the tabs changed nothing):
 // - the new one (ladder 9f6817f) keeps one common chat: every message carries orig / ru / en, General shows the original,
@@ -189,9 +205,33 @@ function chPut(key, ms, live) {   // messages into a list in id order, each once
     if (CH.out.some(done)) { const o = CH.out.find(done); CH.out = CH.out.filter(x => x !== o); chOutSave(); }
     if (live && chMentionsMe(m) && !CH.pinged.has(m.id)) { CH.pinged.add(m.id); ping = true; }
   }
-  if (ping) chBeep();
+  if (ping) { chBeep(); if (!chSeen()) chMark(true); }
+  if (live) chTrim(key);
   return changed;
 }
+// 1.6.32 (memory, owner 24.11.2026): the chat kept every message it ever got (and every page scrolled up to) and drew all of them
+// again for each new one - a launcher left in the tray for days grew without end. The list keeps the last CH_MAX while the reader
+// is at the bottom (or not looking); scrolled up, nothing is cut (the history he reads); older ones come back by scrolling up.
+const CH_MAX = 300;
+function chTrim(key) {
+  const list = CH.msgs[key]; if (!list || list.length <= CH_MAX) return;
+  const box = $('chMsgs'), shown = chShown() && chKey(CH.room) === key;
+  if (shown && box.scrollTop + box.clientHeight < box.scrollHeight - 30) return;
+  list.splice(0, list.length - CH_MAX); CH.full[key] = false;
+}
+// the players' chat on the screen: the window seen, Home open, its General tab (not the lobby's, not the developers')
+const chShown = () => !pageHidden() && !$('home').classList.contains('hidden') && !$('chatPane').classList.contains('hidden');
+// a new message is drawn when it can be seen; else once the chat shows again (no redraw of the whole list in the tray)
+function chRenderSoon() { if (chShown()) { CH.dirty = false; chRender(); } else CH.dirty = true; }
+function chFlush() { if (CH.dirty && chShown()) { CH.dirty = false; chRender(); } chMarkCheck(); }
+// 1.6.32 (owner 24.11.2026): a mention of me (@my name, a reply to me, @all) I have not seen yet - a yellow dot over the tray's icon
+// (lroom tray.rs tray_mark, the news dot's colour); gone once the chat is on the screen with the window in front
+const chSeen = () => chShown() && document.hasFocus();
+function chMark(on) {
+  if (!!CH.mark === on) return; CH.mark = on;
+  invoke('tray_mark', { on, tip: on ? t('trayMention') : '' }).catch(() => {});
+}
+function chMarkCheck() { if (CH.mark && chSeen()) chMark(false); }
 // history: the last 100 at start, 100 older when scrolled to the top; after an id while the stream is down
 async function chLoad(key, how) {
   // the feed is asked as "all": the server would cut a translated tab at the first message still being translated, here
@@ -266,6 +306,7 @@ function chRender(force, older) {
   const names = [...new Set(list.map(m => m.name).filter(Boolean))].sort((a, b) => b.length - a.length);
   const mention = html => names.reduce((h, n) => h.split('@' + esc(n)).join(`\u0000${n === myName ? 1 : 0}${esc(n)}\u0001`), html)
     .replace(/\u0000([01])([^\u0001]*)\u0001/g, (_, me, n) => `<span class="ch-at${me === '1' ? ' me' : ''}">@${n}</span>`);
+  const mentionAll = html => chAtAll(mention(html));   // 1.6.32: @all
   let prev = null;
   const replyOn = chReplyOn();
   const quote = q => !q ? '' : q.deleted ? `<div class="rq del"><i>${esc(t('chQuoteDel'))}</i></div>`
@@ -276,9 +317,9 @@ function chRender(force, older) {
     const toMe = mine && m.reply && !m.reply.deleted && String(m.reply.steam) === String(mine) && m.steam !== mine;
     const rpl = replyOn && m.id && m.steam !== mine && !extra ? `<button class="rpl" data-reply="${esc(String(m.id))}" title="${esc(t('chReply'))}" aria-label="${esc(t('chReply'))}">${CH_ARROW}</button>` : '';
     return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${toMe ? 'tome' : ''} ${extra}"${m.id ? ` data-id="${esc(String(m.id))}"` : ''}><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">` + avatar(m.avatar) + `</span>`
-      + `<div><div class="w"><b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}"${rtTipAttr(m.steam, m.name)}>${esc(m.name)}</b>${rtBadge(m.steam)}<span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}${tail}</div>`
+      + `<div><div class="w">${fmSeal(m.steam, m.name)}<b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}"${rtTipAttr(m.steam, m.name)}>${esc(m.name)}</b>${rtBadge(m.steam)}<span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}${tail}</div>`
       + quote(m.reply)
-      + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${linkify(text, p => mention(esc(p)), linkA)}</div></div></div>`;
+      + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${linkify(text, p => mentionAll(esc(p)), linkA)}</div></div></div>`;
   };
   const sent = list.map(m => row(m, '', '')).join('');   // first: the day headings run on into the queue
   // ours not confirmed yet stay at the bottom: a clock while sending, "Not sent · Retry · Delete" when it failed
@@ -377,18 +418,18 @@ function chEvent(ev, d) {
     chFeedSeen([d]);
     const key = chKey(d.room);
     if (!chPut(key, [d], true)) return;
-    if (key !== chKey(CH.room) || CH.room === 'dev' || CH.lobby || document.hidden) { CH.unread[key] = (CH.unread[key] || 0) + 1; chUnread(); }
-    if (key === chKey(CH.room)) chRender();
+    if (key !== chKey(CH.room) || CH.room === 'dev' || CH.lobby || pageHidden()) { CH.unread[key] = (CH.unread[key] || 0) + 1; chUnread(); }
+    if (key === chKey(CH.room)) chRenderSoon();
   } else if (ev === 'msg_tr') {
     const m = (CH.msgs[chKey(CH.room)] || []).find(x => x.id === d.id);
-    if (m) { m.ru = d.ru; m.en = d.en; if (CH.room === 'ru' || CH.room === 'en') chRender(); }
+    if (m) { m.ru = d.ru; m.en = d.en; if (CH.room === 'ru' || CH.room === 'en') chRenderSoon(); }
   } else if (ev === 'msg_del') {
     for (const k of Object.keys(CH.msgs)) {
       CH.msgs[k] = CH.msgs[k].filter(m => m.id !== d.id);
       CH.msgs[k].forEach(m => { if (m.reply && m.reply.id === d.id) m.reply = { id: d.id, deleted: true }; });
     }
     if (CH.replyTo && CH.replyTo.id === d.id) { CH.replyTo = null; chReplyBar(); }
-    chRender();
+    chRenderSoon();
   } else if (ev === 'reset') { CH.msgs[chKey(d.room)] = []; chLoad(chKey(d.room)); }
   else if (ev === 'me') { CH.prof = { ok: true, rating: d.rating, stats: { games: d.games, wins: d.wins, losses: d.losses } }; chMe(); }
 }
@@ -406,7 +447,7 @@ function streamState(up) {
   STREAM.timer = setTimeout(() => {
     if (STREAM.up || STREAM.poll) return;
     STREAM.poll = setInterval(async () => {
-      if (document.hidden) return;
+      if (pageHidden()) return;
       // without the stream the server does not see that the launcher is open: "I'm here" every 30 s (it forgets in 90)
       if (STREAM.n % 6 === 0) chHello();
       if (STREAM.n++ % 3 === 0) { try { onLive(await liveSnapshot()); } catch (e) { ON.err = true; onRender(); } }
@@ -428,7 +469,8 @@ async function chInit() {
   // 1.6.20: the tabs' row scrolls sideways in a narrow window, the menu is fixed and placed under its button when it opens
   const lb = $('chLangBtn'), lm = $('chLangMenu'), lmShow = on => {
     lm.classList.toggle('hidden', !on); lb.setAttribute('aria-expanded', String(on));
-    if (on) { const r = lb.getBoundingClientRect(); lm.style.left = Math.max(8, Math.min(innerWidth - lm.offsetWidth - 8, r.left - 6)) + 'px'; lm.style.top = (r.bottom + 6) + 'px'; }
+    // 1.6.32: the globe is the header's last button - the menu's right edge under its right edge
+    if (on) { const r = lb.getBoundingClientRect(); lm.style.left = Math.max(8, Math.min(innerWidth - lm.offsetWidth - 8, r.right + 6 - lm.offsetWidth)) + 'px'; lm.style.top = (r.bottom + 6) + 'px'; }
   };
   $('chTabs').parentElement.addEventListener('scroll', () => lmShow(false), { passive: true });
   addEventListener('resize', () => lmShow(false));
@@ -451,7 +493,9 @@ async function chInit() {
     const key = chKey(CH.room), box = $('chMsgs');
     if (box.scrollTop < 40 && !CH.full[key] && !CH.older && (CH.msgs[key] || []).length) { CH.older = true; chLoad(key, 'older').finally(() => { CH.older = false; }); }
   };
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { CH.unread[chKey(CH.room)] = 0; chUnread(); } });
+  document.addEventListener('visibilitychange', () => { if (!pageHidden()) { CH.unread[chKey(CH.room)] = 0; chUnread(); } chFlush(); });
+  addEventListener('focus', chFlush);
+  document.addEventListener('viewchange', chFlush);
   chMe(); chShowRoom();
   // signed in by itself with the Steam account of this computer (no button, no browser, quiet on failure);
   // not after the player pressed "Sign out" - until they sign in again by hand

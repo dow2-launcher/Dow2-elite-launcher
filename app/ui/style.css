@@ -2018,3 +2018,22 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 .addon-danger{margin:5px 0 2px;padding:4px 8px;border-left:2px solid var(--blood2);background:rgba(168,48,42,.15);color:#ffb3a8;font-size:12.5px;line-height:1.35;white-space:normal}
 .arow.off .addon-danger,.addon.off .addon-danger{color:#f0a298}
 #pop .w.danger{color:var(--red)}
+/* 1.6.32 (owner 24.11.2026): the language of the messages - a globe right of Logs, frameless (a highlight on hover, as every icon
+   button); a translation on: the globe gold, its language small at the globe's corner */
+.ch-devg .ch-lang{margin-left:0}
+.ch-lbtn.ch-globe{position:relative;width:30px;justify-content:center;padding:0}
+.ch-lbtn.ch-globe svg{width:19px;height:19px}
+.ch-lbtn.ch-globe.tr{color:var(--gd)}
+.ch-ltr{position:absolute;right:-3px;bottom:2px;font:700 8.5px/1 var(--fb);letter-spacing:.2px;color:var(--gd);text-shadow:0 0 2px #071011,0 0 3px #071011}
+.ch-ltr:empty{display:none}
+/* 1.6.32 (owner 24.11.2026): the Hall of Fame's purity seal left of a name (rating.js fmSeal) - its tip what the hall says, a click
+   opens the hall at that entry (lit for a moment) */
+.fm-seal{flex:none;display:inline-flex;align-items:center;justify-content:center;width:11px;height:17px;margin:0 4px 0 0;vertical-align:-4px;cursor:pointer}
+.fm-seal svg{width:11px;height:17px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.6));transition:filter .15s}
+.fm-seal:hover svg,.fm-seal:focus-visible svg{filter:drop-shadow(0 0 4px rgba(232,120,106,.9))}
+.hl-p .fm-seal{width:10px;height:15px;margin-right:3px}
+.hl-p .fm-seal svg{width:10px;height:15px}
+.fame-p.flash{animation:chflash 1.6s ease}
+@media (prefers-reduced-motion:reduce){.fame-p.flash{animation:none}}
+/* 1.6.32 (memory): the window hidden in the tray (app.js WINVIS) - every animation paused */
+html.bg *,html.bg *::before,html.bg *::after{animation-play-state:paused!important}

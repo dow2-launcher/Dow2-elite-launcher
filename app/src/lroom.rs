@@ -221,7 +221,7 @@ pub fn lroom_attention(app: AppHandle, running: bool, audio: Option<String>) {
     // so a player's send-logs shows what held it back (the WebView's autoplay rule: "suspended" = no click in the window yet)
     if let Some(a) = audio { crate::c_log(&format!("lroom attention: sound {}", a.chars().filter(|c| c.is_ascii_graphic() || *c == ' ').take(60).collect::<String>())); }
     if let Some(w) = app.get_webview_window("main") {
-        if !running && !w.is_visible().unwrap_or(true) { let _ = w.unminimize(); let _ = w.show(); }
+        if !running && !w.is_visible().unwrap_or(true) { let _ = w.unminimize(); let _ = w.show(); let _ = app.emit("win_vis", true); }   // 1.6.32: app.js WINVIS
         let _ = w.request_user_attention(Some(tauri::UserAttentionType::Informational));
     }
 }

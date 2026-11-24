@@ -47,7 +47,7 @@ async function fbSend() {
 }
 function fbWatch() {   // the developers' chat: asked every 20 s only while its tab is open and the window seen
   clearInterval(FB.timer); FB.timer = null;
-  if (!FB.open || document.hidden) return;
+  if (!FB.open || pageHidden()) return;
   fbLoad(); FB.timer = setInterval(fbLoad, 20000);
 }
 document.addEventListener('visibilitychange', () => fbWatch());

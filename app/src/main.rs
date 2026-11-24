@@ -14,7 +14,7 @@
 //! * our servers - community (sign-in, the chat), stream (the live stream), feedback (the developers' chat), feeds (lobbies,
 //!   matches, events, release news, the usage count), lroom (launcher lobbies), roomjoin / livewatch / replayopen (the game's
 //!   lobbies, a match to watch, a replay to open), replays;
-//! * selfupdate - the launcher's own update.
+//! * selfupdate - the launcher's own update; tray - the tray's icon (a mention's dot) and the copy beside an elevated one.
 #![recursion_limit = "256"]   // get_status' json! grew past the default 128
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
@@ -40,6 +40,7 @@ mod community;
 mod stream;
 mod feeds;
 mod winstate;
+mod tray;
 // every module's items reachable crate-wide (crate::X), as when they were all in this file; some are used on one OS only
 #[allow(unused_imports)]
 pub(crate) use self::{netcheck::*, prefs::*, gameproc::*, selfupdate::*, addons::*, vanilla::*, install::*, logs::*, launch::*, feedback::*, community::*, stream::*, feeds::*};
@@ -149,6 +150,8 @@ struct App {
 struct Tray {
     open: MenuItem<Wry>,
     quit: MenuItem<Wry>,
+    /// 1.6.32: the icon itself - its picture changes with a mention in the chat (tray_mark)
+    icon: tauri::tray::TrayIcon<Wry>,
 }
 
 fn show_window(app: &AppHandle) {
@@ -157,6 +160,16 @@ fn show_window(app: &AppHandle) {
         let _ = w.show();
         let _ = w.set_focus();
     }
+    let _ = app.emit("win_vis", true);   // 1.6.32: the page knows it is seen again (app.js WINVIS)
+}
+
+/// 1.6.32 (owner 24.11.2026): a mention of the player in the chat (@name, a reply to him, @all) not seen yet - the tray's icon with
+/// a yellow dot and its tip saying so (chat.js chMark); off - the usual icon and tip.
+#[tauri::command]
+fn tray_mark(app: AppHandle, tr: State<'_, Tray>, on: bool, tip: Option<String>) {
+    let _ = tr.icon.set_icon(Some(tray::icon(&app, on)));
+    let tip = tip.filter(|t| on && !t.trim().is_empty()).unwrap_or_else(|| "Elite Launcher".into());
+    let _ = tr.icon.set_tooltip(Some(tip));
 }
 
 #[tauri::command]
@@ -538,6 +551,13 @@ fn c_log(msg: &str) {
 }
 
 fn main() {
+    // 1.6.32 (players: "two launchers start"): another copy runs as administrator - the single-instance plugin can not see it
+    // (its mutex: access denied) and would start this one in full; say so and quit (tray.rs)
+    #[cfg(windows)]
+    if tray::elevated_copy_runs("mod.elite.launcher") {
+        tray::tell_elevated_copy();
+        return;
+    }
     let settings = load_settings();
     let config = cached_config();
     tauri::Builder::default()
@@ -632,8 +652,9 @@ fn main() {
             let open = MenuItemBuilder::with_id("open", "Open Elite Launcher").build(app)?;
             let quit = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
             let menu = MenuBuilder::new(app).items(&[&open, &quit]).build()?;
-            let mut tray = TrayIconBuilder::new()
+            let tb = TrayIconBuilder::with_id("main")
                 .tooltip("Elite Launcher")
+                .icon(tray::icon(app.handle(), false))   // 1.6.32: the cross bigger than the window's icon (tray.rs)
                 .menu(&menu)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id().as_ref() {
@@ -647,11 +668,8 @@ fn main() {
                         show_window(tray.app_handle());
                     }
                 });
-            if let Some(icon) = app.default_window_icon() {
-                tray = tray.icon(icon.clone());
-            }
-            tray.build(app)?;
-            app.manage(Tray { open, quit });
+            let icon = tb.build(app)?;
+            app.manage(Tray { open, quit, icon });
 
             // release notes as news: now and every hour; the window redraws when they change
             let hn = app.handle().clone();
@@ -681,6 +699,9 @@ fn main() {
         .on_window_event(|window, event| {
             // 1.6.27: the window's size and place are kept (winstate.rs): after a move / resize, and when it is closed or hidden
             if matches!(event, tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_)) { winstate::touch(); }
+            // 1.6.32 (memory): WebView2 does not notice its window hidden in the tray (document.hidden stays false) - the page is
+            // told (app.js WINVIS: its polls and redraws wait, the animations stop); a focused window is seen again
+            if let tauri::WindowEvent::Focused(true) = event { let _ = window.app_handle().emit("win_vis", true); }
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 if let Some(w) = window.app_handle().get_webview_window(window.label()) { winstate::save_now(&w); }
                 // 1.3.12 (owner): a tick in Settings - the close button quits the launcher instead of hiding it in the tray
@@ -690,11 +711,12 @@ fn main() {
                 }
                 api.prevent_close();
                 let _ = window.hide();
+                let _ = window.app_handle().emit("win_vis", false);
             }
         })
         .invoke_handler(tauri::generate_handler![
             get_status, refresh, set_channel, switch_to, logs::send_logs, addons::set_comp_option, set_setting, addons::set_component, addons::rating_sys_set, addons::clean_junk, install::pick_game_dir, open_url, site_host, addons::set_comp_value, install::open_game_dir, install::start_update, install::cancel_update, launch::play,
-            feedback::fb_info, feedback::fb_set_name, feedback::fb_send, feedback::fb_thread, set_tray_labels, selfupdate::launcher_check, selfupdate::launcher_install, feeds::rooms_live,
+            feedback::fb_info, feedback::fb_set_name, feedback::fb_send, feedback::fb_thread, set_tray_labels, tray_mark, selfupdate::launcher_check, selfupdate::launcher_install, feeds::rooms_live,
             roomjoin::room_join, roomjoin::room_join_probe, roomjoin::room_join_cancel, roomjoin::room_link_take,
             livewatch::live_watch, livewatch::live_watch_probe, livewatch::live_watch_cancel,
             replayopen::replay_open, replayopen::replay_open_probe, replayopen::replay_open_cancel,

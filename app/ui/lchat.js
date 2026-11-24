@@ -16,7 +16,7 @@ const LC_SYS = { open: ['in', 'crown'], join: ['in', 'in'], join_obs: ['obs', 'e
   to_obs: ['obs', 'eye'], to_seat: ['in', 'in'], host: ['in', 'crown'] };
 Object.assign(T.en, { lrTabConf: 'Map and settings', lrTabChat: 'Lobby chat', lrChatPh: 'Message to the lobby… (Enter to send)', lrChatNone: 'No messages yet. Say hi!',
   lrChatNew: 'New messages', lrChatObs: 'observer', lrObsFree: 'Free', lrObsGo: 'Go here', lrObsGoTip: 'Watch the match as an observer: your player seat is freed',
-  lrObsOwnerNo: 'The host cannot become an observer', lrObsYou: 'you', lrObsMe: 'You are an observer. To play, press Sit here on a free team seat.',
+  lrObsYou: 'you', lrObsMe: 'You are an observer. To play, press Sit here on a free team seat.',
   lrSys_open: '— host, the lobby is open', lrSys_join: 'is in the lobby now', lrSys_join_obs: 'is watching as an observer', lrSys_leave: 'is no longer in the lobby',
   lrSys_gone: 'is no longer in the lobby — connection lost', lrSys_kick: 'is no longer in the lobby — removed by the host', lrSys_to_obs: 'is an observer now',
   lrSys_to_seat: 'is in team {team} now', lrSys_host: 'is the lobby host now', n_to_obs: '{who} moved to the observers.',
@@ -24,7 +24,7 @@ Object.assign(T.en, { lrTabConf: 'Map and settings', lrTabChat: 'Lobby chat', lr
   e_empty: 'The message is empty.', chLobby: 'Lobby', chLobbyTip: 'The chat of your lobby "{name}"' });
 Object.assign(T.ru, { lrTabConf: 'Карта и настройки', lrTabChat: 'Чат лобби', lrChatPh: 'Сообщение лобби… (Enter — отправить)', lrChatNone: 'Сообщений пока нет — напишите первым',
   lrChatNew: 'Новые сообщения', lrChatObs: 'наблюдатель', lrObsFree: 'Свободно', lrObsGo: 'Перейти сюда', lrObsGoTip: 'Смотреть матч наблюдателем: ваше место игрока освободится',
-  lrObsOwnerNo: 'Хост не может стать наблюдателем', lrObsYou: 'вы', lrObsMe: 'Вы наблюдатель. Чтобы играть — «Сесть сюда» на свободном месте команды.',
+  lrObsYou: 'вы', lrObsMe: 'Вы наблюдатель. Чтобы играть — «Сесть сюда» на свободном месте команды.',
   lrSys_open: '— хост, лобби открыто', lrSys_join: 'теперь в лобби', lrSys_join_obs: 'смотрит как наблюдатель', lrSys_leave: 'больше не в лобби',
   lrSys_gone: 'больше не в лобби — нет связи', lrSys_kick: 'больше не в лобби — по решению хоста', lrSys_to_obs: 'теперь наблюдатель',
   lrSys_to_seat: 'теперь в команде {team}', lrSys_host: 'теперь хост лобби', n_to_obs: '{who} перешёл в наблюдатели.',
@@ -32,7 +32,7 @@ Object.assign(T.ru, { lrTabConf: 'Карта и настройки', lrTabChat: 
   e_empty: 'Пустое сообщение.', chLobby: 'Лобби', chLobbyTip: 'Чат вашего лобби «{name}»' });
 Object.assign(T.es, { lrTabConf: 'Mapa y ajustes', lrTabChat: 'Chat de la sala', lrChatPh: 'Mensaje a la sala… (Enter para enviar)', lrChatNone: 'Aún no hay mensajes. ¡Saluda!',
   lrChatNew: 'Mensajes nuevos', lrChatObs: 'observador', lrObsFree: 'Libre', lrObsGo: 'Ir aquí', lrObsGoTip: 'Ver la partida como observador: tu plaza de jugador queda libre',
-  lrObsOwnerNo: 'El anfitrión no puede ser observador', lrObsYou: 'tú', lrObsMe: 'Eres observador. Para jugar, pulsa «Sentarse aquí» en una plaza libre de un equipo.',
+  lrObsYou: 'tú', lrObsMe: 'Eres observador. Para jugar, pulsa «Sentarse aquí» en una plaza libre de un equipo.',
   lrSys_open: '— anfitrión, la sala está abierta', lrSys_join: 'ahora está en la sala', lrSys_join_obs: 'mira como observador', lrSys_leave: 'ya no está en la sala',
   lrSys_gone: 'ya no está en la sala: sin conexión', lrSys_kick: 'ya no está en la sala: decisión del anfitrión', lrSys_to_obs: 'ahora es observador',
   lrSys_to_seat: 'ahora está en el equipo {team}', lrSys_host: 'ahora es el anfitrión de la sala', n_to_obs: '{who} pasó a observador.',
@@ -40,7 +40,7 @@ Object.assign(T.es, { lrTabConf: 'Mapa y ajustes', lrTabChat: 'Chat de la sala',
   e_empty: 'El mensaje está vacío.', chLobby: 'Sala', chLobbyTip: 'El chat de tu sala «{name}»' });
 Object.assign(T.fr, { lrTabConf: 'Carte et réglages', lrTabChat: 'Chat du salon', lrChatPh: 'Message au salon… (Entrée pour envoyer)', lrChatNone: 'Pas encore de messages. Dites bonjour !',
   lrChatNew: 'Nouveaux messages', lrChatObs: 'observateur', lrObsFree: 'Libre', lrObsGo: 'Aller ici', lrObsGoTip: 'Regarder la partie en observateur : votre place de joueur se libère',
-  lrObsOwnerNo: 'L\'hôte ne peut pas devenir observateur', lrObsYou: 'vous', lrObsMe: 'Vous êtes observateur. Pour jouer : « S\'asseoir ici » sur une place libre d\'une équipe.',
+  lrObsYou: 'vous', lrObsMe: 'Vous êtes observateur. Pour jouer : « S\'asseoir ici » sur une place libre d\'une équipe.',
   lrSys_open: '— hôte, le salon est ouvert', lrSys_join: 'est maintenant dans le salon', lrSys_join_obs: 'regarde en observateur', lrSys_leave: 'n\'est plus dans le salon',
   lrSys_gone: 'n\'est plus dans le salon — connexion perdue', lrSys_kick: 'n\'est plus dans le salon — décision de l\'hôte', lrSys_to_obs: 'est maintenant observateur',
   lrSys_to_seat: 'est maintenant dans l\'équipe {team}', lrSys_host: 'est maintenant l\'hôte du salon', n_to_obs: '{who} est passé en observateur.',
@@ -48,7 +48,7 @@ Object.assign(T.fr, { lrTabConf: 'Carte et réglages', lrTabChat: 'Chat du salon
   e_empty: 'Le message est vide.', chLobby: 'Salon', chLobbyTip: 'Le chat de votre salon « {name} »' });
 Object.assign(T.de, { lrTabConf: 'Karte und Einstellungen', lrTabChat: 'Lobby-Chat', lrChatPh: 'Nachricht an die Lobby… (Enter zum Senden)', lrChatNone: 'Noch keine Nachrichten. Sag hallo!',
   lrChatNew: 'Neue Nachrichten', lrChatObs: 'Zuschauer', lrObsFree: 'Frei', lrObsGo: 'Hierher wechseln', lrObsGoTip: 'Das Spiel als Zuschauer ansehen: dein Spielerplatz wird frei',
-  lrObsOwnerNo: 'Der Host kann kein Zuschauer werden', lrObsYou: 'du', lrObsMe: 'Du bist Zuschauer. Zum Spielen: „Hier setzen" auf einem freien Teamplatz.',
+  lrObsYou: 'du', lrObsMe: 'Du bist Zuschauer. Zum Spielen: „Hier setzen" auf einem freien Teamplatz.',
   lrSys_open: '— Host, die Lobby ist offen', lrSys_join: 'ist jetzt in der Lobby', lrSys_join_obs: 'schaut als Zuschauer zu', lrSys_leave: 'ist nicht mehr in der Lobby',
   lrSys_gone: 'ist nicht mehr in der Lobby – Verbindung verloren', lrSys_kick: 'ist nicht mehr in der Lobby – vom Host entfernt', lrSys_to_obs: 'ist jetzt Zuschauer',
   lrSys_to_seat: 'ist jetzt in Team {team}', lrSys_host: 'ist jetzt Host der Lobby', n_to_obs: '{who} ist zu den Zuschauern gewechselt.',
@@ -95,6 +95,7 @@ function lcRows(r) {
   const names = [...new Set(people.map(p => p.name).concat(LC.list.map(m => m.name)).filter(Boolean))].sort((a, b) => b.length - a.length);
   const mention = html => names.reduce((h, n) => h.split('@' + esc(n)).join(`\u0000${n === myName ? 1 : 0}${esc(n)}\u0001`), html)
     .replace(/\u0000([01])([^\u0001]*)\u0001/g, (_, mm, n) => `<span class="ch-at${mm === '1' ? ' me' : ''}">@${n}</span>`);
+  const mentionAll = html => chAtAll(mention(html));   // 1.6.32: @all (chat.js)
   const time = ts => new Date(ts * 1000).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   if (!LC.list.length) return `<div class="ch-empty">${esc(t('lrChatNone'))}</div>`;
   return LC.list.map(m => {
@@ -109,9 +110,9 @@ function lcRows(r) {
       : `<div class="rq" data-goto="${esc(String(m.reply.id))}" role="button" tabindex="0" title="${esc(t('chQuoteGo'))}"><b>${esc(m.reply.name || '')}</b><i>${esc(lcQuote(m.reply))}</i></div>`) : '';
     return `<div class="ch-m ${m.steam === me ? 'mine' : ''} ${toMe ? 'tome' : ''}" data-id="${esc(String(m.id))}"><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">${avatar(m.avatar)}</span>`
       + `<div><div class="w">${m.obs ? `<i class="lc-ome" data-tip="${esc(t('lrChatObs'))}">${ico('eye')}</i>` : ''}`
-      + `<b class="${r && m.steam === r.owner ? 'lc-host' : ''}" data-name="${esc(m.name || '')}" data-steam="${esc(m.steam)}"${rtTipAttr(m.steam, m.name)}>${esc(m.name || '')}</b>${rtBadge(m.steam)}`
+      + `${fmSeal(m.steam, m.name)}<b class="${r && m.steam === r.owner ? 'lc-host' : ''}" data-name="${esc(m.name || '')}" data-steam="${esc(m.steam)}"${rtTipAttr(m.steam, m.name)}>${esc(m.name || '')}</b>${rtBadge(m.steam)}`
       + `<span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}</div>${q}`
-      + `<div class="tx ${tr ? 'tr' : ''}"${tr ? ` title="${esc(t('chOrig') + ': ' + lcOrig(m))}"` : ''}>${linkify(text, p => mention(esc(p)), linkA)}</div></div></div>`;
+      + `<div class="tx ${tr ? 'tr' : ''}"${tr ? ` title="${esc(t('chOrig') + ': ' + lcOrig(m))}"` : ''}>${linkify(text, p => mentionAll(esc(p)), linkA)}</div></div></div>`;
   }).join('');
 }
 // one of the two places (the lobby's column, Home's pane): its messages, the reply strip, the input
@@ -219,7 +220,7 @@ function lcSeen() {
 function lcSignals() {
   const r = lcRoom(), me = lrMe();
   if (r && LC.readId < 0) LC.readId = lcLast();                       // what was said before I got here: history, not news
-  if (r && lcSeen() && !document.hidden) LC.readId = lcLast();
+  if (r && lcSeen() && !pageHidden()) LC.readId = lcLast();
   const n = r ? LC.list.filter(m => m.id > LC.readId && m.steam !== me && !m.sys).length : 0, grew = n > LC.unread;
   LC.unread = n;
   const ping = el => { if (!el || !grew) return; el.classList.remove('lc-ping'); void el.offsetWidth; el.classList.add('lc-ping'); };

@@ -96,7 +96,7 @@ function roomCard(r) {
   const pl = p => `<div class="rp${p.host ? ' host' : ''}"${rtTipAttr(p.steam, p.name, p.rating, hlHours(p))}>`
     + (p.race ? `<img${p.hero != null ? '' : ' class="race"'} src="${esc(A)}${p.hero != null ? 'heroes/' + esc(p.race) + '_' + (p.hero | 0) : 'races/' + esc(p.race)}.png" alt="" data-fb="${esc(A)}races/${esc(p.race)}.png">`
        : raceImg('random'))
-    + `${roomFlag(p.country)}${rtName(`<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`, p.steam)}${rtCell(p.steam, r.mode, p.rating)}</div>`;
+    + `${roomFlag(p.country)}${fmSeal(p.steam, p.name)}${rtName(`<span class="nm" data-steam="${esc(p.steam || '')}" data-name="${esc(p.name || '')}">${esc(p.name)}</span>`, p.steam)}${rtCell(p.steam, r.mode, p.rating)}</div>`;
   // observers (03.11.2026, siritos: a slot of their own with its own icon, under the teams): the players the server marks as
   // observers or puts in no team, else only Relic's count of them
   const isObs = p => p.observer || !(p.team === 0 || p.team === 1 || p.team == null);
@@ -323,6 +323,6 @@ function roomsWatch() {
   clearInterval(RM.timer); RM.timer = 0;
   // 1.6.11: on Home too - its list of the open lobbies (hlobby.js)
   const shown = id => $(id) && !$(id).classList.contains('hidden');
-  if (shown('rooms') || shown('home')) { roomsLoad(); RM.timer = setInterval(() => { if (!document.hidden) roomsLoad(); }, 15000); }
+  if (shown('rooms') || shown('home')) { roomsLoad(); RM.timer = setInterval(() => { if (!pageHidden()) roomsLoad(); }, 15000); }
 }
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', roomsWatch));

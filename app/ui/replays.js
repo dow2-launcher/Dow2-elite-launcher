@@ -364,7 +364,7 @@ const rpPid = p => (p.pid != null ? p.pid : p.profile);
 const rpSteamOf = p => p.steam || RP.steams[rpPid(p)] || '';
 function rpNm(p) {
   const s = rpSteamOf(p), n = p.name || '?';
-  return s ? `<span class="nm" data-steam="${esc(s)}" data-name="${esc(n)}"${rtTipAttr(s, n, p.rating)}>${esc(n)}</span>` : `<span class="nm nx">${esc(n)}</span>`;
+  return fmSeal(s, n) + (s ? `<span class="nm" data-steam="${esc(s)}" data-name="${esc(n)}"${rtTipAttr(s, n, p.rating)}>${esc(n)}</span>` : `<span class="nm nx">${esc(n)}</span>`);
 }
 function rpAskSteams(items) {
   const need = [...new Set(items.flatMap(x => x.players || []).filter(p => !p.steam).map(rpPid)

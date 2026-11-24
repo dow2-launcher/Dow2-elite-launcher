@@ -40,7 +40,7 @@ SAME_AS_EN = {"win_vpc_hero", "race_ordo_malleus", "race_space_marines", "vanill
               "ntTcpOk", "addonChgVer", "gnUdpMs", "uiScale", "playCd", "lnkDiscord"}
 # the codes our servers send that the page shows by a key (prefix + code); keep in step with the ladder (lroom.py)
 SERVER_CODES = {
-    "e_": ["auth", "bad", "bad_map", "busy", "full", "kicked", "no_room", "not_ready", "obs", "obs_full", "owner", "state", "taken",
+    "e_": ["auth", "bad", "bad_map", "busy", "full", "kicked", "inv_kicked", "no_room", "not_ready", "obs", "obs_full", "owner", "state", "taken",
            "too_many", "too_many_players", "too_soon", "unknown", "empty", "too_fast", "premod", "banned"],
     "n_": ["cd_stop", "played", "gone", "left", "joined", "joined_obs", "unready", "changed", "conf", "kicked", "late", "version",
            "race", "left_search", "game_failed", "match", "cancel", "to_obs"],

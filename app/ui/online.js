@@ -94,7 +94,7 @@ function onRender() {
     if (!look.length && !matches.length && !inL.length) html += `<div class="on-empty">${esc(t('onNobody'))}</div>`;
     // looking for a game: avatar, name, race, mode (spectators marked); no time (owner 03.11.2026: not needed)
     // 1.6.20: every row of a player carries his tip (rating.js: the picked system whole) and, with Elite, the warboss / nob by the name
-    const row = (s, cls) => `<div class="on-p${cls || ''}"${rtTipAttr(s, onUser(s).name, onUser(s).rating)}>${avatar(onUser(s).avatar)}${onWho(s)}${rtBadge(s)}`;
+    const row = (s, cls) => `<div class="on-p${cls || ''}"${rtTipAttr(s, onUser(s).name, onUser(s).rating)}>${avatar(onUser(s).avatar)}${fmSeal(s, onUser(s).name)}${onWho(s)}${rtBadge(s)}`;
     if (look.length) html += group('look', t('onSearching'), look.length, look.map(p => `${row(p.steam)}${raceImg(p.race)}`
       + `<span class="tag">${esc(p.mode === 'watch' ? t('onWatcher') : p.mode)}</span></div>`).join(''));
     // 1.5.0: no rooms group here - who is in the rooms is on the Rooms tab (owner 08.11.2026)

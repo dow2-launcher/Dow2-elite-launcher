@@ -90,5 +90,5 @@ document.addEventListener('click', async e => {
   b.disabled = false;
 });
 setTimeout(nqLoad, 4000);                                    // after the sign-in check of the start
-setInterval(() => { if (!document.hidden) nqLoad(); }, 5 * 60 * 1000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden && Date.now() - NQ.t > 60000) nqLoad(); });
+setInterval(() => { if (!pageHidden()) nqLoad(); }, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (!pageHidden() && Date.now() - NQ.t > 60000) nqLoad(); });

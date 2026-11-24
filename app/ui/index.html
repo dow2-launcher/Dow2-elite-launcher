@@ -55,12 +55,13 @@
       <div id="announcements"></div>
       <div id="setup" class="setup hidden"></div>
       <div id="newsBox" class="panel fb">
-        <!-- 1.6.11 (owner 14.11.2026): two groups - the players' rooms and the language of the messages (a menu, the original by
-             default) on the left; the developers and the logs (they go to them) on the right -->
-        <div class="h ch-head"><div class="ch-tabs" id="chTabs"><button class="ch-tab on" data-room="chat"><i class="sig s-gate" aria-hidden="true"></i><span data-t="chAll"></span></button><button class="ch-tab hidden" id="chLobbyTab" data-room="lobby"><i class="sig s-battle" aria-hidden="true"></i><span data-t="chLobby"></span></button>
-          <div class="ch-lang"><button class="ch-lbtn" id="chLangBtn" data-ta="chLang" aria-haspopup="menu" aria-expanded="false"><i class="sig s-lang" aria-hidden="true"></i><span id="chLangCur"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-            <div class="me-box ch-lmenu hidden" id="chLangMenu" role="menu"><div class="ch-lmh" data-t="chLangH"></div><button role="menuitemradio" data-lang="all"><span data-t="chOrig"></span><small data-t="chAsWritten"></small></button><button role="menuitemradio" data-lang="ru"><span>Русский</span><small data-t="chTranslated"></small></button><button role="menuitemradio" data-lang="en"><span>English</span><small data-t="chTranslated"></small></button></div></div></div>
-          <div class="ch-devg"><button class="ch-tab ch-dev" data-room="dev"><i class="sig" aria-hidden="true"></i><span data-t="chDev"></span></button><button class="btn small logs-btn" id="sendLogsHome" data-ta="sendLogs"><span data-t="logsShort"></span></button></div></div>
+        <!-- 1.6.11 (owner 14.11.2026): two groups - the players' rooms on the left; the developers and the logs (they go to them) on
+             the right, then (1.6.32) the language of the messages as a globe (a menu, the original by default) -->
+        <div class="h ch-head"><div class="ch-tabs" id="chTabs"><button class="ch-tab on" data-room="chat"><i class="sig s-gate" aria-hidden="true"></i><span data-t="chAll"></span></button><button class="ch-tab hidden" id="chLobbyTab" data-room="lobby"><i class="sig s-battle" aria-hidden="true"></i><span data-t="chLobby"></span></button></div>
+          <div class="ch-devg"><button class="ch-tab ch-dev" data-room="dev"><i class="sig" aria-hidden="true"></i><span data-t="chDev"></span></button><button class="btn small logs-btn" id="sendLogsHome" data-ta="sendLogs"><span data-t="logsShort"></span></button>
+          <!-- 1.6.32 (owner 24.11.2026): the language of the messages - one globe icon right of Logs (the room it took by General is free), the same menu -->
+          <div class="ch-lang"><button class="ch-lbtn ch-globe" id="chLangBtn" data-ta="chLang" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.5 3.9 5.5 3.9 9s-1.3 6.5-3.9 9M12 3c-2.6 2.5-3.9 5.5-3.9 9s1.3 6.5 3.9 9"/></svg><b class="ch-ltr" id="chLangCur"></b></button>
+            <div class="me-box ch-lmenu hidden" id="chLangMenu" role="menu"><div class="ch-lmh" data-t="chLangH"></div><button role="menuitemradio" data-lang="all"><span data-t="chOrig"></span><small data-t="chAsWritten"></small></button><button role="menuitemradio" data-lang="ru"><span>Русский</span><small data-t="chTranslated"></small></button><button role="menuitemradio" data-lang="en"><span>English</span><small data-t="chTranslated"></small></button></div></div></div></div>
         <div class="ch-pane" id="chatPane">
           <div class="ch-msgs" id="chMsgs"></div>
           <div class="ch-login hidden" id="chLoginRow"><span data-t="chSignInToWrite"></span><button class="btn gold small" id="chIn2" data-t="chLogin"></button></div>
