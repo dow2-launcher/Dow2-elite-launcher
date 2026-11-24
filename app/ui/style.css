@@ -2037,3 +2037,34 @@ header .brand.dow-d .dd-st{flex-direction:row;align-items:center;gap:3px}
 @media (prefers-reduced-motion:reduce){.fame-p.flash{animation:none}}
 /* 1.6.32 (memory): the window hidden in the tray (app.js WINVIS) - every animation paused */
 html.bg *,html.bg *::before,html.bg *::after{animation-play-state:paused!important}
+/* 1.6.32 (owner 24.11.2026): the group of up to 3 left of Play (grp.js - a layout prototype, Ctrl+Shift+G): the avatars as the
+   lobby's portraits, the leader's mark the lobby host's skull at the top left, a dot of where he is at the bottom right; a free
+   place is the lobby's empty seat (the dimmed skull) with a plus at its corner */
+.grp-foot{display:flex;align-items:center;gap:6px;flex:none;margin-right:2px}
+.grp-foot.hidden{display:none}
+.grp-f{position:relative;display:block;padding:0;border:0;background:none;cursor:default}
+.grp-f .gp{position:relative;display:block;width:46px;height:46px}
+.grp-f .av{width:46px;height:46px}
+.grp-f.me .av{filter:drop-shadow(0 0 4px rgba(69,224,192,.45))}
+.grp-f .gld{position:absolute;top:-6px;left:-5px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#071011;box-shadow:0 0 0 1px var(--gd2);color:var(--gd2)}
+.grp-f .gld .ico{width:13px;height:13px}
+.grp-f .gst{position:absolute;right:1px;bottom:1px;width:9px;height:9px;border-radius:50%;box-shadow:0 0 0 2px #071011}
+.grp-f .gst.menu{background:#45e0c0}.grp-f .gst.game{background:#e2b86a}.grp-f .gst.off{background:#5d6d6a}
+.grp-f .gx{position:absolute;top:-6px;right:-6px;display:none;place-items:center;width:18px;height:18px;padding:0;border:0;border-radius:50%;background:#071011;box-shadow:0 0 0 1px var(--ln2);color:var(--mu);cursor:pointer}
+.grp-f .gx .ico{width:11px;height:11px}
+.grp-f:hover .gx,.grp-f .gx:focus-visible{display:grid}
+.grp-f .gx:hover{color:#ff8a80;box-shadow:0 0 0 1px #ff8a80}
+.grp-f.add{cursor:pointer}
+.grp-f.add .sk-av{opacity:.42;filter:grayscale(.4);transition:opacity .15s,filter .15s}
+.grp-f.add .gplus{position:absolute;right:-4px;bottom:-4px;display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#0d1d1f;box-shadow:0 0 0 1px var(--gd);color:var(--gd)}
+.grp-f.add .gplus .ico{width:12px;height:12px;stroke-width:2.6}
+.grp-f.add:hover .sk-av,.grp-f.add:focus-visible .sk-av,.grp-f.add[aria-expanded="true"] .sk-av{opacity:.85;filter:none}
+.grp-f.add:hover .gplus,.grp-f.add:focus-visible .gplus,.grp-f.add[aria-expanded="true"] .gplus{color:#eafff8;box-shadow:0 0 0 1px #eafff8,0 0 8px rgba(69,224,192,.6)}
+.grp-f.add:focus-visible{outline:none}
+.grp-pick{position:fixed;z-index:60;width:340px;max-height:420px;display:flex;flex-direction:column;padding:6px 0}
+.grp-pick input{flex:none;height:34px;margin:0 8px 6px;padding:0 10px;font:500 14px var(--fb)}
+.grp-pick .ii-list{flex:1 1 auto;min-height:0;overflow:auto}
+.grp-pick .ii{gap:10px;padding:6px 12px;font-size:14.5px;width:100%}
+.grp-pick .ii .av{width:30px;height:30px}
+.grp-pick .ii>.note,.grp-pick .ii-list>.note{padding:8px 12px}
+.grp-pick .grp-pnote{flex:none;margin:6px 12px 2px;font-size:12px;color:var(--mu)}

@@ -3,6 +3,10 @@
 'use strict';
 // 1.3.15 (owner 02.11.2026): the Lobbies tab - open custom games from Relic's list through our ladder server, every 15 s while shown
 const RM = { timer: 0 };
+// 1.6.32 (memory): a list redrawn on a timer or an event is written only when its HTML changed (the 15 s poll, Online's 30 s, every
+// lobby event rebuilt whole lists - and Home's cards after them - with nothing new); true: written. Every write of such a box
+// goes through here, so the last HTML it keeps (el._h) is what the box shows. Used by online.js, lroom.js, hlobby.js too.
+const setHtml = (el, html) => { if (!el || el._h === html) return false; el._h = html; el.innerHTML = html; return true; };
 // 1.5.0: the player's country as its two letters in a small badge (a flag emoji is letters anyway in WebView2 on Windows)
 // 1.5.3 (owner 10.11): the map of a card - the minimap as a square on top (never stretched), its name under it, the same picture
 // dimmed behind the rest of the column
@@ -162,20 +166,23 @@ async function roomsLoad() {
     const R = d.rooms || [];
     RM.last = R; RM.mine = roomMine(R);
     RM.err = false;
-    roomsPaint();
-  } catch (e) { RM.err = true; box.innerHTML = ''; }
+    // 1.6.32 (memory): the same list again - nothing written, so Home's cards are not rebuilt by their observer; they are drawn
+    // once more instead (hlobby.js, written only when they changed: my search / match may have changed the Join buttons)
+    if (!roomsPaint() && typeof hlRender === 'function') hlRender();
+  } catch (e) { RM.err = true; setHtml(box, ''); }
   if (typeof rApplyFilter === 'function') rApplyFilter();
 }
 // the list drawn from the last answer (1.6.20: also when the rating system or the Elite table changes, rating.js)
 function roomsPaint() {
-  const box = $('roomsList'); if (!box || RM.err || !RM.last) return;
-  box.innerHTML = RM.last.map(roomCard).join('');
+  const box = $('roomsList'); if (!box || RM.err || !RM.last) return false;
+  if (!setHtml(box, RM.last.map(roomCard).join(''))) { tipCut(box); return false; }   // 1.6.32: unchanged - the handlers are there
   box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });   // no hero icon: the race's (CSP: no inline handlers)
   // a player with a SteamID (the server sends it from Relic's "/steam/<id64>"): the player menu on his name
   box.querySelectorAll('.rjoin[data-room]').forEach(b => b.onclick = () => roomTry(b.dataset.room, b.dataset.name, b));
   box.querySelectorAll('.rjoin[data-obs]').forEach(b => b.onclick = () => roomObs(b.dataset.obs, b.dataset.name, b));
   tipCut(box);   // the room's game from the list
   box.querySelectorAll('.rp .nm[data-name], .robs .nm[data-name]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name, false, true));   // the stats (by name until the server sends SteamIDs), Steam when there; no "mention"
+  return true;
 }
 // 1.4.9: Join talks to RoomJoin.dll (RoomJoin 9) in the game over its pipe (roomjoin.rs) - no request file any more. The game
 // running without the pipe = without the add-on (or an older one): restart it with the add-on on. Not running: Play, then the

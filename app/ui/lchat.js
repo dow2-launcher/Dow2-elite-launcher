@@ -218,20 +218,26 @@ function lcSeen() {
   return (vis($('rooms')) && vis($('lrRoom')) && LC.side === 'chat') || (vis($('home')) && CH.lobby && !!lcRoom());
 }
 function lcSignals() {
+  // 1.6.32 (memory): every 600 ms - nothing while the window is in the tray (nothing is read there), nothing once no lobby is left
+  // and its counts are cleared; a count is written only when it changed
+  if (pageHidden()) return;
   const r = lcRoom(), me = lrMe();
+  if (!r && LC.sigIdle) return;
+  LC.sigIdle = !r;
   if (r && LC.readId < 0) LC.readId = lcLast();                       // what was said before I got here: history, not news
   if (r && lcSeen() && !pageHidden()) LC.readId = lcLast();
   const n = r ? LC.list.filter(m => m.id > LC.readId && m.steam !== me && !m.sys).length : 0, grew = n > LC.unread;
   LC.unread = n;
   const ping = el => { if (!el || !grew) return; el.classList.remove('lc-ping'); void el.offsetWidth; el.classList.add('lc-ping'); };
   const ct = document.querySelector('#lrRoom .lr-stab[data-s="chat"]');
-  if (ct) { const c = ct.querySelector('.lr-cnt'); if (c) c.textContent = n ? String(n) : ''; if (LC.side !== 'chat') ping(ct); }
-  const ht = $('chLobbyTab'); if (ht) { ht.dataset.n = n ? String(n) : ''; if (!CH.lobby) ping(ht); }
+  const nv = n ? String(n) : '';
+  if (ct) { const c = ct.querySelector('.lr-cnt'); if (c && c.textContent !== nv) c.textContent = nv; if (LC.side !== 'chat') ping(ct); }
+  const ht = $('chLobbyTab'); if (ht) { if (ht.dataset.n !== nv) ht.dataset.n = nv; if (!CH.lobby) ping(ht); }
   const nav = document.querySelector('.tab[data-view="rooms"]');
   if (nav) {
     let nb = nav.querySelector('.tab-n'); if (!nb) { nb = document.createElement('b'); nb.className = 'tab-n'; nav.appendChild(nb); }
     const away = !($('rooms') && $('rooms').getClientRects().length);
-    nb.textContent = n && away ? String(n) : ''; if (away) ping(nb);
+    const bv = n && away ? nv : ''; if (nb.textContent !== bv) nb.textContent = bv; if (away) ping(nb);
   }
 }
 setInterval(lcSignals, 600);                                          // a page switched, a tab opened: what is in view now is read

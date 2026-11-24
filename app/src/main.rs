@@ -159,8 +159,8 @@ fn show_window(app: &AppHandle) {
         let _ = w.unminimize();
         let _ = w.show();
         let _ = w.set_focus();
+        tray::webview_shown(&w, true);   // 1.6.32: the page and WebView2 know they are seen again
     }
-    let _ = app.emit("win_vis", true);   // 1.6.32: the page knows it is seen again (app.js WINVIS)
 }
 
 /// 1.6.32 (owner 24.11.2026): a mention of the player in the chat (@name, a reply to him, @all) not seen yet - the tray's icon with
@@ -670,6 +670,19 @@ fn main() {
                 });
             let icon = tb.build(app)?;
             app.manage(Tray { open, quit, icon });
+            // 1.6.32 (players: "two launchers"): a copy older than 1.3.7 runs beside this one - said in the window (app.js), in the log
+            #[cfg(windows)]
+            {
+                let ho = app.handle().clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(Duration::from_secs(20));
+                    let old = tray::old_copies();
+                    if !old.is_empty() {
+                        c_log(&format!("another launcher process runs beside this one: pid {:?}", old));
+                        let _ = ho.emit("other_copy", old.len());
+                    }
+                });
+            }
 
             // release notes as news: now and every hour; the window redraws when they change
             let hn = app.handle().clone();
@@ -701,7 +714,9 @@ fn main() {
             if matches!(event, tauri::WindowEvent::Moved(_) | tauri::WindowEvent::Resized(_)) { winstate::touch(); }
             // 1.6.32 (memory): WebView2 does not notice its window hidden in the tray (document.hidden stays false) - the page is
             // told (app.js WINVIS: its polls and redraws wait, the animations stop); a focused window is seen again
-            if let tauri::WindowEvent::Focused(true) = event { let _ = window.app_handle().emit("win_vis", true); }
+            if let tauri::WindowEvent::Focused(true) = event {
+                if let Some(w) = window.app_handle().get_webview_window(window.label()) { tray::webview_shown(&w, true); }
+            }
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 if let Some(w) = window.app_handle().get_webview_window(window.label()) { winstate::save_now(&w); }
                 // 1.3.12 (owner): a tick in Settings - the close button quits the launcher instead of hiding it in the tray
@@ -711,7 +726,7 @@ fn main() {
                 }
                 api.prevent_close();
                 let _ = window.hide();
-                let _ = window.app_handle().emit("win_vis", false);
+                if let Some(w) = window.app_handle().get_webview_window(window.label()) { tray::webview_shown(&w, false); }
             }
         })
         .invoke_handler(tauri::generate_handler![

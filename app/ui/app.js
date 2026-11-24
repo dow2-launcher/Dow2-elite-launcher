@@ -10,6 +10,13 @@ const $ = id => document.getElementById(id);
 // visibilitychange (its listeners read pageHidden()); html.bg pauses every CSS animation meanwhile.
 const WINVIS = { hidden: false };
 const pageHidden = () => document.hidden || WINVIS.hidden;
+// 1.6.32 (players: "two launchers"): a launcher older than 1.3.7 (no check for a second copy) runs beside this one - tauri tray.rs
+Object.assign(T.en, { otherCopy: 'Another copy of the launcher is running - an old one, without the guard against a second start. Close it (in the tray or the Task Manager): two copies get in each other\'s way and in the way of updates.' });
+Object.assign(T.ru, { otherCopy: 'Запущена ещё одна копия лаунчера — старая, без защиты от второго запуска. Закройте её (в трее или в диспетчере задач): две копии мешают друг другу и обновлению.' });
+Object.assign(T.es, { otherCopy: 'Hay otra copia del launcher abierta: una antigua, sin protección contra un segundo inicio. Ciérrala (en la bandeja o en el Administrador de tareas): dos copias se estorban entre sí y estorban las actualizaciones.' });
+Object.assign(T.fr, { otherCopy: 'Une autre copie du launcher tourne : une ancienne, sans protection contre un second lancement. Fermez-la (zone de notification ou Gestionnaire des tâches) : deux copies se gênent et gênent les mises à jour.' });
+Object.assign(T.de, { otherCopy: 'Eine weitere Kopie des Launchers läuft - eine alte, ohne Schutz vor einem zweiten Start. Schließe sie (im Infobereich oder im Task-Manager): Zwei Kopien stören sich gegenseitig und die Updates.' });
+listen('other_copy', () => { if (typeof errBar === 'function') errBar(t('otherCopy')); });
 listen('win_vis', e => {
   const h = !e.payload; if (h === WINVIS.hidden) return;
   WINVIS.hidden = h; document.documentElement.classList.toggle('bg', h);
@@ -705,6 +712,7 @@ function render() {
   if (!T[lang]) lang = 'en';
   document.documentElement.lang = lang;
   syncTrayLabels();
+  if (typeof grpRender === 'function') grpRender();   // 1.6.32: the group's texts in the language (grp.js)
   document.querySelectorAll('[data-t]').forEach(e => { if (tHas(e.dataset.t)) e.textContent = t(e.dataset.t); });
   renderFwdBanner();
   document.querySelectorAll('[data-tp]').forEach(e => { if (tHas(e.dataset.tp)) e.placeholder = t(e.dataset.tp); });

@@ -106,6 +106,7 @@ function chMe() {
   }
   $('chLoginRow').classList.toggle('hidden', !!me);
   $('chSendRow').classList.toggle('hidden', !me);
+  if (typeof grpRender === 'function') grpRender();   // 1.6.32: the group shows for a signed-in player (grp.js, a prototype)
 }
 // 1.6.7: "Sign in as <the Steam name>" - a long name is cut with "…" (the whole line in the tip), the header keeps its room
 function chInBtn() {
@@ -447,10 +448,13 @@ function streamState(up) {
   STREAM.timer = setTimeout(() => {
     if (STREAM.up || STREAM.poll) return;
     STREAM.poll = setInterval(async () => {
-      if (pageHidden()) return;
+      const n = STREAM.n++;
+      // 1.6.32: in the tray - every 30 s "I'm here" and the chat's new messages (a mention, @all too, still beeps and marks the
+      // tray's icon), no Online; seen - as before
+      if (pageHidden()) { if (n % 6 === 0) { chHello(); chKeys().forEach(k => chLoad(k, 'new')); } return; }
       // without the stream the server does not see that the launcher is open: "I'm here" every 30 s (it forgets in 90)
-      if (STREAM.n % 6 === 0) chHello();
-      if (STREAM.n++ % 3 === 0) { try { onLive(await liveSnapshot()); } catch (e) { ON.err = true; onRender(); } }
+      if (n % 6 === 0) chHello();
+      if (n % 3 === 0) { try { onLive(await liveSnapshot()); } catch (e) { ON.err = true; onRender(); } }
       chKeys().forEach(k => chLoad(k, 'new'));
     }, 5000);
   }, 30000);

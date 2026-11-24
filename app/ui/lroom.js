@@ -588,7 +588,7 @@ function rLiveRender() {
   // 1.6.20: the rating of the picked system and the match's mode (rating.js), the player's tip, the warboss / nobs
   const pl = mode => x => `<div class="rp"${rtTipAttr(x.steam, onUser(x.steam).name, onUser(x.steam).rating)}>${raceImg(x.race)}`
     + `${fmSeal(x.steam, onUser(x.steam).name)}${rtName(`<span class="nm" data-steam="${esc(x.steam)}" data-name="${esc(onUser(x.steam).name || '')}">${esc(onUser(x.steam).name || 'Player')}</span>`, x.steam)}${rtCell(x.steam, mode, onUser(x.steam).rating)}</div>`;
-  box.innerHTML = ms.map(({ m, lr }) => {
+  const html = ms.map(({ m, lr }) => {
     const map = String(m.map || '').replace(/^\d+p_/i, '').replace(/_/g, ' ');
     const act = m.live ? `<button class="rjoin lvw go" data-m="${esc(m.id)}" data-g="${esc(m.live)}" data-tip="${esc(t('rWatchTip'))}" aria-label="${esc(t('rWatchTip'))}">${ico('eye')}</button>` : '';
     return `<div class="room live-card">${mmapHtml(`${A}maps/${encodeURIComponent(m.map || '')}.png`, map)}<div class="rb">`
@@ -604,11 +604,14 @@ function rLiveRender() {
     if (kind && z.dataset.kind !== kind) { z.dataset.kind = kind; z.innerHTML = kind === 'flt' ? fltPane() : zeroPane('s-live', t('rLiveZeroT'), t('rLiveZeroHint')); }
     if (!kind) delete z.dataset.kind;
   }
-  box.querySelectorAll('.lvw[data-m]').forEach(b => b.onclick = () => liveWatch(b.dataset.m, b.dataset.g === 'vanilla' ? 'vanilla' : 'elite'));
-  box.querySelectorAll('.rp .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name));
+  // 1.6.32 (memory): written and bound only when the cards changed (Online redraws every 30 s and on every presence event)
+  if (setHtml(box, html)) {
+    box.querySelectorAll('.lvw[data-m]').forEach(b => b.onclick = () => liveWatch(b.dataset.m, b.dataset.g === 'vanilla' ? 'vanilla' : 'elite'));
+    box.querySelectorAll('.rp .nm[data-steam]').forEach(n => nickBind(n, n.dataset.steam, n.dataset.name));
+  }
   tipCut(box);
-  $('rLiveN').textContent = (LIVE.ingame || []).length ? String((LIVE.ingame || []).length) : '';
-  $('rLiveN2').textContent = $('rLiveN').textContent;
+  const nl = (LIVE.ingame || []).length ? String((LIVE.ingame || []).length) : '';
+  if ($('rLiveN').textContent !== nl) { $('rLiveN').textContent = nl; $('rLiveN2').textContent = nl; }
 }
 // the top of the panel: Create a lobby; in a launcher lobby - its card (back to it); signed out - Sign in
 function rTop(r) {
@@ -629,21 +632,25 @@ function lrRender() {
   const r = LR.room && lrMine(LR.room) ? LR.room : null;
   if (r && RV.seen !== r.id) { RV.seen = r.id; RV.view = 'mine'; }        // just joined / created: its view
   if (!r) { RV.seen = ''; if (RV.view === 'mine') RV.view = 'open'; }
-  $('rTop').innerHTML = rTop(r);
-  if ($('rMine')) $('rMine').onclick = () => rShow('mine');
-  if ($('rMineX')) $('rMineX').onclick = e => { e.stopPropagation(); lrLeave(); };
-  if ($('rCreate')) $('rCreate').onclick = lrCreate;
-  if ($('rSignIn')) $('rSignIn').onclick = chLogin;
+  // 1.6.32 (memory): the panel's top and the list are written only when they changed (rooms.js setHtml) - every lobby event of
+  // any player redrew them whole (and Home's cards after the list); unchanged, the handlers bound before are still on them
+  if (setHtml($('rTop'), rTop(r))) {
+    if ($('rMine')) $('rMine').onclick = () => rShow('mine');
+    if ($('rMineX')) $('rMineX').onclick = e => { e.stopPropagation(); lrLeave(); };
+    if ($('rCreate')) $('rCreate').onclick = lrCreate;
+    if ($('rSignIn')) $('rSignIn').onclick = chLogin;
+  }
   document.querySelectorAll('.rnb[data-r]').forEach(b => { b.classList.toggle('on', b.dataset.r === RV.view); b.onclick = () => rShow(b.dataset.r); });
   $('rOpen').classList.toggle('hidden', RV.view !== 'open');
   $('rLive').classList.toggle('hidden', RV.view !== 'live');
   $('rooms').classList.toggle('in-lroom', RV.view === 'mine');
   if (!$('rFlt').innerHTML) rFilters();
-  list.innerHTML = lrListHtml();
-  list.querySelectorAll('.lr-join').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id }));
-  list.querySelectorAll('.lr-watch').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id, as: 'obs' }));
-  list.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
-  list.querySelectorAll('.rp .nm[data-steam]').forEach(n => { if (n.dataset.steam) nickBind(n, n.dataset.steam, n.dataset.name); });
+  if (setHtml(list, lrListHtml())) {
+    list.querySelectorAll('.lr-join').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id }));
+    list.querySelectorAll('.lr-watch').forEach(b => b.onclick = () => lrCall('join', { id: b.dataset.id, as: 'obs' }));
+    list.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
+    list.querySelectorAll('.rp .nm[data-steam]').forEach(n => { if (n.dataset.steam) nickBind(n, n.dataset.steam, n.dataset.name); });
+  }
   tipCut(list);
   rApplyFilter(); rLiveRender(); lrPlay();
   if (typeof lcSync === 'function') lcSync();                     // lchat.js: my lobby's chat (Home's tab, the counts)
@@ -770,7 +777,7 @@ function lrPlay() {
 function lrMiniRender(r) {
   const box = $('lrMini'); if (!box) return;
   box.classList.toggle('hidden', !r);
-  if (!r) { box.innerHTML = ''; return; }
+  if (!r) { setHtml(box, ''); return; }
   const me = lrMe(), slots = r.slots || [], A = lrAssets(), owner = r.owner === me, nObs = (r.obs || []).length;
   // the state in one line, without names: ready n of m, all ready, the countdown, the start, the match (owner 10.11)
   const all = r.all_ready != null ? r.all_ready : slots.every(s => s && s.ready);
@@ -779,9 +786,11 @@ function lrMiniRender(r) {
     : t('playWait', { n: slots.filter(s => s && s.ready).length, m: slots.length });
   const go = r.state === 'countdown' || r.state === 'launching' || (r.state === 'lobby' && all);
   const sub = [st].concat(nObs ? [t('lmObs', { n: nObs })] : []).join(' · ');
-  box.innerHTML = `<div class="h"><span>${esc(t(owner ? 'rMineHost' : 'rMineIn'))}</span><span class="tag">${esc(r.mode)}</span></div>`
+  // 1.6.32 (memory): written only when it changed (rooms.js setHtml): Play's state calls this on every lobby event and tick
+  const html = `<div class="h"><span>${esc(t(owner ? 'rMineHost' : 'rMineIn'))}</span><span class="tag">${esc(r.mode)}</span></div>`
     + `<button class="lm-head" id="lmGo" data-tip="${esc(t('lmBack'))}"><i class="lm-map" style="background-image:url('${A}maps/${encodeURIComponent(r.map)}.png')"></i><span class="lm-n"><b>${esc(r.name)}</b><small${go ? ' class="go"' : ''}>${esc(sub)}</small></span></button>`
     + `<div class="lm-act"><button class="btn small ghost" id="lmLeave">${esc(t('lmLeave'))}</button><button class="btn gold small" id="lmBack">${esc(t('lmBack'))}</button></div>`;
+  if (!setHtml(box, html)) return;
   const back = () => { const tab = document.querySelector('.tab[data-view="rooms"]'); if (tab) tab.click(); rShow('mine'); };
   $('lmGo').onclick = back; $('lmBack').onclick = back; $('lmLeave').onclick = lrLeave;
 }

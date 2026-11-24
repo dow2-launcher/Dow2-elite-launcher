@@ -64,8 +64,13 @@ pub(crate) fn update_dir() -> Option<String> {
 pub(crate) fn launcher_progress(app: &AppHandle) -> impl FnMut(usize, Option<u64>) + Send + 'static {
     let h = app.clone();
     let mut done = 0u64;
+    let mut last: Option<std::time::Instant> = None;
     move |n: usize, total: Option<u64>| {
         done += n as u64;
+        // 1.6.32 (memory): a message per received chunk redrew the footer thousands of times - at most every 120 ms, and the end
+        let end = total.is_some_and(|t| done >= t);
+        if !end && last.is_some_and(|t| t.elapsed() < std::time::Duration::from_millis(120)) { return; }
+        last = Some(std::time::Instant::now());
         let _ = h.emit("launcher_progress", json!({"done": done, "total": total}));
     }
 }

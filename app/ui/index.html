@@ -43,7 +43,8 @@
 
   <main id="home" class="view home">
     <aside class="col">
-      <section class="panel bandp ev-box hidden" id="evBox"></section>
+      <!-- 1.6.32 (owner 24.11.2026): the launcher lobby I am in - on top of the left column, over the lobbies' list (was under Online) -->
+      <section class="panel lr-mini hidden" id="lrMini" aria-live="polite"></section>
       <!-- 1.6.11 (owner 14.11.2026): the open lobbies instead of the news (the news: the (i) after the version) - hlobby.js -->
       <section class="panel bandp hl-box" id="hlBox">
         <div class="h"><span data-t="roomsTab"></span><em id="hlN"></em><button class="h-link" id="hlAll" data-t="hlAll"></button></div>
@@ -52,6 +53,8 @@
     </aside>
 
     <section class="col">
+      <!-- 1.6.32 (owner 24.11.2026): the events over the chat, the whole card (was on top of the left column) -->
+      <section class="panel bandp ev-box hidden" id="evBox"></section>
       <div id="announcements"></div>
       <div id="setup" class="setup hidden"></div>
       <div id="newsBox" class="panel fb">
@@ -86,8 +89,6 @@
         <div class="h"><span data-t="online"></span><span class="on-total" id="onTotal"></span><nav class="on-links" id="onLinks"></nav></div>
         <div class="on-groups" id="onGroups"></div>
       </section>
-      <!-- 1.5.3 (owner 10.11): the launcher lobby I am in, under Online - its players, who is ready, back to it -->
-      <section class="panel lr-mini hidden" id="lrMini" aria-live="polite"></section>
       <section class="panel addons hidden" id="compBox">
         <div class="h"><span data-t="components"></span><button class="h-link" id="allComps" data-t="allAddons"></button></div>
         <div id="components" class="addon-list"></div>
@@ -259,6 +260,7 @@
 <script src="fame.js"></script>
 <script src="notes.js"></script>
 <script src="hlobby.js"></script>
+<script src="grp.js"></script>   <!-- 1.6.32: the group of up to 3 - a layout prototype, Ctrl+Shift+G -->
 <script src="layer.js"></script>
 </body>
 </html>

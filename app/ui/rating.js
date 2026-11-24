@@ -108,15 +108,15 @@ function fmIndex(d) {
     if (!ids.length && fmKey(p.name)) FM.byName.set(fmKey(p.name), p);
   }
 }
-try { const c = JSON.parse(localStorage.getItem('fameCache') || 'null'); if (c && c.people) fmIndex(c); } catch (e) {}
+try { const raw = localStorage.getItem('fameCache'), c = JSON.parse(raw || 'null'); if (c && c.people) { fmIndex(c); FM.str = raw; } } catch (e) {}
 function fmLoad(force) {
   if (FM.busy) return FM.busy;
   if (!force && FM.at && Date.now() - FM.at < 1800000) return Promise.resolve(FM.data);
   FM.busy = (async () => {
     let d = null; try { d = await invoke('fame_get'); } catch (e) { d = null; }
     if (d && Array.isArray(d.people)) {
-      const same = JSON.stringify(d) === JSON.stringify(FM.data); FM.at = Date.now(); fmIndex(d);
-      if (!same) { try { localStorage.setItem('fameCache', JSON.stringify(d)); } catch (e) {} rtRepaint(); }
+      const s = JSON.stringify(d), same = s === FM.str; FM.at = Date.now(); FM.str = s; fmIndex(d);
+      if (!same) { try { localStorage.setItem('fameCache', s); } catch (e) {} rtRepaint(); }
     }
     return FM.data;
   })().finally(() => { FM.busy = null; });
@@ -185,7 +185,8 @@ async function rtLoad() {
   let d = null;
   try { d = await invoke('own_get'); } catch (e) { d = null; }
   RT.busy = false;
-  if (d && d.players) { const same = JSON.stringify(d) === JSON.stringify(RT.own); RT.own = d; RT.err = false; if (!same) rtRepaint(); }   // the badges: both systems
+  // 1.6.32 (memory): the table stringified once (the last one's text kept), not both sides on every load
+  if (d && d.players) { const s = JSON.stringify(d), same = s === RT.ownStr; RT.own = d; RT.ownStr = s; RT.err = false; if (!same) rtRepaint(); }   // the badges: both systems
   else if (!RT.own) { RT.err = true; if (rtElite()) rtRepaint(); }
 }
 function rtRepaint() {

@@ -74,15 +74,14 @@ function hlRender() {
   const box = $('hlList'); if (!box || !S) return;
   const lrs = (LR.list || []).filter(x => x.state === 'lobby' || x.state === 'countdown'), games = RM.last || [];
   const n = lrs.length + games.length;
-  $('hlN').textContent = n ? t('hlOpen', { n }) : '';
+  const nt = n ? t('hlOpen', { n }) : ''; if ($('hlN').textContent !== nt) $('hlN').textContent = nt;
   // 1.6.16 (owner 16.11.2026): no lobby - a sigil of battle in the block's middle with interference (as the Replays' empty pane),
   // no plate, no Create button. 1.6.17: always Catachan's (1.6.16 picked one of five at the start); drawn once while empty
   box.classList.toggle('empty', !n);
-  if (!n) {
-    if (!box.querySelector('.zero')) box.innerHTML = zeroPane('s-battle', t('hlNone'), t('hlNoneHint'));
-    return;
-  }
-  box.innerHTML = lrs.map(hlLr).join('') + games.map(hlGame).join('');
+  // 1.6.32 (memory): written only when the cards changed (rooms.js setHtml) - the 15 s poll and every lobby event drew them again
+  // whole; the empty pane the same way (a rewrite would restart its sigil)
+  if (!n) { setHtml(box, zeroPane('s-battle', t('hlNone'), t('hlNoneHint'))); return; }
+  if (!setHtml(box, lrs.map(hlLr).join('') + games.map(hlGame).join(''))) return;
   box.querySelectorAll('img[data-fb]').forEach(i => i.onerror = () => { i.onerror = null; i.src = i.dataset.fb; });
   box.querySelectorAll('[data-lr-join]').forEach(b => b.onclick = e => { e.stopPropagation(); lrCall('join', { id: b.dataset.lrJoin }); });
   box.querySelectorAll('[data-lr-watch]').forEach(b => b.onclick = e => { e.stopPropagation(); lrCall('join', { id: b.dataset.lrWatch, as: 'obs' }); });

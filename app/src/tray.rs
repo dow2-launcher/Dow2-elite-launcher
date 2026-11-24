@@ -4,9 +4,48 @@
 //!   main.rs). Raw RGBA made by scripts/tray_icons.py (no image decoder in the app); the size for the screen's scale (16 px at 100 %).
 //! - A copy started while another one runs as administrator: the single-instance plugin can not open that one's mutex (access
 //!   denied, not "already exists") and let the second launcher start in full (players reported two launchers). Checked here
-//!   before the plugin: such a copy says so and quits.
+//!   before the plugin: such a copy says so and quits. A copy older than 1.3.7 has no single-instance check at all: found by
+//!   its process (old_copies) and told in the window.
+//! - The window hidden in the tray: WebView2 does not notice it by itself (document.hidden stayed false, nothing was throttled) -
+//!   webview_shown tells it (IsVisible) and asks it to keep little memory meanwhile (MemoryUsageTargetLevel Low), and tells the page.
+use std::sync::atomic::{AtomicBool, Ordering};
 use tauri::image::Image;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Emitter, Manager};
+
+static WEB_HIDDEN: AtomicBool = AtomicBool::new(false);
+
+/// 1.6.32 (memory, players: "the launcher eats a lot of memory"): the window went to the tray (false) or came back (true). Only a
+/// change acts. The page hears "win_vis" (app.js WINVIS); on Windows the WebView2 controller is made invisible and its memory target
+/// Low - it drops what it keeps for drawing while nobody sees it; scripts and the stream go on.
+pub fn webview_shown(w: &tauri::WebviewWindow, on: bool) {
+    if WEB_HIDDEN.swap(!on, Ordering::SeqCst) == !on { return; }
+    let _ = w.app_handle().emit("win_vis", on);
+    #[cfg(windows)]
+    {
+        let _ = w.with_webview(move |pv| unsafe {
+            use webview2_com::Microsoft::Web::WebView2::Win32::{ICoreWebView2_19, COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL};
+            use windows_core::Interface;
+            let c = pv.controller();
+            if on { let _ = c.SetIsVisible(true); }
+            if let Ok(wv) = c.CoreWebView2() {
+                if let Ok(w19) = wv.cast::<ICoreWebView2_19>() {   // WebView2 runtime 1.0.2210+; an older one: just the visibility
+                    let _ = w19.SetMemoryUsageTargetLevel(COREWEBVIEW2_MEMORY_USAGE_TARGET_LEVEL(if on { 0 } else { 1 }));
+                }
+            }
+            if !on { let _ = c.SetIsVisible(false); }
+        });
+    }
+}
+
+/// Windows: other launcher processes (not this one) - a copy older than 1.3.7 (no single-instance check) under any of the
+/// launcher's names. Asked 20 s after the start, so a second copy that is just being turned away by the plugin is gone by then.
+#[cfg(windows)]
+pub fn old_copies() -> Vec<u32> {
+    let me = std::process::id();
+    let mut names: Vec<String> = ["Elite Launcher.exe", "EliteLauncher.exe", "elite-launcher.exe", "DoW Launcher.exe"].iter().map(|s| s.to_string()).collect();
+    if let Some(n) = std::env::current_exe().ok().and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned())) { names.push(n); }
+    crate::gameproc::procs::pids_named(&names).into_iter().filter(|&p| p != me).collect()
+}
 
 const SIZES: [u32; 4] = [16, 24, 32, 48];
 const PLAIN: [&[u8]; 4] = [include_bytes!("../icons/tray/16.rgba"), include_bytes!("../icons/tray/24.rgba"),
