@@ -1,0 +1,1 @@
+- Your Elite top-3 badge no longer sits by your name in the header and the profile menu: it is in the mode's row, next to your place. With the Relic rating shown there are no mode rows, and no badge in the menu either. Names in the chat, Online and lobbies keep their badges.
