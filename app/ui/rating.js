@@ -85,10 +85,12 @@ function rtTop(steam) {
 }
 const rtTopText = b => t('rt' + b.mode + (b.rank === 1 ? 'a' : 'b'), { n: b.rank });
 // the badges by the name (a sigil each, its own tip): the mode's army, the place's metal
-const rtBadge = steam => rtTop(steam).map(b => { const txt = rtTopText(b);
-  // 1.6.32 (owner 24.11.2026): the tip is just the title and the place ("Ноб · 2-е место в 3v3") - no "candidate", no "click"
-  // (a click still opens that mode's table on the site)
-  return `<i class="rt-b m${b.mode} r${b.rank} go" data-rtt="${b.mode}" data-tip="${esc(txt)}" aria-label="${esc(txt)}"></i>`; }).join('');
+// 1.6.32 (owner 24.11.2026): the tip is just the title and the place ("Ноб · 2-е место в 3v3") - no "candidate", no "click"
+// (a click still opens that mode's table on the site)
+const rtBadgeHtml = b => { const txt = rtTopText(b); return `<i class="rt-b m${b.mode} r${b.rank} go" data-rtt="${b.mode}" data-tip="${esc(txt)}" aria-label="${esc(txt)}"></i>`; };
+const rtBadge = steam => rtTop(steam).map(rtBadgeHtml).join('');
+// 1.6.33 (SirItos 25.11.2026): one mode's badge - the profile menu's row of that mode (the header's name carries none)
+const rtBadgeOf = (steam, mode) => { const b = rtTop(steam).find(x => x.mode === mode); return b ? rtBadgeHtml(b) : ''; };
 // a name with the badge right after it, in rows where the name takes the free width (the lobby cards): one box for both, so the
 // badge does not go to the row's far end; no badge - the name as it was
 const rtName = (nameHtml, steam) => { const b = rtBadge(steam); return b ? `<span class="nmw">${nameHtml}${b}</span>` : nameHtml; };

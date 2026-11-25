@@ -60,7 +60,9 @@ function chMeRatings(me) {
     const e = rtOwn(me.steam, m);
     // 1.6.20 (SirItos): a mode's row opens my page on the site in that mode (rating.js data-rtp)
     const go = ` data-rtp="${esc(me.steam)}" data-rtm="${m}" data-tip="${esc(t('rtMineT'))}"`;
-    if (e && e.c != null) return `<div class="me-rr go"${go}><b>${m}</b><span class="v">${e.c}</span><span class="pl">${esc(t('rtPlace', { n: e.rank }))}</span><span class="g"></span></div>`;
+    // 1.6.33 (SirItos 25.11.2026): my top-3 badge of the mode by its place here, not by my name (the header's chip, the menu's head);
+    // with the Relic rating shown the menu has no modes' rows - and no badge (SirItos 25.11)
+    if (e && e.c != null) return `<div class="me-rr go"${go}><b>${m}</b><span class="v">${e.c}</span><span class="pl">${esc(t('rtPlace', { n: e.rank }))}</span><span class="g">${rtBadgeOf(me.steam, m)}</span></div>`;
     // SirItos 17.11.2026: the calibration as skulls (played bright) and k/5 - the words in the tip.
     // 1.6.26 (SirItos 18.11.2026): always - a mode without my data (no games yet, not in the table) is its calibration at 0/k,
     // not a dash; the tips in the online block stay as they are
@@ -70,7 +72,7 @@ function chMeRatings(me) {
   // 1.6.20 (SirItos 17.11.2026): under the modes - the rules ("Table ›" is in the head; a mode's row opens my page - no "My matches",
   // the match history is not the launcher's business)
   const links = `<div class="me-rl"><button class="link-btn" id="meRules" data-tip="${esc(t('rtRulesT'))}">${esc(t('rtRules'))}</button></div>`;
-  return `<div class="me-rts">${head}${rows}${links}</div>`;
+  return `<div class="me-rts${rtTop(me.steam).length ? ' bd' : ''}">${head}${rows}${links}</div>`;
 }
 function chMe() {
   diagNameFromProfile();
@@ -78,9 +80,9 @@ function chMe() {
   $('hdrMe').classList.toggle('hidden', !CH.me || CH.me.configured === false);
   if (me) {
     plate.innerHTML = `<button class="me-chip" id="meChip" aria-haspopup="menu" aria-expanded="${!box.classList.contains('hidden')}"><i class="me-dot"></i>`
-      + `<span class="me-nr">${fmSeal(me.steam, me.name)}<span class="me-n">${esc(me.name || me.steam)}</span>${rtBadge(me.steam)}</span><b class="chev"></b></button>`;
+      + `<span class="me-nr">${fmSeal(me.steam, me.name)}<span class="me-n">${esc(me.name || me.steam)}</span></span><b class="chev"></b></button>`;
     box.innerHTML = `<div class="me-head">${avatar(me.avatar, 'me-av')}<div class="me-info"><div class="me-top">${fmSeal(me.steam, me.name)}<span class="me-name${String(me.name || me.steam).length > 14 ? ' long' : ''}">${esc(me.name || me.steam)}</span>`
-      + `${rtBadge(me.steam)}<button class="me-out" id="chOut" data-tip="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}">${ico('out')}</button></div>`
+      + `<button class="me-out" id="chOut" data-tip="${esc(t('chLogout'))}" aria-label="${esc(t('chLogout'))}">${ico('out')}</button></div>`
       + `<label class="chk me-sys" data-tip="${esc(t('rtUseT'))}"><input type="checkbox" id="meSys"${rtElite() ? ' checked' : ''}><span>${esc(t('rtUse'))}</span></label></div></div>`
       + chMeRatings(me)
       + `<div class="me-acts"><button class="me-item" id="meStats" role="menuitem">${ico('bars')}<span>${esc(t('myStats'))}</span></button>`
