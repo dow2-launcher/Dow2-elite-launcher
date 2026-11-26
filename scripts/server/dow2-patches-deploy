@@ -114,6 +114,17 @@ for aid, a in want.items():
             c[k] = a[k]; changed.append(k)
     if changed: done.append(f"{aid}: " + ", ".join(dict.fromkeys(changed)))
 
+# launcher 1.6.35 (owner 26.11.2026): the add-on presets of the Add-ons tab (Minimal / Recommended / Custom) - addons.json
+# "_presets" is launcher.json "presets", the whole object as it is (older launchers ignore the key; the launcher reads it,
+# app.js compPresets). No "_presets" in the repo - the store keeps its own. Released like an add-on: elite-release apply presets
+pre = want.get("_presets")
+if pre is not None:
+    ok = isinstance(pre, dict) and all(isinstance(p, dict) and (p.get("ids") == "defaults"
+        or (isinstance(p.get("ids"), list) and all(isinstance(x, str) and x for x in p["ids"]))) for p in pre.values())
+    if not ok: errs.append('_presets: {"<key>": {"name": {...}, "ids": "defaults" | ["<store id>", ...]}}')
+    elif lj.get("presets") != pre:
+        lj["presets"] = pre; done.append("presets: " + ", ".join(pre))
+
 if errs:
     print("ERR " + "; ".join(errs)); sys.exit(0)
 if not done:

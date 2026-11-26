@@ -6,6 +6,7 @@
 #   elite-release                 what is waiting: staging vs live, per add-on (version, texts)
 #   elite-release apply <id>...   release these add-ons: manifest into the live store, launcher.json, sign, verify, mirrors
 #                                 (id "vanilla": launcher.json "vanilla" = the vanilla game's loader, launcher 1.4.11)
+#                                 (id "presets": launcher.json "presets" = the Add-ons tab's presets, launcher 1.6.35)
 #   elite-release drop            forget the staging state (the change itself is reverted in the repo by hand)
 set -uo pipefail
 UPD=/mnt/ssd/eliteupd; STAGE="$UPD/store3-staging"; LIVE="$UPD/store3"; PUB=/usr/local/lib/elite/elite-publish
@@ -27,6 +28,11 @@ for i in live:
 # 1.4.11: the vanilla game (launcher.json "vanilla": its loader version) - released as the id "vanilla"
 lv, sv = json.load(open(sys.argv[1])).get("vanilla"), json.load(open(sys.argv[2])).get("vanilla")
 if sv != lv: print(f"WAIT vanilla: {lv} -> {sv}"); n += 1
+# 1.6.35: the add-on presets (launcher.json "presets", from Dow2-patches addons.json "_presets") - released as the id "presets"
+lp, sp = json.load(open(sys.argv[1])).get("presets"), json.load(open(sys.argv[2])).get("presets")
+if sp != lp:
+    show = lambda p: "none" if not p else "; ".join(f"{k}: {v.get('ids') if isinstance(v.get('ids'), str) else len(v.get('ids') or [])}" for k, v in p.items())
+    print(f"WAIT presets: {show(lp)} -> {show(sp)}"); n += 1
 print(f"{n} waiting" if n else "nothing waiting")
 PY
     ;;
@@ -49,6 +55,10 @@ for i in ids:
             if not os.path.islink(src) and os.path.exists(src): shutil.copy2(src, dst)
             if not os.path.exists(dst): sys.exit(f"vanilla: {v['loader']}{ext} missing")
         live["vanilla"] = v; print(f"release vanilla -> {v['loader']}"); continue
+    if i == "presets":   # 1.6.35: the add-on presets of the Add-ons tab - only launcher.json, no files
+        p = stage_all.get("presets")
+        if p is None: live.pop("presets", None); print("release presets -> none"); continue
+        live["presets"] = p; print("release presets -> " + ", ".join(p)); continue
     c = stage.get(i)
     if not c: sys.exit(f"{i}: not in staging")
     for ext in (".manifest", ".manifest.sig"):
