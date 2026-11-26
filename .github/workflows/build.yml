@@ -60,6 +60,9 @@ jobs:
       # 1.6.29: add-ons marked dangerous (app.js compDanger) and every way of turning one on - plain node
       - name: Dangerous add-ons
         run: node scripts/uicheck/danger_addons.mjs
+      # 1.6.35: the add-on presets of the Add-ons tab (app.js compPresets: Minimal / Recommended / Custom) - plain node
+      - name: Add-on presets
+        run: node scripts/uicheck/addon_presets.mjs
       - id: version
         env:
           EVENT: ${{ github.event_name }}
