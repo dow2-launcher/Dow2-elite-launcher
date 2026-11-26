@@ -1,0 +1,1 @@
+- Switching versions no longer removes the other mod: going from IG Rework to Elite (or back) leaves the other mod's files in the game folder - its .module, .cullsphere, .launchconfig and folders - so mod tools (Corsix's Mod Studio) still open it, and switching back downloads nothing.
