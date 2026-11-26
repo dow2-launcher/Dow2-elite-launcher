@@ -314,6 +314,8 @@ fn get_status(app: State<'_, App>) -> Value {
             "enabled": !addons_off && mod_g.as_deref().is_none_or(|g| c.for_game(g))   // a version without add-ons (or not for this mod) wins
                 && (c.required || s.components.get(&c.id).copied().unwrap_or(c.on_by_default())),
             "chosen": c.required || s.components.get(&c.id).copied().unwrap_or(c.on_by_default()),
+            // 1.6.35: on for a new player (the "defaults" of the presets, app.js compPresets); never a dangerous one
+            "default": c.on_by_default(),
             "required": c.required, "os": c.os, "danger": c.danger,   // 1.6.29: the card's warning, asked before it goes on
             "conflicts": if preview { Vec::new() } else { dir.as_ref().map(|d| found_conflicts(d, c)).unwrap_or_default() },
             "preview": preview,

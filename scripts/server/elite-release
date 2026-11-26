@@ -1,8 +1,12 @@
 #!/bin/bash
+# access stage 2 (10.11.2026): releases/deploy run as eliterel, never as root
+[ "$(id -u)" = 0 ] && [ -z "${ELITEREL_AS_ROOT:-}" ] && exec runuser -u eliterel -- env HOME=/home/eliterel "$0" "$@"
 # elite-release - the ONLY way add-on changes from the repo reach the players (owner's rule 29.10.2026).
 # dow2-patches-deploy builds what the repo's addons.json wants into the staging store (store3-staging) - never synced.
 #   elite-release                 what is waiting: staging vs live, per add-on (version, texts)
 #   elite-release apply <id>...   release these add-ons: manifest into the live store, launcher.json, sign, verify, mirrors
+#                                 (id "vanilla": launcher.json "vanilla" = the vanilla game's loader, launcher 1.4.11)
+#                                 (id "presets": launcher.json "presets" = the Add-ons tab's presets, launcher 1.6.35)
 #   elite-release drop            forget the staging state (the change itself is reverted in the repo by hand)
 set -uo pipefail
 UPD=/mnt/ssd/eliteupd; STAGE="$UPD/store3-staging"; LIVE="$UPD/store3"; PUB=/usr/local/lib/elite/elite-publish
@@ -21,6 +25,14 @@ for i, c in stage.items():
     if diff: print(f"WAIT {i}: {l['version']} -> {c['version']} ({', '.join(diff)})"); n += 1
 for i in live:
     if i not in stage: print(f"GONE {i} (removed in staging - not released by apply)")
+# 1.4.11: the vanilla game (launcher.json "vanilla": its loader version) - released as the id "vanilla"
+lv, sv = json.load(open(sys.argv[1])).get("vanilla"), json.load(open(sys.argv[2])).get("vanilla")
+if sv != lv: print(f"WAIT vanilla: {lv} -> {sv}"); n += 1
+# 1.6.35: the add-on presets (launcher.json "presets", from Dow2-patches addons.json "_presets") - released as the id "presets"
+lp, sp = json.load(open(sys.argv[1])).get("presets"), json.load(open(sys.argv[2])).get("presets")
+if sp != lp:
+    show = lambda p: "none" if not p else "; ".join(f"{k}: {v.get('ids') if isinstance(v.get('ids'), str) else len(v.get('ids') or [])}" for k, v in p.items())
+    print(f"WAIT presets: {show(lp)} -> {show(sp)}"); n += 1
 print(f"{n} waiting" if n else "nothing waiting")
 PY
     ;;
@@ -32,8 +44,21 @@ PY
 import json, os, shutil, sys
 live_dir, stage_dir, ids = sys.argv[1], sys.argv[2], sys.argv[3:]
 lp = os.path.join(live_dir, "launcher.json"); live = json.load(open(lp))
-stage = {c["id"]: c for c in json.load(open(os.path.join(stage_dir, "launcher.json")))["components"]}
+stage_all = json.load(open(os.path.join(stage_dir, "launcher.json")))
+stage = {c["id"]: c for c in stage_all["components"]}
 for i in ids:
+    if i == "vanilla":   # 1.4.11: launcher.json "vanilla" (the loader of the vanilla game) and the loader version's manifest
+        v = stage_all.get("vanilla")
+        if not v: live.pop("vanilla", None); print("release vanilla -> none"); continue
+        for ext in (".manifest", ".manifest.sig"):
+            src, dst = os.path.join(stage_dir, v["loader"] + ext), os.path.join(live_dir, v["loader"] + ext)
+            if not os.path.islink(src) and os.path.exists(src): shutil.copy2(src, dst)
+            if not os.path.exists(dst): sys.exit(f"vanilla: {v['loader']}{ext} missing")
+        live["vanilla"] = v; print(f"release vanilla -> {v['loader']}"); continue
+    if i == "presets":   # 1.6.35: the add-on presets of the Add-ons tab - only launcher.json, no files
+        p = stage_all.get("presets")
+        if p is None: live.pop("presets", None); print("release presets -> none"); continue
+        live["presets"] = p; print("release presets -> " + ", ".join(p)); continue
     c = stage.get(i)
     if not c: sys.exit(f"{i}: not in staging")
     for ext in (".manifest", ".manifest.sig"):

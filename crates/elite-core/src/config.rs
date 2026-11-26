@@ -72,6 +72,12 @@ pub struct LauncherConfig {
     /// it (the Mac launcher is a showcase while the Mac version of Elite waits). Never installed: not in `components`.
     #[serde(skip)]
     pub components_preview: Vec<Component>,
+    /// 1.6.35 (owner 26.11.2026): the add-on presets at the top of the Add-ons tab ("Minimal / Recommended / Custom"):
+    /// `{"<key>": {"name": Text, "description": Text, "ids": "defaults" | ["<add-on id>", ...]}}` - "defaults" = the add-ons on
+    /// by default. Passed to the window as is and read there (app.js compPresets): raw JSON, so that a preset of another shape
+    /// never makes this launcher drop the whole launcher.json. Null (no "presets") - no selector. Older launchers ignore it.
+    #[serde(skip_serializing_if = "serde_json::Value::is_null")]
+    pub presets: serde_json::Value,
 }
 
 /// The vanilla game (owner 05.11.2026): DOW2.exe without -modname, the add-ons whose `games` name "vanilla" are copied into
@@ -420,6 +426,28 @@ mod tests {
         assert!(cfg.vanilla_loader().is_none());
     }
     /// 1.6.29: "danger" - read in every form, never on by default; an entry without it as before (components and components_macos)
+    #[test]
+    fn presets_kept_as_sent_and_never_break_the_config() {
+        // absent: null, nothing serialized (the window shows no selector)
+        let none: LauncherConfig = serde_json::from_str(r#"{"components":[{"id":"automatch","default":true}]}"#).unwrap();
+        assert!(none.presets.is_null() && !serde_json::to_string(&none).unwrap().contains("presets"));
+        // the store's form: passed on as it is, the order of the keys aside
+        let j = r#"{"presets":{"minimal":{"name":{"en":"Minimal","ru":"Минимум"},"ids":"defaults"},
+            "recommended":{"name":{"en":"Recommended"},"ids":["relay_fwd","automatch","lobbystats_r3"]}},"components":[{"id":"automatch"}]}"#;
+        let c: LauncherConfig = serde_json::from_str(j).unwrap();
+        assert_eq!(c.presets["minimal"]["ids"], "defaults");
+        assert_eq!(c.presets["recommended"]["ids"][2], "lobbystats_r3");
+        assert_eq!(c.presets["minimal"]["name"]["ru"], "Минимум");
+        let back: serde_json::Value = serde_json::to_value(&c).unwrap();
+        assert_eq!(back["presets"]["recommended"]["ids"].as_array().unwrap().len(), 3);
+        assert_eq!(c.clone().for_os("macos").presets, c.presets);
+        // any other shape (a newer store, a typo) still parses: the rest of the config is not lost
+        for odd in [r#""all""#, "7", "[1,2]", r#"{"x":{"ids":5}}"#] {
+            let c: LauncherConfig = serde_json::from_str(&format!(r#"{{"presets":{odd},"components":[{{"id":"a"}}]}}"#)).unwrap();
+            assert_eq!(c.components.len(), 1, "{odd}");
+        }
+    }
+
     #[test]
     fn danger_never_on_by_default() {
         let raw = r#"{"components":[{"id":"retreatnow","default":true,"danger":{"en":"Desync unless everyone has it","ru":"Рассинхрон"}},

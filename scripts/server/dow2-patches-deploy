@@ -1,4 +1,6 @@
 #!/bin/bash
+# access stage 2 (10.11.2026): releases/deploy run as eliterel, never as root
+[ "$(id -u)" = 0 ] && [ -z "${ELITEREL_AS_ROOT:-}" ] && exec runuser -u eliterel -- env HOME=/home/eliterel "$0" "$@"
 # Dow2-patches -> STAGING of the launcher's add-ons. Pull-based: a systemd timer on the main server runs this every
 # 2 minutes. A new commit on origin/main with a changed addons.json -> build the DLLs here -> publish every add-on whose
 # version there is new into the STAGING store (store3-staging: never synced to the mirrors, players don't see it).
@@ -10,7 +12,7 @@ set -uo pipefail
 SRC=/srv/dow2-patches-deploy                  # deploy checkout (nobody edits here)
 UPD=/mnt/ssd/eliteupd                         # store3/, comp/, keys/private.key, .token
 PUB=/usr/local/lib/elite/elite-publish        # frozen copy: the launcher builds rebuild their own target dir
-export GIT_SSH_COMMAND="ssh -i /root/.ssh/deploy_dow2-fixes -o IdentitiesOnly=yes -o BatchMode=yes"
+# public repo: fetch by HTTPS, no key (access stage 2)
 DRY=${DRY:-}
 say() { echo "$1"; }                     # only the journal (journalctl -u dow2-patches-deploy): no Telegram
 STAGE="$UPD/store3-staging"; SCOMP="$UPD/comp-staging"   # see elite-release
@@ -18,7 +20,7 @@ STAGE="$UPD/store3-staging"; SCOMP="$UPD/comp-staging"   # see elite-release
 # one writer of store3 at a time: this script and the hand edits (flock /run/elite-store.lock <command>)
 exec 9>/run/elite-store.lock; flock -w 600 9 || exit 0
 
-[ -d "$SRC/.git" ] || git clone -q git@github.com:pivolan/Dow2-patches.git "$SRC" || exit 1
+[ -d "$SRC/.git" ] || git clone -q https://github.com/dow2-launcher/Dow2-patches.git "$SRC" || exit 1
 cd "$SRC" || exit 1
 git fetch -q origin || exit 1
 NEW=$(git rev-parse "${1:-origin/main}"); OLD=$(cat .deployed 2>/dev/null || true)
@@ -56,8 +58,10 @@ want = json.load(open("addons.json"))
 lj_path = os.path.join(store, "launcher.json")
 lj = json.load(open(lj_path))
 comps = {c["id"]: c for c in lj["components"]}
-TEXT = ("name", "description", "category", "order", "default", "conflicts", "options")   # "files" is about the build, not the launcher
-# 04.11.2026 (siritos): "category" (the group on the Add-ons tab) comes from addons.json too, not only by hand
+TEXT = ("name", "description", "default", "conflicts", "options")      # "files" is about the build, not the launcher
+# 09.11.2026: games / requires / excludes (launcher 1.5.2) when the repo has them for an add-on (without them the store keeps
+# its own); category / order only for a NEW add-on - the group of an existing one is changed in the store by hand
+STORE_KEYS = ("games", "requires", "excludes", "danger")   # 19.11.2026: danger - launcher 1.6.29 red chip + confirm on enable
 done, errs = [], []
 
 def is_dll32(p):
@@ -101,12 +105,25 @@ for aid, a in want.items():
         changed.append("новая сборка")
     if c is None:
         c = {"id": cid, "version": ver, "inject": dll}; lj["components"].append(c); changed.append("новое")
+        for k in ("category", "order"):
+            if k in a: c[k] = a[k]
     if c["version"] != ver:
         changed.append(f"{c['version']} → {ver}"); c["version"] = ver
-    for k in TEXT:
+    for k in TEXT + STORE_KEYS:
         if k in a and c.get(k) != a[k]:
             c[k] = a[k]; changed.append(k)
     if changed: done.append(f"{aid}: " + ", ".join(dict.fromkeys(changed)))
+
+# launcher 1.6.35 (owner 26.11.2026): the add-on presets of the Add-ons tab (Minimal / Recommended / Custom) - addons.json
+# "_presets" is launcher.json "presets", the whole object as it is (older launchers ignore the key; the launcher reads it,
+# app.js compPresets). No "_presets" in the repo - the store keeps its own. Released like an add-on: elite-release apply presets
+pre = want.get("_presets")
+if pre is not None:
+    ok = isinstance(pre, dict) and all(isinstance(p, dict) and (p.get("ids") == "defaults"
+        or (isinstance(p.get("ids"), list) and all(isinstance(x, str) and x for x in p["ids"]))) for p in pre.values())
+    if not ok: errs.append('_presets: {"<key>": {"name": {...}, "ids": "defaults" | ["<store id>", ...]}}')
+    elif lj.get("presets") != pre:
+        lj["presets"] = pre; done.append("presets: " + ", ".join(pre))
 
 if errs:
     print("ERR " + "; ".join(errs)); sys.exit(0)

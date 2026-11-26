@@ -515,10 +515,105 @@ function compList(box, list, full) {
     await invoke('set_component', { id: cb.dataset.id, on: cb.checked });
     for (const d of deps) await invoke('set_component', { id: d.id, on: false });
     if (deps.length) toast(t('addonDepsOff', { names: deps.map(x => L(x.name) || x.id).join(', ') }));
-    if (S.installed_version || VAN()) { try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); } catch (e) { toast(e, true); } }
-    else reload();
+    await compSync();
   });
 }
+// after the ticks changed (a click, a preset): the add-ons' files brought to them at once, as before 1.6.35
+async function compSync() {
+  if (S.installed_version || VAN()) { try { await invoke('start_update', { repair: false, componentsOnly: true }); S.busy = true; render(); } catch (e) { toast(e, true); } }
+  else reload();
+}
+
+// <presets> 1.6.35 (owner 26.11.2026): ready sets of add-ons at the top of the Add-ons tab - Minimal / Recommended / Custom.
+// The sets are the store's (launcher.json "presets", from Dow2-patches addons.json "_presets"), changed without a launcher
+// release: {"minimal": {"name": {...}, "ids": "defaults"}, "recommended": {"name": {...}, "description": {...}, "ids": [...]}};
+// "defaults" = the add-ons on for a new player. No "presets" in the store - no selector.
+// Nothing is switched by itself (nothing goes on for a player without his own action): the selector only SHOWS the preset
+// whose set equals the ticks of the game Play starts now (Elite / vanilla / a mod version's own game), else Custom. A click on
+// a preset ticks exactly its add-ons of that game and unticks the rest of that game (the other games' add-ons keep their
+// ticks) - through set_component and compSync like a click on a row, a dangerous add-on asks first (compDangerOk). Custom
+// brings back the player's own ticks from before his first preset (kept per game). tests: scripts/uicheck/addon_presets.mjs
+const PRESET_ORDER = ['minimal', 'recommended'];
+const PRESET_TXT = { minimal: 'presetMinimal', recommended: 'presetRecommended' };
+function compPresets() {
+  const p = S && S.config && S.config.presets;
+  if (!p || typeof p !== 'object' || Array.isArray(p)) return [];
+  const rank = k => { const i = PRESET_ORDER.indexOf(k); return i < 0 ? PRESET_ORDER.length : i; };
+  return Object.keys(p).filter(k => p[k] && typeof p[k] === 'object' && (p[k].ids === 'defaults' || Array.isArray(p[k].ids)))
+    .map((k, i) => [k, i]).sort((a, b) => rank(a[0]) - rank(b[0]) || a[1] - b[1]).map(([k]) => ({
+      k, ids: p[k].ids, tip: L(p[k].description), name: L(p[k].name) || (PRESET_TXT[k] ? t(PRESET_TXT[k]) : k) }));
+}
+// the game whose add-ons a preset sets, and those add-ons: the ones the player can switch there (no showcase, no required one)
+const presetGame = () => VAN() ? 'vanilla' : (S && S.addon_game) || 'elite';
+const presetScope = all => all.filter(c => !naHere(c) && !c.required && !c.preview);
+// an id of a preset matches the add-on with or without its "_r2"/"_r3" or "_mac" end (lobbystats_r3 = lobbystats_mac)
+const presetKey = id => macBase({ id: String(id) });
+// the ids a preset turns on among `scope`, in the preset's order; an add-on that does not go with one taken before it (its
+// "excludes", either side) is left out - the earlier one wins; then the ones none of whose required add-ons is in the set (or
+// always on) - unticked anyway the moment their main one goes off (compDependentsOff)
+function presetWant(pr, scope, all) {
+  let pick = [];
+  if (pr.ids === 'defaults') pick = scope.filter(c => c.default);
+  else for (const id of pr.ids) scope.filter(c => presetKey(c.id) === presetKey(id) && !pick.includes(c)).forEach(c => pick.push(c));
+  const out = [];
+  for (const c of pick) if (!out.some(x => (c.excludes || []).includes(compBase(x)) || (x.excludes || []).includes(compBase(c)))) out.push(c);
+  const always = all.filter(c => c.required && !naHere(c));
+  for (let more = true; more;) {
+    more = false;
+    for (const c of out.slice()) {
+      const rq = c.requires || [];
+      if (rq.length && !rq.some(r => out.concat(always).some(x => compBase(x) === r))) { out.splice(out.indexOf(c), 1); more = true; }
+    }
+  }
+  return out.map(c => c.id);
+}
+const sameSet = (a, b) => a.length === b.length && a.every(x => b.includes(x));
+// the preset the ticks are now ('custom' when none)
+function presetNow(list) {
+  const all = compAll(), scope = presetScope(all), on = scope.filter(c => c.enabled).map(c => c.id);
+  const p = (list || compPresets()).find(pr => sameSet(presetWant(pr, scope, all), on));
+  return p ? p.k : 'custom';
+}
+// the player's own ticks (from before his first preset), per game; only a convenience - without storage Custom just shows
+const presetMine = () => { try { return JSON.parse(localStorage.getItem('compCustom') || '{}') || {}; } catch (e) { return {}; } };
+const presetLock = () => !S || S.busy || S.game_running || S.addons_blocked || S.addons_blocked_next;
+async function presetApply(k) {
+  const list = compPresets(), pr = list.find(p => p.k === k), all = compAll(), scope = presetScope(all), cur = presetNow(list);
+  if (presetLock() || k === cur) return;
+  const g = presetGame(), mine = presetMine();
+  let want;
+  if (k === 'custom') { if (!mine[g]) return; want = mine[g]; }
+  else if (!pr) return;
+  else {
+    want = presetWant(pr, scope, all);
+    if (cur === 'custom') { mine[g] = scope.filter(c => c.enabled).map(c => c.id); try { localStorage.setItem('compCustom', JSON.stringify(mine)); } catch (e) {} }
+  }
+  const ch = [];
+  for (const c of scope) {
+    const on = want.includes(c.id);
+    if (on === !!c.enabled) continue;
+    if (on && !(await compDangerOk(c))) continue;   // a dangerous one in a set: asked like a click, Cancel leaves it off
+    ch.push({ c, on });
+  }
+  if (!ch.length) return render();
+  try { for (const x of ch) await invoke('set_component', { id: x.c.id, on: x.on }); }
+  catch (e) { toast(e, true); return reload(); }
+  const nm = on => ch.filter(x => x.on === on).map(x => L(x.c.name) || x.c.id).join(', ');
+  toast([nm(true) && t('presetOn', { names: nm(true) }), nm(false) && t('presetOff', { names: nm(false) })].filter(Boolean).join(' · '));
+  await compSync();
+}
+function presetRender() {
+  const box = $('addonPresets'), list = compPresets();
+  box.classList.toggle('hidden', !list.length);
+  if (!list.length) { box.innerHTML = ''; return; }
+  const cur = presetNow(list), lock = presetLock(), mine = presetMine()[presetGame()];
+  const items = list.map(p => [p.k, p.name, p.tip]).concat([['custom', t('presetCustom'), t('presetCustomTip')]]);
+  box.innerHTML = `<span>${esc(t('presetLabel'))}<span class="seg" role="radiogroup" aria-label="${esc(t('presetLabel'))}">${items.map(([k, l, tip]) =>
+    `<button role="radio" aria-checked="${k === cur}" class="${k === cur ? 'on' : ''}" data-preset="${esc(k)}"${tip ? ` data-tip="${esc(tip)}"` : ''}`
+    + `${lock || (k === 'custom' && k !== cur && !mine) ? ' disabled' : ''}>${esc(l)}</button>`).join('')}</span></span>`;
+  box.querySelectorAll('[data-preset]').forEach(b => b.onclick = () => presetApply(b.dataset.preset).catch(e => toast(e, true)));
+}
+// </presets>
 
 // details of an add-on next to its "?": description, version, a hand-installed copy in the game folder
 addEventListener('resize', () => { const n = window.innerWidth < 1000 ? 1 : window.innerWidth < 1600 ? 2 : 3; if (S && compList.cols && n !== compList.cols) render(); });
@@ -853,6 +948,7 @@ function render() {
   $('compBox').classList.toggle('hidden', !pinned.length);
   compList($('components'), pinned, false);
   compList($('allCompList'), comps, true);
+  presetRender();
 
   // Play
   const play = $('play');

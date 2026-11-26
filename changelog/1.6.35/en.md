@@ -1,0 +1,1 @@
+- Add-on presets: at the top of the Add-ons page pick Minimal (only what is on by default), Recommended (network, replay and lobby helpers and safe fixes that do not change the game) or Custom (your own ticks). Nothing changes until you pick one yourself; ticking any add-on afterwards makes it Custom again, and Custom brings back the ticks you had before.
