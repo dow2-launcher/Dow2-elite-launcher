@@ -599,8 +599,14 @@ pub fn apply(game: &Game, m: &Mirrors, man: &Manifest, opt: &Options, progress: 
         p.eta_s = eta(p.bytes_done, p.bytes_total, t0.elapsed().as_secs_f64());
     }
 
-    // 3. files of the previous version that the new one doesn't have
+    // 3. files of the previous version that the new one doesn't have - except another mod's own files (26.11.2026, grantovich:
+    // a switch IG Rework -> Elite took IgRework.module / .cullsphere / .launchconfig / IgRework\ away, so Corsix's Mod Studio could
+    // not open his mod any more; mods live side by side in the game folder as their archives unpack them)
+    let keep = other_mods(&old.files, man);
     for f in &old.files {
+        if !keep.is_empty() && keep.contains(&mod_of(&f.path)) {
+            continue;
+        }
         if !man.files.iter().any(|n| n.path == f.path) {
             let path = game.file(&f.path);
             if path.is_file() {
@@ -632,6 +638,26 @@ pub fn apply(game: &Game, m: &Mirrors, man: &Manifest, opt: &Options, progress: 
     p.bytes_done = p.bytes_total;
     progress(&p);
     Ok(sum)
+}
+
+/// The mod a game-folder path belongs to, lower case: its first folder or file name up to the first '.' or '_'
+/// ("IgRework/Archives/x.sga", "IgRework_DLLs/y.dll", "IgRework.module" -> "igrework"); a mod's text in GameAssets goes by its file
+/// name ("GameAssets/Locale/English/IgRework.ucs" -> "igrework").
+fn mod_of(path: &str) -> String {
+    let p = path.replace('\\', "/");
+    let lower = p.to_ascii_lowercase();
+    let name = if lower.starts_with("gameassets/") { p.rsplit('/').next().unwrap_or("") } else { p.split('/').next().unwrap_or("") };
+    name.split(|c| c == '.' || c == '_').next().unwrap_or("").to_ascii_lowercase()
+}
+
+/// Mods the previous version had (a "<mod>.module" in the game folder's root) and the new one does not: their files stay.
+fn other_mods(old: &[StateFile], man: &Manifest) -> std::collections::HashSet<String> {
+    let module = |p: &str| -> Option<String> {
+        let l = p.to_ascii_lowercase();
+        (!l.contains('/') && !l.contains('\\')).then(|| l.strip_suffix(".module").map(str::to_string)).flatten()
+    };
+    let new: std::collections::HashSet<String> = man.files.iter().filter_map(|f| module(&f.path)).collect();
+    old.iter().filter_map(|f| module(&f.path)).filter(|m| !new.contains(m)).collect()
 }
 
 /// Seconds left of a phase that did `done` of `total` bytes in `secs` (0 = too early to tell).
@@ -886,6 +912,50 @@ mod tests {
         assert_eq!((sum.from_cache, sum.updated), (v1.len() as u64, 1));
         assert_eq!(fs::read(dir.join("Archives/a.sga")).unwrap(), v1);
         let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn switch_to_another_mod_keeps_the_old_mods_own_files() {
+        // 26.11.2026 grantovich: IG Rework -> Elite must leave IgRework.module & co in place (Corsix's Mod Studio opens the .module)
+        let dir = std::env::temp_dir().join(format!("elite_keepmod_test_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&dir);
+        for d in ["IgRework/Archives", "IgRework_DLLs", "GameAssets/Locale/English", "Elite_DLLs"] { fs::create_dir_all(dir.join(d)).unwrap(); }
+        let sha = |b: &[u8]| cdc::sha256(std::io::Cursor::new(b)).unwrap().0;
+        let fe = |p: &str, b: &[u8]| FileEntry { path: p.into(), size: b.len() as u64, sha: sha(b), chunks: vec![] };
+        let ig: Vec<(&str, &[u8])> = vec![("IgRework.module", b"igmod"), ("IgRework.cullsphere", b"igcull"), ("IgRework.launchconfig", b"iglc"),
+            ("IgRework/Archives/IGreworkdata.sga", b"igdata"), ("IgRework_DLLs/MiscFixes.dll", b"igmisc"),
+            ("GameAssets/Locale/English/IgRework.ucs", b"igucs")];
+        let shared: Vec<(&str, &[u8])> = vec![("Elite.module", b"elite32"), ("Elite_DLLs/MiscFixes.dll", b"misc"), ("Elite_DLLs/Gone32.dll", b"gone")];
+        for (p, b) in ig.iter().chain(shared.iter()) { fs::write(dir.join(p), b).unwrap(); }
+        let g = Game::new(&dir);
+        let st = |p: &str, b: &[u8]| { let (size, mtime) = mtime(&g.file(p)).unwrap(); StateFile { path: p.into(), size, mtime, sha: hex(&sha(b)) } };
+        g.save_state(&State { version: "igrework-11".into(), channel: "igrework".into(),
+            files: ig.iter().chain(shared.iter()).map(|(p, b)| st(p, b)).collect() }).unwrap();
+        // Elite 3.2.1: the same Elite files minus one; no IgRework at all
+        let man = Manifest { version: "3.2.1".into(), files: vec![fe("Elite.module", b"elite32"), fe("Elite_DLLs/MiscFixes.dll", b"misc")] };
+        let opt = Options { verify_all: false, cache_limit: 1 << 30, channel: "stable".into() };
+        let sum = apply(&g, &Mirrors::new(vec![]), &man, &opt, &mut |_| {}).unwrap();
+        for (p, b) in &ig { assert_eq!(fs::read(dir.join(p)).unwrap(), *b, "{p} kept"); }
+        assert!(!dir.join("Elite_DLLs/Gone32.dll").exists(), "a file of the same mod (Elite) the new version does not have still goes");
+        assert_eq!(sum.removed, 1);
+        // and back to IG Rework: nothing to download, its files are there
+        let man_ig = Manifest { version: "igrework-11".into(), files: ig.iter().chain(shared.iter()).map(|(p, b)| fe(p, b)).collect() };
+        fs::create_dir_all(g.cache_dir()).unwrap();
+        let sum = apply(&g, &Mirrors::new(vec![]), &man_ig, &Options { channel: "igrework".into(), ..opt }, &mut |_| {}).unwrap();
+        assert_eq!(sum.downloaded, 0);
+        assert!(dir.join("Elite_DLLs/Gone32.dll").is_file(), "from the cache");
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn mod_of_a_path() {
+        assert_eq!(mod_of("IgRework/Archives/IGreworkdata.sga"), "igrework");
+        assert_eq!(mod_of("IgRework_bin/IgRework_Shark.bin"), "igrework");
+        assert_eq!(mod_of("IgRework.launchconfig"), "igrework");
+        assert_eq!(mod_of("GameAssets/Locale/English/IgRework.ucs"), "igrework");
+        assert_eq!(mod_of("GameAssets/Locale/English/DOW2.ucs"), "dow2");
+        assert_eq!(mod_of("Elite_DLLs/MMFind.dll"), "elite");
+        assert_eq!(mod_of("Profiler.dll"), "profiler");
     }
 
     #[test]
