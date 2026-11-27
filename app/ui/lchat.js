@@ -98,21 +98,28 @@ function lcRows(r) {
   const mentionAll = html => chAtAll(mention(html));   // 1.6.32: @all (chat.js)
   const time = ts => new Date(ts * 1000).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' });
   if (!LC.list.length) return `<div class="ch-empty">${esc(t('lrChatNone'))}</div>`;
+  let who = null;   // 1.6.36: one author's messages in a row are a stack (as the general chat, chat.js chRender); an event ends it
   return LC.list.map(m => {
     if (m.sys) {
+      who = null;
       const k = LC_SYS[m.sys] || LC_SYS.join, icon = k[1] === 'in' ? LC_IN : k[1] === 'out' ? LC_OUT : ico(k[1]);
       return `<div class="lc-sys ${k[0]}" data-id="${esc(String(m.id))}"><span class="sx">${icon}</span><span class="st"><b>${esc(m.name || '')}</b> ${esc(t('lrSys_' + m.sys, { team: m.team || '' }))}</span>`
         + `<span class="sw">${time(m.ts)}</span></div>`;
     }
+    // the observer's eye goes with his role at the time: a move into the seats (or out of them) starts a new stack
+    const by = String(m.steam || '') + (m.obs ? '/obs' : ''), cont = who === by; who = by;
     const text = lcText(m), tr = text !== lcOrig(m), toMe = m.reply && !m.reply.deleted && String(m.reply.steam) === String(me) && m.steam !== me;
     const rpl = m.steam !== me ? `<button class="rpl" data-reply="${esc(String(m.id))}" title="${esc(t('chReply'))}" aria-label="${esc(t('chReply'))}">${CH_ARROW}</button>` : '';
     const q = m.reply ? (m.reply.deleted ? `<div class="rq del"><i>${esc(t('chQuoteDel'))}</i></div>`
       : `<div class="rq" data-goto="${esc(String(m.reply.id))}" role="button" tabindex="0" title="${esc(t('chQuoteGo'))}"><b>${esc(m.reply.name || '')}</b><i>${esc(lcQuote(m.reply))}</i></div>`) : '';
-    return `<div class="ch-m ${m.steam === me ? 'mine' : ''} ${toMe ? 'tome' : ''}" data-id="${esc(String(m.id))}"><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">${avatar(m.avatar)}</span>`
+    const when = esc(new Date(m.ts * 1000).toLocaleString(lang));
+    const body = q + `<div class="tx ${tr ? 'tr' : ''}"${tr ? ` title="${esc(t('chOrig') + ': ' + lcOrig(m))}"` : ''}>${linkify(text, p => mentionAll(esc(p)), linkA)}</div>`;
+    const cls = `ch-m ${m.steam === me ? 'mine' : ''} ${toMe ? 'tome' : ''}`;
+    if (cont) return `<div class="${cls} cont" data-id="${esc(String(m.id))}"><span class="ch-gt" title="${when}">${chTimeShort(m.ts)}</span><div>${body}</div>${rpl}</div>`;
+    return `<div class="${cls}" data-id="${esc(String(m.id))}"><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">${avatar(m.avatar)}</span>`
       + `<div><div class="w">${m.obs ? `<i class="lc-ome" data-tip="${esc(t('lrChatObs'))}">${ico('eye')}</i>` : ''}`
       + `${fmSeal(m.steam, m.name)}<b class="${r && m.steam === r.owner ? 'lc-host' : ''}" data-name="${esc(m.name || '')}" data-steam="${esc(m.steam)}"${rtTipAttr(m.steam, m.name)}>${esc(m.name || '')}</b>${rtBadge(m.steam)}`
-      + `<span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}</div>${q}`
-      + `<div class="tx ${tr ? 'tr' : ''}"${tr ? ` title="${esc(t('chOrig') + ': ' + lcOrig(m))}"` : ''}>${linkify(text, p => mentionAll(esc(p)), linkA)}</div></div></div>`;
+      + `<span title="${when}">${time(m.ts)}</span></div>${body}</div>${rpl}</div>`;
   }).join('');
 }
 // one of the two places (the lobby's column, Home's pane): its messages, the reply strip, the input

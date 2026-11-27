@@ -2059,3 +2059,20 @@ html.bg *,html.bg *::before,html.bg *::after{animation-play-state:paused!importa
 .grp-f.add .sk-av{opacity:.42;filter:grayscale(.4)}
 .grp-f.add .gplus{position:absolute;right:6px;bottom:5px;display:block;line-height:0;color:var(--gd)}
 .grp-f.add .gplus .ico{width:13px;height:13px;stroke-width:2.6}
+/* 1.6.36 (owner 27.11.2026): one author's messages in a row are a stack, as in Discord / Telegram - the avatar and the name once, at
+   its top, until another player writes; every message keeps its own Reply (the arrow at the row's right edge on hover, the row lit
+   under the mouse so it is plain which message it answers) and its time (in the avatar's column on hover) */
+.ch-m{position:relative;padding-right:24px}
+.ch-m>.rpl{position:absolute;top:0;right:0;margin:0}
+.ch-m:hover{background:rgba(69,224,192,.045)}
+.ch-m.tome:hover{background:rgba(69,224,192,.09)}
+.ch-m.cont{margin-top:-4px}
+.ch-m+.ch-m:not(.cont){margin-top:4px}
+.ch-gt{flex:none;width:36px;padding-top:3px;font-size:10.5px;line-height:15px;text-align:center;color:var(--dim);white-space:nowrap;visibility:hidden}
+.ch-m.cont:hover .ch-gt,.ch-m.cont.sending .ch-gt{visibility:visible}
+.ch-gt .ch-wait{margin:0}
+.ch-m.cont .w .ch-fail{margin-left:0}
+/* 1.6.36 (owner 27.11.2026): a translation on (RU / EN by the globe) put a scroll bar under the chat's tabs - the language's letters
+   hang 3 px past the globe (right:-3px) and the globe is the row's last item, so the row (it scrolls sideways when narrow) grew by
+   3 px. The globe keeps that room at its right: the letters stay where they were and the row never overflows by them */
+.ch-devg .ch-lang{margin-right:3px}

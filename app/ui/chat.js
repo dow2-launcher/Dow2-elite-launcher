@@ -291,6 +291,9 @@ async function chGoto(id) {
     await chLoad(key, 'older');
   }
 }
+// 1.6.36: a stack's time in the avatar's column (36 px) - the hours and minutes only ("10:21 AM" -> "10:21": a 12-hour clock did not
+// fit); the full date and time in its tip, AM / PM on the stack's first line
+const chTimeShort = ts => { try { return new Intl.DateTimeFormat(lang, { hour: '2-digit', minute: '2-digit' }).formatToParts(new Date(ts * 1000)).filter(p => p.type !== 'dayPeriod').map(p => p.value).join('').trim(); } catch (e) { return ''; } };
 function chRender(force, older) {
   const box = $('chMsgs'), key = chKey(CH.room), list = CH.msgs[key] || [];
   const atEnd = box.scrollTop + box.clientHeight > box.scrollHeight - 30, h0 = box.scrollHeight, top0 = box.scrollTop;
@@ -310,19 +313,27 @@ function chRender(force, older) {
   const mention = html => names.reduce((h, n) => h.split('@' + esc(n)).join(`\u0000${n === myName ? 1 : 0}${esc(n)}\u0001`), html)
     .replace(/\u0000([01])([^\u0001]*)\u0001/g, (_, me, n) => `<span class="ch-at${me === '1' ? ' me' : ''}">@${n}</span>`);
   const mentionAll = html => chAtAll(mention(html));   // 1.6.32: @all
-  let prev = null;
+  let prev = null, who = null;   // who: the author of the message above (a stack goes on while it is the same one)
   const replyOn = chReplyOn();
   const quote = q => !q ? '' : q.deleted ? `<div class="rq del"><i>${esc(t('chQuoteDel'))}</i></div>`
     : `<div class="rq" data-goto="${esc(String(q.id))}" role="button" tabindex="0" title="${esc(t('chQuoteGo'))}"><b>${esc(q.name || '')}</b><i>${esc(chQuoteText(q))}</i></div>`;
   const row = (m, extra, tail) => {
-    const k = dayKey(m.ts), head = k !== prev ? `<div class="ch-day"><span>${esc(dayName(m.ts))}</span></div>` : ''; prev = k;
+    const k = dayKey(m.ts), head = k !== prev ? `<div class="ch-day"><span>${esc(dayName(m.ts))}</span></div>` : '';
+    const cont = k === prev && who === String(m.steam || ''); prev = k; who = String(m.steam || '');
     const text = chText(m), tr = text !== chOrig(m);   // translated: the original on hover
     const toMe = mine && m.reply && !m.reply.deleted && String(m.reply.steam) === String(mine) && m.steam !== mine;
     const rpl = replyOn && m.id && m.steam !== mine && !extra ? `<button class="rpl" data-reply="${esc(String(m.id))}" title="${esc(t('chReply'))}" aria-label="${esc(t('chReply'))}">${CH_ARROW}</button>` : '';
-    return head + `<div class="ch-m ${m.steam === mine ? 'mine' : ''} ${toMe ? 'tome' : ''} ${extra}"${m.id ? ` data-id="${esc(String(m.id))}"` : ''}><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">` + avatar(m.avatar) + `</span>`
-      + `<div><div class="w">${fmSeal(m.steam, m.name)}<b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}"${rtTipAttr(m.steam, m.name)}>${esc(m.name)}</b>${rtBadge(m.steam)}<span title="${esc(new Date(m.ts * 1000).toLocaleString(lang))}">${time(m.ts)}</span>${rpl}${tail}</div>`
-      + quote(m.reply)
-      + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${linkify(text, p => mentionAll(esc(p)), linkA)}</div></div></div>`;
+    const when = esc(new Date(m.ts * 1000).toLocaleString(lang));
+    const body = quote(m.reply) + `<div class="tx ${tr ? 'tr' : ''}" ${tr ? `title="${esc(t('chOrig') + ': ' + chOrig(m))}"` : ''}>${linkify(text, p => mentionAll(esc(p)), linkA)}</div>`;
+    const cls = `ch-m ${m.steam === mine ? 'mine' : ''} ${toMe ? 'tome' : ''} ${extra}`, id = m.id ? ` data-id="${esc(String(m.id))}"` : '';
+    // 1.6.36 (owner 27.11.2026): one author's messages in a row are a stack, as in Discord / Telegram - the avatar and the name
+    // once, at its top, until another player writes (or the day changes); every message of it keeps its own Reply (the arrow at
+    // the row's right edge on hover) and its time (in the avatar's column on hover; ours being sent: the clock there)
+    if (cont) return `<div class="${cls} cont"${id}><span class="ch-gt" title="${when}">${extra === 'sending' ? tail : chTimeShort(m.ts)}</span>`
+      + `<div>${body}${extra === 'failed' ? `<div class="w">${tail}</div>` : ''}</div>${rpl}</div>`;
+    return head + `<div class="${cls}"${id}><span class="ch-av" data-steam="${esc(m.steam)}" data-name="${esc(m.name || '')}">` + avatar(m.avatar) + `</span>`
+      + `<div><div class="w">${fmSeal(m.steam, m.name)}<b data-name="${esc(m.name)}" data-steam="${esc(m.steam || '')}"${rtTipAttr(m.steam, m.name)}>${esc(m.name)}</b>${rtBadge(m.steam)}<span title="${when}">${time(m.ts)}</span>${tail}</div>`
+      + body + `</div>${rpl}</div>`;
   };
   const sent = list.map(m => row(m, '', '')).join('');   // first: the day headings run on into the queue
   // ours not confirmed yet stay at the bottom: a clock while sending, "Not sent · Retry · Delete" when it failed
