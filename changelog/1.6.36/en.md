@@ -1,0 +1,2 @@
+- Chat: several messages in a row from one person now form one stack, as in Discord: the avatar and the name only on the first, until someone else writes. Every message keeps its own Reply arrow at the right edge (the row under the mouse lights up), and its time shows on the left on hover. The lobby chat works the same way.
+- Chat: with the translation into Russian or English on, no scroll bar appears under the chat tabs any more and the language letters by the globe are no longer cut.
