@@ -316,7 +316,7 @@ pub fn room_link_take() -> Value {
 }
 
 #[cfg(windows)]
-mod win {
+pub(crate) mod win {   // 1.6.37: launchtrace.rs reads command lines with win::cmdline
     use serde_json::Value;
     use std::fs::{File, OpenOptions};
     use std::io::{Read, Write};

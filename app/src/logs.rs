@@ -249,6 +249,10 @@ pub async fn send_logs(app: AppHandle, who: String, what: Option<String>) -> Res
             out += &format!("=== Documents check (launcher {LAUNCHER_VERSION}) ===\nDOCSCHECK_L {}\n{}\n\n", sum.join(" | "), lines.join("\n"));
             n += 1;
         }
+        // 1.6.37 (HellRaIzeR 28.11.2026: Elite came up as plain Retribution): the Steam the game hands itself to when it is not
+        // started by Steam (HKLM InstallPath), the Steam that runs, launch options, compatibility settings (elite_core::steamcheck)
+        out += &format!("=== Steam check (launcher {LAUNCHER_VERSION}) ===\n{}\n\n", elite_core::steamcheck::report(dir.as_deref()).join("\n"));
+        n += 1;
         if n == 0 { return Err("no log files found yet — play once with the add-ons on, then send".into()); }
         let who: String = who.chars().filter(|c| c.is_alphanumeric() || "._-".contains(*c)).take(32).collect();
         let who = if who.is_empty() { "anon".to_string() } else { who };

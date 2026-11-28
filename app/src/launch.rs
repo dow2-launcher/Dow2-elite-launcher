@@ -198,6 +198,8 @@ pub(crate) fn launch(dir: &std::path::Path, cfg: &LauncherConfig, vanilla: bool,
     };
     let program = sub(&cmd.program);
     c_log(&format!("launch: {}{}", program, cmd.args.iter().map(|a| format!(" {}", sub(a))).collect::<String>()));
+    // 1.6.37: the game's processes of the next 150 s into community.log (who starts DOW2.exe with which arguments, the hand-over to Steam)
+    launchtrace::start(Some(PathBuf::from(&game)));
     let mut c = std::process::Command::new(&program);
     c.args(cmd.args.iter().map(|a| sub(a))).current_dir(&game);
     match c.spawn() {
