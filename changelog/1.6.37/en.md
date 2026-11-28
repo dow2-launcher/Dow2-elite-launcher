@@ -1,0 +1,1 @@
+- "Send logs" now also checks how Steam is set up for the game (which Steam the game asks to start it, the game's launch options in Steam, compatibility settings), and the launcher notes how the game starts after Play. This helps when Elite comes up as plain Retribution.

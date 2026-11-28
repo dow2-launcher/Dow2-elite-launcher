@@ -35,6 +35,7 @@ mod vanilla;
 mod install;
 mod logs;
 mod launch;
+mod launchtrace;
 mod feedback;
 mod community;
 mod stream;
